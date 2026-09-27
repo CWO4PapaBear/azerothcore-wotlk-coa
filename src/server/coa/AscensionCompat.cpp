@@ -3271,10 +3271,16 @@ public:
       return;
     }
 
-    std::shared_ptr<PlayerCollectionState> state =
-        std::make_shared<PlayerCollectionState>();
-    state->AccountId = player->GetSession()->GetAccountId();
-    LoadPlayerState(player, *state);
+    if (player->GetSession()->IsBot())
+    {
+      TakeLoginState(player);
+      InitializeRiding(player);
+      return;
+    }
+
+    std::shared_ptr<PlayerCollectionState> state = TakeLoginState(player);
+    if (!state)
+      state = LoadCollectionState(player);
 
     UnlockLocalAppearanceCatalog(player, *state);
 
@@ -3314,6 +3320,7 @@ public:
     {
       std::lock_guard lock(_stateMutex);
       _playerStates.erase(player->GetGUID().GetCounter());
+      _loginStates.erase(player->GetGUID().GetCounter());
     }
 
     {
@@ -3431,14 +3438,12 @@ public:
 
     void PrepareOwnedCompanionsBeforeMap(Player* player)
     {
-        if (!_clientDataLoaded || player->IsInWorld() || !player->GetSession()->PlayerLoading() ||
+        if (!_clientDataLoaded || player->GetSession()->IsBot() || player->IsInWorld() || !player->GetSession()->PlayerLoading() ||
             !ascensionCompatConfig.GetConfigValue<bool>(AscensionCompatConfig::LEARN_OWNED_COMPANIONS))
             return;
 
-        PlayerCollectionState state;
-        state.AccountId = player->GetSession()->GetAccountId();
-        LoadPlayerState(player, state);
-        std::vector<uint32> const spells = GetMissingOwnedCompanionSpells(player, state);
+        std::shared_ptr<PlayerCollectionState const> const state = LoginState(player);
+        std::vector<uint32> const spells = GetMissingOwnedCompanionSpells(player, *state);
         std::size_t learned = 0;
         for (uint32 spellId : spells)
         {
@@ -3537,11 +3542,7 @@ public:
         if (!_clientDataLoaded || player->IsInWorld() || !player->GetSession()->PlayerLoading())
             return;
 
-        PlayerCollectionState state;
-        state.AccountId = player->GetSession()->GetAccountId();
-        LoadPlayerState(player, state);
-
-        LearnOwnedBankSpells(player, state, true);
+        LearnOwnedBankSpells(player, *LoginState(player), true);
     }
 
     std::vector<uint32> GetMissingOwnedCompanionSpells(Player* player, PlayerCollectionState const& state) const
@@ -3961,6 +3962,32 @@ private:
     std::lock_guard lock(_stateMutex);
     auto itr = _playerStates.find(player->GetGUID().GetCounter());
     return itr != _playerStates.end() ? itr->second : nullptr;
+  }
+
+  std::shared_ptr<PlayerCollectionState> LoadCollectionState(Player *player) {
+    auto state = std::make_shared<PlayerCollectionState>();
+    state->AccountId = player->GetSession()->GetAccountId();
+    LoadPlayerState(player, *state);
+    return state;
+  }
+
+  std::shared_ptr<PlayerCollectionState> LoginState(Player *player) {
+    uint32 const guid = player->GetGUID().GetCounter();
+    {
+      std::lock_guard lock(_stateMutex);
+      if (auto itr = _loginStates.find(guid); itr != _loginStates.end())
+        return itr->second;
+    }
+
+    std::shared_ptr<PlayerCollectionState> state = LoadCollectionState(player);
+    std::lock_guard lock(_stateMutex);
+    return _loginStates.try_emplace(guid, state).first->second;
+  }
+
+  std::shared_ptr<PlayerCollectionState> TakeLoginState(Player *player) {
+    std::lock_guard lock(_stateMutex);
+    auto node = _loginStates.extract(player->GetGUID().GetCounter());
+    return node.empty() ? nullptr : std::move(node.mapped());
   }
 
   void LoadPlayerState(Player *player, PlayerCollectionState &state) {
@@ -4518,6 +4545,8 @@ private:
   std::mutex _stateMutex;
   std::unordered_map<uint32, std::shared_ptr<PlayerCollectionState>>
       _playerStates;
+  std::unordered_map<uint32, std::shared_ptr<PlayerCollectionState>>
+      _loginStates;
 };
 
 AscensionCollectionModels::Entry const* FindCollectionModel(uint32 creatureId)
@@ -4617,11 +4646,17 @@ void SendBankPermissions(Player* player, uint8 kind)
     return sum / count;
 }
 
-void SendAverageItemLevel(Player* player, uint8 emptiedSlot = EQUIPMENT_SLOT_END)
+[[nodiscard]] WorldPacket BuildAverageItemLevel(Player* player, uint8 emptiedSlot = EQUIPMENT_SLOT_END)
 {
     WorldPacket data(SMSG_UPDATE_OBJECT_ADDON, 16);
     data << player->GetGUID() << PLAYER_ADDON_FIELD_AVERAGE_ITEM_LEVEL
          << AverageEquippedItemLevel(player, emptiedSlot);
+    return data;
+}
+
+void SendAverageItemLevel(Player* player, uint8 emptiedSlot = EQUIPMENT_SLOT_END)
+{
+    WorldPacket data = BuildAverageItemLevel(player, emptiedSlot);
     player->SendMessageToSet(&data, true);
 }
 
@@ -4784,6 +4819,16 @@ public:
 
         if (packet.GetOpcode() == CMSG_SET_ACTIVE_MOVER)
             AscensionClassService::Instance().OnPlayerActiveMover(session->GetPlayer());
+
+        if (packet.GetOpcode() == CMSG_INSPECT && packet.size() >= sizeof(uint64))
+        {
+            if (Player* target = ObjectAccessor::GetPlayer(*session->GetPlayer(), packet.read<ObjectGuid>(0)))
+            {
+                WorldPacket data = BuildAverageItemLevel(target);
+                session->SendPacket(&data);
+            }
+            return true;
+        }
 
         if (packet.GetOpcode() == CMSG_GET_MIRRORIMAGE_DATA && packet.size() >= sizeof(uint64))
         {
@@ -5900,10 +5945,42 @@ public:
   }
 };
 
+static bool IsAdventureModeTierAura(uint32 spellId)
+{
+    return spellId == 302053 || (spellId >= 302059 && spellId <= 302068 && (spellId - 302059) % 3 == 0) ||
+        (spellId >= 302600 && spellId <= 302882 && (spellId - 302600) % 3 == 0);
+}
+
+static bool IsAdventureModeMagicDifficultyAura(uint32 spellId)
+{
+    return spellId > 302055 && IsAdventureModeTierAura(spellId - 2);
+}
+
+static void ApplyAdventureModeDifficultyContracts(SpellInfo* info)
+{
+    if (!info || !IsAdventureModeMagicDifficultyAura(info->Id))
+        return;
+
+    for (SpellEffectInfo& effect : info->Effects)
+        if (effect.ApplyAuraName == SPELL_AURA_MOD_HEALING_DONE)
+            effect.ApplyAuraName = SPELL_AURA_MOD_HEALING_DONE_PERCENT;
+}
+
 void ApplyAscensionExperienceContracts(SpellInfo* info)
 {
     if (!info)
         return;
+
+    if (IsAdventureModeTierAura(info->Id))
+    {
+        uint32 const creatureKills = 1;
+        uint32 const quests = 2;
+        for (SpellEffectInfo& effect : info->Effects)
+            if (effect.ApplyAuraName == SPELL_AURA_MOD_XP_PCT && (effect.MiscValue & quests) &&
+                !(effect.MiscValue & creatureKills))
+                effect.ApplyAuraName = SPELL_AURA_MOD_XP_QUEST_PCT;
+        return;
+    }
 
     switch (info->Id)
     {
@@ -5912,6 +5989,7 @@ void ApplyAscensionExperienceContracts(SpellInfo* info)
         case 157353:
         case 818046:
         case 819046:
+        case 993943:
             for (SpellEffectInfo& effect : info->Effects)
                 if (effect.ApplyAuraName == SPELL_AURA_MOD_XP_PCT &&
                     (effect.MiscValue == 2 || effect.MiscValue == 8))
@@ -5952,6 +6030,8 @@ public:
         {
             ApplyAscensionChangelogSpellChanges(spellInfo);
             ApplyAscensionExperienceContracts(spellInfo);
+            ApplyAdventureModeDifficultyContracts(spellInfo);
+            AscensionClassTuning::DisablePvpHealingTuning(spellInfo);
             switch (spellInfo->Id)
             {
                 case 19743:
