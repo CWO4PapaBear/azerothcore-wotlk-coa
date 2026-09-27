@@ -56,7 +56,9 @@ enum ReaperTalentSpells : uint32
     SPELL_ESSENCE_INVIGORATION_HEAL = 805187,
     SPELL_WEAKENED_SOULS = 92146,
     SPELL_WEAKENED_SOUL = 803433,
-    SPELL_LIFE_TAP = 706788
+    SPELL_LIFE_TAP = 706788,
+    SPELL_DOMINION = 803999,
+    SPELL_DOMINION_ARMOR = 804000
 };
 
 Unit* HostileTargetInRange(Player* player, uint32 spellId)
@@ -500,6 +502,7 @@ void ApplyAscensionReaperSoulInfusionGained(Player* player)
 
     CastTalentTrigger(player, SPELL_DAMNED, SPELL_DAMNED_HASTE);
     CastTalentTrigger(player, SPELL_PURGATORY, SPELL_PURGATORY_DAMAGE);
+    CastTalentTrigger(player, SPELL_DOMINION, SPELL_DOMINION_ARMOR);
 }
 
 void ApplyAscensionReaperSoulInfusionSpent(Player* player)
