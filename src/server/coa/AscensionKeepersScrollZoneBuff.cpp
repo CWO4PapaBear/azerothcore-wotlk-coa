@@ -148,7 +148,8 @@ public:
             }
         }
 
-        map->SendZoneText(zoneId, ZoneBlessingAnnouncement(player, item->GetTemplate(), spellInfo).c_str());
+        map->SendZoneText(zoneId, ZoneBlessingAnnouncement(player, item->GetTemplate(), spellInfo).c_str(),
+            nullptr, player->GetTeamId());
     }
 };
 
