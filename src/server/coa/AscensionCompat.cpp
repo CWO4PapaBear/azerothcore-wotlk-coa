@@ -2933,8 +2933,16 @@ private:
 
     static bool HarvestTimePreserves(Player const* player, SpellInfo const* spellInfo)
     {
-        return spellInfo->CasterAuraSpell == SPELL_REAPER_SOUL_INFUSION &&
-            player->HasAura(SPELL_REAPER_HARVEST_TIME);
+        if (spellInfo->CasterAuraSpell != SPELL_REAPER_SOUL_INFUSION ||
+            !player->HasAura(SPELL_REAPER_HARVEST_TIME))
+            return false;
+
+        SpellInfo const* harvestTime = sSpellMgr->GetSpellInfo(SPELL_REAPER_HARVEST_TIME);
+        if (!harvestTime)
+            return false;
+
+        float const preserveChance = std::abs(harvestTime->Effects[EFFECT_1].CalcValue());
+        return roll_chance_f(preserveChance);
     }
 
     static bool WasAvoidedByEveryTarget(Player const* player, Spell* spell)
