@@ -73,3 +73,29 @@ This occurs before role-list population and does not establish a build-activatio
 The experimental loose override was removed and the archetype flag disabled; `Area-52` and
 the Season 9 menu were preserved. Baseline character creation must be retested, then effective
 race/class data and the native customization path investigated before another UI activation.
+
+## Native realm identity investigation
+
+Reviewed upstream revision: `381e3305` (October 1, 2026). Keep these identifiers distinct:
+
+| Value | Observed use |
+| --- | --- |
+| `Area 52 - Free-Pick` | Exact realm-name gate in `C_CharacterCreate.CanCreateArchetype()` |
+| `Area52` | Artwork key in the client's fallback realm-card table |
+| `area-52` | Installed client overlay directory; activation mapping still needs verification |
+| `Area-52` | Locally tested working auth realm name |
+
+The authserver's `BuildRealmCardName` uses the actual realm name as its card lookup key and sends
+an explicit unlocked field of `1`. Client `RealmList.lua` joins cards to real realm entries by exact
+name and splits the name at a hyphen only for presentation. Its fallback table is conditional on
+the absence of `C_RealmSelect`, so that table alone does not establish native DLL behavior.
+
+`AscensionCompat.cpp` sends separate data-path and realm-name strings in `SMSG_REALM_INFO`.
+The data-path string is currently empty. The advancement menu is independently selected by the
+legacy boolean above; the archetype gate needs both its boolean and the full realm name.
+
+Before another native-name test, trace the installed DLL's data-directory selection, verify the
+effective race/class and archetype tables, and inspect the actual card's unlocked field and realm
+online flags. Do not equate the artwork key with the overlay directory or enable a data-path switch
+without verifying the DLL's behavior. The intended permanent solution should use the native identity
+and configuration mechanisms where supported, rather than an unverified loose UI alias.
