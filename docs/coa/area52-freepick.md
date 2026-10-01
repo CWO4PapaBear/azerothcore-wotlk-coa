@@ -43,4 +43,8 @@ This is an experiment, not a verified complete implementation. The client calls
 choices. It retains `archetypeBuildID` and requests `C_BuildCreator.ActivateBuild(buildID, true, true)`
 on level-1 login. Displaying the menu does not establish that the catalog, activation protocol, or
 server-side build validation and delivery work. Client acceptance of the name/configuration test
-is pending.
+failed at realm selection: the client displayed an offline realm and an access-purchase message.
+The test was rolled back to `Area-52` and the previous boolean configuration. A stale offline flag
+was also found after service restart, so the screenshot alone does not isolate a realm-name or
+entitlement defect. Verify both the realm database flags and client eligibility before attributing
+the failure to either. Keep the original realm name while investigating an alternative UI gate.
