@@ -5097,6 +5097,7 @@ public:
     }
     else if (opcode == CMSG_CHAR_ENUM)
     {
+      SendAscensionCoAConfig(session);
       SendAscensionCharacterListInfo(session);
       AscensionCollectionService& service = AscensionCollectionService::Instance();
       service.SendRealmInfo(session);

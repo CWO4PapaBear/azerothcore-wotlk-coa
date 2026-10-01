@@ -127,3 +127,17 @@ The inspected client archive contains 3 archetype roles, 9 categories and 56 arc
 does not establish native DLL loading or build delivery. This configuration still requires client
 acceptance: banner art, realm entry, Season 9 menu, new-character creation without a crash, and populated
 archetype choices. Keep build activation unverified until its server-side behavior is tested.
+
+### Configuration before character creation
+
+The native-name test confirmed realm entry and correct artwork, but archetype choices remained absent.
+Client configuration previously arrived during world entry, after the character-creation screen needs
+`CONFIG_CHARACTER_CREATION_ARCHETYPES_ENABLED`. `CMSG_CHAR_ENUM` now sends the existing configuration
+packet before realm information and the secure addon list. Existing world-entry delivery remains intact.
+The packet builder uses server configuration and does not require an active player object.
+
+The extension-packet regression checks this ordering and preserves normal character enumeration.
+For client acceptance, fully restart the client, connect to the realm, and open new-character creation
+before entering the world. Verify role choices, category choices, and build choices separately. Displaying
+the catalog does not establish that selecting a build grants the correct abilities after creation.
+No client archive or loose UI override is required by this server change.
