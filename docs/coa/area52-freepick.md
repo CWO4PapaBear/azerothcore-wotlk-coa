@@ -48,3 +48,20 @@ The test was rolled back to `Area-52` and the previous boolean configuration. A 
 was also found after service restart, so the screenshot alone does not isolate a realm-name or
 entitlement defect. Verify both the realm database flags and client eligibility before attributing
 the failure to either. Keep the original realm name while investigating an alternative UI gate.
+
+### Local client alias test
+
+The next isolated test retains `Area-52` and the two boolean settings above. In the installed
+client's `Interface/GlueXML/CharacterCreate.lua`, the eligibility predicate becomes:
+
+```lua
+return (GetRealmName() == "Area 52 - Free-Pick" or GetRealmName() == "Area-52") and C_Config.GetBoolConfig("CONFIG_CHARACTER_CREATION_ARCHETYPES_ENABLED")
+```
+
+The test uses a loose override extracted from that client's own archive; no client assets are
+distributed here. It requires client support for loose interface overrides. Preserve any existing
+override before testing. Removing only the newly installed override restores archive behavior;
+restore the previous boolean configuration to disable the server-side test setting.
+
+UI loading, catalog population, and build activation remain unverified. Do not deploy this
+experiment as a completed archetype implementation.
