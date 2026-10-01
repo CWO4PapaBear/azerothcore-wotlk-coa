@@ -99,3 +99,30 @@ effective race/class and archetype tables, and inspect the actual card's unlocke
 online flags. Do not equate the artwork key with the overlay directory or enable a data-path switch
 without verifying the DLL's behavior. The intended permanent solution should use the native identity
 and configuration mechanisms where supported, rather than an unverified loose UI alias.
+
+### Native configuration test
+
+The next test removes the loose client alias and sets the real auth database realm name to
+`Area 52 - Free-Pick`. In `authserver.conf`:
+
+```ini
+RealmCards.Enable = 1
+RealmCards.GameMode = 0
+RealmCards.Image = "Area52"
+```
+
+In `etc/modules/coa.conf`:
+
+```ini
+CoA.ClientBooleanConfigs = "CONFIG_LEGACY_CHARACTER_ADVANCEMENT_ENABLED=1,CONFIG_CHARACTER_CREATION_ARCHETYPES_ENABLED=1"
+```
+
+Preserve other client overrides when applying these values. Back up both configuration files and
+the old realm name. Wait for the affected worldserver's ready message and verify its realmlist online
+flag before restarting authentication. A listening socket alone is not proof that the realm card
+is available. Do not change realm IDs, account data, client overlay paths or unrelated realm services.
+
+The inspected client archive contains 3 archetype roles, 9 categories and 56 archetypes. Their presence
+does not establish native DLL loading or build delivery. This configuration still requires client
+acceptance: banner art, realm entry, Season 9 menu, new-character creation without a crash, and populated
+archetype choices. Keep build activation unverified until its server-side behavior is tested.
