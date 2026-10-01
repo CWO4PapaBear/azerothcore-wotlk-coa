@@ -65,3 +65,11 @@ restore the previous boolean configuration to disable the server-side test setti
 
 UI loading, catalog population, and build activation remain unverified. Do not deploy this
 experiment as a completed archetype implementation.
+
+The alias test reached character selection but crashed when opening new-character creation.
+The supplied report identifies an access violation at `0x004E204F`, writing to `0xFFFFFEB0`,
+inside native `ResetCharCustomize()` called by `CharacterCreate_OnShow` at line 1517.
+This occurs before role-list population and does not establish a build-activation server defect.
+The experimental loose override was removed and the archetype flag disabled; `Area-52` and
+the Season 9 menu were preserved. Baseline character creation must be retested, then effective
+race/class data and the native customization path investigated before another UI activation.
