@@ -118,8 +118,9 @@ CoA.ClientBooleanConfigs = "CONFIG_LEGACY_CHARACTER_ADVANCEMENT_ENABLED=1,CONFIG
 ```
 
 Preserve other client overrides when applying these values. Back up both configuration files and
-the old realm name. Wait for the affected worldserver's ready message and verify its realmlist online
-flag before restarting authentication. A listening socket alone is not proof that the realm card
+the old realm name. Start authentication before the worldserver: authserver startup explicitly marks
+realms offline. Restarting authentication after an already-ready worldserver requires checking and
+restoring the online flag for that verified-running realm. A listening socket alone is not proof that the realm card
 is available. Do not change realm IDs, account data, client overlay paths or unrelated realm services.
 
 The inspected client archive contains 3 archetype roles, 9 categories and 56 archetypes. Their presence
