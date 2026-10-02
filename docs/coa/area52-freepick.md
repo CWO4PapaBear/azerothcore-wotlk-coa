@@ -44,7 +44,9 @@ RealmCards.Image = "Area52"
 
 The realm name, artwork key `Area52`, and client overlay directory `area-52` serve different purposes.
 Do not rename client directories to match the display name. Preserve the client's compatible Area 52
-overlay. These settings do not install client assets or replace the data required by the server.
+overlay. For `CoA.ClassModel = "hero"`, realm information explicitly sends `area-52` as the data path,
+so the client loads `Data/area-52/listarchive` and its `patch-D.MPQ` over the base archives.
+The display name is sent separately. Other class models retain an empty data path. These settings do not install client assets or replace the data required by the server.
 
 Back up the configuration and realm name before applying this profile. Start authentication before the
 worldserver: authserver startup marks realm rows offline, and worldserver startup restores its realm's
@@ -64,6 +66,8 @@ The extension-packet regression checks this order and that normal character enum
 Local client testing confirmed realm entry, correct realm artwork, Hero character creation, archetype
 role/category/build selection, and Area 52 ability, talent and Mystic Enchant listings. The configuration
 delivery change was built and tested on that local server. Client files were not modified for this profile.
+The data-path fix was also built and tested locally: a level-11 Hero with no spent essence changed
+from 28 AE / 2 TE to the Area 52 budget of 11 AE / 2 TE after restarting the client.
 These results are for the tested client/data pair, not a guarantee for every client release.
 
 Selecting an archetype does not yet deliver its build. A tested Bulwark character entered the world without

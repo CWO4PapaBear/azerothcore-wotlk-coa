@@ -488,6 +488,10 @@ void TestRealmInfo()
         "a level-60 realm sends the Classic ruleset, whose level cap the client shows");
     world.MaxPlayerLevel = 80;
 
+    RealmInfo const hero = SendRealmInfo("live", "hero");
+    Check(hero.Complete && hero.DataPath == "area-52" && hero.Name == realm.Name,
+        "Hero realm selects Area 52 data independently of its display name");
+
     bool allowedEverywhere = true;
     for (char const* realmType : {"live", "seasonal", "league", "ptr", "development"})
         for (char const* classModel : {"coa", "wcr", "classic"})
