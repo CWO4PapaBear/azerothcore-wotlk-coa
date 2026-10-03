@@ -23,6 +23,39 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     if (!m_reconnecting)
         m_stmts.resize(MAX_CHARACTERDATABASE_STATEMENTS);
 
+    PrepareStatement(CHAR_SEL_A52_BUILD,
+        "SELECT b.owner_account,r.revision,JSON_UNQUOTE(JSON_EXTRACT(r.document,'$.wire')),"
+        "COALESCE(f.revision,0)=r.revision FROM area52_build b JOIN area52_build_revision r ON r.build_id=b.id "
+        "LEFT JOIN area52_build_featured f ON f.build_id=b.id WHERE b.id=? AND b.archived=0 "
+        "AND r.revision=(SELECT MAX(x.revision) FROM area52_build_revision x WHERE x.build_id=b.id)",
+        CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_A52_BUILD_PUBLIC,
+        "SELECT b.owner_account,r.revision,JSON_UNQUOTE(JSON_EXTRACT(r.document,'$.wire')),"
+        "COALESCE(f.revision,0)=r.revision FROM area52_build b JOIN area52_build_revision r ON r.build_id=b.id "
+        "LEFT JOIN area52_build_featured f ON f.build_id=b.id WHERE b.id=? AND b.archived=0 "
+        "AND r.revision=IF(b.owner_account=?,(SELECT MAX(x.revision) FROM area52_build_revision x WHERE x.build_id=b.id),"
+        "COALESCE(f.revision,(SELECT MAX(x.revision) FROM area52_build_revision x WHERE x.build_id=b.id)))",
+        CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_A52_BUILD_LIST,
+        "SELECT b.owner_account,r.revision,JSON_UNQUOTE(JSON_EXTRACT(r.document,'$.wire')),"
+        "COALESCE(f.revision,0)=r.revision FROM area52_build b JOIN area52_build_revision r ON r.build_id=b.id "
+        "LEFT JOIN area52_build_featured f ON f.build_id=b.id WHERE b.archived=0 "
+        "AND r.revision=IF(b.owner_account=?,(SELECT MAX(x.revision) FROM area52_build_revision x WHERE x.build_id=b.id),"
+        "COALESCE(f.revision,(SELECT MAX(x.revision) FROM area52_build_revision x WHERE x.build_id=b.id))) "
+        "AND (?=0 OR r.category=?) ORDER BY (b.owner_account=?) DESC,b.id DESC LIMIT 256", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_A52_BUILD_OWNED,
+        "SELECT id FROM area52_build WHERE owner_account=? AND archived=0 ORDER BY id LIMIT 128", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_A52_BUILD_COUNT,
+        "SELECT COUNT(*),(SELECT COUNT(*) FROM area52_build WHERE id=?) "
+        "FROM area52_build WHERE owner_account=?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_A52_BUILD,
+        "INSERT INTO area52_build(id,owner_account) VALUES (?,?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_A52_BUILD_REVISION,
+        "INSERT INTO area52_build_revision(build_id,revision,category,name,document) "
+        "SELECT b.id,?,?,?,JSON_OBJECT('wire',?) FROM area52_build b WHERE b.id=? AND b.owner_account=? "
+        "AND b.archived=0 AND COALESCE((SELECT MAX(r.revision) FROM area52_build_revision r "
+        "WHERE r.build_id=b.id),0)=?", CONNECTION_ASYNC);
+
     // Read-only safety gate for the unregistered, never-saved Create probe.
     PrepareStatement(CHAR_SEL_FRESH_CHECK_GUID_COUNT, "SELECT COUNT(*) FROM characters WHERE guid BETWEEN ? AND ?", CONNECTION_SYNCH);
 

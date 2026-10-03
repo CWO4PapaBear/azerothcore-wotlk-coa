@@ -38,6 +38,7 @@ void AddSC_AscensionKeepersScrollZoneBuff();
 void AddAscensionStockCoefficientScripts();
 void AddAscensionScalingBaseScripts();
 void AddCoABugReportScripts();
+void AddAscensionArea52BuildScripts();
 void AddCoAPlayerTicketScripts();
 void AddAscensionWildcardScripts();
 void AddAscensionFreepickScripts();
@@ -581,6 +582,7 @@ void AddCoAScripts()
     AddAscensionVenomancerVenomPayloadScripts();
     AddAscensionTinkerCombatSymbiosisScripts();
     AddCoABugReportScripts();
+    AddAscensionArea52BuildScripts();
     AddCoAPlayerTicketScripts();
     AddAscensionWildcardScripts();
     AddAscensionFreepickScripts();

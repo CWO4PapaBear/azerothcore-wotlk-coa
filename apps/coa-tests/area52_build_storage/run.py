@@ -1,12 +1,27 @@
 import os
+import json
 from pathlib import Path
+import re
 import subprocess
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 
 
 ROOT = Path(__file__).resolve().parents[3]
 MIGRATION = ROOT / 'data/sql/updates/pending_db_characters/rev_20261003_01_area52_build_storage.sql'
+
+
+def statement(name, arguments):
+    source = (ROOT / 'src/server/database/Database/Implementation/CharacterDatabase.cpp').read_text()
+    body = re.search(r'PrepareStatement\(' + name + r',\s*((?:"(?:[^"\\]|\\.)*"\s*)+),', source)[1]
+    sql = ''.join(json.loads(part) for part in re.findall(r'"(?:[^"\\]|\\.)*"', body))
+    pieces = sql.split('?')
+    assert len(pieces) == len(arguments) + 1
+    result = pieces[0]
+    for value, piece in zip(arguments, pieces[1:]):
+        result += (str(value) if isinstance(value, int) else "'" + value.replace("'", "''") + "'") + piece
+    return result + ';'
 
 
 def run(*args, sql=None):
@@ -34,7 +49,7 @@ def main():
         return query('USE coa_test_build_storage;\n' + sql, error)
 
     try:
-        deadline = time.monotonic() + 70
+        deadline = time.monotonic() + 180
         while True:
             result = run('docker', 'exec', name, 'mysql', '-uroot', '-NBe', 'SELECT 1')
             logs = run('docker', 'logs', name)
@@ -72,6 +87,37 @@ def main():
         db('DELETE FROM area52_build WHERE id=2;')
         assert db('SELECT COUNT(*) FROM area52_build_revision WHERE build_id=2;') == '0'
         assert db('SELECT COUNT(*) FROM area52_build_revision WHERE build_id=1;') == '2'
+        db(statement('CHAR_INS_A52_BUILD', [3, 100]))
+        assert db(statement('CHAR_SEL_A52_BUILD_COUNT', [3, 100])) == '2\t1'
+        assert db(statement('CHAR_SEL_A52_BUILD_COUNT', [4, 200])) == '0\t0'
+        db(statement('CHAR_INS_A52_BUILD_REVISION', [1, 1, 'Native', 'abcd', 3, 100, 0]))
+        assert db(statement('CHAR_SEL_A52_BUILD', [3])).split('\t')[:3] == ['100', '1', 'abcd']
+        db(statement('CHAR_INS_A52_BUILD_REVISION', [2, 1, 'Intruder', 'ffff', 3, 200, 1]))
+        assert db(statement('CHAR_SEL_A52_BUILD', [3])).split('\t')[:3] == ['100', '1', 'abcd']
+        db(statement('CHAR_INS_A52_BUILD_REVISION', [2, 1, 'Update', 'cdef', 3, 100, 1]))
+        db(statement('CHAR_INS_A52_BUILD_REVISION', [2, 1, 'Stale', 'ffff', 3, 100, 1]))
+        assert db(statement('CHAR_SEL_A52_BUILD', [3])).split('\t')[:3] == ['100', '2', 'cdef']
+        db('INSERT INTO area52_build_featured VALUES (3, 1, 300, CURRENT_TIMESTAMP);')
+        assert db(statement('CHAR_SEL_A52_BUILD_PUBLIC', [3, 200])).split('\t')[1:] == ['1', 'abcd', '1']
+        assert db(statement('CHAR_SEL_A52_BUILD_PUBLIC', [3, 100])).split('\t')[1:] == ['2', 'cdef', '0']
+        assert '100\t2\tcdef\t0' in db(statement('CHAR_SEL_A52_BUILD_LIST', [100, 0, 0, 100])).splitlines()
+        assert '100\t1\tabcd\t1' in db(statement('CHAR_SEL_A52_BUILD_LIST', [200, 0, 0, 200])).splitlines()
+        def competing_save(wire):
+            try:
+                db('START TRANSACTION;' + statement('CHAR_INS_A52_BUILD_REVISION',
+                   [3, 1, 'Concurrent', wire, 3, 100, 2]) + 'COMMIT;')
+            except RuntimeError as error:
+                if not any(code in str(error) for code in ('1213', '1062')):
+                    raise
+        with ThreadPoolExecutor(max_workers=2) as workers:
+            list(workers.map(competing_save, ['aaaa', 'bbbb']))
+        assert db('SELECT COUNT(*) FROM area52_build_revision WHERE build_id=3 AND revision=3;') == '1'
+        assert db(statement('CHAR_SEL_A52_BUILD', [3])).split('\t')[2] in ('aaaa', 'bbbb')
+        db('UPDATE area52_build SET archived=1 WHERE id=3;')
+        assert db(statement('CHAR_SEL_A52_BUILD', [3])) == ''
+        db(statement('CHAR_INS_A52_BUILD_REVISION', [4, 1, 'Archived', 'ffff', 3, 100, 3]))
+        assert db('SELECT COUNT(*) FROM area52_build_revision WHERE build_id=3;') == '3'
+        print('PASS: production prepared statements reject foreign-owner, stale and archived writes; Featured is pinned')
         print('PASS: migration replay, separate copies, pinned Featured revision, integrity, size limits and rollback')
     finally:
         stopped = run('docker', 'rm', '--force', name)

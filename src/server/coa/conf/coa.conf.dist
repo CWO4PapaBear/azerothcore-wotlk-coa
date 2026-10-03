@@ -7,6 +7,9 @@
 # Enable the compatibility packet filter.
 CoA.Enable = 1
 
+# Native build-plan storage for Hero/live Free Pick realms. Does not apply builds to characters.
+CoA.FreePickBuilds.Enable = 0
+
 # Apply the Ascension protocol settings to remote connections as well as loopback
 # (extension opcodes, ping interval, spell-modifier layout, class-10 mapping).
 # Enable only on realms dedicated to the matching Ascension client build.
