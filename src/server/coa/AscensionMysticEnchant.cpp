@@ -128,8 +128,8 @@ State& Load(Player const* player)
         Field* fields = result->Fetch();
         state.Progress = fields[0].Get<uint64>();
         state.Level = fields[1].Get<uint32>();
-        state.Presets.assign(std::clamp<uint32>(fields[3].Get<uint32>(), 1, MAX_PRESETS), Slots{});
-        state.ActivePreset = std::min<uint32>(fields[2].Get<uint32>(), uint32(state.Presets.size()) - 1);
+        state.Presets.assign(std::clamp<uint32>(fields[3].Get<uint8>(), 1, MAX_PRESETS), Slots{});
+        state.ActivePreset = std::min<uint32>(fields[2].Get<uint8>(), uint32(state.Presets.size()) - 1);
     }
     if (QueryResult result = CharacterDatabase.Query("SELECT spell FROM coa_mystic_enchant_known WHERE guid = {}",
         guid))
@@ -144,8 +144,8 @@ State& Load(Player const* player)
         do
         {
             Field* fields = result->Fetch();
-            uint32 const preset = fields[0].Get<uint32>();
-            uint32 const slot = fields[1].Get<uint32>();
+            uint32 const preset = fields[0].Get<uint8>();
+            uint32 const slot = fields[1].Get<uint8>();
             if (preset < state.Presets.size() && slot < SLOT_COUNT)
                 state.Presets[preset][slot] = fields[2].Get<uint32>();
         } while (result->NextRow());
