@@ -4319,7 +4319,10 @@ void Spell::_handle_finish_phase()
     // Take for real after all targets are processed
     if (m_needComboPoints)
     {
-        m_caster->ClearComboPoints();
+        if (m_caster->HasPlayerComboPoints() && m_spellInfo->GetFirstRankSpell()->Id == 7384)
+            m_caster->ClearTargetComboPoints();
+        else
+            m_caster->ClearComboPoints();
     }
 
     // Real add combo points from effects
@@ -6907,7 +6910,9 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* /*param1*/, uint32* /*para
     {
         if (m_spellInfo->NeedsExplicitUnitTarget())
         {
-            if (!m_caster->GetComboPoints(m_targets.GetUnitTarget()))
+            if (!(m_caster->HasPlayerComboPoints() && m_spellInfo->GetFirstRankSpell()->Id == 7384 ?
+                m_caster->GetTargetComboPoints(m_targets.GetUnitTarget()) :
+                m_caster->GetComboPoints(m_targets.GetUnitTarget())))
             {
                 return SPELL_FAILED_NO_COMBO_POINTS;
             }

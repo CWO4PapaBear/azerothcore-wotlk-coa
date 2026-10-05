@@ -1807,7 +1807,7 @@ void Player::RemoveFromWorld()
         StopCastingCharm();
         StopCastingBindSight();
         UnsummonPetTemporaryIfAny();
-        ClearComboPoints(); // pussywizard: crashfix
+        ClearTargetComboPoints(); // pussywizard: crashfix
         ClearComboPointHolders(); // pussywizard: crashfix
         if (ObjectGuid lguid = GetLootGUID()) // pussywizard: crashfix
             m_session->DoLootRelease(lguid);
@@ -6842,20 +6842,20 @@ void Player::DuelComplete(DuelCompleteType type)
     // cleanup combo points
     if (GetComboTarget() == duel->Opponent)
     {
-        ClearComboPoints();
+        ClearTargetComboPoints();
     }
     else if (GetComboTargetGUID() == duel->Opponent->GetPetGUID())
     {
-        ClearComboPoints();
+        ClearTargetComboPoints();
     }
 
     if (duel->Opponent->GetComboTarget() == this)
     {
-        duel->Opponent->ClearComboPoints();
+        duel->Opponent->ClearTargetComboPoints();
     }
     else if (duel->Opponent->GetComboTargetGUID() == GetPetGUID())
     {
-        duel->Opponent->ClearComboPoints();
+        duel->Opponent->ClearTargetComboPoints();
     }
 
     //cleanups
@@ -12099,6 +12099,8 @@ Player* Player::GetSelectedPlayer() const
 void Player::SetSelection(ObjectGuid guid)
 {
     SetGuidValue(UNIT_FIELD_TARGET, guid);
+    if (HasPlayerComboPoints())
+        SendComboPoints();
 
     if (NeedSendSpectatorData())
         ArenaSpectator::SendCommand_GUID(FindMap(), GetGUID(), "TRG", guid);

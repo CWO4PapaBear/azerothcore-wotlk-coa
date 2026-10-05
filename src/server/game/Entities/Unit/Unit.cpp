@@ -80,6 +80,11 @@
 #include <cmath>
 #include <limits>
 
+namespace AscensionPlayerComboPoints
+{
+bool Applies(Unit const* unit);
+}
+
 // Ascension's caster state for "only usable after the target dodges" (its Overpower and the Chaser strikes),
 // which it uses instead of the warrior's combo point.
 constexpr AuraStateType ASCENSION_AURA_STATE_TARGET_DODGED = AuraStateType(24);
@@ -13572,7 +13577,7 @@ void Unit::CleanupBeforeRemoveFromMap(bool finalCleanup)
         m_cleanupDone = true;
 
     CombatStop();
-    ClearComboPoints();
+    ClearTargetComboPoints();
     ClearComboPointHolders();
     GetMotionMaster()->Clear(false);                    // remove different non-standard movement generators.
 }
@@ -13799,7 +13804,7 @@ void Unit::ProcSkillsAndReactives(bool isVictim, Unit* target, uint32 procFlag, 
                 {
                     if (IsClass(CLASS_WARRIOR, CLASS_CONTEXT_ABILITY_REACTIVE))
                     {
-                        AddComboPoints(target, 1);
+                        AddTargetComboPoints(target, 1);
                         StartReactiveTimer(REACTIVE_OVERPOWER);
                     }
                     if (IsPlayer())
@@ -14208,7 +14213,29 @@ void Unit::RestoreDisplayId()
     SetDisplayId(GetNativeDisplayId());
 }
 
+bool Unit::HasPlayerComboPoints() const
+{
+    return AscensionPlayerComboPoints::Applies(this);
+}
+
+void Unit::SetPlayerComboPoints(uint8 points)
+{
+    m_playerComboPoints = std::min<uint8>(points, 5);
+    SendComboPoints();
+}
+
 void Unit::AddComboPoints(Unit* target, int8 count)
+{
+    if (!HasPlayerComboPoints())
+    {
+        AddTargetComboPoints(target, count);
+        return;
+    }
+    if (count)
+        SetPlayerComboPoints(uint8(std::clamp(int(m_playerComboPoints) + int(count), 0, 5)));
+}
+
+void Unit::AddTargetComboPoints(Unit* target, int8 count)
 {
     if (!count)
     {
@@ -14236,6 +14263,17 @@ void Unit::AddComboPoints(Unit* target, int8 count)
 
 void Unit::ClearComboPoints()
 {
+    if (!HasPlayerComboPoints())
+    {
+        ClearTargetComboPoints();
+        return;
+    }
+    RemoveAurasByType(SPELL_AURA_RETAIN_COMBO_POINTS);
+    SetPlayerComboPoints(0);
+}
+
+void Unit::ClearTargetComboPoints()
+{
     if (!m_comboTarget)
     {
         return;
@@ -14243,7 +14281,8 @@ void Unit::ClearComboPoints()
 
     // remove Premed-like effects
     // (NB: this Aura retains the CP while it's active - now that CP have reset, it shouldn't be there anymore)
-    RemoveAurasByType(SPELL_AURA_RETAIN_COMBO_POINTS);
+    if (!HasPlayerComboPoints())
+        RemoveAurasByType(SPELL_AURA_RETAIN_COMBO_POINTS);
 
     m_comboPoints = 0;
     SendComboPoints();
@@ -14258,12 +14297,14 @@ void Unit::SendComboPoints()
         return;
     }
 
-    PackedGuid const packGUID = m_comboTarget ? m_comboTarget->GetPackGUID() : PackedGuid();
+    bool const playerPoints = HasPlayerComboPoints();
+    PackedGuid const packGUID = playerPoints ? ToPlayer()->GetTarget().WriteAsPacked() :
+        m_comboTarget ? m_comboTarget->GetPackGUID() : PackedGuid();
     if (Player* playerMe = ToPlayer())
     {
         WorldPacket data(SMSG_UPDATE_COMBO_POINTS, packGUID.size() + 1);
         data << packGUID;
-        data << uint8(m_comboPoints);
+        data << uint8(playerPoints ? m_playerComboPoints : m_comboPoints);
         playerMe->SendDirectMessage(&data);
     }
 
@@ -14293,7 +14334,7 @@ void Unit::ClearComboPointHolders()
 {
     while (!m_ComboPointHolders.empty())
     {
-        (*m_ComboPointHolders.begin())->ClearComboPoints(); // this also removes it from m_comboPointHolders
+        (*m_ComboPointHolders.begin())->ClearTargetComboPoints(); // this also removes it from m_comboPointHolders
     }
 }
 
@@ -14307,7 +14348,7 @@ void Unit::ClearAllReactives()
     if (IsClass(CLASS_HUNTER, CLASS_CONTEXT_ABILITY_REACTIVE) && HasAuraState(AURA_STATE_HUNTER_PARRY))
         ModifyAuraState(AURA_STATE_HUNTER_PARRY, false);
     if (IsClass(CLASS_WARRIOR, CLASS_CONTEXT_ABILITY_REACTIVE) && IsPlayer())
-        ClearComboPoints();
+        ClearTargetComboPoints();
 }
 
 void Unit::UpdateReactives(uint32 p_time)
@@ -14336,13 +14377,13 @@ void Unit::UpdateReactives(uint32 p_time)
                 case REACTIVE_OVERPOWER:
                     if (IsClass(CLASS_WARRIOR, CLASS_CONTEXT_ABILITY_REACTIVE))
                     {
-                        ClearComboPoints();
+                        ClearTargetComboPoints();
                     }
                     ModifyAuraState(ASCENSION_AURA_STATE_TARGET_DODGED, false);
                     break;
                 case REACTIVE_WOLVERINE_BITE:
                     if (IsHunterPet())
-                        ClearComboPoints();
+                        ClearTargetComboPoints();
                     break;
                 default:
                     break;

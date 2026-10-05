@@ -110,6 +110,11 @@ CoA.RealmType = "live"
 
 CoA.ClassModel = "coa"
 
+# Area 52 Hero/live realms keep combo points on the player across targets.
+# Other class models and seasonal/alternate game modes keep target-bound points.
+# Normal logout persistence uses the core EnablePlayerSettings setting.
+CoA.FreePick.PlayerComboPoints = 1
+
 #
 #    CoA.GameModeMask
 #        Description: Custom game-mode bits sent to the client when a character logs in, which

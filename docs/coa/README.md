@@ -7,6 +7,22 @@ AzerothCore fork, built by `src/server/coa/CMakeLists.txt` independently of opti
 modules and registered by `AddCoAScripts()` during worldserver script initialization.
 Class scripts continue to use the normal script APIs.
 
+## Area 52 player-owned combo points
+
+`CoA.FreePick.PlayerComboPoints = 1` defaults on for `CoA.ClassModel = "hero"`
+and `CoA.RealmType = "live"`. It applies only to Hero characters with no alternate
+game-mode mask (the quality-budget bit is allowed). Other modes retain target-bound
+combo points. Disable the option and restart to restore the original behavior.
+
+Heroes retain up to five combo points when switching targets, when a target dies,
+and through map transfers. Finishers spend the pool; player death clears it.
+Overpower keeps a separate target-specific reactive point. The native combo packet
+is refreshed on selection changes; no PTR addon or Vigor talent is required.
+Set `EnablePlayerSettings = 1` in worldserver.conf to preserve points across normal
+logout. Persistence is written before the core saves character settings. Test
+target switching, a finisher, target death, player death and relog in the actual
+client before considering a deployment accepted.
+
 Sources live in `src/server/coa/`, focused regressions in `apps/coa-tests/`, and
 configuration templates in `src/server/coa/conf/`. They install to
 `etc/modules/coa.conf` and `etc/modules/coa_bugreport.conf`; runtime configuration is
