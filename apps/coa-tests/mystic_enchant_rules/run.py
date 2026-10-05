@@ -312,6 +312,12 @@ int main(int, char** argv)
     Check(CheckSaveCollectionReforge(catalog, slotter, empty, { { 1, RUNIC_CONTAGION }, { 2, RUNIC_CONTAGION } }) ==
         COLLECTION_REFORGE_STACK_LIMIT, "the same enchant in two slots is past its stacks");
 
+    Check(ValidSpecializationLink(0, true, 1, 1) && ValidSpecializationLink(19, true, 2, 2) &&
+        ValidSpecializationLink(4, false, 0, 1), "a specialization links to an unlocked preset or to none");
+    Check(!ValidSpecializationLink(20, true, 1, 1) && !ValidSpecializationLink(0, true, 0, 1) &&
+        !ValidSpecializationLink(0, true, 3, 2),
+        "a link outside the 20 specializations or the unlocked presets is refused");
+
     return failures ? 1 : 0;
 }
 """

@@ -646,6 +646,12 @@ bool Character::Knows(std::uint32_t spell) const
     return Known && std::find(Known->begin(), Known->end(), spell) != Known->end();
 }
 
+bool ValidSpecializationLink(std::uint32_t specialization, bool linked, std::uint32_t preset,
+    std::uint32_t presetCount)
+{
+    return specialization < SPECIALIZATION_COUNT && (!linked || (preset >= 1 && preset <= presetCount));
+}
+
 std::uint32_t CollectionReforgeCost(Character const& character, Enchant const& enchant, bool money, bool slot)
 {
     static std::array<std::int32_t, QUALITY_MAX> const MONEY = { 0, 0, 300000, 600000, 1000000, 2500000, 2500000, 0 };
