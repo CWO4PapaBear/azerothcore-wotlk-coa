@@ -443,16 +443,19 @@ void HandleSaveCollectionReforge(Player* player, State& state, WorldPacket& pack
     SavePreset(player, character);
 }
 
-void CompleteDisenchant(Player* player, State& state, Character const& character, uint32 spell)
+void CompleteDisenchant(Player* player, State& state, Character const& character, uint32 spell, uint32 bought)
 {
+    if (bought)
+        player->DestroyItemCount(RUNE_OF_ASCENSION, ExtractPurchaseCost(state.Level), true);
     if (Enchant const* enchant = Loaded.FindSpell(spell))
-        player->DestroyItemCount(MYSTIC_EXTRACT, ExtractCost(character, *enchant), true);
+        if (uint32 const held = ExtractCost(character, *enchant) - std::min(bought, ExtractCost(character, *enchant)))
+            player->DestroyItemCount(MYSTIC_EXTRACT, held, true);
     Learn(player, state, spell);
 }
 
 void HandleDisenchantItem(Player* player, State& state, WorldPacket& packet)
 {
-    packet.read_skip<uint8>();
+    bool const buyExtract = packet.read<uint8>() != 0;
     uint8 const bag = packet.read<uint8>();
     uint8 const slot = packet.read<uint8>();
     Item* item = nullptr;
@@ -460,27 +463,31 @@ void HandleDisenchantItem(Player* player, State& state, WorldPacket& packet)
     ClientConfig const config = CurrentClientConfig();
     Character character = Describe(player, config);
     character.Known = &state.Known;
+    uint32 const bought = ExtractsBoughtWithSave(character, state.Level, buyExtract);
+    character.Extracts += bought;
     uint32 const result = CheckDisenchantItem(Loaded, character, scroll);
     if (result == DISENCHANT_OK)
     {
         uint32 const spell = Loaded.FindItem(scroll.Entry)->Spell;
         uint32 one = 1;
         player->DestroyItemCount(item, one, true);
-        CompleteDisenchant(player, state, character, spell);
+        CompleteDisenchant(player, state, character, spell, bought);
     }
     SendResult(player, SMSG_DISENCHANT_RANDOM_ENCHANT_RESULT, DISENCHANT_RESULTS[result]);
 }
 
 void HandleDisenchantSlot(Player* player, State& state, WorldPacket& packet)
 {
-    packet.read_skip<uint8>();
+    bool const buyExtract = packet.read<uint8>() != 0;
     uint32 const slot = packet.read<uint32>();
     ClientConfig const config = CurrentClientConfig();
     Character character = Describe(player, config);
     character.Known = &state.Known;
+    uint32 const bought = ExtractsBoughtWithSave(character, state.Level, buyExtract);
+    character.Extracts += bought;
     uint32 const result = CheckDisenchantSlot(Loaded, character, state.Active(), slot);
     if (result == DISENCHANT_OK)
-        CompleteDisenchant(player, state, character, state.Active()[slot]);
+        CompleteDisenchant(player, state, character, state.Active()[slot], bought);
     SendResult(player, SMSG_DISENCHANT_RANDOM_ENCHANT_RESULT, DISENCHANT_RESULTS[result]);
 }
 

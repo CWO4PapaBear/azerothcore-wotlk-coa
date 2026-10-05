@@ -835,6 +835,11 @@ std::uint32_t CheckExtractPurchase(Character const& character, std::uint32_t alt
     return EXTRACT_PURCHASE_OK;
 }
 
+std::uint32_t ExtractsBoughtWithSave(Character const& character, std::uint32_t altarLevel, bool requested)
+{
+    return requested && CheckExtractPurchase(character, altarLevel) == EXTRACT_PURCHASE_OK ? 1 : 0;
+}
+
 std::vector<Enchant const*> ReforgePool(Catalog const& catalog, Character const& character,
     std::function<bool(std::uint32_t item)> const& itemExists)
 {

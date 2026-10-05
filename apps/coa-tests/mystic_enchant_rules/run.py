@@ -271,8 +271,16 @@ int main(int, char** argv)
     altar.Extracts = 0;
     altar.Runes = 1199;
     Check(CheckExtractPurchase(altar, 1) == EXTRACT_PURCHASE_NO_TOKENS, "an extract needs its runes");
+    Check(ExtractsBoughtWithSave(altar, 1, true) == 0, "a save cannot buy an extract without its runes");
     altar.Runes = 1200;
     Check(CheckExtractPurchase(altar, 1) == EXTRACT_PURCHASE_OK, "1200 runes buy an extract at altar level 1");
+    Character buyer = altar;
+    known.clear();
+    buyer.Extracts += ExtractsBoughtWithSave(buyer, 1, true);
+    Check(ExtractsBoughtWithSave(altar, 1, false) == 0 && buyer.Extracts == 1 &&
+        CheckDisenchantSlot(catalog, buyer, holding, 1) == DISENCHANT_OK,
+        "a save that asks to buy its extract goes through with no extract held");
+    known.push_back(RUNIC_CONTAGION);
 
     altar.Runes = 0;
     altar.Money = 0;

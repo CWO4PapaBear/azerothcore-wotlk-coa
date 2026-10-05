@@ -373,6 +373,7 @@ std::uint32_t CheckDisenchantItem(Catalog const& catalog, Character const& chara
 std::uint32_t CheckDisenchantSlot(Catalog const& catalog, Character const& character, Slots const& slots,
     std::uint32_t slot);
 std::uint32_t CheckExtractPurchase(Character const& character, std::uint32_t altarLevel);
+std::uint32_t ExtractsBoughtWithSave(Character const& character, std::uint32_t altarLevel, bool requested);
 
 std::vector<Enchant const*> ReforgePool(Catalog const& catalog, Character const& character,
     std::function<bool(std::uint32_t item)> const& itemExists);
