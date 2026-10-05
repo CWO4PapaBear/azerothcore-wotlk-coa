@@ -27,6 +27,28 @@ enabling the legacy advancement UI alone does not select the Area 52 abilities, 
 Do not combine `live seasonal` for this profile. The realm flags also affect appearances, vanity offers,
 tutorials and Build Creator eligibility. They are independent of the worldserver's PvP rules and rates.
 
+## Weapon and defense skills
+
+Use this default in the dedicated Area 52 realm's `worldserver.conf`:
+
+```ini
+AlwaysMaxWeaponSkill = 1
+AlwaysMaxSkillForLevel = 0
+```
+
+This enables the core's automatic weapon/defense skill maximization on level-up and initializes newly
+learned level-based weapon skills at their cap. The maximization helper excludes professions and riding;
+it can also maximize other existing non-profession skills with a cap greater than one. It does not grant
+weapon or armor proficiencies by itself. Keep the broader `AlwaysMaxSkillForLevel` setting disabled.
+
+For the inspected core, existing skill ranks are not caught up merely by logging in: the login path calls
+`UpdateSkillsForLevel`, whose automatic rank catch-up uses the separate `AlwaysMaxSkillForLevel` setting.
+Existing characters catch up on their next level-up. A max-level character that predates this setting may
+need a separate, targeted GM skill adjustment. Do not enable the broader setting solely to work around this.
+
+After applying the configuration, test a Hero's weapon and defense ranks before and after leveling.
+Confirm that they reach the level cap while profession and riding ranks remain unchanged.
+
 ## Realm identity and artwork
 
 Set the dedicated realm's `realmlist.name` in the authentication database to exactly
