@@ -94,7 +94,8 @@ int main(int, char** argv)
         "the class mask admits the Hero only");
     Enchant const* holyPower = catalog.FindItem(HOLY_POWER_SCROLL);
     Check(holyPower && !RealmAllows(*holyPower, { false, true, false, false, false }) &&
-        RealmAllows(*holyPower, { true, false, false, false, false }), "a live-only enchant is refused on a seasonal realm");
+        RealmAllows(*holyPower, { true, false, false, false, false }),
+        "a live-only enchant is refused on a seasonal realm");
 
     Check(!SlotValid(0, true) && SlotValid(1, true) && SlotValid(15, true) && !SlotValid(16, true),
         "class fusion uses slots 2 to 16 only");
