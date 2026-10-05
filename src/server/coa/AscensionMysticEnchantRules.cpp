@@ -5,6 +5,7 @@
 #include "DBCStores.h"
 #include "Log.h"
 #include <algorithm>
+#include <cmath>
 #include <string_view>
 #include <unordered_map>
 
@@ -44,6 +45,37 @@ std::array<char const*, PRESET_SET_ACTIVE_RESULT_COUNT> const PRESET_SET_ACTIVE_
 std::array<char const*, PRESET_UNLOCK_RESULT_COUNT> const PRESET_UNLOCK_RESULTS = { "RE_PRESET_UNLOCK_OK",
     "RE_PRESET_UNLOCK_UNKNOWN", "RE_PRESET_UNLOCK_MAX_VALUE_REACHED", "RE_PRESET_UNLOCK_NO_MONEY",
     "RE_PRESET_UNLOCK_BUILD_DRAFT", "RE_PRESET_UNLOCK_NOT_WHILE_CASTING", "RE_PRESET_UNLOCK_BAD_CLASS" };
+
+std::array<char const*, REFORGE_RESULT_COUNT> const REFORGE_RESULTS = { "RE_REFORGE_OK", "RE_REFORGE_UNKNOWN",
+    "RE_REFORGE_BAD_ITEM", "RE_REFORGE_NOT_MYSTIC_SCROLL", "RE_REFORGE_WORLDFORGED_SCROLL", "RE_REFORGE_BAD_SLOT",
+    "RE_REFORGE_BUILD_DRAFT", "RE_REFORGE_NO_MONEY", "RE_REFORGE_NOT_IN_BATTLEGROUNDS", "RE_REFORGE_NO_MYSTIC_ALTAR",
+    "RE_REFORGE_NOT_WHILE_CASTING", "RE_REFORGE_BAD_CLASS", "RE_REFORGE_DISABLED_IN_WILDCARD" };
+
+std::array<char const*, COLLECTION_REFORGE_RESULT_COUNT> const COLLECTION_REFORGE_RESULTS = {
+    "RE_COLLECTION_REFORGE_OK", "RE_COLLECTION_REFORGE_UNKNOWN", "RE_COLLECTION_REFORGE_BAD_ITEM",
+    "RE_COLLECTION_REFORGE_NOT_MYSTIC_SCROLL", "RE_COLLECTION_REFORGE_WORLDFORGED_SCROLL",
+    "RE_COLLECTION_REFORGE_WORLDFORGED_ENCHANT", "RE_COLLECTION_REFORGE_BAD_SLOT",
+    "RE_COLLECTION_REFORGE_BUILD_DRAFT", "RE_COLLECTION_REFORGE_BAD_CLASS", "RE_COLLECTION_REFORGE_ALREADY_APPLIED",
+    "RE_COLLECTION_REFORGE_BAD_ENCHANTMENT", "RE_COLLECTION_REFORGE_NOT_KNOWN_ENCHANTMENT",
+    "RE_COLLECTION_REFORGE_NO_MONEY", "RE_COLLECTION_REFORGE_NOT_IN_BATTLEGROUNDS", "RE_COLLECTION_REFORGE_DISABLED",
+    "RE_COLLECTION_REFORGE_STACK_LIMIT", "RE_COLLECTION_REFORGE_UNCOMMON_LIMIT", "RE_COLLECTION_REFORGE_RARE_LIMIT",
+    "RE_COLLECTION_REFORGE_EPIC_LIMIT", "RE_COLLECTION_REFORGE_LEGENDARY_LIMIT",
+    "RE_COLLECTION_REFORGE_ARTIFACT_LIMIT", "RE_COLLECTION_REFORGE_UNHANDLED_LIMIT",
+    "RE_COLLECTION_REFORGE_NO_MYSTIC_ALTAR", "RE_COLLECTION_REFORGE_NOT_WHILE_CASTING",
+    "RE_COLLECTION_REFORGE_BAD_REALM", "RE_COLLECTION_REFORGE_DISABLED_IN_WILDCARD",
+    "RE_COLLECTION_REFORGE_RARE_WORLDFORGED_LIMIT", "RE_COLLECTION_REFORGE_REQUIRED_AE_INVESTMENT",
+    "RE_COLLECTION_REFORGE_REQUIRED_TE_INVESTMENT", "RE_COLLECTION_REFORGE_TOO_LOW_LEVEL" };
+
+std::array<char const*, DISENCHANT_RESULT_COUNT> const DISENCHANT_RESULTS = { "RE_DISENCHANT_OK",
+    "RE_DISENCHANT_UNKNOWN", "RE_DISENCHANT_BAD_ITEM", "RE_DISENCHANT_NOT_MYSTIC_SCROLL", "RE_DISENCHANT_BAD_SLOT",
+    "RE_DISENCHANT_BUILD_DRAFT", "RE_DISENCHANT_NO_ENCHANTMENT", "RE_DISENCHANT_BAD_ENCHANTMENT",
+    "RE_DISENCHANT_ALREADY_KNOWN_ENCHANTMENT", "RE_DISENCHANT_NO_MONEY", "RE_DISENCHANT_NOT_IN_BATTLEGROUNDS",
+    "RE_DISENCHANT_DISABLED", "RE_DISENCHANT_NO_MYSTIC_ALTAR", "RE_DISENCHANT_NOT_WHILE_CASTING",
+    "RE_DISENCHANT_BAD_REALM", "RE_DISENCHANT_DISABLED_IN_WILDCARD" };
+
+std::array<char const*, EXTRACT_PURCHASE_RESULT_COUNT> const EXTRACT_PURCHASE_RESULTS = {
+    "RE_PURCHASE_MYSTIC_EXTRACT_OK", "RE_PURCHASE_MYSTIC_EXTRACT_UNKNOWN", "RE_PURCHASE_MYSTIC_EXTRACT_NO_TOKENS",
+    "RE_PURCHASE_MYSTIC_EXTRACT_ALREADY_OBTAINED" };
 
 namespace
 {
@@ -491,5 +523,377 @@ std::uint32_t CheckPresetUnlock(Character const& character, std::uint32_t preset
     if (IsConquestOfAzerothClass(character.Class))
         return PRESET_UNLOCK_BAD_CLASS;
     return PRESET_UNLOCK_OK;
+}
+
+namespace
+{
+std::uint32_t SaturatingAdd(std::uint32_t left, std::uint32_t right)
+{
+    return right > ~left ? NO_TOKEN_PRICE : left + right;
+}
+
+bool Priced(std::uint32_t cost)
+{
+    return cost != 0 && cost != NO_TOKEN_PRICE;
+}
+
+std::uint32_t CollectionReforgeLimit(std::uint32_t quality)
+{
+    switch (quality)
+    {
+        case QUALITY_UNCOMMON: return COLLECTION_REFORGE_UNCOMMON_LIMIT;
+        case QUALITY_RARE: return COLLECTION_REFORGE_RARE_LIMIT;
+        case QUALITY_EPIC: return COLLECTION_REFORGE_EPIC_LIMIT;
+        case QUALITY_LEGENDARY: return COLLECTION_REFORGE_LEGENDARY_LIMIT;
+        case QUALITY_ARTIFACT: return COLLECTION_REFORGE_ARTIFACT_LIMIT;
+        default: return COLLECTION_REFORGE_UNHANDLED_LIMIT;
+    }
+}
+
+void CheckReforgeTarget(Catalog const& catalog, Character const& character, std::uint32_t current, std::uint32_t spell,
+    std::vector<std::uint32_t>& errors)
+{
+    if (current == spell)
+        errors.push_back(COLLECTION_REFORGE_ALREADY_APPLIED);
+    if (Enchant const* target = catalog.FindSpell(spell))
+    {
+        if (!character.Knows(target->Spell))
+            errors.push_back(COLLECTION_REFORGE_NOT_KNOWN_ENCHANTMENT);
+        if (!RealmAllows(*target, character.RealmGates))
+            errors.push_back(COLLECTION_REFORGE_BAD_REALM);
+        else if (character.Wildcard())
+            errors.push_back(COLLECTION_REFORGE_DISABLED_IN_WILDCARD);
+    }
+    else
+        errors.push_back(COLLECTION_REFORGE_BAD_ENCHANTMENT);
+    if (!character.AltarNearby)
+        errors.push_back(COLLECTION_REFORGE_NO_MYSTIC_ALTAR);
+    if (character.Casting)
+        errors.push_back(COLLECTION_REFORGE_NOT_WHILE_CASTING);
+}
+
+std::vector<std::uint32_t> CheckCollectionReforgeSlot(Catalog const& catalog, Character const& character,
+    Slots const& slots, std::vector<StagedReforge> const& staged, StagedReforge const& entry)
+{
+    std::vector<std::uint32_t> errors;
+    bool const fusion = character.Fusion();
+    if (!SlotValid(entry.Slot, fusion))
+        errors.push_back(COLLECTION_REFORGE_BAD_SLOT);
+    if (character.Draft)
+        errors.push_back(COLLECTION_REFORGE_BUILD_DRAFT);
+    CheckReforgeTarget(catalog, character, SlotAt(slots, entry.Slot, fusion), entry.Spell, errors);
+    Enchant const* target = catalog.FindSpell(entry.Spell);
+    if (!target)
+        return errors;
+
+    std::vector<Enchant const*> targets;
+    for (StagedReforge const& other : staged)
+        if (Enchant const* enchant = catalog.FindSpell(other.Spell))
+            targets.push_back(enchant);
+    if (!CollectionReforgeCharge(character, targets, true).Affordable)
+        errors.push_back(COLLECTION_REFORGE_NO_MONEY);
+    if (!ClassAllowed(*target, character.Class))
+        errors.push_back(COLLECTION_REFORGE_BAD_CLASS);
+    if (!character.Knows(target->Spell))
+        errors.push_back(COLLECTION_REFORGE_NOT_KNOWN_ENCHANTMENT);
+
+    std::unordered_map<std::uint32_t, std::uint32_t> projected;
+    for (std::uint32_t index = 0; index < SLOT_COUNT; ++index)
+        projected[index] = SlotAt(slots, index, fusion);
+    for (StagedReforge const& other : staged)
+        projected[other.Slot] = other.Spell;
+    projected[entry.Slot] = entry.Spell;
+
+    std::uint32_t const quality = QualityOf(*target, character.Class);
+    std::uint32_t sameSpell = 0;
+    std::uint32_t sameQuality = 0;
+    std::uint32_t rareWorldforged = 0;
+    for (auto const& [index, held] : projected)
+    {
+        sameSpell += held == target->Spell;
+        if (Enchant const* other = catalog.FindSpell(held))
+        {
+            sameQuality += QualityOf(*other, character.Class) == quality;
+            rareWorldforged += QualityOf(*other, character.Class) == QUALITY_RARE && other->Worldforged;
+        }
+    }
+    std::uint32_t const stackLimit = character.StackLimit ? character.StackLimit(target->Spell) : 0;
+    if (stackLimit < sameSpell)
+        errors.push_back(COLLECTION_REFORGE_STACK_LIMIT);
+    if (QualityCap(character, quality) < sameQuality)
+        errors.push_back(CollectionReforgeLimit(quality));
+    if (quality == QUALITY_RARE && target->Worldforged && rareWorldforged > RARE_WORLDFORGED_LIMIT)
+        errors.push_back(COLLECTION_REFORGE_RARE_WORLDFORGED_LIMIT);
+    if (!InvestmentMet(character, *target, false))
+        errors.push_back(COLLECTION_REFORGE_REQUIRED_AE_INVESTMENT);
+    if (!InvestmentMet(character, *target, true))
+        errors.push_back(COLLECTION_REFORGE_REQUIRED_TE_INVESTMENT);
+    if (character.Level < target->RequiredLevel)
+        errors.push_back(COLLECTION_REFORGE_TOO_LOW_LEVEL);
+    return errors;
+}
+
+std::string QualityTier(std::uint32_t quality)
+{
+    static std::array<char const*, QUALITY_MAX> const TIERS = { "", "", "UNCOMMON", "RARE", "EPIC", "LEGENDARY",
+        "ARTIFACT", "" };
+    return TIERS[quality];
+}
+}
+
+bool Character::Knows(std::uint32_t spell) const
+{
+    return Known && std::find(Known->begin(), Known->end(), spell) != Known->end();
+}
+
+std::uint32_t CollectionReforgeCost(Character const& character, Enchant const& enchant, bool money, bool slot)
+{
+    static std::array<std::int32_t, QUALITY_MAX> const MONEY = { 0, 0, 300000, 600000, 1000000, 2500000, 2500000, 0 };
+    static std::array<std::int32_t, QUALITY_MAX> const TOKENS = { 0, 0, 1200, 2400, 4000, 10000, 10000, 0 };
+    std::uint32_t const quality = QualityOf(enchant, character.Class);
+    if (quality < QUALITY_UNCOMMON || quality > QUALITY_ARTIFACT)
+        return quality;
+    std::string const tier = QualityTier(quality);
+    if (!slot)
+        return money ? std::uint32_t(Configured(character,
+            "CONFIG_MYSTIC_ENCHANT_COLLECTION_REFORGE_ITEM_" + tier + "_MONEY_COST", MONEY[quality])) : NO_TOKEN_PRICE;
+    if (money)
+        return std::uint32_t(Configured(character, "CONFIG_MYSTIC_ENCHANT_COLLECTION_REFORGE_" + tier + "_MONEY_COST",
+            MONEY[quality]));
+    return std::uint32_t(Configured(character, "CONFIG_MYSTIC_ENCHANT_COLLECTION_REFORGE_" + tier + "_TOKEN_COST",
+        TOKENS[quality]));
+}
+
+std::uint32_t ExtractCost(Character const& character, Enchant const& enchant)
+{
+    static std::array<std::int32_t, QUALITY_MAX> const TOKENS = { 0, 0, 2500, 5000, 10000, 20000, 20000, 0 };
+    std::uint32_t const quality = QualityOf(enchant, character.Class);
+    if (quality < QUALITY_UNCOMMON || quality > QUALITY_ARTIFACT)
+        return quality;
+    return std::uint32_t(Configured(character, "CONFIG_MYSTIC_ENCHANT_EXTRACT_" + QualityTier(quality) + "_TOKEN_COST",
+        TOKENS[quality]));
+}
+
+std::uint32_t ReforgeCost(Character const& character, bool money)
+{
+    if (money)
+        return std::uint32_t(Configured(character, "CONFIG_MYSTIC_ENCHANT_REFORGE_MONEY_COST", 25000));
+    return std::uint32_t(Configured(character, "CONFIG_MYSTIC_ENCHANT_REFORGE_TOKEN_COST", 250));
+}
+
+std::uint32_t ExtractPurchaseCost(std::uint32_t altarLevel)
+{
+    return std::min<std::uint32_t>(altarLevel * 200 + 1000, 5000);
+}
+
+Charge CollectionReforgeCharge(Character const& character, std::vector<Enchant const*> const& targets, bool slot)
+{
+    Charge charge;
+    for (Enchant const* target : targets)
+    {
+        std::uint32_t const runes = CollectionReforgeCost(character, *target, false, slot);
+        std::uint32_t const money = CollectionReforgeCost(character, *target, true, slot);
+        if (Priced(runes) && SaturatingAdd(charge.Runes, runes) <= character.Runes)
+        {
+            charge.Runes = SaturatingAdd(charge.Runes, runes);
+            continue;
+        }
+        if (!Priced(money) || character.Money < SaturatingAdd(money, charge.Money))
+        {
+            charge.Affordable = false;
+            return charge;
+        }
+        charge.Money = SaturatingAdd(money, charge.Money);
+    }
+    return charge;
+}
+
+Charge ReforgeCharge(Character const& character)
+{
+    std::uint32_t const runes = ReforgeCost(character, false);
+    if (runes && runes <= character.Runes)
+        return { true, 0, runes };
+    std::uint32_t const money = ReforgeCost(character, true);
+    if (money && money <= character.Money)
+        return { true, money, 0 };
+    return { false, 0, 0 };
+}
+
+std::uint32_t CheckReforgeItem(Catalog const& catalog, Character const& character, ScrollItem const& scroll)
+{
+    if (!scroll.Found)
+        return REFORGE_BAD_ITEM;
+    if (scroll.Entry != UNTARNISHED_MYSTIC_SCROLL)
+    {
+        Enchant const* enchant = catalog.FindItem(scroll.Entry);
+        if (!enchant)
+            return REFORGE_NOT_MYSTIC_SCROLL;
+        if (enchant->Worldforged)
+            return REFORGE_WORLDFORGED_SCROLL;
+    }
+    if (!ReforgeCharge(character).Affordable)
+        return REFORGE_NO_MONEY;
+    if (!character.AltarNearby)
+        return REFORGE_NO_MYSTIC_ALTAR;
+    if (character.Casting)
+        return REFORGE_NOT_WHILE_CASTING;
+    if (IsConquestOfAzerothClass(character.Class))
+        return REFORGE_BAD_CLASS;
+    if (character.Wildcard())
+        return REFORGE_DISABLED_IN_WILDCARD;
+    return REFORGE_OK;
+}
+
+std::uint32_t CheckCollectionReforgeItem(Catalog const& catalog, Character const& character, ScrollItem const& scroll,
+    std::uint32_t spell)
+{
+    std::vector<std::uint32_t> errors;
+    std::uint32_t current = 0;
+    if (!scroll.Found)
+        errors.push_back(COLLECTION_REFORGE_BAD_ITEM);
+    else if (scroll.Entry != UNTARNISHED_MYSTIC_SCROLL)
+    {
+        if (Enchant const* held = catalog.FindItem(scroll.Entry))
+        {
+            if (held->Worldforged)
+                errors.push_back(COLLECTION_REFORGE_WORLDFORGED_SCROLL);
+            current = held->Spell;
+        }
+        else
+            errors.push_back(COLLECTION_REFORGE_NOT_MYSTIC_SCROLL);
+    }
+    CheckReforgeTarget(catalog, character, current, spell, errors);
+    if (Enchant const* target = catalog.FindSpell(spell))
+    {
+        if (!CollectionReforgeCharge(character, { target }, false).Affordable)
+            errors.push_back(COLLECTION_REFORGE_NO_MONEY);
+        if (target->Worldforged)
+            errors.push_back(COLLECTION_REFORGE_WORLDFORGED_ENCHANT);
+    }
+    return errors.empty() ? COLLECTION_REFORGE_OK : errors.front();
+}
+
+std::uint32_t CheckSaveCollectionReforge(Catalog const& catalog, Character const& character, Slots const& slots,
+    std::vector<StagedReforge> const& staged)
+{
+    if (staged.empty())
+        return COLLECTION_REFORGE_UNKNOWN;
+    std::vector<std::uint32_t> all;
+    for (StagedReforge const& entry : staged)
+        for (std::uint32_t error : CheckCollectionReforgeSlot(catalog, character, slots, staged, entry))
+            AddOnce(all, error);
+    return all.empty() ? COLLECTION_REFORGE_OK : all.front();
+}
+
+std::uint32_t CheckDisenchant(Catalog const& catalog, Character const& character, std::uint32_t spell)
+{
+    Enchant const* enchant = spell ? catalog.FindSpell(spell) : nullptr;
+    if (!enchant)
+        return DISENCHANT_BAD_ENCHANTMENT;
+    if (!RealmAllows(*enchant, character.RealmGates))
+        return DISENCHANT_BAD_REALM;
+    if (character.Wildcard())
+        return DISENCHANT_DISABLED_IN_WILDCARD;
+    if (character.Knows(spell))
+        return DISENCHANT_ALREADY_KNOWN_ENCHANTMENT;
+    if (!character.AltarNearby)
+        return DISENCHANT_NO_MYSTIC_ALTAR;
+    if (character.Casting)
+        return DISENCHANT_NOT_WHILE_CASTING;
+    std::uint32_t const cost = ExtractCost(character, *enchant);
+    if (!Priced(cost) || character.Extracts < cost)
+        return DISENCHANT_NO_MONEY;
+    return DISENCHANT_OK;
+}
+
+std::uint32_t CheckDisenchantItem(Catalog const& catalog, Character const& character, ScrollItem const& scroll)
+{
+    if (!scroll.Found)
+        return DISENCHANT_BAD_ITEM;
+    Enchant const* enchant = catalog.FindItem(scroll.Entry);
+    if (!enchant)
+        return DISENCHANT_NOT_MYSTIC_SCROLL;
+    return CheckDisenchant(catalog, character, enchant->Spell);
+}
+
+std::uint32_t CheckDisenchantSlot(Catalog const& catalog, Character const& character, Slots const& slots,
+    std::uint32_t slot)
+{
+    if (!SlotValid(slot, character.Fusion()))
+        return DISENCHANT_BAD_SLOT;
+    if (character.Draft)
+        return DISENCHANT_BUILD_DRAFT;
+    return CheckDisenchant(catalog, character, slots[slot]);
+}
+
+std::uint32_t CheckExtractPurchase(Character const& character, std::uint32_t altarLevel)
+{
+    if (character.Extracts)
+        return EXTRACT_PURCHASE_ALREADY_OBTAINED;
+    if (character.Runes < ExtractPurchaseCost(altarLevel))
+        return EXTRACT_PURCHASE_NO_TOKENS;
+    return EXTRACT_PURCHASE_OK;
+}
+
+std::vector<Enchant const*> ReforgePool(Catalog const& catalog, Character const& character,
+    std::function<bool(std::uint32_t item)> const& itemExists)
+{
+    std::vector<Enchant const*> pool;
+    for (Enchant const& enchant : catalog.Rows)
+        if (enchant.Item && enchant.Weight > 0.0f && !enchant.Worldforged && ClassAllowed(enchant, character.Class) &&
+            RealmAllows(enchant, character.RealmGates) && (!itemExists || itemExists(enchant.Item)))
+            pool.push_back(&enchant);
+    return pool;
+}
+
+Enchant const* Roll(std::vector<Enchant const*> const& pool, double unit)
+{
+    double total = 0.0;
+    for (Enchant const* enchant : pool)
+        total += enchant->Weight;
+    double target = std::clamp(unit, 0.0, 1.0) * total;
+    for (Enchant const* enchant : pool)
+    {
+        target -= enchant->Weight;
+        if (target < 0.0)
+            return enchant;
+    }
+    return pool.empty() ? nullptr : pool.back();
+}
+
+std::uint64_t LevelProgress(std::uint32_t level)
+{
+    if (level == 0)
+        return 1;
+    if (level > 249)
+        return std::uint32_t(level * 0x1001 - 0x72038);
+    double const value = double(level);
+    return std::uint64_t(std::floor(value * 7.5 * value + double(std::int32_t(level * 354))));
+}
+
+std::uint64_t ReforgeProgressGain(Enchant const& enchant, double multiplier)
+{
+    std::uint64_t gain = 0;
+    switch (enchant.Quality)
+    {
+        case QUALITY_UNCOMMON: gain = 60; break;
+        case QUALITY_RARE: gain = 80; break;
+        case QUALITY_EPIC: gain = 100; break;
+        case QUALITY_LEGENDARY:
+        case QUALITY_ARTIFACT: gain = 200; break;
+        default: break;
+    }
+    return std::uint64_t(float(std::int64_t(gain)) * float(multiplier));
+}
+
+std::uint32_t AddProgress(Progress& progress, std::uint64_t gain)
+{
+    if (!gain)
+        return 0;
+    progress.Points += gain;
+    std::uint32_t const before = progress.Level;
+    while (LevelProgress(progress.Level) <= progress.Points)
+        ++progress.Level;
+    return progress.Level - before;
 }
 }

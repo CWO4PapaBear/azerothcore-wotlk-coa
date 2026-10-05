@@ -12,6 +12,7 @@
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Player.h"
+#include "Random.h"
 #include "ScriptMgr.h"
 #include "SpellAuras.h"
 #include "SpellInfo.h"
@@ -29,15 +30,24 @@ namespace AscensionMysticEnchant
 namespace
 {
 constexpr uint16 SMSG_UPDATE_KNOWN_RANDOM_ENCHANTS = 0x05F9;
+constexpr uint16 SMSG_ADD_KNOWN_RANDOM_ENCHANT = 0x05FA;
 constexpr uint16 SMSG_UPDATE_RANDOM_ENCHANT_DATA = 0x05FC;
 constexpr uint16 SMSG_UPDATE_RANDOM_ENCHANT_SLOTS = 0x05FD;
 constexpr uint16 SMSG_UPDATE_RANDOM_ENCHANT_SLOT = 0x05FE;
 constexpr uint16 SMSG_UPDATE_RANDOM_ENCHANT_PRESET_DATA = 0x05FF;
 constexpr uint16 SMSG_UPDATE_ACTIVE_RANDOM_ENCHANT_PRESET = 0x0600;
 constexpr uint16 SMSG_SAVE_RANDOM_ENCHANT_PRESET_RESULT = 0x0602;
+constexpr uint16 CMSG_REFORGE_RANDOM_ENCHANT_ITEM = 0x0603;
+constexpr uint16 SMSG_REFORGE_RANDOM_ENCHANT_RESULT = 0x0604;
+constexpr uint16 CMSG_COLLECTION_REFORGE_RANDOM_ENCHANT_ITEM = 0x0605;
+constexpr uint16 SMSG_COLLECTION_REFORGE_RANDOM_ENCHANT_RESULT = 0x0606;
+constexpr uint16 CMSG_DISENCHANT_RANDOM_ENCHANT_ITEM = 0x0607;
+constexpr uint16 CMSG_DISENCHANT_RANDOM_ENCHANT_SLOT = 0x0608;
+constexpr uint16 SMSG_DISENCHANT_RANDOM_ENCHANT_RESULT = 0x0609;
 constexpr uint16 SMSG_APPLY_RANDOM_ENCHANT_RESULT = 0x060B;
 constexpr uint16 CMSG_SET_ACTIVE_RANDOM_ENCHANT_PRESET = 0x060C;
 constexpr uint16 SMSG_SET_ACTIVE_RANDOM_ENCHANT_PRESET_RESULT = 0x060D;
+constexpr uint16 CMSG_COLLECTION_REFORGE_RANDOM_ENCHANT_SLOT = 0x060F;
 constexpr uint16 CMSG_APPLY_RANDOM_ENCHANT_SLOT = 0x0610;
 constexpr uint16 CMSG_PURCHASE_MYSTIC_SCROLL = 0x0611;
 constexpr uint16 SMSG_PURCHASE_MYSTIC_SCROLL_RESULT = 0x0612;
@@ -47,10 +57,21 @@ constexpr uint16 CMSG_UNLOCK_RANDOM_ENCHANT_PRESET = 0x0615;
 constexpr uint16 SMSG_UNLOCK_RANDOM_ENCHANT_PRESET_RESULT = 0x0616;
 constexpr uint16 CMSG_DESTROY_RANDOM_ENCHANT_SLOT = 0x0617;
 constexpr uint16 SMSG_DESTROY_RANDOM_ENCHANT_SLOT_RESULT = 0x0618;
+constexpr uint16 CMSG_PURCHASE_MYSTIC_EXTRACT = 0x0733;
+constexpr uint16 SMSG_PURCHASE_MYSTIC_EXTRACT_RESULT = 0x0734;
 
-constexpr std::array<uint16, 6> CLIENT_OPCODES = { CMSG_SET_ACTIVE_RANDOM_ENCHANT_PRESET,
+constexpr std::array<uint16, 12> CLIENT_OPCODES = { CMSG_SET_ACTIVE_RANDOM_ENCHANT_PRESET,
     CMSG_APPLY_RANDOM_ENCHANT_SLOT, CMSG_PURCHASE_MYSTIC_SCROLL, CMSG_INSPECT_RANDOM_ENCHANTS,
-    CMSG_UNLOCK_RANDOM_ENCHANT_PRESET, CMSG_DESTROY_RANDOM_ENCHANT_SLOT };
+    CMSG_UNLOCK_RANDOM_ENCHANT_PRESET, CMSG_DESTROY_RANDOM_ENCHANT_SLOT, CMSG_REFORGE_RANDOM_ENCHANT_ITEM,
+    CMSG_COLLECTION_REFORGE_RANDOM_ENCHANT_ITEM, CMSG_DISENCHANT_RANDOM_ENCHANT_ITEM,
+    CMSG_DISENCHANT_RANDOM_ENCHANT_SLOT, CMSG_COLLECTION_REFORGE_RANDOM_ENCHANT_SLOT, CMSG_PURCHASE_MYSTIC_EXTRACT };
+
+constexpr uint32 REFORGE_SPELL = 93235;
+constexpr uint32 REFORGE_COOLDOWN = 1100;
+constexpr std::array<uint32, 2> PROGRESS_AURAS = { 85856, 85857 };
+constexpr std::array<char const*, 5> EXTRACT_COST_CONFIGS = { "CONFIG_MYSTIC_ENCHANT_EXTRACT_UNCOMMON_TOKEN_COST",
+    "CONFIG_MYSTIC_ENCHANT_EXTRACT_RARE_TOKEN_COST", "CONFIG_MYSTIC_ENCHANT_EXTRACT_EPIC_TOKEN_COST",
+    "CONFIG_MYSTIC_ENCHANT_EXTRACT_LEGENDARY_TOKEN_COST", "CONFIG_MYSTIC_ENCHANT_EXTRACT_ARTIFACT_TOKEN_COST" };
 
 constexpr std::array<uint32, 24> ALTARS = { 48, 80148, 176522, 176523, 176525, 245006, 357264, 800079, 1000079,
     1903512, 1903513, 3241144, 3244734, 3245004, 3245006, 3245037, 3245726, 3246320, 3249516, 3252409, 7100000,
@@ -104,6 +125,9 @@ Character Describe(Player const* player, ClientConfig const& config)
     character.GameModes = sConfigMgr->GetOption<uint32>("CoA.GameModeMask", 0);
     character.Casting = player->IsNonMeleeSpellCast(false);
     character.UnlockTokens = player->GetItemCount(PRESET_UNLOCK_TOKEN, false);
+    character.Runes = player->GetItemCount(RUNE_OF_ASCENSION, false);
+    character.Extracts = player->GetItemCount(MYSTIC_EXTRACT, false);
+    character.AltarNearby = AltarNearby(player);
     character.RealmGates = AscensionFreepick::RealmGates();
     character.Config = &config;
     character.Invested = [player](uint32 classType, uint32 tab, bool talent)
@@ -254,6 +278,230 @@ void SendState(Player* player, State const& state)
 void SavePreset(Player* player, Character const& character)
 {
     SendResult(player, SMSG_SAVE_RANDOM_ENCHANT_PRESET_RESULT, PRESET_SAVE_RESULTS[CheckPresetSave(character)]);
+}
+
+ScrollItem Locate(Player* player, uint8 bag, uint8 slot, Item*& item)
+{
+    item = player->GetItemByPos(bag, slot);
+    return { item != nullptr, item ? item->GetEntry() : 0 };
+}
+
+Item* ReplaceScroll(Player* player, Item* scroll, uint32 entry)
+{
+    uint8 const bag = scroll->GetBagSlot();
+    uint8 const slot = scroll->GetSlot();
+    ItemPosCountVec destination;
+    if (scroll->GetCount() > 1)
+    {
+        if (player->CanStoreNewItem(NULL_BAG, NULL_SLOT, destination, entry, 1) != EQUIP_ERR_OK)
+            return nullptr;
+        uint32 one = 1;
+        player->DestroyItemCount(scroll, one, true);
+    }
+    else
+    {
+        player->DestroyItem(bag, slot, true);
+        if (player->CanStoreNewItem(bag, slot, destination, entry, 1) != EQUIP_ERR_OK &&
+            player->CanStoreNewItem(NULL_BAG, NULL_SLOT, destination, entry, 1) != EQUIP_ERR_OK)
+            return nullptr;
+    }
+    Item* created = player->StoreNewItem(destination, entry, true);
+    if (created)
+        player->SendNewItem(created, 1, true, false);
+    return created;
+}
+
+void ApplyCharge(Player* player, AscensionMysticEnchant::Charge const& charge)
+{
+    if (charge.Runes)
+        player->DestroyItemCount(RUNE_OF_ASCENSION, charge.Runes, true);
+    if (charge.Money)
+        player->ModifyMoney(-int32(charge.Money));
+}
+
+void Learn(Player* player, State& state, uint32 spell)
+{
+    if (std::find(state.Known.begin(), state.Known.end(), spell) != state.Known.end())
+        return;
+    state.Known.push_back(spell);
+    CharacterDatabase.Execute("INSERT IGNORE INTO coa_mystic_enchant_known (guid, spell) VALUES ({}, {})",
+        player->GetGUID().GetCounter(), spell);
+    WorldPacket packet(SMSG_ADD_KNOWN_RANDOM_ENCHANT, 5);
+    packet << uint32(spell) << uint8(0);
+    player->SendDirectMessage(&packet);
+}
+
+void GrantReforgeProgress(Player* player, State& state, Enchant const& rolled)
+{
+    uint64 gain = ReforgeProgressGain(rolled, 1.0);
+    for (uint32 auraId : PROGRESS_AURAS)
+    {
+        SpellInfo const* info = sSpellMgr->GetSpellInfo(auraId);
+        if (info && player->HasAura(auraId))
+            gain = uint64(float(int64(gain)) * (float(info->Effects[EFFECT_1].BasePoints + 1) / 100.0f + 1.0f));
+    }
+    Progress progress{ state.Progress, state.Level };
+    uint32 const levels = AddProgress(progress, gain);
+    state.Progress = progress.Points;
+    state.Level = progress.Level;
+    SaveHeader(player, state);
+    if (levels)
+        player->AddItem(MYSTIC_EXTRACT, levels);
+}
+
+void HandleReforgeItem(Player* player, State& state, WorldPacket& packet)
+{
+    uint8 const bag = packet.read<uint8>();
+    uint8 const slot = packet.read<uint8>();
+    Item* item = nullptr;
+    ScrollItem const scroll = Locate(player, bag, slot, item);
+    ClientConfig const config = CurrentClientConfig();
+    Character const character = Describe(player, config);
+    uint32 result = CheckReforgeItem(Loaded, character, scroll);
+    Enchant const* rolled = nullptr;
+    if (result == REFORGE_OK)
+    {
+        rolled = Roll(ReforgePool(Loaded, character,
+            [](uint32 entry) { return sObjectMgr->GetItemTemplate(entry) != nullptr; }), rand_norm());
+        if (!rolled || !ReplaceScroll(player, item, rolled->Item))
+            result = REFORGE_UNKNOWN;
+    }
+    if (result == REFORGE_OK)
+    {
+        ApplyCharge(player, ReforgeCharge(character));
+        GrantReforgeProgress(player, state, *rolled);
+        player->AddSpellCooldown(REFORGE_SPELL, 0, REFORGE_COOLDOWN, true);
+    }
+    WorldPacket response(SMSG_REFORGE_RANDOM_ENCHANT_RESULT, 40);
+    response << REFORGE_RESULTS[result] << uint32(rolled && result == REFORGE_OK ? rolled->Spell : 0);
+    player->SendDirectMessage(&response);
+}
+
+void HandleCollectionReforgeItem(Player* player, State& state, WorldPacket& packet)
+{
+    uint8 const bag = packet.read<uint8>();
+    uint8 const slot = packet.read<uint8>();
+    uint32 const spell = packet.read<uint32>();
+    Item* item = nullptr;
+    ScrollItem const scroll = Locate(player, bag, slot, item);
+    ClientConfig const config = CurrentClientConfig();
+    Character character = Describe(player, config);
+    character.Known = &state.Known;
+    uint32 result = CheckCollectionReforgeItem(Loaded, character, scroll, spell);
+    Enchant const* target = Loaded.FindSpell(spell);
+    if (result == COLLECTION_REFORGE_OK)
+    {
+        AscensionMysticEnchant::Charge const charge = CollectionReforgeCharge(character, { target }, false);
+        if (ReplaceScroll(player, item, target->Item))
+            ApplyCharge(player, charge);
+        else
+            result = COLLECTION_REFORGE_UNKNOWN;
+    }
+    SendResult(player, SMSG_COLLECTION_REFORGE_RANDOM_ENCHANT_RESULT, COLLECTION_REFORGE_RESULTS[result]);
+}
+
+void HandleSaveCollectionReforge(Player* player, State& state, WorldPacket& packet)
+{
+    uint32 const count = packet.read<uint32>();
+    if (count > MAX_STAGED_APPLIES)
+    {
+        SendResult(player, SMSG_COLLECTION_REFORGE_RANDOM_ENCHANT_RESULT,
+            COLLECTION_REFORGE_RESULTS[COLLECTION_REFORGE_UNKNOWN]);
+        return;
+    }
+    std::vector<StagedReforge> staged;
+    for (uint32 index = 0; index < count; ++index)
+    {
+        StagedReforge entry;
+        entry.Slot = packet.read<uint32>();
+        entry.Spell = packet.read<uint32>();
+        staged.push_back(entry);
+    }
+    ClientConfig const config = CurrentClientConfig();
+    Character character = Describe(player, config);
+    character.Known = &state.Known;
+    uint32 const result = CheckSaveCollectionReforge(Loaded, character, state.Active(), staged);
+    if (result != COLLECTION_REFORGE_OK)
+    {
+        SendResult(player, SMSG_COLLECTION_REFORGE_RANDOM_ENCHANT_RESULT, COLLECTION_REFORGE_RESULTS[result]);
+        return;
+    }
+    std::vector<Enchant const*> targets;
+    for (StagedReforge const& entry : staged)
+        targets.push_back(Loaded.FindSpell(entry.Spell));
+    ApplyCharge(player, CollectionReforgeCharge(character, targets, true));
+    Slots const before = state.Active();
+    for (StagedReforge const& entry : staged)
+        state.Active()[entry.Slot] = entry.Spell;
+    for (uint32 slot = 0; slot < SLOT_COUNT; ++slot)
+        if (before[slot] != state.Active()[slot])
+            SaveSlot(player, state.ActivePreset, slot, state.Active()[slot]);
+    SyncAuras(player, state);
+    SendChangedSlots(player, before, state.Active());
+    SendResult(player, SMSG_COLLECTION_REFORGE_RANDOM_ENCHANT_RESULT,
+        COLLECTION_REFORGE_RESULTS[COLLECTION_REFORGE_OK]);
+    SavePreset(player, character);
+}
+
+void CompleteDisenchant(Player* player, State& state, Character const& character, uint32 spell)
+{
+    if (Enchant const* enchant = Loaded.FindSpell(spell))
+        player->DestroyItemCount(MYSTIC_EXTRACT, ExtractCost(character, *enchant), true);
+    Learn(player, state, spell);
+}
+
+void HandleDisenchantItem(Player* player, State& state, WorldPacket& packet)
+{
+    packet.read_skip<uint8>();
+    uint8 const bag = packet.read<uint8>();
+    uint8 const slot = packet.read<uint8>();
+    Item* item = nullptr;
+    ScrollItem const scroll = Locate(player, bag, slot, item);
+    ClientConfig const config = CurrentClientConfig();
+    Character character = Describe(player, config);
+    character.Known = &state.Known;
+    uint32 const result = CheckDisenchantItem(Loaded, character, scroll);
+    if (result == DISENCHANT_OK)
+    {
+        uint32 const spell = Loaded.FindItem(scroll.Entry)->Spell;
+        uint32 one = 1;
+        player->DestroyItemCount(item, one, true);
+        CompleteDisenchant(player, state, character, spell);
+    }
+    SendResult(player, SMSG_DISENCHANT_RANDOM_ENCHANT_RESULT, DISENCHANT_RESULTS[result]);
+}
+
+void HandleDisenchantSlot(Player* player, State& state, WorldPacket& packet)
+{
+    packet.read_skip<uint8>();
+    uint32 const slot = packet.read<uint32>();
+    ClientConfig const config = CurrentClientConfig();
+    Character character = Describe(player, config);
+    character.Known = &state.Known;
+    uint32 const result = CheckDisenchantSlot(Loaded, character, state.Active(), slot);
+    if (result == DISENCHANT_OK)
+        CompleteDisenchant(player, state, character, state.Active()[slot]);
+    SendResult(player, SMSG_DISENCHANT_RANDOM_ENCHANT_RESULT, DISENCHANT_RESULTS[result]);
+}
+
+void HandlePurchaseExtract(Player* player, State const& state)
+{
+    ClientConfig const config = CurrentClientConfig();
+    uint32 const result = CheckExtractPurchase(Describe(player, config), state.Level);
+    if (result == EXTRACT_PURCHASE_OK)
+    {
+        player->DestroyItemCount(RUNE_OF_ASCENSION, ExtractPurchaseCost(state.Level), true);
+        player->AddItem(MYSTIC_EXTRACT, 1);
+    }
+    SendResult(player, SMSG_PURCHASE_MYSTIC_EXTRACT_RESULT, EXTRACT_PURCHASE_RESULTS[result]);
+}
+
+void AppendExtractCosts(AscensionClientConfig& config)
+{
+    for (char const* name : EXTRACT_COST_CONFIGS)
+        if (std::none_of(config.Integers.begin(), config.Integers.end(),
+            [name](std::pair<std::string, int32> const& entry) { return entry.first == name; }))
+            config.Integers.emplace_back(name, 1);
 }
 
 void HandleSaveApply(Player* player, State& state, WorldPacket& packet)
@@ -415,6 +663,12 @@ void Handle(Player* player, WorldPacket& packet)
         case CMSG_INSPECT_RANDOM_ENCHANTS: HandleInspect(player, packet); break;
         case CMSG_SET_ACTIVE_RANDOM_ENCHANT_PRESET: HandleActivatePreset(player, *state, packet); break;
         case CMSG_UNLOCK_RANDOM_ENCHANT_PRESET: HandleUnlockPreset(player, *state); break;
+        case CMSG_REFORGE_RANDOM_ENCHANT_ITEM: HandleReforgeItem(player, *state, packet); break;
+        case CMSG_COLLECTION_REFORGE_RANDOM_ENCHANT_ITEM: HandleCollectionReforgeItem(player, *state, packet); break;
+        case CMSG_COLLECTION_REFORGE_RANDOM_ENCHANT_SLOT: HandleSaveCollectionReforge(player, *state, packet); break;
+        case CMSG_DISENCHANT_RANDOM_ENCHANT_ITEM: HandleDisenchantItem(player, *state, packet); break;
+        case CMSG_DISENCHANT_RANDOM_ENCHANT_SLOT: HandleDisenchantSlot(player, *state, packet); break;
+        case CMSG_PURCHASE_MYSTIC_EXTRACT: HandlePurchaseExtract(player, *state); break;
         default: break;
     }
 }
@@ -509,6 +763,7 @@ void AddAscensionMysticEnchantScripts()
 {
     for (uint16 opcode : AscensionMysticEnchant::CLIENT_OPCODES)
         AscensionCompatOpcodes::Claim(opcode, &AscensionMysticEnchant::QueueRequest);
+    RegisterAscensionClientConfig(&AscensionMysticEnchant::AppendExtractCosts);
     new AscensionMysticEnchant::AscensionMysticEnchantPlayer();
     new AscensionMysticEnchant::AscensionMysticEnchantWorld();
 }

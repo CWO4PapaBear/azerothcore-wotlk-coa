@@ -23,6 +23,9 @@ constexpr std::uint32_t MAX_PRESETS = 100;
 constexpr std::uint32_t RARE_WORLDFORGED_LIMIT = 3;
 constexpr std::uint32_t UNTARNISHED_MYSTIC_SCROLL = 992720;
 constexpr std::uint32_t PRESET_UNLOCK_TOKEN = 1806961;
+constexpr std::uint32_t RUNE_OF_ASCENSION = 375250;
+constexpr std::uint32_t MYSTIC_EXTRACT = 98463;
+constexpr std::uint32_t NO_TOKEN_PRICE = 0xFFFFFFFF;
 
 enum Quality : std::uint32_t
 {
@@ -136,6 +139,93 @@ enum PresetUnlockResult : std::uint32_t
     PRESET_UNLOCK_RESULT_COUNT
 };
 
+enum ReforgeResult : std::uint32_t
+{
+    REFORGE_OK,
+    REFORGE_UNKNOWN,
+    REFORGE_BAD_ITEM,
+    REFORGE_NOT_MYSTIC_SCROLL,
+    REFORGE_WORLDFORGED_SCROLL,
+    REFORGE_BAD_SLOT,
+    REFORGE_BUILD_DRAFT,
+    REFORGE_NO_MONEY,
+    REFORGE_NOT_IN_BATTLEGROUNDS,
+    REFORGE_NO_MYSTIC_ALTAR,
+    REFORGE_NOT_WHILE_CASTING,
+    REFORGE_BAD_CLASS,
+    REFORGE_DISABLED_IN_WILDCARD,
+    REFORGE_RESULT_COUNT
+};
+
+enum CollectionReforgeResult : std::uint32_t
+{
+    COLLECTION_REFORGE_OK,
+    COLLECTION_REFORGE_UNKNOWN,
+    COLLECTION_REFORGE_BAD_ITEM,
+    COLLECTION_REFORGE_NOT_MYSTIC_SCROLL,
+    COLLECTION_REFORGE_WORLDFORGED_SCROLL,
+    COLLECTION_REFORGE_WORLDFORGED_ENCHANT,
+    COLLECTION_REFORGE_BAD_SLOT,
+    COLLECTION_REFORGE_BUILD_DRAFT,
+    COLLECTION_REFORGE_BAD_CLASS,
+    COLLECTION_REFORGE_ALREADY_APPLIED,
+    COLLECTION_REFORGE_BAD_ENCHANTMENT,
+    COLLECTION_REFORGE_NOT_KNOWN_ENCHANTMENT,
+    COLLECTION_REFORGE_NO_MONEY,
+    COLLECTION_REFORGE_NOT_IN_BATTLEGROUNDS,
+    COLLECTION_REFORGE_DISABLED,
+    COLLECTION_REFORGE_STACK_LIMIT,
+    COLLECTION_REFORGE_UNCOMMON_LIMIT,
+    COLLECTION_REFORGE_RARE_LIMIT,
+    COLLECTION_REFORGE_EPIC_LIMIT,
+    COLLECTION_REFORGE_LEGENDARY_LIMIT,
+    COLLECTION_REFORGE_ARTIFACT_LIMIT,
+    COLLECTION_REFORGE_UNHANDLED_LIMIT,
+    COLLECTION_REFORGE_NO_MYSTIC_ALTAR,
+    COLLECTION_REFORGE_NOT_WHILE_CASTING,
+    COLLECTION_REFORGE_BAD_REALM,
+    COLLECTION_REFORGE_DISABLED_IN_WILDCARD,
+    COLLECTION_REFORGE_RARE_WORLDFORGED_LIMIT,
+    COLLECTION_REFORGE_REQUIRED_AE_INVESTMENT,
+    COLLECTION_REFORGE_REQUIRED_TE_INVESTMENT,
+    COLLECTION_REFORGE_TOO_LOW_LEVEL,
+    COLLECTION_REFORGE_RESULT_COUNT
+};
+
+enum DisenchantResult : std::uint32_t
+{
+    DISENCHANT_OK,
+    DISENCHANT_UNKNOWN,
+    DISENCHANT_BAD_ITEM,
+    DISENCHANT_NOT_MYSTIC_SCROLL,
+    DISENCHANT_BAD_SLOT,
+    DISENCHANT_BUILD_DRAFT,
+    DISENCHANT_NO_ENCHANTMENT,
+    DISENCHANT_BAD_ENCHANTMENT,
+    DISENCHANT_ALREADY_KNOWN_ENCHANTMENT,
+    DISENCHANT_NO_MONEY,
+    DISENCHANT_NOT_IN_BATTLEGROUNDS,
+    DISENCHANT_DISABLED,
+    DISENCHANT_NO_MYSTIC_ALTAR,
+    DISENCHANT_NOT_WHILE_CASTING,
+    DISENCHANT_BAD_REALM,
+    DISENCHANT_DISABLED_IN_WILDCARD,
+    DISENCHANT_RESULT_COUNT
+};
+
+enum ExtractPurchaseResult : std::uint32_t
+{
+    EXTRACT_PURCHASE_OK,
+    EXTRACT_PURCHASE_UNKNOWN,
+    EXTRACT_PURCHASE_NO_TOKENS,
+    EXTRACT_PURCHASE_ALREADY_OBTAINED,
+    EXTRACT_PURCHASE_RESULT_COUNT
+};
+
+extern std::array<char const*, REFORGE_RESULT_COUNT> const REFORGE_RESULTS;
+extern std::array<char const*, COLLECTION_REFORGE_RESULT_COUNT> const COLLECTION_REFORGE_RESULTS;
+extern std::array<char const*, DISENCHANT_RESULT_COUNT> const DISENCHANT_RESULTS;
+extern std::array<char const*, EXTRACT_PURCHASE_RESULT_COUNT> const EXTRACT_PURCHASE_RESULTS;
 extern std::array<char const*, APPLY_RESULT_COUNT> const APPLY_RESULTS;
 extern std::array<char const*, DESTROY_RESULT_COUNT> const DESTROY_RESULTS;
 extern std::array<char const*, PURCHASE_RESULT_COUNT> const PURCHASE_RESULTS;
@@ -197,12 +287,16 @@ struct Character
     bool AltarNearby = false;
     bool BagSpace = true;
     std::uint32_t UnlockTokens = 0;
+    std::uint32_t Runes = 0;
+    std::uint32_t Extracts = 0;
+    std::vector<std::uint32_t> const* Known = nullptr;
     std::array<bool, REALM_COUNT> RealmGates{};
     ClientConfig const* Config = nullptr;
     InvestmentLookup Invested;
     StackLookup StackLimit;
 
     [[nodiscard]] bool Fusion() const;
+    [[nodiscard]] bool Knows(std::uint32_t spell) const;
     [[nodiscard]] bool Wildcard() const { return (GameModes & WILDCARD_MODE) != 0; }
 };
 
@@ -214,6 +308,31 @@ struct StagedApply
     std::uint32_t ItemEntry = 0;
     std::uint32_t ItemKey = 0;
     bool ItemFound = false;
+};
+
+struct StagedReforge
+{
+    std::uint32_t Slot = 0;
+    std::uint32_t Spell = 0;
+};
+
+struct ScrollItem
+{
+    bool Found = false;
+    std::uint32_t Entry = 0;
+};
+
+struct Charge
+{
+    bool Affordable = true;
+    std::uint32_t Money = 0;
+    std::uint32_t Runes = 0;
+};
+
+struct Progress
+{
+    std::uint64_t Points = 1;
+    std::uint32_t Level = 1;
 };
 
 bool IsStockClass(std::uint32_t classId);
@@ -236,6 +355,31 @@ std::uint32_t CheckInspect(bool found, bool sameMap, std::uint32_t targetClass);
 std::uint32_t CheckPresetSave(Character const& character);
 std::uint32_t CheckPresetActivate(Character const& character, std::uint32_t preset, std::uint32_t presetCount);
 std::uint32_t CheckPresetUnlock(Character const& character, std::uint32_t presetCount);
+
+std::uint32_t CollectionReforgeCost(Character const& character, Enchant const& enchant, bool money, bool slot);
+std::uint32_t ExtractCost(Character const& character, Enchant const& enchant);
+std::uint32_t ReforgeCost(Character const& character, bool money);
+std::uint32_t ExtractPurchaseCost(std::uint32_t altarLevel);
+Charge CollectionReforgeCharge(Character const& character, std::vector<Enchant const*> const& targets, bool slot);
+Charge ReforgeCharge(Character const& character);
+
+std::uint32_t CheckReforgeItem(Catalog const& catalog, Character const& character, ScrollItem const& scroll);
+std::uint32_t CheckCollectionReforgeItem(Catalog const& catalog, Character const& character, ScrollItem const& scroll,
+    std::uint32_t spell);
+std::uint32_t CheckSaveCollectionReforge(Catalog const& catalog, Character const& character, Slots const& slots,
+    std::vector<StagedReforge> const& staged);
+std::uint32_t CheckDisenchant(Catalog const& catalog, Character const& character, std::uint32_t spell);
+std::uint32_t CheckDisenchantItem(Catalog const& catalog, Character const& character, ScrollItem const& scroll);
+std::uint32_t CheckDisenchantSlot(Catalog const& catalog, Character const& character, Slots const& slots,
+    std::uint32_t slot);
+std::uint32_t CheckExtractPurchase(Character const& character, std::uint32_t altarLevel);
+
+std::vector<Enchant const*> ReforgePool(Catalog const& catalog, Character const& character,
+    std::function<bool(std::uint32_t item)> const& itemExists);
+Enchant const* Roll(std::vector<Enchant const*> const& pool, double unit);
+std::uint64_t LevelProgress(std::uint32_t level);
+std::uint64_t ReforgeProgressGain(Enchant const& enchant, double multiplier);
+std::uint32_t AddProgress(Progress& progress, std::uint64_t gain);
 }
 
 #endif
