@@ -1,0 +1,187 @@
+{
+  "schema": 1,
+  "name": "Spiritual Attunement accepts three copies and rejects four",
+  "contract": "Effective DBC 965377 has stack limit 3 and 4 percent per stack. Three collection copies cost 3000 runes and give a 12 percent aura. A fourth is rejected without payment or loss of existing slots.",
+  "timeout_ms": 90000,
+  "location": {
+    "map": 0,
+    "x": -9465.0,
+    "y": 64.0,
+    "z": 56.0,
+    "o": 0.0
+  },
+  "players": [
+    {
+      "id": "owner",
+      "race": 1,
+      "class": 10,
+      "level": 80
+    }
+  ],
+  "steps": [
+    {
+      "action": "wait",
+      "ms": 5000
+    },
+    {
+      "action": "add_item",
+      "actor": "owner",
+      "item": 375250,
+      "count": 5000
+    },
+    {
+      "action": "console",
+      "command": "mystic grant 965377 Harnessa"
+    },
+    {
+      "action": "assert",
+      "actor": "owner",
+      "metric": "system_message_contains",
+      "text": "Mystic collection updated.",
+      "equals": 1,
+      "within_ms": 10000
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "add_item",
+      "actor": "owner",
+      "item": 1903513
+    },
+    {
+      "action": "use_item",
+      "actor": "owner",
+      "item": 1903513,
+      "spell": 985211,
+      "destination": {
+        "x": -9464.0,
+        "y": 64.0,
+        "z": 56.0
+      }
+    },
+    {
+      "action": "assert",
+      "actor": "owner",
+      "metric": "owned_gameobject_count",
+      "entry": 1903512,
+      "equals": 1,
+      "within_ms": 20000
+    },
+    {
+      "action": "assert",
+      "label": "Altar summoning cast has finished",
+      "actor": "owner",
+      "metric": "casting",
+      "equals": 0,
+      "within_ms": 2000
+    },
+    {
+      "action": "client_packet",
+      "actor": "owner",
+      "opcode": 1551,
+      "fields": [
+        {
+          "u32": 3
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 965377
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 965377
+        },
+        {
+          "u32": 2
+        },
+        {
+          "u32": 965377
+        }
+      ]
+    },
+    {
+      "action": "assert",
+      "actor": "owner",
+      "metric": "aura_stacks",
+      "spell": 965377,
+      "equals": 3
+    },
+    {
+      "action": "assert",
+      "actor": "owner",
+      "metric": "aura_amount",
+      "spell": 965377,
+      "effect": 0,
+      "equals": 12
+    },
+    {
+      "action": "assert",
+      "actor": "owner",
+      "metric": "item_count",
+      "item": 375250,
+      "equals": 2000
+    },
+    {
+      "action": "client_packet",
+      "actor": "owner",
+      "opcode": 1551,
+      "fields": [
+        {
+          "u32": 4
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 965377
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 965377
+        },
+        {
+          "u32": 2
+        },
+        {
+          "u32": 965377
+        },
+        {
+          "u32": 3
+        },
+        {
+          "u32": 965377
+        }
+      ]
+    },
+    {
+      "action": "assert",
+      "actor": "owner",
+      "metric": "server_packet_contains",
+      "opcode": 1542,
+      "text": "RE_COLLECTION_REFORGE_BAD_ENCHANTMENT",
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "owner",
+      "metric": "aura_stacks",
+      "spell": 965377,
+      "equals": 3
+    },
+    {
+      "action": "assert",
+      "actor": "owner",
+      "metric": "item_count",
+      "item": 375250,
+      "equals": 2000
+    }
+  ]
+}

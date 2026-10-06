@@ -1,0 +1,17 @@
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -434,8 +434,13 @@
+         if (entry.Quality < 2 || entry.Quality > 5 || !info || !info->IsPassive() ||
+             info->HasAttribute(SPELL_ATTR0_CU_FORCE_AURA_SAVING))
+             continue;
++        if (HasSpiritualAttunementHandler(spell))
++        {
++            Connected.emplace(spell, std::max<std::uint32_t>(1, info->StackAmount));
++            continue;
++        }
+         if (HasEldritchEquipmentHandlers(spell) || HasArea52EpicEquipmentHandlers(spell) ||
+-            HasSpiritualAttunementHandler(spell) || HasArea52HopliteHandlers(spell))
++            HasArea52HopliteHandlers(spell))
+         {
+             Connected.emplace(spell, 1);
+             continue;
