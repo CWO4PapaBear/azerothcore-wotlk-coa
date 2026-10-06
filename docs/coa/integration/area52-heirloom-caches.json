@@ -1,0 +1,1315 @@
+{
+  "schema": 1,
+  "name": "Area 52 complete heirloom caches",
+  "contract": "Seven existing Bazaar cache IDs each contain the nine pieces defined by client ItemSet. Partial looting preserves all remaining rewards. Guardian shop offers 117 items at level 60, rejects level 59, removes Bazaar heirloom menu and charges 676000 runes for a cache and 96000 for a one-handed weapon.",
+  "timeout_ms": 90000,
+  "location": {
+    "map": 0,
+    "x": -9465,
+    "y": 64,
+    "z": 56,
+    "o": 0
+  },
+  "players": [
+    {
+      "id": "set0",
+      "race": 1,
+      "class": 10,
+      "level": 80
+    },
+    {
+      "id": "set1",
+      "race": 1,
+      "class": 10,
+      "level": 59
+    },
+    {
+      "id": "set2",
+      "race": 1,
+      "class": 10,
+      "level": 80
+    },
+    {
+      "id": "set3",
+      "race": 1,
+      "class": 10,
+      "level": 80
+    },
+    {
+      "id": "set4",
+      "race": 1,
+      "class": 10,
+      "level": 80
+    },
+    {
+      "id": "set5",
+      "race": 1,
+      "class": 10,
+      "level": 80
+    },
+    {
+      "id": "set6",
+      "race": 1,
+      "class": 10,
+      "level": 80
+    }
+  ],
+  "steps": [
+    {
+      "action": "add_item",
+      "actor": "set0",
+      "item": 1339058
+    },
+    {
+      "action": "open_item",
+      "actor": "set0",
+      "item": 1339058
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "loot_count",
+      "equals": 9
+    },
+    {
+      "action": "collect_loot",
+      "actor": "set0"
+    },
+    {
+      "action": "close_loot",
+      "actor": "set0"
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 1339058,
+      "equals": 1
+    },
+    {
+      "action": "open_item",
+      "actor": "set0",
+      "item": 1339058
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "loot_count",
+      "equals": 8
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set0",
+      "slot": 1
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set0",
+      "slot": 2
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set0",
+      "slot": 3
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set0",
+      "slot": 4
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set0",
+      "slot": 5
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set0",
+      "slot": 6
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set0",
+      "slot": 7
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set0",
+      "slot": 8
+    },
+    {
+      "action": "close_loot",
+      "actor": "set0"
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 1339086,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 1339092,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 1339099,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 1339106,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 1339113,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 1339120,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 1339127,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 1642985,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 1648691,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 1339058,
+      "equals": 0
+    },
+    {
+      "action": "add_item",
+      "actor": "set1",
+      "item": 1339059
+    },
+    {
+      "action": "open_item",
+      "actor": "set1",
+      "item": 1339059
+    },
+    {
+      "action": "assert",
+      "actor": "set1",
+      "metric": "loot_count",
+      "equals": 9
+    },
+    {
+      "action": "collect_loot",
+      "actor": "set1"
+    },
+    {
+      "action": "close_loot",
+      "actor": "set1"
+    },
+    {
+      "action": "assert",
+      "actor": "set1",
+      "metric": "item_count",
+      "item": 1339059,
+      "equals": 1
+    },
+    {
+      "action": "open_item",
+      "actor": "set1",
+      "item": 1339059
+    },
+    {
+      "action": "assert",
+      "actor": "set1",
+      "metric": "loot_count",
+      "equals": 8
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set1",
+      "slot": 1
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set1",
+      "slot": 2
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set1",
+      "slot": 3
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set1",
+      "slot": 4
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set1",
+      "slot": 5
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set1",
+      "slot": 6
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set1",
+      "slot": 7
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set1",
+      "slot": 8
+    },
+    {
+      "action": "close_loot",
+      "actor": "set1"
+    },
+    {
+      "action": "assert",
+      "actor": "set1",
+      "metric": "item_count",
+      "item": 1339089,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set1",
+      "metric": "item_count",
+      "item": 1339094,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set1",
+      "metric": "item_count",
+      "item": 1339101,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set1",
+      "metric": "item_count",
+      "item": 1339108,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set1",
+      "metric": "item_count",
+      "item": 1339115,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set1",
+      "metric": "item_count",
+      "item": 1339122,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set1",
+      "metric": "item_count",
+      "item": 1339129,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set1",
+      "metric": "item_count",
+      "item": 1642984,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set1",
+      "metric": "item_count",
+      "item": 1648687,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set1",
+      "metric": "item_count",
+      "item": 1339059,
+      "equals": 0
+    },
+    {
+      "action": "add_item",
+      "actor": "set2",
+      "item": 1339060
+    },
+    {
+      "action": "open_item",
+      "actor": "set2",
+      "item": 1339060
+    },
+    {
+      "action": "assert",
+      "actor": "set2",
+      "metric": "loot_count",
+      "equals": 9
+    },
+    {
+      "action": "collect_loot",
+      "actor": "set2"
+    },
+    {
+      "action": "close_loot",
+      "actor": "set2"
+    },
+    {
+      "action": "assert",
+      "actor": "set2",
+      "metric": "item_count",
+      "item": 1339060,
+      "equals": 1
+    },
+    {
+      "action": "open_item",
+      "actor": "set2",
+      "item": 1339060
+    },
+    {
+      "action": "assert",
+      "actor": "set2",
+      "metric": "loot_count",
+      "equals": 8
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set2",
+      "slot": 1
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set2",
+      "slot": 2
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set2",
+      "slot": 3
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set2",
+      "slot": 4
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set2",
+      "slot": 5
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set2",
+      "slot": 6
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set2",
+      "slot": 7
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set2",
+      "slot": 8
+    },
+    {
+      "action": "close_loot",
+      "actor": "set2"
+    },
+    {
+      "action": "assert",
+      "actor": "set2",
+      "metric": "item_count",
+      "item": 1339093,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set2",
+      "metric": "item_count",
+      "item": 1339100,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set2",
+      "metric": "item_count",
+      "item": 1339107,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set2",
+      "metric": "item_count",
+      "item": 1339114,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set2",
+      "metric": "item_count",
+      "item": 1339121,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set2",
+      "metric": "item_count",
+      "item": 1339128,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set2",
+      "metric": "item_count",
+      "item": 1642952,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set2",
+      "metric": "item_count",
+      "item": 1648689,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set2",
+      "metric": "item_count",
+      "item": 1339088,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set2",
+      "metric": "item_count",
+      "item": 1339060,
+      "equals": 0
+    },
+    {
+      "action": "add_item",
+      "actor": "set3",
+      "item": 1339061
+    },
+    {
+      "action": "open_item",
+      "actor": "set3",
+      "item": 1339061
+    },
+    {
+      "action": "assert",
+      "actor": "set3",
+      "metric": "loot_count",
+      "equals": 9
+    },
+    {
+      "action": "collect_loot",
+      "actor": "set3"
+    },
+    {
+      "action": "close_loot",
+      "actor": "set3"
+    },
+    {
+      "action": "assert",
+      "actor": "set3",
+      "metric": "item_count",
+      "item": 1339061,
+      "equals": 1
+    },
+    {
+      "action": "open_item",
+      "actor": "set3",
+      "item": 1339061
+    },
+    {
+      "action": "assert",
+      "actor": "set3",
+      "metric": "loot_count",
+      "equals": 8
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set3",
+      "slot": 1
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set3",
+      "slot": 2
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set3",
+      "slot": 3
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set3",
+      "slot": 4
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set3",
+      "slot": 5
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set3",
+      "slot": 6
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set3",
+      "slot": 7
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set3",
+      "slot": 8
+    },
+    {
+      "action": "close_loot",
+      "actor": "set3"
+    },
+    {
+      "action": "assert",
+      "actor": "set3",
+      "metric": "item_count",
+      "item": 1339084,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set3",
+      "metric": "item_count",
+      "item": 1339096,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set3",
+      "metric": "item_count",
+      "item": 1339103,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set3",
+      "metric": "item_count",
+      "item": 1339110,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set3",
+      "metric": "item_count",
+      "item": 1339117,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set3",
+      "metric": "item_count",
+      "item": 1339124,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set3",
+      "metric": "item_count",
+      "item": 1339131,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set3",
+      "metric": "item_count",
+      "item": 1642950,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set3",
+      "metric": "item_count",
+      "item": 1648677,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set3",
+      "metric": "item_count",
+      "item": 1339061,
+      "equals": 0
+    },
+    {
+      "action": "add_item",
+      "actor": "set4",
+      "item": 1339062
+    },
+    {
+      "action": "open_item",
+      "actor": "set4",
+      "item": 1339062
+    },
+    {
+      "action": "assert",
+      "actor": "set4",
+      "metric": "loot_count",
+      "equals": 9
+    },
+    {
+      "action": "collect_loot",
+      "actor": "set4"
+    },
+    {
+      "action": "close_loot",
+      "actor": "set4"
+    },
+    {
+      "action": "assert",
+      "actor": "set4",
+      "metric": "item_count",
+      "item": 1339062,
+      "equals": 1
+    },
+    {
+      "action": "open_item",
+      "actor": "set4",
+      "item": 1339062
+    },
+    {
+      "action": "assert",
+      "actor": "set4",
+      "metric": "loot_count",
+      "equals": 8
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set4",
+      "slot": 1
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set4",
+      "slot": 2
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set4",
+      "slot": 3
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set4",
+      "slot": 4
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set4",
+      "slot": 5
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set4",
+      "slot": 6
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set4",
+      "slot": 7
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set4",
+      "slot": 8
+    },
+    {
+      "action": "close_loot",
+      "actor": "set4"
+    },
+    {
+      "action": "assert",
+      "actor": "set4",
+      "metric": "item_count",
+      "item": 1339085,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set4",
+      "metric": "item_count",
+      "item": 1339097,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set4",
+      "metric": "item_count",
+      "item": 1339104,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set4",
+      "metric": "item_count",
+      "item": 1339111,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set4",
+      "metric": "item_count",
+      "item": 1339118,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set4",
+      "metric": "item_count",
+      "item": 1339125,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set4",
+      "metric": "item_count",
+      "item": 1339132,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set4",
+      "metric": "item_count",
+      "item": 1642949,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set4",
+      "metric": "item_count",
+      "item": 1648685,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set4",
+      "metric": "item_count",
+      "item": 1339062,
+      "equals": 0
+    },
+    {
+      "action": "add_item",
+      "actor": "set5",
+      "item": 1339063
+    },
+    {
+      "action": "open_item",
+      "actor": "set5",
+      "item": 1339063
+    },
+    {
+      "action": "assert",
+      "actor": "set5",
+      "metric": "loot_count",
+      "equals": 9
+    },
+    {
+      "action": "collect_loot",
+      "actor": "set5"
+    },
+    {
+      "action": "close_loot",
+      "actor": "set5"
+    },
+    {
+      "action": "assert",
+      "actor": "set5",
+      "metric": "item_count",
+      "item": 1339063,
+      "equals": 1
+    },
+    {
+      "action": "open_item",
+      "actor": "set5",
+      "item": 1339063
+    },
+    {
+      "action": "assert",
+      "actor": "set5",
+      "metric": "loot_count",
+      "equals": 8
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set5",
+      "slot": 1
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set5",
+      "slot": 2
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set5",
+      "slot": 3
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set5",
+      "slot": 4
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set5",
+      "slot": 5
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set5",
+      "slot": 6
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set5",
+      "slot": 7
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set5",
+      "slot": 8
+    },
+    {
+      "action": "close_loot",
+      "actor": "set5"
+    },
+    {
+      "action": "assert",
+      "actor": "set5",
+      "metric": "item_count",
+      "item": 1339087,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set5",
+      "metric": "item_count",
+      "item": 1339098,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set5",
+      "metric": "item_count",
+      "item": 1339105,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set5",
+      "metric": "item_count",
+      "item": 1339112,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set5",
+      "metric": "item_count",
+      "item": 1339119,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set5",
+      "metric": "item_count",
+      "item": 1339126,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set5",
+      "metric": "item_count",
+      "item": 1339133,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set5",
+      "metric": "item_count",
+      "item": 3142949,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set5",
+      "metric": "item_count",
+      "item": 3148685,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set5",
+      "metric": "item_count",
+      "item": 1339063,
+      "equals": 0
+    },
+    {
+      "action": "add_item",
+      "actor": "set6",
+      "item": 1339064
+    },
+    {
+      "action": "open_item",
+      "actor": "set6",
+      "item": 1339064
+    },
+    {
+      "action": "assert",
+      "actor": "set6",
+      "metric": "loot_count",
+      "equals": 9
+    },
+    {
+      "action": "collect_loot",
+      "actor": "set6"
+    },
+    {
+      "action": "close_loot",
+      "actor": "set6"
+    },
+    {
+      "action": "assert",
+      "actor": "set6",
+      "metric": "item_count",
+      "item": 1339064,
+      "equals": 1
+    },
+    {
+      "action": "open_item",
+      "actor": "set6",
+      "item": 1339064
+    },
+    {
+      "action": "assert",
+      "actor": "set6",
+      "metric": "loot_count",
+      "equals": 8
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set6",
+      "slot": 1
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set6",
+      "slot": 2
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set6",
+      "slot": 3
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set6",
+      "slot": 4
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set6",
+      "slot": 5
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set6",
+      "slot": 6
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set6",
+      "slot": 7
+    },
+    {
+      "action": "loot_slot",
+      "actor": "set6",
+      "slot": 8
+    },
+    {
+      "action": "close_loot",
+      "actor": "set6"
+    },
+    {
+      "action": "assert",
+      "actor": "set6",
+      "metric": "item_count",
+      "item": 1339090,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set6",
+      "metric": "item_count",
+      "item": 1339095,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set6",
+      "metric": "item_count",
+      "item": 1339102,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set6",
+      "metric": "item_count",
+      "item": 1339109,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set6",
+      "metric": "item_count",
+      "item": 1339116,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set6",
+      "metric": "item_count",
+      "item": 1339123,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set6",
+      "metric": "item_count",
+      "item": 1339130,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set6",
+      "metric": "item_count",
+      "item": 1642951,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set6",
+      "metric": "item_count",
+      "item": 1648683,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set6",
+      "metric": "item_count",
+      "item": 1339064,
+      "equals": 0
+    },
+    {
+      "action": "gossip_hello",
+      "actor": "set1",
+      "target": "guardian"
+    },
+    {
+      "action": "assert",
+      "actor": "set1",
+      "metric": "gossip_options",
+      "equals": 3
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set1",
+      "option": 0
+    },
+    {
+      "action": "assert",
+      "actor": "set1",
+      "metric": "vendor_list_packets",
+      "equals": 0
+    },
+    {
+      "action": "gossip_hello",
+      "actor": "set0",
+      "target": "tiraxis"
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "gossip_options",
+      "equals": 4
+    },
+    {
+      "action": "gossip_hello",
+      "actor": "set0",
+      "target": "guardian"
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "gossip_option_text",
+      "index": 0,
+      "text": "Heirlooms (requires level 60).",
+      "equals": 1
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 0
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "vendor_items",
+      "equals": 117
+    },
+    {
+      "action": "add_item",
+      "actor": "set0",
+      "item": 375250,
+      "count": 1000000
+    },
+    {
+      "action": "money",
+      "actor": "set0",
+      "copper": 10000000
+    },
+    {
+      "action": "client_packet",
+      "actor": "set0",
+      "opcode": 418,
+      "consumed": false,
+      "fields": [
+        {
+          "actor_guid": "guardian"
+        },
+        {
+          "u32": 1339058
+        },
+        {
+          "u32": 111
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u8": 0
+        }
+      ]
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 1339058,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 375250,
+      "equals": 996400
+    },
+    {
+      "action": "client_packet",
+      "actor": "set0",
+      "opcode": 418,
+      "consumed": false,
+      "fields": [
+        {
+          "actor_guid": "guardian"
+        },
+        {
+          "u32": 1518202
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u8": 0
+        }
+      ]
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 1518202,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 375250,
+      "equals": 995900
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "carried_money",
+      "equals": 10000000
+    }
+  ],
+  "creatures": [
+    {
+      "id": "guardian",
+      "owner": "set0",
+      "entry": 9780012,
+      "distance": 2,
+      "faction": 35
+    },
+    {
+      "id": "tiraxis",
+      "owner": "set0",
+      "entry": 900007,
+      "distance": 2,
+      "faction": 35
+    }
+  ]
+}

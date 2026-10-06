@@ -17,3 +17,5 @@
 #
 
 Worldforged.CostFactor = 1.0
+
+Area52.GuardianHeirlooms.Enable = 0

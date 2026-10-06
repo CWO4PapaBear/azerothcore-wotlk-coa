@@ -13,6 +13,9 @@
 #include "WorldforgedUpgrades.h"
 
 #include "Creature.h"
+#include "Config.h"
+#include "Chat.h"
+#include "WorldSession.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "ScriptedGossip.h"
@@ -24,10 +27,22 @@ namespace Worldforged
 
 namespace
 {
+    bool Area52HeirloomShop(Player const* player)
+    {
+        if (!sConfigMgr->GetOption<bool>("Area52.GuardianHeirlooms.Enable", false) ||
+            sConfigMgr->GetOption<std::string>("CoA.ClassModel", "coa") != "hero" ||
+            sConfigMgr->GetOption<std::string>("CoA.RealmType", "live") != "live" ||
+            !player || player->getClass() != CLASS_HERO)
+            return false;
+        auto const mask = sScriptMgr->OnPlayerGetGameModeMask(player);
+        return !mask || !(*mask & ~uint32(0x400));
+    }
+
     enum GossipAction
     {
         ACTION_WEAPONS = GOSSIP_ACTION_INFO_DEF + 1,
         ACTION_ARMOUR = GOSSIP_ACTION_INFO_DEF + 2,
+        ACTION_HEIRLOOMS = GOSSIP_ACTION_INFO_DEF + 4,
     };
 }
 
@@ -38,6 +53,10 @@ public:
 
     bool OnGossipHello(Player* player, Creature* creature) override
     {
+        ClearGossipMenuFor(player);
+        if (Area52HeirloomShop(player))
+            AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Heirlooms (requires level 60).",
+                GOSSIP_SENDER_MAIN, ACTION_HEIRLOOMS);
         AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Upgrade Worldforged weapons.",
                          GOSSIP_SENDER_MAIN, ACTION_WEAPONS);
         AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Upgrade Worldforged armor.",
@@ -47,13 +66,24 @@ public:
         return true;
     }
 
-    bool OnGossipSelect(Player* player, Creature* /*creature*/, uint32 /*sender*/,
+    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/,
                         uint32 action) override
     {
         ClearGossipMenuFor(player);
 
         switch (action)
         {
+            case ACTION_HEIRLOOMS:
+                if (!Area52HeirloomShop(player))
+                    break;
+                if (player->GetLevel() < 60)
+                {
+                    ChatHandler(player->GetSession()).SendSysMessage("You must be level 60 to buy heirlooms.");
+                    return OnGossipHello(player, creature);
+                }
+                CloseGossipMenuFor(player);
+                player->GetSession()->SendListInventory(creature->GetGUID(), 9781001);
+                return true;
             case ACTION_WEAPONS:
                 Worldforged::OpenStore(player, Worldforged::STORE_WEAPONS);
                 break;
