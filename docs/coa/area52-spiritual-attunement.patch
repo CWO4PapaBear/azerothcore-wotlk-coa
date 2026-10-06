@@ -1,0 +1,34 @@
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -360,6 +360,21 @@
+     return true;
+ }
+ 
++bool HasSpiritualAttunementHandler(uint32 spell)
++{
++    if (spell != 965377 || !sSpellMgr->GetSpellProcEntry(spell) || !sSpellMgr->GetSpellInfo(31786))
++        return false;
++    std::list<AuraScript*> scripts;
++    sScriptMgr->CreateAuraScripts(spell, scripts);
++    bool found = false;
++    for (auto* script : scripts)
++    {
++        found |= *script->_GetScriptName() == "spell_pal_spiritual_attunement";
++        delete script;
++    }
++    return found;
++}
++
+ void LoadConnections()
+ {
+     Active = false;
+@@ -418,7 +433,8 @@
+         if (entry.Quality < 2 || entry.Quality > 5 || !info || !info->IsPassive() ||
+             info->HasAttribute(SPELL_ATTR0_CU_FORCE_AURA_SAVING))
+             continue;
+-        if (HasEldritchEquipmentHandlers(spell) || HasArea52EpicEquipmentHandlers(spell))
++        if (HasEldritchEquipmentHandlers(spell) || HasArea52EpicEquipmentHandlers(spell) ||
++            HasSpiritualAttunementHandler(spell))
+         {
+             Connected.emplace(spell, 1);
+             continue;
