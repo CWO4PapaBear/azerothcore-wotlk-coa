@@ -1,0 +1,178 @@
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -9,6 +9,8 @@
+ #include "DBCStores.h"
+ #include "GameObject.h"
+ #include "Item.h"
++#include "LootMgr.h"
++#include "Random.h"
+ #include "Log.h"
+ #include "ObjectAccessor.h"
+ #include "Player.h"
+@@ -422,6 +424,74 @@
+     void OnStartup() override { LoadConnections(); }
+ };
+ 
++class item_area52_unidentified_mystic final : public ItemScript
++{
++public:
++    item_area52_unidentified_mystic() : ItemScript("item_area52_unidentified_mystic") { }
++
++    bool OnUse(Player* player, Item* item, SpellCastTargets const&) override
++    {
++        if (item->GetEntry() != 97866 || !Applies(player))
++            return false;
++        player->SendEquipError(EQUIP_ERR_NONE, item, nullptr);
++        auto* state = player->CustomData.Get<State>(StateKey);
++        if (!CanChange(player, state) || Data.BySpell.empty())
++            return true;
++        auto chosen = Data.BySpell.begin();
++        std::advance(chosen, urand(0, uint32(Data.BySpell.size() - 1)));
++        uint32 const spell = chosen->first;
++        uint32 const guid = item->GetGUID().GetCounter();
++        uint32 const count = item->GetCount();
++        auto save = CharacterDatabase.BeginTransaction();
++        player->SaveInventoryAndGoldToDB(save);
++        if (!CharacterDatabase.AsyncCommitTransaction(save).m_future.get())
++        {
++            ChatHandler(player->GetSession()).SendSysMessage("Inventory save failed; scroll was not consumed.");
++            return true;
++        }
++        auto transaction = CharacterDatabase.BeginTransaction();
++        if (count > 1)
++            transaction->Append("UPDATE item_instance SET count=count-1 WHERE guid={}", guid);
++        else
++        {
++            transaction->Append("DELETE FROM character_inventory WHERE item={}", guid);
++            transaction->Append("DELETE FROM item_instance WHERE guid={}", guid);
++        }
++        auto* statement = CharacterDatabase.GetPreparedStatement(CHAR_INS_FREEPICK_MYSTIC_COLLECTION);
++        statement->SetData(0, player->GetSession()->GetAccountId());
++        statement->SetData(1, spell);
++        transaction->Append(statement);
++        if (!CharacterDatabase.AsyncCommitTransaction(transaction).m_future.get())
++        {
++            ChatHandler(player->GetSession()).SendSysMessage("Mystic reward failed; scroll was not consumed.");
++            return true;
++        }
++        uint32 consumed = 1;
++        player->DestroyItemCount(item, consumed, true);
++        bool const fresh = state->Known.insert(spell).second;
++        SendKnown(player, *state);
++        ChatHandler(player->GetSession()).PSendSysMessage("Mystic Enchant spell {}: {}.", spell,
++            fresh ? "added to your account collection" : "already collected (duplicate draw)");
++        return true;
++    }
++};
++
++class area52_mystic_scroll_loot final : public GlobalScript
++{
++public:
++    area52_mystic_scroll_loot() : GlobalScript("area52_mystic_scroll_loot", {GLOBALHOOK_ON_ITEM_ROLL}) { }
++
++    bool OnItemRoll(Player const* player, LootStoreItem const* item, float& chance,
++        Loot&, LootStore const& store) override
++    {
++        if (item->itemid != 97866 || &store != &LootTemplates_Creature)
++            return true;
++        float const rate = std::clamp(sConfigMgr->GetOption<float>("CoA.FreePickMysticEnchants.ScrollDropChance", 25.0f), 0.0f, 100.0f);
++        chance = 100.0f;
++        return Applies(player) && roll_chance_f(rate);
++    }
++};
++
+ class spell_freepick_ancient_altar_scroll : public SpellScript
+ {
+     PrepareSpellScript(spell_freepick_ancient_altar_scroll);
+@@ -558,5 +628,7 @@
+     new MysticWorld();
+     new MysticPlayer();
+     new MysticCommands();
++    new item_area52_unidentified_mystic();
++    new area52_mystic_scroll_loot();
+     RegisterSpellScript(spell_freepick_ancient_altar_scroll);
+ }
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261005_01_area52_alpha_mystic_scrolls.sql
+@@ -0,0 +1,9 @@
++UPDATE `item_template` SET `ScriptName` = 'item_area52_unidentified_mystic' WHERE `entry` = 97866;
++
++UPDATE `creature_template` SET `lootid` = 1978660000 WHERE `lootid` = 0;
++
++DELETE FROM `creature_loot_template` WHERE `Item` = 97866;
++INSERT INTO `creature_loot_template`
++(`Entry`, `Item`, `Reference`, `Chance`, `QuestRequired`, `LootMode`, `GroupId`, `MinCount`, `MaxCount`, `Comment`)
++SELECT DISTINCT `lootid`, 97866, 0, 25, 0, 65535, 0, 1, 1, 'Area 52 alpha: common Unidentified Mystic Scroll; mode and rate controlled by script'
++FROM `creature_template` WHERE `lootid` <> 0;
+--- /dev/null
++++ b/apps/coa-tests/area52_mystic_scroll/run.py
+@@ -0,0 +1,69 @@
++import os
++from pathlib import Path
++import subprocess
++import tempfile
++root = Path(__file__).resolve().parents[3]
++source = (root / 'src/server/coa/AscensionMysticEnchant.cpp').read_text()
++code = source[source.index('class item_area52_unidentified_mystic'):source.index('class spell_freepick_ancient_altar_scroll')]
++prefix = r"""
++#include <algorithm>
++#include <cassert>
++#include <cstdint>
++#include <initializer_list>
++#include <map>
++#include <memory>
++#include <set>
++#include <string>
++#include <vector>
++using uint32=std::uint32_t;
++struct SpellCastTargets {};
++struct Guid { uint32 GetCounter() const { return 123; } };
++struct Item { uint32 Entry=97866, Count=2; uint32 GetEntry() const{return Entry;} uint32 GetCount() const{return Count;} Guid GetGUID() const{return {};} };
++struct State { std::set<uint32> Known; };
++constexpr char StateKey[]="test";
++struct Session { uint32 GetAccountId() const{return 55;} };
++struct Player { State state; struct Custom { State* ptr; template<class T>T* Get(char const*){return ptr;} } CustomData{&state}; Session session; uint32 consumed=0; void SendEquipError(int,Item*,void*){} Session* GetSession(){return &session;} template<class T>void SaveInventoryAndGoldToDB(T){} void DestroyItemCount(Item* i,uint32& n,bool){consumed+=n;i->Count-=n;n=0;} };
++bool active=true, change=true; bool Applies(Player const*){return active;} bool CanChange(Player*,State*){return change;}
++struct {std::map<uint32,int> BySpell;} Data;
++uint32 pick=0; uint32 urand(uint32 low,uint32 high){assert(low==0);assert(pick<=high);return pick;}
++constexpr int EQUIP_ERR_NONE=0,CHAR_INS_FREEPICK_MYSTIC_COLLECTION=0;
++struct Statement { void SetData(int,uint32){} };
++struct Transaction { template<class...T>void Append(T...){} };
++struct Future { bool result;bool get(){return result;} };
++struct Callback {Future m_future;};
++struct Database {std::vector<bool> results{true,true};int calls=0; Statement statement; auto BeginTransaction(){return std::make_shared<Transaction>();} Statement* GetPreparedStatement(int){return &statement;} Callback AsyncCommitTransaction(std::shared_ptr<Transaction>){assert(calls<int(results.size()));return {{results[calls++]}};} } CharacterDatabase;
++struct ChatHandler { ChatHandler(Session*){} void SendSysMessage(char const*){} template<class...T>void PSendSysMessage(T...){} };
++void SendKnown(Player*,State const&){}
++struct ItemScript {ItemScript(char const*){} virtual bool OnUse(Player*,Item*,SpellCastTargets const&){return false;}};
++struct Loot{};struct LootStore{}; LootStore LootTemplates_Creature,otherStore;
++struct LootStoreItem{uint32 itemid=97866;};
++constexpr int GLOBALHOOK_ON_ITEM_ROLL=0;
++struct GlobalScript {GlobalScript(char const*,std::initializer_list<int>){} virtual bool OnItemRoll(Player const*,LootStoreItem const*,float&,Loot&,LootStore const&){return true;}};
++struct Config {float rate=25;template<class T>T GetOption(char const*,T){return rate;}} config;
++auto* sConfigMgr=&config; float rolled=-1;bool outcome=true;bool roll_chance_f(float x){rolled=x;return outcome;}
++"""
++suffix = r"""
++int main(){
++ item_area52_unidentified_mystic script; SpellCastTargets targets;
++ Data.BySpell={{10,0},{20,0},{30,0}};
++ for(uint32 i=0;i<3;++i){Player p;Item item;pick=i;CharacterDatabase.calls=0;CharacterDatabase.results={true,true};assert(script.OnUse(&p,&item,targets));assert(p.consumed==1);assert(p.state.Known.count(10+i*10));}
++ {Player p;Item item;p.state.Known={10};pick=0;CharacterDatabase.calls=0;assert(script.OnUse(&p,&item,targets));assert(p.consumed==1);assert(p.state.Known.size()==1);}
++ for(auto results: {std::vector<bool>{false},std::vector<bool>{true,false}}){Player p;Item item;CharacterDatabase.results=results;CharacterDatabase.calls=0;assert(script.OnUse(&p,&item,targets));assert(p.consumed==0);assert(item.Count==2);assert(p.state.Known.empty());}
++ {Player p;Item item;change=false;CharacterDatabase.calls=0;assert(script.OnUse(&p,&item,targets));assert(CharacterDatabase.calls==0);change=true;active=false;assert(!script.OnUse(&p,&item,targets));active=true;Data.BySpell.clear();assert(script.OnUse(&p,&item,targets));assert(p.consumed==0);}
++ area52_mystic_scroll_loot hook;Player p;Loot loot;LootStoreItem entry;float chance=25;
++ assert(hook.OnItemRoll(&p,&entry,chance,loot,LootTemplates_Creature));assert(rolled==25&&chance==100);
++ outcome=false;assert(!hook.OnItemRoll(&p,&entry,chance,loot,LootTemplates_Creature));outcome=true;
++ active=false;rolled=-1;assert(!hook.OnItemRoll(&p,&entry,chance,loot,LootTemplates_Creature));assert(rolled==-1);active=true;
++ config.rate=500;assert(hook.OnItemRoll(&p,&entry,chance,loot,LootTemplates_Creature));assert(rolled==100);
++ config.rate=-3;hook.OnItemRoll(&p,&entry,chance,loot,LootTemplates_Creature);assert(rolled==0);
++ rolled=-1;assert(hook.OnItemRoll(&p,&entry,chance,loot,otherStore));assert(rolled==-1);
++ entry.itemid=97862;assert(hook.OnItemRoll(&p,&entry,chance,loot,LootTemplates_Creature));assert(rolled==-1);
++}
++"""
++with tempfile.TemporaryDirectory() as directory:
++    cpp = Path(directory) / 'test.cpp'
++    binary = Path(directory) / 'test'
++    cpp.write_text(prefix + code + suffix)
++    subprocess.run([os.environ.get('CXX', 'c++'), '-std=c++20', str(cpp), '-o', str(binary)], check=True)
++    subprocess.run([str(binary)], check=True)
++print('PASS: uniform full-pool selection, duplicate draws, failed saves/grants, mode gates, chance clamping and unrelated loot')
