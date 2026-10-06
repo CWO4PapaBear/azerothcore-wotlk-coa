@@ -15,3 +15,9 @@ The Area 52 integration candidate passed compilation, unit tests and focused reg
 Apply the pending world SQL together with the new binary, retaining a backup of spell_script_names and spell_proc. No client update is required. The spell handler is separate from the collection/equipment implementation; a realm must already apply the enchant aura to the wearer.
 
 Gameplay still must verify equipping/removing, death/relog/spec change, each Holy Wrath rank and cooldown, off-hand/multi-target behavior, temporary weapon-enchant conflicts, Knight/Horror stacking and displayed mana/visuals. Anomaly has a buff icon but no spell visual; Horror references visual 889830 and Explosion uses visual 70631, both present in the reviewed client. No claim is made about the unavailable official backend.
+
+## Free Pick equipment integration
+
+The independent Area 52 collection service rejects scripted enchants by default. Installing the spell handler alone does not make 81116 equipable. Apply `area52-eldritch-equipment.patch` to that service before deploying this handler there. The collection service is a separate prerequisite and is not added wholesale by this focused contribution. Upstream without that service needs its own equipment integration.
+
+The patch admits only 81116, only with its proc entry and all eight registered script bindings available. Normal quality, passive, ownership, slot, currency, and mode restrictions remain in force. The focused harness additionally exercises every missing-binding rejection when that service source is present. It does not establish live combat or client event-loop correctness.

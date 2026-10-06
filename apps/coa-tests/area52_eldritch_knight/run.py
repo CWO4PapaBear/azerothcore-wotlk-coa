@@ -113,6 +113,31 @@ int main(){
 '''
 
 
+EQUIPMENT = r"""
+#include <list>
+#include <string>
+struct Script { std::string Name; Script(std::string name):Name(name){} virtual ~Script()=default; std::string const* _GetScriptName(){return &Name;} };
+using AuraScript=Script;using SpellScript=Script;
+struct Manager {
+ std::map<uint32,std::string> Bindings; bool Proc=true;
+ void CreateAuraScripts(uint32 id,std::list<Script*>& out){if(Bindings.count(id))out.push_back(new Script{Bindings[id]});}
+ void CreateSpellScripts(uint32 id,std::list<Script*>& out){CreateAuraScripts(id,out);}
+ bool GetSpellProcEntry(uint32){return Proc;}
+};
+Manager manager;auto* sSpellMgr=&manager;auto* sScriptMgr=&manager;
+EQUIP_FUNCTION
+void TestEquipment(){
+ manager.Bindings[81116]="aura_area52_eldritch_knight";
+ for(uint32 id:{983708u,983712u})manager.Bindings[id]="spell_area52_eldritch_missing_mana";
+ for(uint32 id=983703;id<=983707;++id)manager.Bindings[id]="spell_area52_eldritch_condemnation";
+ assert(HasEldritchEquipmentHandlers(81116));assert(!HasEldritchEquipmentHandlers(81117));
+ manager.Proc=false;assert(!HasEldritchEquipmentHandlers(81116));manager.Proc=true;
+ auto all=manager.Bindings;
+ for(auto const& [id,name]:all){manager.Bindings.erase(id);assert(!HasEldritchEquipmentHandlers(81116));manager.Bindings[id]=name;}
+ manager.Bindings[81116]="unrelated";assert(!HasEldritchEquipmentHandlers(81116));
+}
+"""
+
 def main():
     source = (ROOT / 'src/server/coa/AscensionEldritchKnight.cpp').read_text()
     code = MAIN.replace('SYNC', block(source, 'void Synchronize('))
@@ -120,6 +145,13 @@ def main():
     code = code.replace(' PROC\n', block(source, 'void Proc(AuraEffect const*'))
     code = code.replace('void Proc(AuraEffect const*, ProcEventInfo& event)', 'void Proc(ProcEventInfo& event)')
     code = code.replace(' RESTORE\n', block(source, 'void Restore(SpellEffIndex'))
+    equipment_path = ROOT / 'src/server/coa/AscensionMysticEnchant.cpp'
+    if equipment_path.exists():
+        equipment = EQUIPMENT.replace('EQUIP_FUNCTION', block(equipment_path.read_text(),
+            'bool HasEldritchEquipmentHandlers('))
+        code = code.replace('int main()', equipment + '\nint main()')
+        code = code.replace('int main(){', 'int main(){TestEquipment();')
+        code = code.replace('int main()\n{', 'int main()\n{TestEquipment();')
     compiler = shutil.which(os.environ.get('CXX', 'c++'))
     assert compiler, 'C++20 compiler required'
     with tempfile.TemporaryDirectory() as directory:
