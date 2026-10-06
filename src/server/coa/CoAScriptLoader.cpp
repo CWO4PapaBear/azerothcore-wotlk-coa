@@ -318,6 +318,7 @@ void AddSC_AscensionWelcomeWarchest();
 void AddSC_AscensionClassBundleStore();
 void AddSC_AscensionLfgObjective();
 void AddSC_AscensionBushcraft();
+void AddAscensionHopliteScripts();
 
 void AddCoAScripts()
 {
@@ -635,4 +636,5 @@ void AddCoAScripts()
     AddSC_AscensionClassBundleStore();
     AddSC_AscensionLfgObjective();
     AddSC_AscensionBushcraft();
+    AddAscensionHopliteScripts();
 }

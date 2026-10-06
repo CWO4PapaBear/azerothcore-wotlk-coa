@@ -1,0 +1,58 @@
+#include <algorithm>
+#include <cassert>
+#include <cstdint>
+using uint8 = uint8_t;
+using uint32 = uint32_t;
+using int32 = int32_t;
+constexpr uint32 SpearMastery = 901203;
+int rolls = 0;
+bool proc = true;
+bool roll_chance_i(int chance) { assert(chance == 15); ++rolls; return proc; }
+DAMAGE_FUNCTION
+struct Player
+{
+    int cooldown = 0;
+    int buffs = 0;
+    Player* ToPlayer() { return this; }
+    void ModifySpellCooldown(uint32 id, int32 value) { assert(id == 2687); cooldown += value; }
+    void CastSpell(Player* target, uint32 id, bool triggered)
+    { assert(target == this && id == SpearMastery && triggered); ++buffs; }
+};
+struct Strike
+{
+    uint8 Points = 5;
+    bool Resolved = false;
+    int damage = 1;
+    bool target = true;
+    Player player;
+    Player* GetCaster() { return &player; }
+    Player* GetHitUnit() { return target ? &player : nullptr; }
+    int GetHitDamage() { return damage; }
+    HIT_FUNCTION
+};
+int main()
+{
+    assert(ShieldStrikeDamage(1, 1000) == 1099);
+    assert(ShieldStrikeDamage(5, 1000) == 2143);
+    assert(ShieldStrikeDamage(5, 0) == 1123);
+    assert(ShieldStrikeDamage(9, 1000) == ShieldStrikeDamage(5, 1000));
+    for (uint8 points = 1; points <= 5; ++points)
+    {
+        Strike s; s.Points = points; int before = rolls;
+        s.Hit(); s.Hit();
+        assert(rolls == before + 1 && s.player.buffs == 1);
+        assert(s.player.cooldown == -2000 * points);
+    }
+    for (int scenario = 0; scenario < 3; ++scenario)
+    {
+        Strike s;
+        if (scenario == 0) s.damage = 0;
+        if (scenario == 1) s.target = false;
+        if (scenario == 2) s.Points = 0;
+        int before = rolls; s.Hit();
+        assert(rolls == before && s.player.cooldown == 0 && s.player.buffs == 0);
+    }
+    proc = false;
+    Strike s; s.Hit();
+    assert(s.player.cooldown == -10000 && s.player.buffs == 0);
+}

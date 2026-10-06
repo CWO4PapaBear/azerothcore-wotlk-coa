@@ -1,0 +1,9 @@
+# Area 52 Hoplite combat component
+
+Reconstruct Shield Strike using the owner-selected combination of 978533 damage and 300158's advertised Spear Mastery mechanic. Both IDs use 18 + 221 * combo points + (0.82 + 0.04 * combo points) * attack power, truncated to an integer before ordinary damage modifiers. A successful damaging strike reduces Bloodrage by exactly 2000 milliseconds per combo point and rolls once at 15 percent to grant 901203. Failed or zero-damage hits grant neither benefit.
+
+The next successfully applied Flurry channel consumes Spear Mastery and records its empowerment for that channel. Damage helper 901201 gains 50 percent before ordinary modifiers against creatures without a player owner or charmer; players and their pets receive no bonus. Channel removal clears the snapshot. This interpretation of monsters excludes player-controlled creatures. Gameplay must verify channel interruption, last-tick timing, mixed PvE/PvP target lists, consumption and buff expiry.
+
+The scripts require Hero/live CoA configuration, an absent/zero/Free Pick-only game-mode mask and equipped Hoplite aura 978217. They do not enable Hoplite in the Mystic Enchant collection service or implement equipment permissions, stance grants, rank replacement, Thrust, Javelin, or full Flurry base scaling. Do not present this component as a complete Hoplite implementation. No client tooltip update or release asset is included.
+
+Validation: isolated Area 52 build, unit suite and six harnesses, including extracted production Shield Strike methods for AP scaling, point cap, successful-hit gating, single proc roll and cooldowns. Flurry's live aura lifecycle and engine security are not simulated by that focused harness; live combat acceptance remains pending. Runtime activation and upstream PR review are separate.
