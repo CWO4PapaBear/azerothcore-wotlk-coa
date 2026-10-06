@@ -42,7 +42,11 @@ namespace
     {
         ACTION_WEAPONS = GOSSIP_ACTION_INFO_DEF + 1,
         ACTION_ARMOUR = GOSSIP_ACTION_INFO_DEF + 2,
-        ACTION_HEIRLOOMS = GOSSIP_ACTION_INFO_DEF + 4,
+        ACTION_HEIRLOOMS = GOSSIP_ACTION_INFO_DEF + 3,
+        ACTION_HEIRLOOM_ARMOR = GOSSIP_ACTION_INFO_DEF + 4,
+        ACTION_HEIRLOOM_WEAPONS = GOSSIP_ACTION_INFO_DEF + 5,
+        ACTION_HEIRLOOM_ACCESSORIES = GOSSIP_ACTION_INFO_DEF + 6,
+        ACTION_BACK = GOSSIP_ACTION_INFO_DEF + 7,
     };
 }
 
@@ -55,7 +59,7 @@ public:
     {
         ClearGossipMenuFor(player);
         if (Area52HeirloomShop(player))
-            AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Heirlooms (requires level 60).",
+            AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Browse Heirlooms.",
                 GOSSIP_SENDER_MAIN, ACTION_HEIRLOOMS);
         AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Upgrade Worldforged weapons.",
                          GOSSIP_SENDER_MAIN, ACTION_WEAPONS);
@@ -73,7 +77,23 @@ public:
 
         switch (action)
         {
+            case ACTION_BACK:
+                return OnGossipHello(player, creature);
             case ACTION_HEIRLOOMS:
+                if (!Area52HeirloomShop(player))
+                    break;
+                AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Armor (requires level 60).",
+                    GOSSIP_SENDER_MAIN, ACTION_HEIRLOOM_ARMOR);
+                AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Weapons (requires level 60).",
+                    GOSSIP_SENDER_MAIN, ACTION_HEIRLOOM_WEAPONS);
+                AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Accessories (requires level 60).",
+                    GOSSIP_SENDER_MAIN, ACTION_HEIRLOOM_ACCESSORIES);
+                AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Back.", GOSSIP_SENDER_MAIN, ACTION_BACK);
+                SendGossipMenuFor(player, Worldforged::GUARDIAN_ENTRY, creature->GetGUID());
+                return true;
+            case ACTION_HEIRLOOM_ARMOR:
+            case ACTION_HEIRLOOM_WEAPONS:
+            case ACTION_HEIRLOOM_ACCESSORIES:
                 if (!Area52HeirloomShop(player))
                     break;
                 if (player->GetLevel() < 60)
@@ -82,7 +102,8 @@ public:
                     return OnGossipHello(player, creature);
                 }
                 CloseGossipMenuFor(player);
-                player->GetSession()->SendListInventory(creature->GetGUID(), 9781001);
+                player->GetSession()->SendListInventory(creature->GetGUID(),
+                    9781051 + action - ACTION_HEIRLOOM_ARMOR);
                 return true;
             case ACTION_WEAPONS:
                 Worldforged::OpenStore(player, Worldforged::STORE_WEAPONS);

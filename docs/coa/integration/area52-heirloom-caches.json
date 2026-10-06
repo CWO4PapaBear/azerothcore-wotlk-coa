@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "name": "Area 52 complete heirloom caches",
-  "contract": "Seven existing Bazaar cache IDs each contain the nine pieces defined by client ItemSet. Partial looting preserves all remaining rewards. Guardian shop offers 117 items at level 60, rejects level 59, removes Bazaar heirloom menu and charges 676000 runes for a cache and 96000 for a one-handed weapon.",
+  "contract": "Area 52 shop: 135 entries, 500-rune armor, 1000-rune weapons/jewelry/trinkets, 3600-rune nine-piece caches. All nine equipped armor pieces carry existing 10% XP effects; native multiplicative stacking yields floor(456*1.1^9)=1075 quest XP. Main menu Browse Heirlooms opens Armor (85), Weapons (21), Accessories (29) and Back.",
   "timeout_ms": 90000,
   "location": {
     "map": 0,
@@ -51,7 +51,13 @@
       "id": "set6",
       "race": 1,
       "class": 10,
-      "level": 80
+      "level": 20
+    },
+    {
+      "id": "xp_full",
+      "race": 1,
+      "class": 10,
+      "level": 20
     }
   ],
   "steps": [
@@ -1148,6 +1154,51 @@
       "equals": 0
     },
     {
+      "action": "destroy_item",
+      "actor": "set0",
+      "item": 1339086
+    },
+    {
+      "action": "destroy_item",
+      "actor": "set0",
+      "item": 1339092
+    },
+    {
+      "action": "destroy_item",
+      "actor": "set0",
+      "item": 1339099
+    },
+    {
+      "action": "destroy_item",
+      "actor": "set0",
+      "item": 1339106
+    },
+    {
+      "action": "destroy_item",
+      "actor": "set0",
+      "item": 1339113
+    },
+    {
+      "action": "destroy_item",
+      "actor": "set0",
+      "item": 1339120
+    },
+    {
+      "action": "destroy_item",
+      "actor": "set0",
+      "item": 1339127
+    },
+    {
+      "action": "destroy_item",
+      "actor": "set0",
+      "item": 1642985
+    },
+    {
+      "action": "destroy_item",
+      "actor": "set0",
+      "item": 1648691
+    },
+    {
       "action": "gossip_hello",
       "actor": "set1",
       "target": "guardian"
@@ -1157,6 +1208,11 @@
       "actor": "set1",
       "metric": "gossip_options",
       "equals": 3
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set1",
+      "option": 0
     },
     {
       "action": "gossip_select",
@@ -1190,8 +1246,13 @@
       "actor": "set0",
       "metric": "gossip_option_text",
       "index": 0,
-      "text": "Heirlooms (requires level 60).",
+      "text": "Browse Heirlooms.",
       "equals": 1
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 0
     },
     {
       "action": "gossip_select",
@@ -1202,7 +1263,7 @@
       "action": "assert",
       "actor": "set0",
       "metric": "vendor_items",
-      "equals": 117
+      "equals": 85
     },
     {
       "action": "add_item",
@@ -1214,6 +1275,33 @@
       "action": "money",
       "actor": "set0",
       "copper": 10000000
+    },
+    {
+      "action": "gossip_hello",
+      "actor": "set0",
+      "target": "guardian"
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 0
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "gossip_options",
+      "equals": 4
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 0
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "vendor_items",
+      "equals": 85
     },
     {
       "action": "client_packet",
@@ -1228,7 +1316,7 @@
           "u32": 1339058
         },
         {
-          "u32": 111
+          "u32": 79
         },
         {
           "u32": 1
@@ -1251,6 +1339,33 @@
       "metric": "item_count",
       "item": 375250,
       "equals": 996400
+    },
+    {
+      "action": "gossip_hello",
+      "actor": "set0",
+      "target": "guardian"
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 0
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "gossip_options",
+      "equals": 4
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "vendor_items",
+      "equals": 21
     },
     {
       "action": "client_packet",
@@ -1287,13 +1402,459 @@
       "actor": "set0",
       "metric": "item_count",
       "item": 375250,
-      "equals": 995900
+      "equals": 995400
     },
     {
       "action": "assert",
       "actor": "set0",
       "metric": "carried_money",
       "equals": 10000000
+    },
+    {
+      "action": "command",
+      "actor": "set6",
+      "command": ".xp 1"
+    },
+    {
+      "action": "command",
+      "actor": "xp_full",
+      "command": ".xp 1"
+    },
+    {
+      "action": "add_item",
+      "actor": "xp_full",
+      "item": 1339086
+    },
+    {
+      "action": "equip",
+      "actor": "xp_full",
+      "item": 1339086,
+      "slot": 14
+    },
+    {
+      "action": "add_item",
+      "actor": "xp_full",
+      "item": 1339092
+    },
+    {
+      "action": "equip",
+      "actor": "xp_full",
+      "item": 1339092,
+      "slot": 5
+    },
+    {
+      "action": "add_item",
+      "actor": "xp_full",
+      "item": 1339099
+    },
+    {
+      "action": "equip",
+      "actor": "xp_full",
+      "item": 1339099,
+      "slot": 7
+    },
+    {
+      "action": "add_item",
+      "actor": "xp_full",
+      "item": 1339106
+    },
+    {
+      "action": "equip",
+      "actor": "xp_full",
+      "item": 1339106,
+      "slot": 8
+    },
+    {
+      "action": "add_item",
+      "actor": "xp_full",
+      "item": 1339113
+    },
+    {
+      "action": "equip",
+      "actor": "xp_full",
+      "item": 1339113,
+      "slot": 6
+    },
+    {
+      "action": "add_item",
+      "actor": "xp_full",
+      "item": 1339120
+    },
+    {
+      "action": "equip",
+      "actor": "xp_full",
+      "item": 1339120,
+      "slot": 0
+    },
+    {
+      "action": "add_item",
+      "actor": "xp_full",
+      "item": 1339127
+    },
+    {
+      "action": "equip",
+      "actor": "xp_full",
+      "item": 1339127,
+      "slot": 9
+    },
+    {
+      "action": "add_item",
+      "actor": "xp_full",
+      "item": 1642985
+    },
+    {
+      "action": "equip",
+      "actor": "xp_full",
+      "item": 1642985,
+      "slot": 2
+    },
+    {
+      "action": "add_item",
+      "actor": "xp_full",
+      "item": 1648691
+    },
+    {
+      "action": "equip",
+      "actor": "xp_full",
+      "item": 1648691,
+      "slot": 4
+    },
+    {
+      "action": "prepare_quest",
+      "actor": "set6",
+      "quest": 163
+    },
+    {
+      "action": "snapshot",
+      "actor": "set6",
+      "metric": "xp",
+      "save_as": "xp_plain_before"
+    },
+    {
+      "action": "reward_quest",
+      "actor": "set6",
+      "quest": 163
+    },
+    {
+      "action": "snapshot",
+      "actor": "set6",
+      "metric": "xp",
+      "relative_to": "xp_plain_before",
+      "save_as": "xp_plain_gain"
+    },
+    {
+      "action": "prepare_quest",
+      "actor": "xp_full",
+      "quest": 163
+    },
+    {
+      "action": "snapshot",
+      "actor": "xp_full",
+      "metric": "xp",
+      "save_as": "xp_full_before"
+    },
+    {
+      "action": "reward_quest",
+      "actor": "xp_full",
+      "quest": 163
+    },
+    {
+      "action": "snapshot",
+      "actor": "xp_full",
+      "metric": "xp",
+      "relative_to": "xp_full_before",
+      "save_as": "xp_full_gain"
+    },
+    {
+      "action": "assert",
+      "actor": "xp_full",
+      "metric": "xp",
+      "relative_to": "xp_full_before",
+      "equals": 1075
+    },
+    {
+      "action": "assert",
+      "actor": "set6",
+      "metric": "xp",
+      "relative_to": "xp_plain_before",
+      "equals": 456
+    },
+    {
+      "action": "gossip_hello",
+      "actor": "set0",
+      "target": "guardian"
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 0
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "gossip_options",
+      "equals": 4
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "vendor_items",
+      "equals": 21
+    },
+    {
+      "action": "client_packet",
+      "actor": "set0",
+      "opcode": 418,
+      "consumed": false,
+      "fields": [
+        {
+          "actor_guid": "guardian"
+        },
+        {
+          "u32": 1642847
+        },
+        {
+          "u32": 21
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u8": 0
+        }
+      ]
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 1642847,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 375250,
+      "equals": 994400
+    },
+    {
+      "action": "gossip_hello",
+      "actor": "set0",
+      "target": "guardian"
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 0
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "gossip_options",
+      "equals": 4
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 2
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "vendor_items",
+      "equals": 29
+    },
+    {
+      "action": "client_packet",
+      "actor": "set0",
+      "opcode": 418,
+      "consumed": false,
+      "fields": [
+        {
+          "actor_guid": "guardian"
+        },
+        {
+          "u32": 339076
+        },
+        {
+          "u32": 23
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u8": 0
+        }
+      ]
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 339076,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 375250,
+      "equals": 993400
+    },
+    {
+      "action": "gossip_hello",
+      "actor": "set0",
+      "target": "guardian"
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 0
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "gossip_options",
+      "equals": 4
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 2
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "vendor_items",
+      "equals": 29
+    },
+    {
+      "action": "client_packet",
+      "actor": "set0",
+      "opcode": 418,
+      "consumed": false,
+      "fields": [
+        {
+          "actor_guid": "guardian"
+        },
+        {
+          "u32": 50255
+        },
+        {
+          "u32": 17
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u8": 0
+        }
+      ]
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 50255,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 375250,
+      "equals": 992400
+    },
+    {
+      "action": "gossip_hello",
+      "actor": "set0",
+      "target": "guardian"
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 0
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "gossip_options",
+      "equals": 4
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 2
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "vendor_items",
+      "equals": 29
+    },
+    {
+      "action": "client_packet",
+      "actor": "set0",
+      "opcode": 418,
+      "consumed": false,
+      "fields": [
+        {
+          "actor_guid": "guardian"
+        },
+        {
+          "u32": 339075
+        },
+        {
+          "u32": 22
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u8": 0
+        }
+      ]
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 339075,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "item_count",
+      "item": 375250,
+      "equals": 991400
+    },
+    {
+      "action": "gossip_hello",
+      "actor": "set0",
+      "target": "guardian"
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 0
+    },
+    {
+      "action": "gossip_select",
+      "actor": "set0",
+      "option": 3
+    },
+    {
+      "action": "assert",
+      "actor": "set0",
+      "metric": "gossip_options",
+      "equals": 3
     }
   ],
   "creatures": [

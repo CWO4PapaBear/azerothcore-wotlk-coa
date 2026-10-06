@@ -12,7 +12,8 @@ def patch(data):
     if fields != 16 or size != 64 or len(data) != 20 + count * size + strings:
         raise ValueError('Unexpected ItemExtendedCost layout')
     rows = [(900052, 0, 0, 0, 375250, 0, 0, 0, 0, 3600, 0, 0, 0, 0, 0, 0),
-            (900053, 0, 0, 0, 375250, 0, 0, 0, 0, 500, 0, 0, 0, 0, 0, 0)]
+            (900053, 0, 0, 0, 375250, 0, 0, 0, 0, 500, 0, 0, 0, 0, 0, 0),
+            (900054, 0, 0, 0, 375250, 0, 0, 0, 0, 1000, 0, 0, 0, 0, 0, 0)]
     existing = {struct.unpack_from('<16I', data, 20 + index * size)[0]:
                 struct.unpack_from('<16I', data, 20 + index * size) for index in range(count)}
     missing = []
