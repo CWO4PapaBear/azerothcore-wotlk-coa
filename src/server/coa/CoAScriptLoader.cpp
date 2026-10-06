@@ -52,6 +52,7 @@ void AddAscensionWildcardScripts();
 void AddAscensionFreepickScripts();
 void AddAscensionTamingScripts();
 void AddAscensionAchievementConditionScripts();
+void AddAscensionArea52AchievementScripts();
 void AddAscensionAccountInfoScripts();
 void AddCoAGameplayTestScripts();
 void AddSC_AscensionResourceTalents();
@@ -598,6 +599,7 @@ void AddCoAScripts()
     AddAscensionFreepickScripts();
     AddAscensionTamingScripts();
     AddAscensionAchievementConditionScripts();
+    AddAscensionArea52AchievementScripts();
     AddAscensionAccountInfoScripts();
     AddCoAGameplayTestScripts();
     AddSC_AscensionResourceTalents();

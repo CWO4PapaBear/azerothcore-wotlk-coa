@@ -314,3 +314,6 @@ Ascension.CallboardCache.PreviousStageOnly = 0
 #        Default:     6
 
 Ascension.CallboardCache.ItemLevelAllowance = 6
+
+# Area 52 live Hero realms: suppress alternate modes and equivalent realm-first aliases.
+CoA.FreePick.AchievementEligibility = 1
