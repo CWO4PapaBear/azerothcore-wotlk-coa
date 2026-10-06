@@ -1,0 +1,105 @@
+diff --git a/src/server/game/Entities/Player/Player.h b/src/server/game/Entities/Player/Player.h
+--- a/src/server/game/Entities/Player/Player.h
++++ b/src/server/game/Entities/Player/Player.h
+@@ -891,6 +891,7 @@
+     PLAYER_LOGIN_QUERY_LOAD_CHARACTER_SETTINGS           = 36,
+     PLAYER_LOGIN_QUERY_LOAD_PET_SLOTS                    = 37,
+     PLAYER_LOGIN_QUERY_LOAD_OFFLINE_ACHIEVEMENTS_UPDATES = 38,
++    PLAYER_LOGIN_QUERY_LOAD_FREEPICK_MYSTIC_COLLECTION = 39,
+     MAX_PLAYER_LOGIN_QUERY
+ };
+ 
+diff --git a/src/server/game/Handlers/CharacterHandler.cpp b/src/server/game/Handlers/CharacterHandler.cpp
+--- a/src/server/game/Handlers/CharacterHandler.cpp
++++ b/src/server/game/Handlers/CharacterHandler.cpp
+@@ -208,6 +208,10 @@
+     stmt->SetData(0, rawGUID);
+     res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_CHARACTER_SETTINGS, stmt);
+ 
++    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_FREEPICK_MYSTIC_COLLECTION);
++    stmt->SetData(0, m_accountId);
++    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_FREEPICK_MYSTIC_COLLECTION, stmt);
++
+     stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_PETS);
+     stmt->SetData(0, rawGUID);
+     res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_PET_SLOTS, stmt);
+diff --git a/src/server/game/Entities/Player/PlayerStorage.cpp b/src/server/game/Entities/Player/PlayerStorage.cpp
+--- a/src/server/game/Entities/Player/PlayerStorage.cpp
++++ b/src/server/game/Entities/Player/PlayerStorage.cpp
+@@ -5020,6 +5020,8 @@
+     return GetSession()->PlayerLoading();
+ }
+ 
++void RestoreArea52HopliteForLogin(Player* player, PreparedQueryResult result);
++
+ bool Player::LoadFromDB(ObjectGuid playerGuid, CharacterDatabaseQueryHolder const& holder)
+ {
+     ////                                                     0     1        2     3     4        5      6    7      8     9    10    11         12         13           14         15         16
+@@ -5586,6 +5588,13 @@
+     // xinef: load mails before inventory, so problematic items can be added to already loaded mails
+     _LoadMail(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_MAILS), holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_MAIL_ITEMS));
+ 
++    bool const earlyFreePickSettings = AscensionFreePick::Enabled() && getClass() == CLASS_HERO;
++    if (earlyFreePickSettings)
++    {
++        _LoadCharacterSettings(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_CHARACTER_SETTINGS));
++        RestoreArea52HopliteForLogin(this, holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_FREEPICK_MYSTIC_COLLECTION));
++    }
++
+     _LoadInventory(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_INVENTORY), time_diff);
+ 
+     // update items with duration and realtime
+@@ -5707,7 +5716,8 @@
+ 
+     _LoadBrewOfTheMonth(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_BREW_OF_THE_MONTH));
+ 
+-    _LoadCharacterSettings(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_CHARACTER_SETTINGS));
++    if (!earlyFreePickSettings)
++        _LoadCharacterSettings(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_CHARACTER_SETTINGS));
+ 
+     // Players are immune to taunt
+     ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, true);
+diff --git a/src/server/coa/AscensionMysticEnchant.cpp b/src/server/coa/AscensionMysticEnchant.cpp
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -30,6 +30,7 @@
+ using namespace Acore::ChatCommands;
+ 
+ bool HasArea52EpicEquipmentHandlers(uint32 spell);
++bool HasArea52HopliteHandlers(uint32 spell);
+ 
+ extern pAuraEffectHandler AuraEffectHandler[TOTAL_AURAS];
+ extern pEffect SpellEffects[TOTAL_SPELL_EFFECTS];
+@@ -434,7 +435,7 @@
+             info->HasAttribute(SPELL_ATTR0_CU_FORCE_AURA_SAVING))
+             continue;
+         if (HasEldritchEquipmentHandlers(spell) || HasArea52EpicEquipmentHandlers(spell) ||
+-            HasSpiritualAttunementHandler(spell))
++            HasSpiritualAttunementHandler(spell) || HasArea52HopliteHandlers(spell))
+         {
+             Connected.emplace(spell, 1);
+             continue;
+@@ -688,3 +689,23 @@
+     new area52_mystic_scroll_loot();
+     RegisterSpellScript(spell_freepick_ancient_altar_scroll);
+ }
++
++void RestoreArea52HopliteForLogin(Player* player, PreparedQueryResult result)
++{
++    using namespace AscensionMysticEnchant;
++    if (!Applies(player) || !Connected.contains(978217))
++        return;
++    std::set<std::uint32_t> known;
++    if (result)
++        do
++        {
++            known.insert(result->Fetch()[0].Get<std::uint32_t>());
++        } while (result->NextRow());
++    auto const slots = ReadSlots(player);
++    if (std::find(slots.begin(), slots.end(), 978217) == slots.end() ||
++        !ValidateSlots(Data, slots, player->GetLevel(), known, Connected))
++        return;
++    auto const& entry = Data.BySpell.at(978217);
++    if (InvestmentMet(player, entry, false) && InvestmentMet(player, entry, true))
++        player->AddAura(978217, player);
++}

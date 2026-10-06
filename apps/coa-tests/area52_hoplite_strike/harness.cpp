@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
+#include <cmath>
 #include <map>
 #include <set>
 using uint8 = uint8_t;
@@ -11,6 +12,8 @@ int rolls = 0;
 bool proc = true;
 bool roll_chance_i(int chance) { assert(chance == 15); ++rolls; return proc; }
 DAMAGE_FUNCTION
+SCALING_FUNCTION
+IMPALED_FUNCTION
 struct Player
 {
     std::set<uint32> permanent;
@@ -51,6 +54,15 @@ struct Strike
 };
 int main()
 {
+    assert(std::abs(FlurryScaling(1, 1000, 500) * 7 - 243) < 0.01f);
+    assert(std::abs(FlurryScaling(5, 1000, 500) * 7 - 1215) < 0.01f);
+    assert(FlurryScaling(8, 1000, 500) == FlurryScaling(5, 1000, 500));
+    assert(ImpaledBonus(12000, 12000, false) == 0);
+    assert(ImpaledBonus(12000, 9100, false) == 40);
+    assert(ImpaledBonus(12000, 9000, false) == 60);
+    assert(ImpaledBonus(12000, 9000, true) == 15);
+    assert(ImpaledBonus(12000, -5000, false) == 240);
+    assert(ImpaledBonus(12000, 13000, false) == 0);
     assert(ShieldStrikeDamage(1, 1000) == 1099);
     assert(ShieldStrikeDamage(5, 1000) == 2143);
     assert(ShieldStrikeDamage(5, 0) == 1123);

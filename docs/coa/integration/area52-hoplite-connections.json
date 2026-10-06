@@ -1,0 +1,622 @@
+{
+  "schema": 1,
+  "name": "Area 52 Hoplite connections",
+  "contract": "Native collection admission, prerequisite replacements, polearm/shield equipment, Battle Stance, Thrust stacks and Bloodrage reset, owned Impaled consumption and Javelin cooldown reset. Does not verify rendered animation, reconnect, every damage coefficient or cross-enchant exclusions.",
+  "timeout_ms": 90000,
+  "location": {
+    "map": 0,
+    "x": -9465.0,
+    "y": 64.0,
+    "z": 56.0,
+    "o": 0.0
+  },
+  "players": [
+    {
+      "id": "hero",
+      "race": 1,
+      "class": 10,
+      "level": 80,
+      "melee_hit_rating": 10000,
+      "spell_hit_rating": 10000,
+      "expertise_rating": 10000
+    }
+  ],
+  "creatures": [
+    {
+      "id": "dummy",
+      "owner": "hero",
+      "entry": 31146,
+      "distance": 3,
+      "health": 1000000
+    }
+  ],
+  "steps": [
+    {
+      "action": "wait",
+      "ms": 5000
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 812295,
+      "stacks": 1
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 812295,
+      "equals": 1
+    },
+    {
+      "action": "client_packet",
+      "actor": "hero",
+      "opcode": 1831,
+      "fields": [
+        {
+          "u32": 7
+        },
+        {
+          "u32": 2778
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 2965
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 2661
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 1616
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 2806
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 2813
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 1187
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        }
+      ]
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 1752,
+      "equals": 1,
+      "within_ms": 3000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 23922,
+      "equals": 1,
+      "within_ms": 3000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 78,
+      "equals": 1,
+      "within_ms": 3000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 954876,
+      "equals": 1,
+      "within_ms": 3000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 2457,
+      "equals": 1,
+      "within_ms": 3000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 2687,
+      "equals": 1,
+      "within_ms": 3000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 86361,
+      "equals": 1,
+      "within_ms": 3000
+    },
+    {
+      "action": "console",
+      "command": "mystic grant 978217 Harnessa"
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "system_message_contains",
+      "text": "Mystic collection updated.",
+      "equals": 1,
+      "within_ms": 10000
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "console",
+      "command": "mystic equip 1 978217 Harnessa"
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 978217,
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 812295,
+      "equals": 0
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "temporary_spell_replacement",
+      "spell": 1752,
+      "equals": 978569
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "temporary_spell_replacement",
+      "spell": 23922,
+      "equals": 978533
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "temporary_spell_replacement",
+      "spell": 78,
+      "equals": 982250
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "temporary_spell_replacement",
+      "spell": 954876,
+      "equals": 901200
+    },
+    {
+      "action": "add_item",
+      "actor": "hero",
+      "item": 3142943
+    },
+    {
+      "action": "equip",
+      "actor": "hero",
+      "item": 3142943,
+      "slot": 15
+    },
+    {
+      "action": "add_item",
+      "actor": "hero",
+      "item": 3148335
+    },
+    {
+      "action": "equip",
+      "actor": "hero",
+      "item": 3148335,
+      "slot": 16
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 2457
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 997743,
+      "equals": 1,
+      "within_ms": 2000
+    },
+    {
+      "action": "wait",
+      "ms": 1500
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 2687
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 29131,
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "set_power",
+      "actor": "hero",
+      "power": 3,
+      "value": 100
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 978569,
+      "target": "dummy"
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura_stacks",
+      "spell": 978539,
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura_stacks",
+      "spell": 978537,
+      "equals": 1
+    },
+    {
+      "action": "wait",
+      "ms": 1100
+    },
+    {
+      "action": "set_power",
+      "actor": "hero",
+      "power": 3,
+      "value": 100
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 978569,
+      "target": "dummy"
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura_stacks",
+      "spell": 978539,
+      "equals": 2,
+      "within_ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura_stacks",
+      "spell": 978537,
+      "equals": 2
+    },
+    {
+      "action": "wait",
+      "ms": 1100
+    },
+    {
+      "action": "set_power",
+      "actor": "hero",
+      "power": 3,
+      "value": 100
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 978569,
+      "target": "dummy"
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura_stacks",
+      "spell": 978539,
+      "equals": 3,
+      "within_ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura_stacks",
+      "spell": 978537,
+      "equals": 3
+    },
+    {
+      "action": "wait",
+      "ms": 1100
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura_amount",
+      "spell": 978539,
+      "effect": 1,
+      "equals": -15
+    },
+    {
+      "action": "reset_cooldown",
+      "actor": "hero",
+      "spell": 2687
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 2687
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 978539,
+      "equals": 0,
+      "within_ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 978537,
+      "equals": 0
+    },
+    {
+      "action": "wait",
+      "ms": 1500
+    },
+    {
+      "action": "set_power",
+      "actor": "hero",
+      "power": 1,
+      "value": 1000
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 982250,
+      "target": "dummy"
+    },
+    {
+      "action": "assert",
+      "actor": "dummy",
+      "metric": "aura",
+      "spell": 982251,
+      "equals": 1,
+      "within_ms": 1500
+    },
+    {
+      "action": "wait",
+      "ms": 3100
+    },
+    {
+      "action": "set_power",
+      "actor": "hero",
+      "power": 1,
+      "value": 1000
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 86361,
+      "target": "dummy"
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "cooldown_ms",
+      "spell": 982250,
+      "equals": 0,
+      "within_ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "dummy",
+      "metric": "aura",
+      "spell": 982251,
+      "equals": 0
+    },
+    {
+      "action": "wait",
+      "ms": 1500
+    },
+    {
+      "action": "set_power",
+      "actor": "hero",
+      "power": 1,
+      "value": 1000
+    },
+    {
+      "action": "set_power",
+      "actor": "hero",
+      "power": 3,
+      "value": 100
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 901203,
+      "stacks": 1
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 901200,
+      "target": "dummy"
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 901203,
+      "equals": 0,
+      "within_ms": 1000
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "spell_cast_count",
+      "spell": 901201,
+      "equals": 7
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "spell_damage_count",
+      "spell": 901201,
+      "equals": 7
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 901200,
+      "equals": 0
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 978217,
+      "stacks": 0
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 812295,
+      "equals": 1
+    }
+  ]
+}
