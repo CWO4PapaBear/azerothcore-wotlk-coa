@@ -68,9 +68,13 @@ struct ProcEventInfo {
 };
 uint32 Now=0;uint32 getMSTime(){return Now;}uint32 getMSTimeDiff(uint32 a,uint32 b){return b-a;}
 SYNC
+struct LoadHandler {
+ Player* Owner; Player* GetUnitOwner(){return Owner;}Player* GetTarget(){return nullptr;}
+ LOAD
+};
 struct Handler {
  Player* Target;uint32 LastExplosion=0;bool Exploded=false;
- Player* GetTarget(){return Target;}void PreventDefaultAction(){}
+ Player* GetUnitOwner(){return Target;}Player* GetTarget(){return Target;}void PreventDefaultAction(){}
  CHECK
  PROC
 };
@@ -95,7 +99,7 @@ int main(){
  p.Known.insert(2812);Synchronize(&p);Synchronize(&p,true);
  assert(!p.HasSpell(Effusion)&&!p.HasSpell(983703)&&p.HasSpell(2812));
  p.Known.insert(Effusion);Synchronize(&p,true);assert(p.HasSpell(Effusion));
- Handler h{&p};Spell spell;ProcEventInfo e{&p,&enemy,&spell};
+ LoadHandler load{&p};assert(load.Load());load.Owner=nullptr;assert(!load.Load());load.Owner=&p;p.Allowed=false;assert(!load.Load());p.Allowed=true;Handler h{&p};Spell spell;ProcEventInfo e{&p,&enemy,&spell};
  h.Proc(e);assert(p.Casts.empty());p.Auras[Weapon].Stack=1;
  h.Proc(e);assert(p.Casts[983711]==1&&p.Casts[983712]==1&&p.Auras[Anomaly].Stack==1);
  h.Proc(e);assert(p.Casts[983712]==1);
@@ -141,6 +145,7 @@ void TestEquipment(){
 def main():
     source = (ROOT / 'src/server/coa/AscensionEldritchKnight.cpp').read_text()
     code = MAIN.replace('SYNC', block(source, 'void Synchronize('))
+    code = code.replace(' LOAD\n', block(source, 'bool Load() override').replace(' override', ''))
     code = code.replace(' CHECK\n', block(source, 'bool Check(ProcEventInfo&'))
     code = code.replace(' PROC\n', block(source, 'void Proc(AuraEffect const*'))
     code = code.replace('void Proc(AuraEffect const*, ProcEventInfo& event)', 'void Proc(ProcEventInfo& event)')

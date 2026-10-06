@@ -90,7 +90,7 @@ class aura_area52_eldritch_knight : public AuraScript
     uint32 LastExplosion = 0;
     bool Exploded = false;
 
-    bool Load() override { return Applies(GetTarget()->ToPlayer()); }
+    bool Load() override { return GetUnitOwner() && Applies(GetUnitOwner()->ToPlayer()); }
     bool Validate(SpellInfo const*) override
     {
         return ValidateSpellInfo({Weapon, Effusion, Knight, Horror, Anomaly, 983708, 983710,
