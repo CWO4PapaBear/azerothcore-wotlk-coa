@@ -1,0 +1,20 @@
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -28,6 +28,8 @@
+ #include <atomic>
+ 
+ using namespace Acore::ChatCommands;
++
++bool HasArea52EpicEquipmentHandlers(uint32 spell);
+ 
+ extern pAuraEffectHandler AuraEffectHandler[TOTAL_AURAS];
+ extern pEffect SpellEffects[TOTAL_SPELL_EFFECTS];
+@@ -416,7 +418,7 @@
+         if (entry.Quality < 2 || entry.Quality > 5 || !info || !info->IsPassive() ||
+             info->HasAttribute(SPELL_ATTR0_CU_FORCE_AURA_SAVING))
+             continue;
+-        if (HasEldritchEquipmentHandlers(spell))
++        if (HasEldritchEquipmentHandlers(spell) || HasArea52EpicEquipmentHandlers(spell))
+         {
+             Connected.emplace(spell, 1);
+             continue;

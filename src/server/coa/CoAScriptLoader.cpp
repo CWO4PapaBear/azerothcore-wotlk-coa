@@ -18,6 +18,7 @@
 #include "AscensionVenomancerVenomPayloads.h"
 #include "AscensionTinkerCombatSymbiosis.h"
 
+void AddAscensionMysticKnightEpicScripts();
 void AddAscensionCompatScripts();
 void AddAscensionTravelPermitScripts();
 void AddSC_AscensionRulesets();
@@ -324,6 +325,7 @@ void AddCoAScripts()
     AddAscensionManastormScripts();
     AddSC_AscensionReaperDirge();
     AddAscensionTinkerOverloadScripts();
+    AddAscensionMysticKnightEpicScripts();
     AddAscensionCompatScripts();
     AddAscensionTravelPermitScripts();
     AddAscensionBarbarianCompletionScripts();
