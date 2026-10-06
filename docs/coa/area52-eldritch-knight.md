@@ -23,3 +23,5 @@ The independent Area 52 collection service rejects scripted enchants by default.
 The patch admits only 81116, only with its proc entry and all eight registered script bindings available. Normal quality, passive, ownership, slot, currency, and mode restrictions remain in force. The focused harness additionally exercises every missing-binding rejection when that service source is present. It does not establish live combat or client event-loop correctness.
 
 The first equipment test exposed a server crash: AuraScript::Load accessed GetTarget before an AuraApplication existed. The corrected handler reads GetUnitOwner with a null guard. The regression now provides an owner but no application target during Load. Live equip and combat acceptance remain pending after this repair.
+
+Eldritch Wrath grants one Anomaly stack on AfterCast, independently of how many enemies it hits. Its existing native spell effect retains the Eldritch Knight grant. Wrath and melee share the same 20-stack Horror transition. This implements the owner's specified Area 52 behavior; it is not a claim of verified official backend behavior.

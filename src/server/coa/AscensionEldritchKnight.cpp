@@ -30,6 +30,17 @@ bool Applies(Player const* player)
     return !mask || !(*mask & ~uint32(0x400));
 }
 
+void GrantAnomaly(Player* player)
+{
+    player->CastSpell(player, Anomaly, true);
+    Aura* anomaly = player->GetAura(Anomaly, player->GetGUID());
+    if (anomaly && anomaly->GetStackAmount() >= anomaly->GetSpellInfo()->StackAmount)
+    {
+        player->RemoveAurasDueToSpell(Anomaly, player->GetGUID());
+        player->CastSpell(player, Horror, true);
+    }
+}
+
 void Synchronize(Player* player, bool removing = false)
 {
     bool const active = !removing && Applies(player) && player->HasAura(Enchant);
@@ -150,13 +161,7 @@ class aura_area52_eldritch_knight : public AuraScript
             if (player->HasAura(Knight))
             {
                 player->CastSpell(player, 983712, true);
-                player->CastSpell(player, Anomaly, true);
-                Aura* anomaly = player->GetAura(Anomaly, player->GetGUID());
-                if (anomaly && anomaly->GetStackAmount() >= anomaly->GetSpellInfo()->StackAmount)
-                {
-                    player->RemoveAurasDueToSpell(Anomaly, player->GetGUID());
-                    player->CastSpell(player, Horror, true);
-                }
+                GrantAnomaly(player);
             }
         }
         if (player->HasAura(Horror))
@@ -201,6 +206,11 @@ class spell_area52_eldritch_condemnation : public SpellScript
 {
     PrepareSpellScript(spell_area52_eldritch_condemnation);
     bool Load() override { return Applies(GetCaster()->ToPlayer()) && GetCaster()->HasAura(Enchant); }
+    void GrantWrathAnomaly()
+    {
+        if (Player* player = GetCaster()->ToPlayer())
+            GrantAnomaly(player);
+    }
     void Condemn(SpellEffIndex)
     {
         if (Unit* target = GetHitUnit())
@@ -209,6 +219,7 @@ class spell_area52_eldritch_condemnation : public SpellScript
     }
     void Register() override
     {
+        AfterCast += SpellCastFn(spell_area52_eldritch_condemnation::GrantWrathAnomaly);
         OnEffectHitTarget += SpellEffectFn(spell_area52_eldritch_condemnation::Condemn,
             EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
     }

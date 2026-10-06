@@ -67,7 +67,12 @@ struct ProcEventInfo {
  DamageInfo* GetDamageInfo(){return &Damage;}uint32 GetTypeMask(){return Type;}
 };
 uint32 Now=0;uint32 getMSTime(){return Now;}uint32 getMSTimeDiff(uint32 a,uint32 b){return b-a;}
+ANOMALY
 SYNC
+struct WrathHandler {
+ Player* Caster;Player* GetCaster(){return Caster;}
+ WRATH
+};
 struct LoadHandler {
  Player* Owner; Player* GetUnitOwner(){return Owner;}Player* GetTarget(){return nullptr;}
  LOAD
@@ -92,6 +97,8 @@ int main(){
  mana.Mana=0;restore.Percent=20;restore.Restore(0);assert(mana.Mana==200);
  mana.Isolated=true;restore.Restore(0);assert(mana.Mana==200);
 
+ Player wrath;WrathHandler wrathHandler{&wrath};wrathHandler.GrantWrathAnomaly();assert(wrath.Auras[Anomaly].Stack==1);
+ for(int i=1;i<20;++i)wrathHandler.GrantWrathAnomaly();assert(!wrath.HasAura(Anomaly)&&wrath.Casts[Horror]==1);
  Player p;Unit enemy; p.Auras[Enchant].Stack=1;p.Known.insert(2812);
  Synchronize(&p);assert(p.HasSpell(Effusion)&&p.HasSpell(983703)&&p.Replacements[2812]==983703);
  Synchronize(&p);assert(p.Temporary.size()==2);
@@ -145,6 +152,9 @@ void TestEquipment(){
 def main():
     source = (ROOT / 'src/server/coa/AscensionEldritchKnight.cpp').read_text()
     code = MAIN.replace('SYNC', block(source, 'void Synchronize('))
+    code = code.replace('ANOMALY', block(source, 'void GrantAnomaly('))
+    code = code.replace(' WRATH\n', block(source, 'void GrantWrathAnomaly('))
+    assert 'AfterCast += SpellCastFn(spell_area52_eldritch_condemnation::GrantWrathAnomaly)' in source
     code = code.replace(' LOAD\n', block(source, 'bool Load() override').replace(' override', ''))
     code = code.replace(' CHECK\n', block(source, 'bool Check(ProcEventInfo&'))
     code = code.replace(' PROC\n', block(source, 'void Proc(AuraEffect const*'))
