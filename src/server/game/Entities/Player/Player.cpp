@@ -13941,8 +13941,15 @@ uint32 Player::GetTemporarySpellReplacement(uint32 original) const
         itr->second : original;
 }
 
+bool CanArea52HopliteUseShield(Player const* player);
+
 bool Player::CanUseTwoHandWithShield(ItemTemplate const* main, ItemTemplate const* off) const
 {
+    if (main && off && main->Class == ITEM_CLASS_WEAPON && main->InventoryType == INVTYPE_2HWEAPON &&
+        main->SubClass == ITEM_SUBCLASS_WEAPON_POLEARM && off->Class == ITEM_CLASS_ARMOR &&
+        off->InventoryType == INVTYPE_SHIELD && CanArea52HopliteUseShield(this))
+        return true;
+
     if (getClass() != CLASS_GUARDIAN || !main || !off || main->InventoryType != INVTYPE_2HWEAPON ||
         main->Class != ITEM_CLASS_WEAPON || off->InventoryType != INVTYPE_SHIELD)
         return false;

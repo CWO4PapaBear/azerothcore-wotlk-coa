@@ -22,6 +22,7 @@ def main():
     code = (Path(__file__).parent / 'harness.cpp').read_text()
     code = code.replace('DAMAGE_FUNCTION', block(source, 'int32 ShieldStrikeDamage('))
     code = code.replace('HIT_FUNCTION', block(source, 'void Hit('))
+    code = code.replace('REPLACE_FUNCTION', block(source, 'void ReplaceChain('))
     compiler = shutil.which(os.environ.get('CXX', 'c++'))
     assert compiler
     with tempfile.TemporaryDirectory() as directory:
