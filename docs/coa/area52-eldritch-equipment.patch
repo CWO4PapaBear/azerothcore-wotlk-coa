@@ -1,0 +1,56 @@
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -327,6 +327,37 @@
+     return true;
+ }
+ 
++bool HasEldritchEquipmentHandlers(uint32 spell)
++{
++    if (spell != 81116 || !sSpellMgr->GetSpellProcEntry(spell))
++        return false;
++    std::list<AuraScript*> auras;
++    sScriptMgr->CreateAuraScripts(spell, auras);
++    bool parent = false;
++    for (auto* script : auras)
++    {
++        parent |= *script->_GetScriptName() == "aura_area52_eldritch_knight";
++        delete script;
++    }
++    if (!parent)
++        return false;
++    for (uint32 helper : {983708u, 983712u, 983703u, 983704u, 983705u, 983706u, 983707u})
++    {
++        std::list<SpellScript*> scripts;
++        sScriptMgr->CreateSpellScripts(helper, scripts);
++        bool found = false;
++        for (auto* script : scripts)
++        {
++            found |= *script->_GetScriptName() == (helper == 983708 || helper == 983712 ?
++                "spell_area52_eldritch_missing_mana" : "spell_area52_eldritch_condemnation");
++            delete script;
++        }
++        if (!found)
++            return false;
++    }
++    return true;
++}
++
+ void LoadConnections()
+ {
+     Active = false;
+@@ -383,7 +414,14 @@
+     {
+         auto const* info = sSpellMgr->GetSpellInfo(spell);
+         if (entry.Quality < 2 || entry.Quality > 5 || !info || !info->IsPassive() ||
+-            info->HasAttribute(SPELL_ATTR0_CU_FORCE_AURA_SAVING) || !ResolveNative(spell, graph))
++            info->HasAttribute(SPELL_ATTR0_CU_FORCE_AURA_SAVING))
++            continue;
++        if (HasEldritchEquipmentHandlers(spell))
++        {
++            Connected.emplace(spell, 1);
++            continue;
++        }
++        if (!ResolveNative(spell, graph))
+             continue;
+         bool const auraOnly = std::all_of(info->Effects.begin(), info->Effects.end(), [](auto const& effect)
+             { return !effect.IsEffect() || effect.Effect == SPELL_EFFECT_APPLY_AURA; });
