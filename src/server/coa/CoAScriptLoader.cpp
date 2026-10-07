@@ -53,6 +53,7 @@ void AddCoABugReportScripts();
 void AddCoAPlayerTicketScripts();
 void AddAscensionWildcardScripts();
 void AddAscensionFreepickScripts();
+void AddAscensionMysticEnchantScripts();
 void AddAscensionWarcraftRebornScripts();
 void AddAscensionTamingScripts();
 void AddAscensionAchievementConditionScripts();
@@ -600,6 +601,7 @@ void AddCoAScripts()
     AddCoAPlayerTicketScripts();
     AddAscensionWildcardScripts();
     AddAscensionFreepickScripts();
+    AddAscensionMysticEnchantScripts();
     AddAscensionWarcraftRebornScripts();
     AddAscensionTamingScripts();
     AddAscensionAchievementConditionScripts();

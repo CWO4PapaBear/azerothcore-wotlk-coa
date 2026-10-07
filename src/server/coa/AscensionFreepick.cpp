@@ -225,6 +225,25 @@ void Synchronize(Player* player)
     SyncSpells(player, stored, build.Entries());
 }
 
+std::array<bool, 5> RealmGates()
+{
+    return { CurrentRealm.Live, CurrentRealm.Seasonal, CurrentRealm.League, CurrentRealm.Ptr,
+        CurrentRealm.Development };
+}
+
+std::uint32_t InvestedEssence(Player const* player, std::uint32_t classType, std::uint32_t tab, bool talent)
+{
+    constexpr std::uint32_t WHOLE = 1;
+    if (!IsFreepickHero(player))
+        return 0;
+    Build const build(Loaded, CurrentRealm, player->GetLevel(), StoredEntries(player));
+    if (classType == WHOLE)
+        return talent ? build.GlobalTE(0) : build.GlobalAE(0);
+    if (tab == WHOLE)
+        return talent ? build.ClassTE(classType, 0) : build.ClassAE(classType, 0);
+    return talent ? build.TabTE(classType, tab, 0) : build.TabAE(classType, tab, 0);
+}
+
 class AscensionFreepickPlayer final : public PlayerScript
 {
 public:
