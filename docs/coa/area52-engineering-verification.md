@@ -50,6 +50,12 @@ Blank lines separate ordinary text, extended details and the status. Charge rank
 pre-label overlay had no extended markers, so this is a requested formatting repair,
 not a claim of recovered native boundaries. Charges and recharge remain visible.
 
+Mastery entries preserve their original SHIFT blocks verbatim, including individual
+`@s:...@~@s:...@` embedded-ability sections. Their status is a separate final SHIFT
+block separated by one blank line. Do not consolidate Mastery sections: the embedded
+ability grouping relies on their original boundaries. Repair previously consolidated
+Mastery descriptions from the pre-status backup before applying this rule.
+
 ```text
 python tools/area52_verification/stage.py --audit AUDIT_DIRECTORY --evidence EVIDENCE_JSON --source AREA52_OVERLAY --expected-sha256 SOURCE_HASH --mpq-tools MPQ_TOOLS_DIRECTORY --output NEW_STAGED_OVERLAY
 ```

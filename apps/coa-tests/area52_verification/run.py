@@ -57,6 +57,10 @@ def main():
     fixed = status.format_description(conditional, 'VERIFIED')
     assert fixed.endswith(']\n\n@ext:|cff00ff00VERIFIED|r:ext@')
     assert 'First branch:ext@' in fixed and 'Second branch:ext@' in fixed
+    mastery = 'Mastery description.\n\n@ext:@s:168:0@~@s:168:-1@:ext@\n@ext:@s:6117:0@~@s:6117:-1@:ext@'
+    fixed_mastery = status.format_description(mastery, 'Needs Investigation', preserve_shift_blocks=True)
+    assert fixed_mastery == mastery + '\n\n@ext:|cffffff80NOT VERIFIED|r:ext@'
+    assert status.format_description(fixed_mastery, 'Needs Investigation', preserve_shift_blocks=True) == fixed_mastery
     assert ids == [10]
     report['entries'].append({'spells': [10], 'status': 'Confirmed Defect'})
     patched, _ = status.patch_spell_dbc(dbc, report)

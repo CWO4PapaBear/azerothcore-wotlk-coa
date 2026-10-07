@@ -125,12 +125,14 @@ def tooltip(status, certified=False):
     return '\n@ext:|cff' + color + label + '|r:ext@'
 
 
-def format_description(description, status, certified=False, spell=0):
+def format_description(description, status, certified=False, spell=0, preserve_shift_blocks=False):
     legacy = r'\n@ext:\|cff[0-9a-fA-F]{6}' + re.escape(LEGACY_MARKER) + r'.*?:ext@'
     description = re.sub(legacy, '', description, flags=re.S)
     label_pattern = r'\|cff[0-9a-fA-F]{6}(?:VERIFIED|CERTIFIED|NOT VERIFIED)\|r'
     description = re.sub(r'\s*@ext:' + label_pattern + r':ext@', '', description)
     description = re.sub(r'\s*' + label_pattern + r'(?=:ext@)', '', description)
+    if preserve_shift_blocks:
+        return description.rstrip() + '\n' + tooltip(status, certified)
     boundary = 'Gap closer ability.'
     if spell in (100, 6178, 11578) and boundary in description and '@ext:' not in description.lower():
         visible, extra = description.split(boundary, 1)
@@ -152,8 +154,11 @@ def patch_spell_dbc(data, report):
         raise ValueError('Unexpected Spell.dbc layout')
     statuses = {}
     certifications = {}
+    masteries = set()
     for row in report['entries']:
         for spell in row['spells']:
+            if row.get('kind') == 'advancement' and 'mastery' in row.get('name', '').lower():
+                masteries.add(spell)
             current = statuses.get(spell, STATUSES[0])
             statuses[spell] = STATUSES[max(STATUSES.index(current), STATUSES.index(row['status']))]
             certifications[spell] = certifications.get(spell, True) and row.get('certified') is True
@@ -171,7 +176,7 @@ def patch_spell_dbc(data, report):
         if end < 0:
             raise ValueError('Unterminated description')
         description = strings[pointer:end].decode('utf-8')
-        new = format_description(description, statuses[spell], certifications[spell], spell)
+        new = format_description(description, statuses[spell], certifications[spell], spell, spell in masteries)
         struct.pack_into('<I', records, field, len(strings))
         strings.extend(new.encode('utf-8') + b'\0')
         changed.append(spell)
