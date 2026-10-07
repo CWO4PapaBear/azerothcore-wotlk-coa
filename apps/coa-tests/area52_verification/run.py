@@ -35,7 +35,7 @@ def main():
     nodes[10]['edges'] = [{'target': 11}]
     nodes[11] = {'present': 'true', 'scripts': ['custom_grant'], 'edges': [{'target': 10}]}
     assert status.inspect(row, 'mystic', nodes, evidence)['status'] != 'VERIFIED'
-    strings = b'\0Original @ext:Keep this detail:ext@\0'
+    strings = b'\0Original @ext:Keep this detail:ext@\n@ext:|cff00ff00Area 52 engineering: VERIFIED|r\nEngineering review only; gameplay certification is separate.:ext@\0'
     record = [0] * 234
     record[0], record[170] = 10, 1
     dbc = struct.pack('<4s4I', b'WDBC', 1, 234, 936, len(strings)) + struct.pack('<234I', *record) + strings
@@ -44,13 +44,19 @@ def main():
     second, _ = status.patch_spell_dbc(first, report)
     pointer = struct.unpack_from('<I', second, 20 + 170 * 4)[0]
     text = second[956 + pointer:].split(b'\0')[0].decode()
-    assert text.count(status.MARKER) == 1
-    assert '|cff00ff00Area 52 engineering: VERIFIED|r' in text
+    assert text.count('@ext:|cff00ff00VERIFIED|r:ext@') == 1
+    assert status.LEGACY_MARKER not in text
+    assert 'certification is separate' not in text
     assert 'Original @ext:Keep this detail:ext@' in text
     assert ids == [10]
     report['entries'].append({'spells': [10], 'status': 'Confirmed Defect'})
     patched, _ = status.patch_spell_dbc(dbc, report)
-    assert b'Area 52 engineering: Confirmed Defect' in patched
+    pointer = struct.unpack_from('<I', patched, 20 + 170 * 4)[0]
+    assert b'NOT VERIFIED|r:ext@' in patched[956 + pointer:].split(b'\0')[0]
+    for label in status.STATUSES[1:]:
+        assert status.tooltip(label) == '\n@ext:|cffffff80NOT VERIFIED|r:ext@'
+    assert status.tooltip('VERIFIED', True) == '\n@ext:|cff00ff00CERTIFIED|r:ext@'
+    assert 'NOT VERIFIED' in status.tooltip('Confirmed Defect', True)
     report['entries'].append({'spells': [11], 'status': 'VERIFIED'})
     try:
         status.patch_spell_dbc(dbc, report)

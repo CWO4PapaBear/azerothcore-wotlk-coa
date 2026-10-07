@@ -34,7 +34,10 @@ python -B tools/verify_all.py --stages source,harness --base origin/main --harne
 It requires the exact source archive hash, rebuilds the status report, and checks every
 member after archive writing. It does not install, publish, restart, or overwrite archives.
 Only enUS spell descriptions are changed; the client’s existing `@ext:` format displays
-the status on SHIFT expansion. VERIFIED is green. Repatching replaces the previous status
+the status on SHIFT expansion. The visible text is only green VERIFIED or CERTIFIED;
+all entries still needing work show NOT VERIFIED. Detailed categories remain in the reports.
+CERTIFIED requires explicit player acceptance and is never inferred from engineering checks.
+Repatching replaces either the original verbose label or the compact label
 instead of duplicating it, and shared spell IDs receive the least favorable applicable status.
 Higher ranks and known granted-spell IDs inherit the entry status.
 

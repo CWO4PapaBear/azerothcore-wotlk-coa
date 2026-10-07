@@ -6,8 +6,7 @@ from collections import Counter
 from pathlib import Path
 
 STATUSES = ('VERIFIED', 'Structurally Connected, Unverified', 'Needs Investigation', 'Confirmed Defect')
-COLORS = ('00ff00', 'ffff80', 'ff9900', 'ff4040')
-MARKER = 'Area 52 engineering: '
+LEGACY_MARKER = 'Area 52 engineering: '
 GATES = ('connections', 'granted_abilities', 'persistence', 'rank_upgrades')
 
 
@@ -118,9 +117,12 @@ def build(audit, evidence_path):
             'entries': entries}
 
 
-def tooltip(status):
-    color = COLORS[STATUSES.index(status)]
-    return '\n@ext:|cff' + color + MARKER + status + '|r\nEngineering review only; gameplay certification is separate.:ext@'
+def tooltip(status, certified=False):
+    if status == 'VERIFIED':
+        label, color = ('CERTIFIED' if certified else 'VERIFIED'), '00ff00'
+    else:
+        label, color = 'NOT VERIFIED', 'ffff80'
+    return '\n@ext:|cff' + color + label + '|r:ext@'
 
 
 def patch_spell_dbc(data, report):
@@ -128,10 +130,12 @@ def patch_spell_dbc(data, report):
     if magic != b'WDBC' or fields != 234 or size != fields * 4 or len(data) != 20 + count * size + string_size:
         raise ValueError('Unexpected Spell.dbc layout')
     statuses = {}
+    certifications = {}
     for row in report['entries']:
         for spell in row['spells']:
             current = statuses.get(spell, STATUSES[0])
             statuses[spell] = STATUSES[max(STATUSES.index(current), STATUSES.index(row['status']))]
+            certifications[spell] = certifications.get(spell, True) and row.get('certified') is True
     records = bytearray(data[:20 + count * size])
     strings = bytearray(data[20 + count * size:])
     changed = []
@@ -146,9 +150,10 @@ def patch_spell_dbc(data, report):
         if end < 0:
             raise ValueError('Unterminated description')
         description = strings[pointer:end].decode('utf-8')
-        pattern = r'\n@ext:\|cff[0-9a-fA-F]{6}' + re.escape(MARKER) + r'.*?:ext@'
+        pattern = r'\n@ext:\|cff[0-9a-fA-F]{6}' + re.escape(LEGACY_MARKER) + r'.*?:ext@'
         description = re.sub(pattern, '', description, flags=re.S)
-        new = description + tooltip(statuses[spell])
+        description = re.sub(r'\n@ext:\|cff[0-9a-fA-F]{6}(?:VERIFIED|CERTIFIED|NOT VERIFIED)\|r:ext@', '', description)
+        new = description + tooltip(statuses[spell], certifications[spell])
         struct.pack_into('<I', records, field, len(strings))
         strings.extend(new.encode('utf-8') + b'\0')
         changed.append(spell)
