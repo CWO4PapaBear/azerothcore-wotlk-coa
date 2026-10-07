@@ -18,6 +18,7 @@
 #include "AllBattlegroundScript.h"
 #include "AscensionSpecialization.h"
 #include "AscensionTalentReplacementData.h"
+#include "AscensionFreepick.h"
 #include "AscensionWildcard.h"
 #include "Battleground.h"
 #include "CoA.Prestige.API.h"
@@ -480,12 +481,14 @@ namespace
         State state = LoadState(player);
         uint32 const requiredLevel = g_requiredLevel;
         bool const wildcard = AscensionWildcard::IsWildcardHero(player);
+        bool const freePick = AscensionFreepick::IsFreepickHero(player);
+        bool const customClass = IsAscensionCustomClassId(player->getClass());
         uint32 const specialization = wildcard ? AscensionWildcard::ActiveSpec(player) + 1 :
-            GetAscensionActiveSpecialization(player);
+            customClass ? GetAscensionActiveSpecialization(player) :
+            freePick ? AscensionFreepick::ActiveSpecialization(player) + 1 : player->GetActiveSpec() + 1;
 
         ActivationFacts facts;
         facts.enabled = g_enabled;
-        facts.customClass = wildcard || IsAscensionCustomClassId(player->getClass());
         facts.level = player->GetLevel();
         facts.requiredLevel = requiredLevel;
         facts.active = state.active;
@@ -512,11 +515,26 @@ namespace
         }
 
         RememberActionBar(player);
+        uint32 talents = 0;
+        if (freePick)
+        {
+            talents = AscensionFreepick::KnownEntries(player).size();
+            auto const result = AscensionFreepick::ResetForPrestige(player);
+            if (!result)
+            {
+                chat.SendSysMessage("Chromie could not reset your advancement selections. Your level has not changed.");
+                return false;
+            }
+        }
+        else if (wildcard)
+            talents = AscensionWildcard::PrestigeSpecialization(player);
+        else if (customClass)
+            talents = ForgetAscensionClassTalents(player);
+        else
+            player->resetTalents(true);
         DismissPets(player);
         ResetQuests(player, requiredLevel);
 
-        uint32 const talents = wildcard ? AscensionWildcard::PrestigeSpecialization(player) :
-            ForgetAscensionClassTalents(player);
         std::unordered_set<uint32> const chains = ForgetRanksAbove(player, FirstLevel);
         player->GiveLevel(FirstLevel);
         player->SetUInt32Value(PLAYER_XP, 0);

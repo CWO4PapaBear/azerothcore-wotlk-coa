@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "name": "Prestige Mode: Chromie refuses characters who cannot prestige and opens her two shops",
-  "contract": "Activation needs level 60, a Conquest of Azeroth class and a chosen specialization. A level-59 Bloodmage, a level-60 Bloodmage without a specialization and a level-60 Warrior are each told why, and each keeps their level without the Prestige Challenge aura 9930831. 'I would like to purchase Prestige items!' opens Chromie's own list of the 104 Prestige offers, and 'GOSSIP_ACTION_EXPERIENCE_ITEMS' opens the two experience items, Potion of Experience 818046 and Aura of Experience 818059, from vendor list 990782.",
+  "contract": "Activation needs level 60 and, for CoA classes, a chosen specialization. A level-59 Bloodmage and a level-60 Bloodmage without a specialization are each told why, and each keeps their level without the Prestige Challenge aura 9930831. Standard classes can use the shops; their successful activation is covered separately. 'I would like to purchase Prestige items!' opens Chromie's own list of the 104 Prestige offers, and 'GOSSIP_ACTION_EXPERIENCE_ITEMS' opens the two experience items, Potion of Experience 818046 and Aura of Experience 818059, from vendor list 990782.",
   "timeout_ms": 120000,
   "location": { "map": 0, "x": -8816.5, "y": 627.0, "z": 94.1, "o": 3.8 },
   "players": [
@@ -30,12 +30,6 @@
     { "action": "assert", "actor": "undecided", "metric": "system_message_contains", "text": "Choose a specialization", "equals": 1, "within_ms": 2000 },
     { "action": "assert", "actor": "undecided", "metric": "level", "equals": 60 },
     { "action": "assert", "actor": "undecided", "metric": "aura", "spell": 9930831, "equals": 0 },
-
-    { "action": "gossip_hello", "actor": "warrior", "target": "chromie_warrior" },
-    { "action": "gossip_select", "actor": "warrior", "option": 0, "label": "A Warrior asks to prestige" },
-    { "action": "assert", "actor": "warrior", "metric": "system_message_contains", "text": "only available to Conquest of Azeroth classes", "equals": 1, "within_ms": 2000 },
-    { "action": "assert", "actor": "warrior", "metric": "level", "equals": 60 },
-    { "action": "assert", "actor": "warrior", "metric": "aura", "spell": 9930831, "equals": 0 },
 
     { "action": "gossip_hello", "actor": "warrior", "target": "chromie_warrior" },
     { "action": "gossip_select", "actor": "warrior", "option": 1, "label": "I would like to purchase Prestige items!" },

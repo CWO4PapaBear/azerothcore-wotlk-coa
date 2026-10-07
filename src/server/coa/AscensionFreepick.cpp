@@ -275,6 +275,17 @@ UploadResult ApplyUpload(Player* player, std::vector<AscensionCoATalentState::Kn
     return {};
 }
 
+bool ResetForPrestige(Player* player)
+{
+    if (!IsFreepickHero(player) || !player->IsInWorld() || !player->IsAlive() || player->IsInCombat()
+        || player->InBattleground() || player->InArena())
+        return false;
+    auto const before = StoredEntries(player);
+    Store(player, {});
+    SyncSpells(player, before, {});
+    return true;
+}
+
 std::uint32_t ActiveSpecialization(Player const* player)
 {
     PlayerSettingVector const* stored = player->FindPlayerSettings(ACTIVE_SPECIALIZATION_SETTING);
