@@ -1027,6 +1027,11 @@ class spell_warr_second_wind : public AuraScript
         if (!procSpell)
             return false;
 
+        if (GetSpellInfo()->Effects[EFFECT_0].ApplyAuraName == SPELL_AURA_PROC_TRIGGER_SPELL)
+            return eventInfo.GetActor() == GetTarget() && GetTarget()->HealthBelowPct(35) &&
+                (eventInfo.GetTypeMask() & PROC_FLAG_DONE_SPELL_MELEE_DMG_CLASS) &&
+                eventInfo.GetDamageInfo() && eventInfo.GetDamageInfo()->GetDamage() > 0;
+
         // Must be from stun or root mechanic
         if (!(procSpell->GetAllEffectsMechanicMask() & ((1ULL << MECHANIC_ROOT) | (1ULL << MECHANIC_STUN))))
             return false;
@@ -1058,7 +1063,9 @@ class spell_warr_second_wind : public AuraScript
     void Register() override
     {
         DoCheckProc += AuraCheckProcFn(spell_warr_second_wind::CheckProc);
-        OnEffectProc += AuraEffectProcFn(spell_warr_second_wind::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+        SpellInfo const* info = sSpellMgr->GetSpellInfo(m_scriptSpellId);
+        if (info && info->Effects[EFFECT_0].ApplyAuraName == SPELL_AURA_DUMMY)
+            OnEffectProc += AuraEffectProcFn(spell_warr_second_wind::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
     }
 };
 

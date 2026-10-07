@@ -6828,7 +6828,10 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
             if (AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_WARLOCK, 89, 0))
                 AddPct(TakenTotalMod, aurEff->GetAmount());
 
-        damage = uint32(target->CountPctFromMaxHealth(damage));
+        bool secondWindBaseHealth = GetMiscValue() == 1 &&
+            (GetId() == 29841 || GetId() == 29842 || GetId() == 829839);
+        damage = secondWindBaseHealth ? CalculatePct(target->GetCreateHealth(), damage) :
+            target->CountPctFromMaxHealth(damage);
         damage = uint32(damage * TakenTotalMod);
     }
     else
