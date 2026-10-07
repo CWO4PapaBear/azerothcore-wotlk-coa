@@ -53,6 +53,7 @@ void AddAscensionScalingBaseScripts();
 void AddCoABugReportScripts();
 void AddCoAPlayerTicketScripts();
 void AddAscensionWildcardScripts();
+void AddSC_AscensionWildcardRecuperate();
 void AddAscensionFreepickScripts();
 void AddAscensionHeroBloomingShotScripts();
 void AddAscensionMysticEnchantScripts();
@@ -603,6 +604,7 @@ void AddCoAScripts()
     AddCoABugReportScripts();
     AddCoAPlayerTicketScripts();
     AddAscensionWildcardScripts();
+    AddSC_AscensionWildcardRecuperate();
     AddAscensionFreepickScripts();
     AddAscensionHeroBloomingShotScripts();
     AddAscensionMysticEnchantScripts();
