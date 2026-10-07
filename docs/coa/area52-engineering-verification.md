@@ -89,3 +89,11 @@ Rollback copies of the previous configuration, affected world tables, private ch
 data and client overlay were retained outside Git. The protected PTR services were unchanged.
 Upstream was fetched again through `8b1f3a0c0`; its new changes were not imported into
 this previously verified deployment candidate.
+# Reviewed scripted advancement entries
+
+An explicitly reviewed entry may use the common advancement persistence profile when its exact entry/spell
+list matches the evidence, its handler adds no companion spellbook grants, and its native selection,
+login-hook retention, removal and post-removal login-hook checks passed. Pin handler sources and native
+results in the evidence source hashes. This does not assert a full reconnect or combat certification.
+Actual grants, unresolved connections and rank discrepancies continue to block verification.
+

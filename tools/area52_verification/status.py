@@ -58,12 +58,16 @@ def inspect(entry, kind, nodes, evidence):
     if orphaned:
         checks['connections'] = {'result': 'fail', 'evidence': ['Modifier has no reviewed target: ' + str(sorted(orphaned))]}
     grants = entry['grants']
-    if not grants and not scripted and not any(i['kind'] == 'tooltip_link_requires_review' for i in issues):
+    reviewed = kind == 'advancement' and any(
+        review.get('entry') == entry['entry'] and review.get('spells') == roots
+        and review.get('no_extra_grants') is True and review.get('lifecycle_passed') is True
+        for review in evidence.get('reviewed_advancement_handlers', []))
+    if not grants and (not scripted or reviewed) and not any(i['kind'] == 'tooltip_link_requires_review' for i in issues):
         checks['granted_abilities'] = {'result': 'not_applicable', 'evidence': ['No learn/replacement grant in the reviewed graph or description.']}
     else:
         checks['granted_abilities']['evidence'] = ['Grant or custom-script ownership review required.']
     profile = 'mystic_slots' if kind == 'mystic' else 'advancement_spells'
-    if checks['granted_abilities']['result'] == 'not_applicable' and not scripted and evidence.get(profile):
+    if checks['granted_abilities']['result'] == 'not_applicable' and (not scripted or reviewed) and evidence.get(profile):
         checks['persistence'] = {'result': 'pass', 'evidence': [profile, evidence[profile]]}
     else:
         checks['persistence']['evidence'] = ['Special grant/replacement lifecycle not covered by the common persistence profile.']

@@ -20,6 +20,17 @@ def main():
             checks[key] = {'result': result}
             assert status.classify(checks) == expected
     assert status.classify(passed, ['known defect']) == 'Confirmed Defect'
+    ability = {'entry': 7, 'spells': [10], 'name': 'Scripted ability', 'te': 0,
+               'issues': [], 'grants': [], 'rank_chains': []}
+    scripted_nodes = {10: {'present': 'true', 'scripts': ['handler'], 'edges': []}}
+    review = {'entry': 7, 'spells': [10], 'no_extra_grants': True, 'lifecycle_passed': True}
+    reviewed = {'advancement_spells': 'Shared save/load review', 'reviewed_advancement_handlers': [review]}
+    assert status.inspect(ability, 'advancement', scripted_nodes, reviewed)['status'] == 'VERIFIED'
+    for field, value in [('entry', 8), ('spells', [11]), ('lifecycle_passed', False), ('no_extra_grants', False)]:
+        rejected = {**reviewed, 'reviewed_advancement_handlers': [{**review, field: value}]}
+        assert status.inspect(ability, 'advancement', scripted_nodes, rejected)['status'] != 'VERIFIED'
+    ability['grants'] = [{'target': 11}]
+    assert status.inspect(ability, 'advancement', scripted_nodes, reviewed)['status'] != 'VERIFIED'
     row = {'spell': 10, 'name': 'Example', 'connected': True, 'issues': [], 'grants': [], 'rank_chains': []}
     nodes = {10: {'present': 'true', 'edges': [], 'scripts': [], 'effects': [{'effect': 6, 'aura': 107}]}}
     assert status.inspect(row, 'mystic', nodes, {})['status'] != 'VERIFIED'
