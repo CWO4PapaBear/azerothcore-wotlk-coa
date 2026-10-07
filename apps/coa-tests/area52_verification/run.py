@@ -44,10 +44,19 @@ def main():
     second, _ = status.patch_spell_dbc(first, report)
     pointer = struct.unpack_from('<I', second, 20 + 170 * 4)[0]
     text = second[956 + pointer:].split(b'\0')[0].decode()
-    assert text.count('@ext:|cff00ff00VERIFIED|r:ext@') == 1
+    assert text.count('|cff00ff00VERIFIED|r:ext@') == 1
+    assert text.count('@ext:') == 1
     assert status.LEGACY_MARKER not in text
     assert 'certification is separate' not in text
-    assert 'Original @ext:Keep this detail:ext@' in text
+    assert text == 'Original\n\n@ext:Keep this detail\n\n|cff00ff00VERIFIED|r:ext@'
+    charge = 'Charge damage.\n\nMax 2 charges.\n\nGap closer ability.\n\nUsable while shapeshifted.'
+    formatted = status.format_description(charge, 'VERIFIED', spell=11578)
+    assert formatted == 'Charge damage.\n\nMax 2 charges.\n\n@ext:Gap closer ability.\n\nUsable while shapeshifted.\n\n|cff00ff00VERIFIED|r:ext@'
+    assert status.format_description(formatted, 'VERIFIED', spell=11578) == formatted
+    conditional = '$?s123[@ext:First branch:ext@][@ext:Second branch:ext@]'
+    fixed = status.format_description(conditional, 'VERIFIED')
+    assert fixed.endswith(']\n\n@ext:|cff00ff00VERIFIED|r:ext@')
+    assert 'First branch:ext@' in fixed and 'Second branch:ext@' in fixed
     assert ids == [10]
     report['entries'].append({'spells': [10], 'status': 'Confirmed Defect'})
     patched, _ = status.patch_spell_dbc(dbc, report)

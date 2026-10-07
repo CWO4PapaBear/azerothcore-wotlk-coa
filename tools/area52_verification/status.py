@@ -125,6 +125,27 @@ def tooltip(status, certified=False):
     return '\n@ext:|cff' + color + label + '|r:ext@'
 
 
+def format_description(description, status, certified=False, spell=0):
+    legacy = r'\n@ext:\|cff[0-9a-fA-F]{6}' + re.escape(LEGACY_MARKER) + r'.*?:ext@'
+    description = re.sub(legacy, '', description, flags=re.S)
+    label_pattern = r'\|cff[0-9a-fA-F]{6}(?:VERIFIED|CERTIFIED|NOT VERIFIED)\|r'
+    description = re.sub(r'\s*@ext:' + label_pattern + r':ext@', '', description)
+    description = re.sub(r'\s*' + label_pattern + r'(?=:ext@)', '', description)
+    boundary = 'Gap closer ability.'
+    if spell in (100, 6178, 11578) and boundary in description and '@ext:' not in description.lower():
+        visible, extra = description.split(boundary, 1)
+        description = visible.rstrip() + '\n\n@ext:' + boundary + extra.rstrip() + ':ext@'
+    blocks = list(re.finditer(r'@ext:(.*?):ext@', description, flags=re.S | re.I))
+    label = tooltip(status, certified)[6:-5]
+    unconditional = [m for m in blocks if description[:m.start()].count('[') == description[:m.start()].count(']')]
+    if unconditional:
+        details = '\n\n'.join(m[1].strip() for m in unconditional if m[1].strip())
+        for block in reversed(unconditional):
+            description = description[:block.start()] + description[block.end():]
+        return description.rstrip() + '\n\n@ext:' + (details + '\n\n' if details else '') + label + ':ext@'
+    return description.rstrip() + '\n' + tooltip(status, certified)
+
+
 def patch_spell_dbc(data, report):
     magic, count, fields, size, string_size = struct.unpack_from('<4s4I', data)
     if magic != b'WDBC' or fields != 234 or size != fields * 4 or len(data) != 20 + count * size + string_size:
@@ -150,10 +171,7 @@ def patch_spell_dbc(data, report):
         if end < 0:
             raise ValueError('Unterminated description')
         description = strings[pointer:end].decode('utf-8')
-        pattern = r'\n@ext:\|cff[0-9a-fA-F]{6}' + re.escape(LEGACY_MARKER) + r'.*?:ext@'
-        description = re.sub(pattern, '', description, flags=re.S)
-        description = re.sub(r'\n@ext:\|cff[0-9a-fA-F]{6}(?:VERIFIED|CERTIFIED|NOT VERIFIED)\|r:ext@', '', description)
-        new = description + tooltip(statuses[spell], certifications[spell])
+        new = format_description(description, statuses[spell], certifications[spell], spell)
         struct.pack_into('<I', records, field, len(strings))
         strings.extend(new.encode('utf-8') + b'\0')
         changed.append(spell)

@@ -41,6 +41,15 @@ Repatching replaces either the original verbose label or the compact label
 instead of duplicating it, and shared spell IDs receive the least favorable applicable status.
 Higher ranks and known granted-spell IDs inherit the entry status.
 
+Unconditional extended details are collected into a final SHIFT section, followed by
+a blank line and the status label. Original conditional branches retain their text
+and placement. Descriptions with only conditional extended sections receive an
+unconditional status section so the label remains available regardless of the branch.
+Blank lines separate ordinary text, extended details and the status. Charge ranks 100,
+6178 and 11578 explicitly put the gap-closer and shapeshifting details in SHIFT; their
+pre-label overlay had no extended markers, so this is a requested formatting repair,
+not a claim of recovered native boundaries. Charges and recharge remain visible.
+
 ```text
 python tools/area52_verification/stage.py --audit AUDIT_DIRECTORY --evidence EVIDENCE_JSON --source AREA52_OVERLAY --expected-sha256 SOURCE_HASH --mpq-tools MPQ_TOOLS_DIRECTORY --output NEW_STAGED_OVERLAY
 ```
