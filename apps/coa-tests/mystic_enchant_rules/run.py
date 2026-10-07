@@ -2,7 +2,8 @@ CLI_DESCRIPTION = """Check the mystic enchant rules the server shares with the c
 
 Compiles the mystic enchant rule code against the client DBC set the server loads (--dbc-dir), then checks the
 catalog, the realm, class and quality columns, slot validity, the per-quality caps, and the result each apply,
-destroy, scroll purchase, inspect and preset request receives.
+destroy, scroll purchase, inspect, preset, reforge, collection reforge, save-to-collection and extract
+purchase request receives, with its price and the altar progress it earns.
 No database, server build or game client is needed.
 """
 
@@ -127,7 +128,8 @@ int main(int, char** argv)
     Check(CheckSaveApply(catalog, fused, empty, RareScrolls(6)) == APPLY_RARE_LIMIT,
         "a sixth rare scroll is RARE_LIMIT");
     Check(CheckSaveApply(catalog, fused, empty, {}) == APPLY_UNKNOWN, "an empty apply is UNKNOWN");
-    std::vector<StagedApply> const twice = { Stage(1, RUNIC_CONTAGION_SCROLL, 7), Stage(2, RUNIC_CONTAGION_SCROLL, 7) };
+    std::vector<StagedApply> const twice = { Stage(1, RUNIC_CONTAGION_SCROLL, 7),
+        Stage(2, RUNIC_CONTAGION_SCROLL, 7) };
     Check(CheckSaveApply(catalog, fused, empty, twice) == APPLY_STACK_LIMIT &&
         CheckApplySlot(catalog, fused, empty, twice, twice[0]).back() == APPLY_DUPLICATE_BAG_SLOT_PAIR,
         "one scroll staged into two slots also reports DUPLICATE_BAG_SLOT_PAIR");
@@ -208,6 +210,107 @@ int main(int, char** argv)
         PRESET_SET_ACTIVE_UNKNOWN, "only an unlocked preset activates");
     Check(CheckPresetActivate(casting, 0, 1) == PRESET_SET_ACTIVE_NOT_WHILE_CASTING &&
         CheckPresetSave(coa) == PRESET_SAVE_BAD_CLASS, "casting and CoA classes are refused");
+
+    ClientConfig extractOne;
+    for (char const* tier : { "UNCOMMON", "RARE", "EPIC", "LEGENDARY", "ARTIFACT" })
+        extractOne.Integers[std::string("CONFIG_MYSTIC_ENCHANT_EXTRACT_") + tier + "_TOKEN_COST"] = 1;
+    Character altar = Hero(extractOne, 60);
+    std::vector<std::uint32_t> known;
+    altar.Known = &known;
+
+    Check(ReforgeCost(altar, false) == 250 && ReforgeCost(altar, true) == 25000,
+        "a reforge costs 250 Runes of Ascension or 2.5 gold");
+    altar.Money = 0;
+    Check(!ReforgeCharge(altar).Affordable, "a reforge with neither runes nor 2.5 gold is refused");
+    altar.Money = 25000;
+    Check(ReforgeCharge(altar).Money == 25000 && !ReforgeCharge(altar).Runes, "without runes the reforge takes gold");
+    altar.Runes = 250;
+    Check(ReforgeCharge(altar).Runes == 250 && !ReforgeCharge(altar).Money, "runes are spent before gold");
+    Check(CheckReforgeItem(catalog, altar, { true, UNTARNISHED_MYSTIC_SCROLL }) == REFORGE_OK &&
+        CheckReforgeItem(catalog, altar, { true, RUNIC_CONTAGION_SCROLL }) == REFORGE_OK,
+        "an untarnished or enchanted scroll is reforged at an altar");
+    Check(CheckReforgeItem(catalog, altar, { true, 6948 }) == REFORGE_NOT_MYSTIC_SCROLL &&
+        CheckReforgeItem(catalog, altar, { false, 0 }) == REFORGE_BAD_ITEM, "only a held mystic scroll is reforged");
+    Character away = altar;
+    away.AltarNearby = false;
+    Check(CheckReforgeItem(catalog, away, { true, UNTARNISHED_MYSTIC_SCROLL }) == REFORGE_NO_MYSTIC_ALTAR,
+        "reforging needs an altar");
+
+    std::vector<Enchant const*> const pool = ReforgePool(catalog, altar, nullptr);
+    bool poolClean = !pool.empty();
+    for (Enchant const* enchant : pool)
+        poolClean = poolClean && enchant->Realms[1] && !enchant->Worldforged && ClassAllowed(*enchant, HERO_CLASS);
+    Check(poolClean && pool.size() > 1000, "the reforge pool is the realm's non-worldforged Hero enchants");
+    Check(Roll(pool, 0.0) == pool.front() && Roll(pool, 1.0) == pool.back() && Roll({}, 0.5) == nullptr,
+        "a roll walks the weights from the first enchant to the last");
+
+    Check(LevelProgress(1) == 361 && LevelProgress(2) == 738, "an altar level needs 7.5 l^2 + 354 l progress");
+    Progress progress;
+    Check(AddProgress(progress, 359) == 0 && progress.Level == 1 && AddProgress(progress, 1) == 1 &&
+        progress.Level == 2, "progress reaching 361 raises the altar to level 2");
+    Check(ReforgeProgressGain(*contagion, 1.0) == 80, "a rare roll is worth 80 progress");
+
+    Check(ExtractCost(altar, *contagion) == 1 && ExtractCost(hero, *contagion) == 5000,
+        "saving costs the configured extract, the client's fallback 5000 otherwise");
+    Check(CheckDisenchant(catalog, altar, RUNIC_CONTAGION) == DISENCHANT_NO_MONEY,
+        "saving to the collection without an extract is refused");
+    altar.Extracts = 1;
+    Check(CheckDisenchantItem(catalog, altar, { true, RUNIC_CONTAGION_SCROLL }) == DISENCHANT_OK,
+        "one extract saves a scroll's enchant to the collection");
+    known.push_back(RUNIC_CONTAGION);
+    Check(CheckDisenchant(catalog, altar, RUNIC_CONTAGION) == DISENCHANT_ALREADY_KNOWN_ENCHANTMENT,
+        "a collected enchant is not saved again");
+    Check(CheckDisenchantSlot(catalog, altar, holding, 1) == DISENCHANT_ALREADY_KNOWN_ENCHANTMENT &&
+        CheckDisenchantSlot(catalog, altar, empty, 1) == DISENCHANT_BAD_ENCHANTMENT,
+        "a slot saves the enchant it holds");
+
+    Check(ExtractPurchaseCost(1) == 1200 && ExtractPurchaseCost(60) == 5000,
+        "an extract costs 200 runes per altar level plus 1000, at most 5000");
+    Check(CheckExtractPurchase(altar, 1) == EXTRACT_PURCHASE_ALREADY_OBTAINED,
+        "no extract is sold while one is held");
+    altar.Extracts = 0;
+    altar.Runes = 1199;
+    Check(CheckExtractPurchase(altar, 1) == EXTRACT_PURCHASE_NO_TOKENS, "an extract needs its runes");
+    Check(ExtractsBoughtWithSave(altar, 1, true) == 0, "a save cannot buy an extract without its runes");
+    altar.Runes = 1200;
+    Check(CheckExtractPurchase(altar, 1) == EXTRACT_PURCHASE_OK, "1200 runes buy an extract at altar level 1");
+    Character buyer = altar;
+    known.clear();
+    buyer.Extracts += ExtractsBoughtWithSave(buyer, 1, true);
+    Check(ExtractsBoughtWithSave(altar, 1, false) == 0 && buyer.Extracts == 1 &&
+        CheckDisenchantSlot(catalog, buyer, holding, 1) == DISENCHANT_OK,
+        "a save that asks to buy its extract goes through with no extract held");
+    known.push_back(RUNIC_CONTAGION);
+
+    altar.Runes = 0;
+    altar.Money = 0;
+    Check(CheckCollectionReforgeItem(catalog, altar, { true, UNTARNISHED_MYSTIC_SCROLL }, RUNIC_CONTAGION) ==
+        COLLECTION_REFORGE_NO_MONEY, "a collection reforge of a scroll is paid in gold");
+    altar.Money = 600000;
+    Check(CheckCollectionReforgeItem(catalog, altar, { true, UNTARNISHED_MYSTIC_SCROLL }, RUNIC_CONTAGION) ==
+        COLLECTION_REFORGE_OK, "60 gold turns an untarnished scroll into a collected rare");
+    Check(CheckCollectionReforgeItem(catalog, altar, { true, RUNIC_CONTAGION_SCROLL }, RUNIC_CONTAGION) ==
+        COLLECTION_REFORGE_ALREADY_APPLIED, "a scroll is not reforged into itself");
+    Check(CheckCollectionReforgeItem(catalog, altar, { true, UNTARNISHED_MYSTIC_SCROLL }, 276397) ==
+        COLLECTION_REFORGE_NOT_KNOWN_ENCHANTMENT, "only a collected enchant is a reforge target");
+
+    Character slotter = Hero(fusion, 80);
+    slotter.Known = &known;
+    slotter.AltarNearby = true;
+    slotter.Runes = 2400;
+    Check(CheckSaveCollectionReforge(catalog, slotter, empty, { { 1, RUNIC_CONTAGION } }) == COLLECTION_REFORGE_OK &&
+        CollectionReforgeCharge(slotter, { contagion }, true).Runes == 2400,
+        "a collected rare is set into a slot for 2400 runes");
+    slotter.Runes = 0;
+    Check(CheckSaveCollectionReforge(catalog, slotter, empty, { { 1, RUNIC_CONTAGION } }) ==
+        COLLECTION_REFORGE_NO_MONEY, "without runes or 60 gold the slot is refused");
+    slotter.Money = 600000;
+    Check(CollectionReforgeCharge(slotter, { contagion }, true).Money == 600000, "gold pays when runes are short");
+    Check(CheckSaveCollectionReforge(catalog, slotter, empty, { { 1, RUNIC_CONTAGION }, { 2, RUNIC_CONTAGION } }) ==
+        COLLECTION_REFORGE_NO_MONEY, "two slots cost twice");
+    slotter.Money = 1200000;
+    Check(CheckSaveCollectionReforge(catalog, slotter, empty, { { 1, RUNIC_CONTAGION }, { 2, RUNIC_CONTAGION } }) ==
+        COLLECTION_REFORGE_STACK_LIMIT, "the same enchant in two slots is past its stacks");
 
     return failures ? 1 : 0;
 }
