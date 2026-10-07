@@ -59,8 +59,12 @@ constexpr uint16 CMSG_DESTROY_RANDOM_ENCHANT_SLOT = 0x0617;
 constexpr uint16 SMSG_DESTROY_RANDOM_ENCHANT_SLOT_RESULT = 0x0618;
 constexpr uint16 CMSG_PURCHASE_MYSTIC_EXTRACT = 0x0733;
 constexpr uint16 SMSG_PURCHASE_MYSTIC_EXTRACT_RESULT = 0x0734;
+constexpr uint16 SMSG_UPDATE_SPECIALIZATION_MYSTIC_ENCHANT_PRESET_ID = 0x0737;
+constexpr uint16 CMSG_SET_SPECIALIZATION_MYSTIC_ENCHANT_PRESET_ID = 0x0739;
+constexpr char SPECIALIZATION_PRESET_SETTING[] = "core.mystic.spec_preset";
 
-constexpr std::array<uint16, 12> CLIENT_OPCODES = { CMSG_SET_ACTIVE_RANDOM_ENCHANT_PRESET,
+constexpr std::array<uint16, 13> CLIENT_OPCODES = {
+    CMSG_SET_SPECIALIZATION_MYSTIC_ENCHANT_PRESET_ID, CMSG_SET_ACTIVE_RANDOM_ENCHANT_PRESET,
     CMSG_APPLY_RANDOM_ENCHANT_SLOT, CMSG_PURCHASE_MYSTIC_SCROLL, CMSG_INSPECT_RANDOM_ENCHANTS,
     CMSG_UNLOCK_RANDOM_ENCHANT_PRESET, CMSG_DESTROY_RANDOM_ENCHANT_SLOT, CMSG_REFORGE_RANDOM_ENCHANT_ITEM,
     CMSG_COLLECTION_REFORGE_RANDOM_ENCHANT_ITEM, CMSG_DISENCHANT_RANDOM_ENCHANT_ITEM,
@@ -513,6 +517,43 @@ void AppendExtractCosts(AscensionClientConfig& config)
             config.Integers.emplace_back(name, 1);
 }
 
+void SendSpecializationLink(Player* player, uint32 specialization, uint32 preset)
+{
+    WorldPacket packet(SMSG_UPDATE_SPECIALIZATION_MYSTIC_ENCHANT_PRESET_ID, 9);
+    packet << uint32(specialization) << uint8(preset ? 1 : 0);
+    if (preset)
+        packet << uint32(preset);
+    player->SendDirectMessage(&packet);
+}
+
+uint32 SpecializationLink(Player const* player, uint32 specialization)
+{
+    PlayerSettingVector const* stored = player->FindPlayerSettings(SPECIALIZATION_PRESET_SETTING);
+    return stored && specialization < stored->size() ? (*stored)[specialization].value : 0;
+}
+
+void SendSpecializationLinks(Player* player)
+{
+    for (uint32 specialization = 0; specialization < SPECIALIZATION_COUNT; ++specialization)
+        if (uint32 const preset = SpecializationLink(player, specialization))
+            SendSpecializationLink(player, specialization, preset);
+}
+
+void HandleSpecializationLink(Player* player, State const& state, WorldPacket& packet)
+{
+    uint32 const specialization = packet.read<uint32>();
+    bool const linked = packet.read<uint8>() != 0;
+    uint32 const preset = linked ? packet.read<uint32>() : 0;
+    if (!ValidSpecializationLink(specialization, linked, preset, uint32(state.Presets.size())))
+    {
+        SendSpecializationLink(player, specialization < SPECIALIZATION_COUNT ? specialization : 0,
+            specialization < SPECIALIZATION_COUNT ? SpecializationLink(player, specialization) : 0);
+        return;
+    }
+    player->UpdatePlayerSetting(SPECIALIZATION_PRESET_SETTING, specialization, preset);
+    SendSpecializationLink(player, specialization, preset);
+}
+
 void HandleSaveApply(Player* player, State& state, WorldPacket& packet)
 {
     uint32 const count = packet.read<uint32>();
@@ -678,6 +719,9 @@ void Handle(Player* player, WorldPacket& packet)
         case CMSG_DISENCHANT_RANDOM_ENCHANT_ITEM: HandleDisenchantItem(player, *state, packet); break;
         case CMSG_DISENCHANT_RANDOM_ENCHANT_SLOT: HandleDisenchantSlot(player, *state, packet); break;
         case CMSG_PURCHASE_MYSTIC_EXTRACT: HandlePurchaseExtract(player, *state); break;
+        case CMSG_SET_SPECIALIZATION_MYSTIC_ENCHANT_PRESET_ID:
+            HandleSpecializationLink(player, *state, packet);
+            break;
         default: break;
     }
 }
@@ -707,6 +751,7 @@ public:
         State& state = Load(player);
         SyncAuras(player, state);
         SendState(player, state);
+        SendSpecializationLinks(player);
     }
 
     void OnPlayerLogout(Player* player) override

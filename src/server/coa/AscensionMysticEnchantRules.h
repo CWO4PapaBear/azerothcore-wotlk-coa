@@ -20,6 +20,7 @@ constexpr std::uint32_t FUSION_EXCLUDED_MODES = 0x1DEF;
 constexpr std::uint32_t WILDCARD_MODE = 0x40;
 constexpr std::uint32_t NO_REQUIREMENT = 1;
 constexpr std::uint32_t MAX_PRESETS = 100;
+constexpr std::uint32_t SPECIALIZATION_COUNT = 20;
 constexpr std::uint32_t RARE_WORLDFORGED_LIMIT = 3;
 constexpr std::uint32_t UNTARNISHED_MYSTIC_SCROLL = 992720;
 constexpr std::uint32_t PRESET_UNLOCK_TOKEN = 1806961;
@@ -355,6 +356,8 @@ std::uint32_t CheckInspect(bool found, bool sameMap, std::uint32_t targetClass);
 std::uint32_t CheckPresetSave(Character const& character);
 std::uint32_t CheckPresetActivate(Character const& character, std::uint32_t preset, std::uint32_t presetCount);
 std::uint32_t CheckPresetUnlock(Character const& character, std::uint32_t presetCount);
+bool ValidSpecializationLink(std::uint32_t specialization, bool linked, std::uint32_t preset,
+    std::uint32_t presetCount);
 
 std::uint32_t CollectionReforgeCost(Character const& character, Enchant const& enchant, bool money, bool slot);
 std::uint32_t ExtractCost(Character const& character, Enchant const& enchant);
