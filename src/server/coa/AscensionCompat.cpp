@@ -1542,7 +1542,8 @@ public:
     WorldPacket packet(SMSG_CHARACTER_ADVANCEMENT_ACTIVE_SPEC, sizeof(uint32) * 2);
     bool const wildcard = AscensionWildcard::IsWildcardHero(player);
     packet << (wildcard ? AscensionWildcard::ActiveSpec(player) : ActiveSlot(player))
-           << uint32(wildcard || IsAscensionCustomClass(player) ? AscensionWildcard::SPECIALIZATION_COUNT : 1);
+           << uint32(wildcard || IsAscensionCustomClass(player) || AscensionFreepick::IsFreepickHero(player) ?
+        AscensionWildcard::SPECIALIZATION_COUNT : 1);
     player->GetSession()->SendPacket(&packet);
 
     uint32 const sent = SendKnownTalentEntries(player);
