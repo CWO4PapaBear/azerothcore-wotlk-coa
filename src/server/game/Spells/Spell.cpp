@@ -4119,11 +4119,12 @@ void Spell::_cast(bool skipCheck)
 
         if (resetAttackTimers)
         {
-            m_caster->resetAttackTimer(BASE_ATTACK);
-
-            if (m_caster->HasOffhandWeaponForAttack())
+            if (!m_caster->HasAura(812577))
             {
-                m_caster->resetAttackTimer(OFF_ATTACK);
+                m_caster->resetAttackTimer(BASE_ATTACK);
+
+                if (m_caster->HasOffhandWeaponForAttack())
+                    m_caster->resetAttackTimer(OFF_ATTACK);
             }
 
             m_caster->resetAttackTimer(RANGED_ATTACK);

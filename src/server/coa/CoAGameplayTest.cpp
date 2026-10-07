@@ -1892,6 +1892,12 @@ private:
             Require(school > SPELL_SCHOOL_NORMAL && school < MAX_SPELL_SCHOOL, "Invalid resistance school");
             return unit->GetResistance(SpellSchools(school));
         }
+        if (metric == "attack_timer_ms")
+        {
+            uint32 hand = step.get<uint32>("hand", BASE_ATTACK);
+            Require(hand < MAX_ATTACK, "Invalid attack hand");
+            return unit->getAttackTimer(WeaponAttackType(hand));
+        }
         if (metric == "attack_time_ms" || metric == "pet_attack_time_ms")
         {
             if (metric == "pet_attack_time_ms")

@@ -1,0 +1,247 @@
+{
+  "schema": 1,
+  "name": "Spellblade capstone preserves melee timers and ordinary casts still reset them",
+  "contract": "Only rank three prevents melee swing reset. Removing it restores normal cast behavior. Ranged timers retain their normal reset.",
+  "timeout_ms": 35000,
+  "location": {
+    "map": 0,
+    "x": -9465,
+    "y": 64,
+    "z": 56,
+    "o": 0
+  },
+  "players": [
+    {
+      "id": "hero",
+      "race": 1,
+      "class": 10,
+      "level": 80,
+      "melee_hit_rating": 10000,
+      "expertise_rating": 10000,
+      "allow_regeneration": false
+    }
+  ],
+  "creatures": [
+    {
+      "id": "victim",
+      "owner": "hero",
+      "entry": 36,
+      "health": 1000000,
+      "distance": 2,
+      "faction": 7
+    }
+  ],
+  "steps": [
+    {
+      "action": "wait",
+      "ms": 2500
+    },
+    {
+      "action": "client_packet",
+      "actor": "hero",
+      "opcode": 1831,
+      "fields": [
+        {
+          "u32": 1
+        },
+        {
+          "u32": 2672
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        }
+      ]
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 133,
+      "equals": 1
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 812576,
+      "stacks": 0
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 812577,
+      "stacks": 0
+    },
+    {
+      "action": "wait",
+      "ms": 2500
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 133,
+      "target": "victim"
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "spell_cast_count",
+      "spell": 133,
+      "min": 1,
+      "within_ms": 5000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "attack_timer_ms",
+      "min": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "attack_timer_ms",
+      "hand": 2,
+      "min": 1000
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 812576,
+      "stacks": 1
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 812577,
+      "stacks": 0
+    },
+    {
+      "action": "wait",
+      "ms": 2500
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 133,
+      "target": "victim"
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "spell_cast_count",
+      "spell": 133,
+      "min": 2,
+      "within_ms": 5000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "attack_timer_ms",
+      "min": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "attack_timer_ms",
+      "hand": 2,
+      "min": 1000
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 812576,
+      "stacks": 0
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 812577,
+      "stacks": 1
+    },
+    {
+      "action": "wait",
+      "ms": 2500
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 133,
+      "target": "victim"
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "spell_cast_count",
+      "spell": 133,
+      "min": 3,
+      "within_ms": 5000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "attack_timer_ms",
+      "max": 500
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "attack_timer_ms",
+      "hand": 2,
+      "min": 1000
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 812576,
+      "stacks": 0
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 812577,
+      "stacks": 0
+    },
+    {
+      "action": "wait",
+      "ms": 2500
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 133,
+      "target": "victim"
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "spell_cast_count",
+      "spell": 133,
+      "min": 4,
+      "within_ms": 5000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "attack_timer_ms",
+      "min": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "attack_timer_ms",
+      "hand": 2,
+      "min": 1000
+    }
+  ]
+}

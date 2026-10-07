@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "name": "Area 52 Spellblade rank three triggers from melee attacks",
+  "contract": "The current client promises melee attacks restore base mana and grant Replenishment. Rank three must execute both existing helpers through the native proc engine.",
+  "timeout_ms": 320000,
+  "location": {
+    "map": 0,
+    "x": -9465,
+    "y": 64,
+    "z": 56,
+    "o": 0
+  },
+  "players": [
+    {
+      "id": "hero",
+      "race": 1,
+      "class": 10,
+      "level": 80,
+      "melee_hit_rating": 10000,
+      "expertise_rating": 10000,
+      "allow_regeneration": false
+    }
+  ],
+  "creatures": [
+    {
+      "id": "victim",
+      "owner": "hero",
+      "entry": 36,
+      "health": 1000000,
+      "distance": 2,
+      "faction": 7
+    }
+  ],
+  "steps": [
+    {
+      "action": "wait",
+      "ms": 2000
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 812577,
+      "stacks": 1
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 812577,
+      "equals": 1
+    },
+    {
+      "action": "set_power",
+      "actor": "hero",
+      "power": 0,
+      "value": 0
+    },
+    {
+      "action": "attack",
+      "actor": "hero",
+      "target": "victim"
+    },
+    {
+      "action": "assert",
+      "actor": "victim",
+      "metric": "health",
+      "max": 999999,
+      "within_ms": 10000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "spell_proc_count",
+      "spell": 812577,
+      "min": 1,
+      "within_ms": 300000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "spell_cast_count",
+      "spell": 812574,
+      "min": 1
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "spell_cast_count",
+      "spell": 57669,
+      "min": 1
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "power",
+      "power": 0,
+      "min": 1
+    }
+  ]
+}
