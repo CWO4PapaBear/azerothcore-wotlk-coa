@@ -45,3 +45,29 @@ python tools/area52_verification/stage.py --audit AUDIT_DIRECTORY --evidence EVI
 Labels are static client content. Deploy them only with the reviewed client/server pair.
 Do not install a candidate's green labels over a live server lacking its required repairs.
 In-game SHIFT rendering remains a separate acceptance check after installation.
+
+## First Area 52 activation (2026-10-07)
+
+The first labeled client/server pair was activated on the owner's Area 52 test realm.
+The deployment binary passed build, unit and three focused harness checks. An isolated
+native export-only scenario also passed; the runner correctly classified it as exploratory,
+not as completed combined gameplay verification. Player testing remains separate.
+
+The partial Shield of Righteousness heal repair and four unresolved book-rank mappings
+(Prayer of Healing, Mongoose Bite, Aspect of the Hawk and Consecration) were excluded.
+Comparison of the deployment export with the reviewed catalog found only those four
+rank-chain differences among reachable spell records. All four retain Needs Investigation;
+no green label depends on the excluded changes. The catalog and advancement entries
+were unchanged. The Shield entry retains Confirmed Defect.
+
+The installed overlay labels 1,666 Mystic Enchants and 773 advancement entries VERIFIED.
+It also preserves the other status categories and does not assign CERTIFIED. The overlay
+SHA-256 is `5c614413cde19035d5ca6171a225550696ead17536b4b38a02023732236b7146`;
+the deployment binary SHA-256 is
+`c8d4f3d82b04470a769806d345b369c64e2300bd5693ddc762141d11d46213ee`.
+
+Local server activation and client installation do not publish a launcher release.
+Rollback copies of the previous configuration, affected world tables, private character
+data and client overlay were retained outside Git. The protected PTR services were unchanged.
+Upstream was fetched again through `8b1f3a0c0`; its new changes were not imported into
+this previously verified deployment candidate.
