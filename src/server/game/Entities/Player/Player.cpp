@@ -3552,11 +3552,13 @@ void Player::learnSpell(uint32 spellId, bool temporary /*= false*/, bool learnFr
 
     uint8 const specMask = GetLearnSpellSpecMask(spellId);
 
+    bool const previouslyKnown = HasSpell(spellId);
     bool const added = addSpell(spellId, specMask, true, temporary, learnFromSkill);
-    if (added)
-    {
+    if (added || (!previouslyKnown && HasSpell(spellId)))
         sScriptMgr->OnPlayerLearnSpell(this, spellId);
 
+    if (added)
+    {
         // pussywizard: a system message "you have learnt spell X (rank Y)"
         // Player::_addSpell already sent this packet for a temporary learn that did not come from a skill line,
         // and Player::removeSpell answers such a grant with a single SMSG_REMOVED_SPELL. Announcing it twice
