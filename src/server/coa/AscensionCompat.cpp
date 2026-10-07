@@ -1509,7 +1509,7 @@ public:
   {
     if (AscensionWildcard::IsWildcardHero(player))
       return AscensionWildcard::KnownEntries(player);
-    if (AscensionFreepick::IsFreepickHero(player))
+    if (AscensionFreepick::HasFreepickBuild(player))
       return AscensionFreepick::KnownEntries(player);
     std::vector<AscensionCoATalentState::KnownEntry> known;
     for (auto const& entry : AscensionCompatData::CoATalentEntries)
@@ -2072,7 +2072,7 @@ public:
     }
 
     if (!IsAscensionCustomClass(player) && !AscensionWildcard::IsWildcardHero(player) &&
-        !AscensionFreepick::IsFreepickHero(player))
+        !AscensionFreepick::HasFreepickBuild(player))
       return;
     for (TalentRequest const& request : requests)
     {
@@ -2104,7 +2104,7 @@ public:
       refusal.Result = choice.Result;
       refusal.Learn = choice.Learn;
     }
-    else if (AscensionFreepick::IsFreepickHero(player))
+    else if (AscensionFreepick::HasFreepickBuild(player))
     {
       AscensionFreepick::UploadResult const applied = AscensionFreepick::ApplyUpload(player, upload);
       refusal.Result = applied.Result;
