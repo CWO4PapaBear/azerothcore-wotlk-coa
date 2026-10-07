@@ -1075,11 +1075,29 @@ class spell_pal_lay_on_hands : public SpellScript
         SetHitHeal(healAdjustment);
     }
 
+    bool UsesCasterHealth()
+    {
+        SpellEffectInfo const& effect = GetSpellInfo()->Effects[EFFECT_0];
+        return effect.Effect == SPELL_EFFECT_HEAL_PCT && effect.MiscValue == 1;
+    }
+
+    void HandleCasterHealthHeal()
+    {
+        Unit* caster = GetCaster();
+        Unit* target = GetHitUnit();
+        if (!target || !target->IsAlive() || GetHitHeal() <= 0 || !UsesCasterHealth())
+            return;
+
+        uint32 heal = caster->CountPctFromMaxHealth(GetSpellInfo()->Effects[EFFECT_0].CalcValue(caster));
+        heal = caster->SpellHealingBonusDone(target, GetSpellInfo(), heal, HEAL, EFFECT_0);
+        SetHitHeal(target->SpellHealingBonusTaken(caster, GetSpellInfo(), heal, HEAL));
+    }
+
     SpellCastResult CheckCast()
     {
         Unit* caster = GetCaster();
         if (Unit* target = GetExplTargetUnit())
-            if (caster == target)
+            if (caster == target || UsesCasterHealth())
                 if (target->HasAnyAuras(SPELL_PALADIN_FORBEARANCE, SPELL_PALADIN_AVENGING_WRATH_MARKER, SPELL_PALADIN_IMMUNE_SHIELD_MARKER))
                     return SPELL_FAILED_TARGET_AURASTATE;
 
@@ -1095,7 +1113,9 @@ class spell_pal_lay_on_hands : public SpellScript
     {
         Unit* caster = GetCaster();
         Unit* target = GetHitUnit();
-        if (caster == target)
+        if (target && UsesCasterHealth())
+            caster->CastSpell(target, SPELL_PALADIN_FORBEARANCE, true);
+        else if (caster == target)
         {
             caster->CastSpell(caster, SPELL_PALADIN_FORBEARANCE, true);
             caster->CastSpell(caster, SPELL_PALADIN_AVENGING_WRATH_MARKER, true);
@@ -1114,7 +1134,12 @@ class spell_pal_lay_on_hands : public SpellScript
     {
         OnCheckCast += SpellCheckCastFn(spell_pal_lay_on_hands::CheckCast);
         AfterHit += SpellHitFn(spell_pal_lay_on_hands::HandleScript);
-        OnEffectHitTarget += SpellEffectFn(spell_pal_lay_on_hands::HandleMaxHealthHeal, EFFECT_0, SPELL_EFFECT_HEAL_MAX_HEALTH);
+        SpellInfo const* info = sSpellMgr->GetSpellInfo(m_scriptSpellId);
+        if (info && info->Effects[EFFECT_0].Effect == SPELL_EFFECT_HEAL_PCT)
+            OnHit += SpellHitFn(spell_pal_lay_on_hands::HandleCasterHealthHeal);
+        else
+            OnEffectHitTarget += SpellEffectFn(spell_pal_lay_on_hands::HandleMaxHealthHeal,
+                EFFECT_0, SPELL_EFFECT_HEAL_MAX_HEALTH);
     }
 
     int32 _manaAmount;
