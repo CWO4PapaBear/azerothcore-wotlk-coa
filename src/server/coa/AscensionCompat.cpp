@@ -4,6 +4,8 @@
  * https://github.com/azerothcore/azerothcore-wotlk/blob/master/LICENSE-AGPL3
  */
 
+#include "AscensionFreepick.h"
+#include "Area52StarterEquipment.h"
 #include "AccountMgr.h"
 #include "AscensionFelsworn.h"
 #include "AscensionItemScaling.h"
@@ -7168,6 +7170,15 @@ public:
 
   bool OnPlayerCreateInitialItems(Player* player, bool& handled) override
   {
+    if (!handled && AscensionFreepick::IsFreepickHero(player))
+    {
+      handled = true;
+      for (auto item : Area52StarterEquipment::Items(player->getRace(true)))
+        if (item && !player->StoreNewItemInBestSlots(item, item == 2092 ? 2 : 1))
+          return false;
+      PlaceStartingActionButtons(player);
+      return true;
+    }
     if (handled || !ascensionCompatConfig.GetConfigValue<bool>(AscensionCompatConfig::ENABLED) ||
         !IsAscensionCustomClass(player))
       return true;
@@ -7425,6 +7436,9 @@ public:
     if (!ascensionCompatConfig.GetConfigValue<bool>(
             AscensionCompatConfig::ENABLED))
       return std::nullopt;
+
+    if (context == CLASS_CONTEXT_EQUIP_RELIC && AscensionFreepick::IsFreepickHero(player))
+      return true;
 
     Classes actualClass = Classes(player->getClass());
     if (actualClass == playerClass)
