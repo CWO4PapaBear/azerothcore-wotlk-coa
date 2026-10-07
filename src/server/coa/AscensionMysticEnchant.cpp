@@ -494,11 +494,13 @@ void HandleDisenchantSlot(Player* player, State& state, WorldPacket& packet)
 void HandlePurchaseExtract(Player* player, State const& state)
 {
     ClientConfig const config = CurrentClientConfig();
-    uint32 const result = CheckExtractPurchase(Describe(player, config), state.Level);
+    uint32 result = CheckExtractPurchase(Describe(player, config), state.Level);
     if (result == EXTRACT_PURCHASE_OK)
     {
-        player->DestroyItemCount(RUNE_OF_ASCENSION, ExtractPurchaseCost(state.Level), true);
-        player->AddItem(MYSTIC_EXTRACT, 1);
+        if (player->AddItem(MYSTIC_EXTRACT, 1))
+            player->DestroyItemCount(RUNE_OF_ASCENSION, ExtractPurchaseCost(state.Level), true);
+        else
+            result = EXTRACT_PURCHASE_UNKNOWN;
     }
     SendResult(player, SMSG_PURCHASE_MYSTIC_EXTRACT_RESULT, EXTRACT_PURCHASE_RESULTS[result]);
 }

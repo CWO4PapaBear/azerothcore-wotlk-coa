@@ -32,7 +32,7 @@ MINUTES_PER_HOUR = 60
 MINUTES_PER_DAY = HOURS_PER_DAY * MINUTES_PER_HOUR
 METRICS = {
     'moving', 'spline_remaining_ms', 'spline_speed', 'water_walk', 'forced_forward', 'distance_2d',
-    'cast_remaining_ms', 'cast_pushback_ms',
+    'point_distance_2d', 'cast_remaining_ms', 'cast_pushback_ms',
     'melee_damage_count', 'melee_damage_total',
     'pet_power', 'pet_max_power', 'spell_energize_count', 'spell_energize_total',
     'xp', 'next_level_xp', 'skill_value', 'skill_maximum', 'lfg_dungeon_disabled', 'map_id',
@@ -99,6 +99,8 @@ METRICS = {
     'spell_family_flags',
     'creature_loot_quality_rate', 'equipped_gear_loot_rate',
     'quest_menu_items', 'quest_menu_has', 'player_setting', 'server_packets', 'server_packet_u32', 'server_packet_contains',
+    'known_entry_rank',
+    'pet_autocast_enabled', 'combo_points', 'game_mode_mask', 'owned_creature_spell_proc_count',
     'player_class', 'cached_class', 'at_login_flag', 'wildcard_starter_spells_known', 'action_bar_unknown_spells',
     'wildcard_spells_known', 'wildcard_cards_pending', 'wildcard_cards_collected', 'wildcard_roll_cards_set',
     'wildcard_roll_cards_used', 'wildcard_bonus_pack_progress',
@@ -129,7 +131,7 @@ METRIC_FIELDS = {'actor', 'metric', 'spell', 'power', 'caster', 'effect', 'item'
                  'min_distance', 'owner_display', 'skill', 'cache', 'table', 'exclude', 'dungeon', 'source',
                  'opcode', 'from', 'slot', 'achievement', 'title', 'type_mask', 'hit_mask', 'spell_type_mask',
                  'phase_mask', 'trigger_spell', 'trials', 'incoming', 'heal', 'quality',
-                 'row', 'offset', 'skip_strings'}
+                 'row', 'offset', 'skip_strings', 'x', 'y'}
 ACTIONS = {
     'stop_attack': ({'actor'}, {'actor'}),
     'set_moving': ({'actor', 'enabled'}, {'actor', 'enabled'}),
@@ -169,6 +171,7 @@ ACTIONS = {
     'encounter_credit': ({'actor', 'entry'}, {'actor', 'entry'}),
     'leave_group': ({'actor'}, {'actor'}),
     'die': ({'actor'}, {'actor', 'revived'}),
+    'release_spirit': ({'actor'}, {'actor'}),
     'cast_charm': ({'actor', 'spell'}, {'actor', 'spell', 'target', 'pet', 'destination'}),
     'gossip_hello': ({'actor'}, {'actor', 'target'}),
     'banker_activate': ({'actor'}, {'actor', 'target', 'owner', 'entry'}),
@@ -178,6 +181,7 @@ ACTIONS = {
     'stop_challenge': ({'actor', 'challenge'}, {'actor', 'challenge'}),
     'area_trigger': ({'actor', 'id'}, {'actor', 'id'}),
     'trainer_buy': ({'actor', 'spell'}, {'actor', 'spell', 'target'}),
+    'pet_autocast': ({'actor', 'spell', 'enabled'}, {'actor', 'spell', 'enabled'}),
     'gossip_select': ({'actor', 'option'}, {'actor', 'option', 'code', 'code_actor'}),
     'who': ({'actor'}, {'actor', 'target', 'race_mask', 'class_mask'}),
     'open_item': ({'actor', 'item'}, {'actor', 'item'}),
@@ -396,6 +400,8 @@ def validate(scenario):
         if action in ('set_aura', 'attack', 'set_health', 'set_power') and 'pet' in step:
             require(type(step['pet']) is bool, f'{where}: pet must be boolean')
             require(step['actor'] in player_ids, f'{where}: pet fixture needs a player')
+        if action == 'pet_autocast':
+            require(type(step['enabled']) is bool, f'{where}: enabled must be boolean')
         if action == 'set_aura' and 'owned_entry' in step:
             require(step['actor'] in player_ids, f'{where}: owned creature fixture needs a player')
             require(not step.get('pet', False), f'{where}: select either a pet or an owned creature')
@@ -520,6 +526,15 @@ def validate(scenario):
             require(step['value'] <= step['maximum'], f'{where}: health exceeds fixture maximum')
         if action in {'snapshot', 'assert'}:
             metric = step['metric']
+            if metric in {'known_entry_rank', 'owned_creature_spell_proc_count'}:
+                require(step['actor'] in player_ids, f'{where}: metric needs a player')
+                number(step.get('entry'), f'{where}.entry', 1, 2**31 - 1, True)
+            if metric in {'pet_autocast_enabled', 'owned_creature_spell_proc_count'}:
+                number(step.get('spell'), f'{where}.spell', 1, 2**31 - 1, True)
+            if metric == 'spell_damage_done' and 'base' in step:
+                number(step['base'], f'{where}.base', 0, 2**32 - 1, True)
+            if metric in {'combo_points', 'game_mode_mask', 'pet_autocast_enabled'}:
+                require(step['actor'] in player_ids, f'{where}: metric needs a player')
             if metric == 'victim':
                 require('target' in step, f'{where}: victim metric requires a target')
             if 'periodic' in step:
@@ -610,6 +625,11 @@ def validate(scenario):
                         require(type(step[key]) is bool, f'{where}: {key} must be boolean')
             if metric == 'distance':
                 require('target' in step, f'{where}: {metric} metric needs target')
+            if metric == 'point_distance_2d':
+                for key in ('x', 'y'):
+                    number(step.get(key), f'{where}.{key}', -17000, 17000)
+            elif 'x' in step or 'y' in step:
+                require(False, f'{where}: x and y only apply to point_distance_2d')
             if metric == 'stat':
                 number(step.get('stat'), f'{where}.stat', 0, 4, True)
             if metric == 'aura_script_value':
