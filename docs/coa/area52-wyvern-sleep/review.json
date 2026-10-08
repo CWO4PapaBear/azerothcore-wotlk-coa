@@ -6,7 +6,7 @@
   "upstream": "c0e0dbc855cc02f5754c1e1cd1faf9eb2e2fe917",
   "verification": "passed",
   "test_scope": "Build, unit and focused policy harness passed. Explicit negative cases for other poison, nonspell damage, other origins and non-FreePick mode. No in-game or full reconnect claim.",
-  "remaining": "Life Tap redesign and obsolete rank removal remain separate. This change does not mark Wyvern Sting VERIFIED.",
+  "remaining": "Life Tap redesign remains separate. Wyvern obsolete rank cleanup is now staged and structurally verified; native other-source control remains a certification follow-up, not a confirmed defect.",
   "activation": "Not activated; source candidate only.",
   "native_checks": {
     "fixture_corrections": [
@@ -25,5 +25,11 @@
     "result": "verification-wyvern-range/report.json",
     "unresolved": "Sleep cast by another source remained after waiting for a further Serpent Sting tick. That interval did not assert health loss, so scope defect versus absent/zero damage is unresolved.",
     "activation": "Not activated; NOT VERIFIED retained"
+  },
+  "rank_cleanup": {
+    "scope": "Apply only to Area52 world database alongside repaired handler; no changes to spell definitions or shared sleep chain.",
+    "change": "Remove first_spell_id 19386 rows and replace negative all-ranks handler binding with positive spell 19386 binding.",
+    "checks": "verify_all harness PASSED: applied twice to temporary live-table copies, exact binding once, all unrelated ranks and script bindings preserved. SQL lint passed.",
+    "activation": "Pending; live database unchanged."
   }
 }

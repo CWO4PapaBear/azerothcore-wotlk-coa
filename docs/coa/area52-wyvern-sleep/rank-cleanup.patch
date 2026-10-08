@@ -1,0 +1,29 @@
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261008_07_area52_wyvern_unranked.sql
+@@ -0,0 +1,3 @@
++DELETE FROM `spell_ranks` WHERE `first_spell_id` = 19386;
++DELETE FROM `spell_script_names` WHERE `spell_id` IN (-19386, 19386) AND `ScriptName` = 'spell_hun_wyvern_sting';
++INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (19386, 'spell_hun_wyvern_sting');
+--- /dev/null
++++ b/apps/coa-tests/area52_wyvern_ranks/run.py
+@@ -0,0 +1,20 @@
++from pathlib import Path
++import subprocess
++root=Path(__file__).resolve().parents[3]
++migration=(root/'data/sql/updates/pending_db_world/rev_20261008_07_area52_wyvern_unranked.sql').read_text()
++sql='''CREATE TEMPORARY TABLE ranks_before AS SELECT * FROM spell_ranks;
++CREATE TEMPORARY TABLE scripts_before AS SELECT * FROM spell_script_names;
++CREATE TEMPORARY TABLE spell_ranks AS SELECT * FROM ranks_before;
++CREATE TEMPORARY TABLE spell_script_names AS SELECT * FROM scripts_before;
++'''+migration+migration+'''
++SELECT COUNT(*) FROM spell_ranks WHERE first_spell_id=19386;
++SELECT COUNT(*) FROM spell_script_names WHERE spell_id=19386 AND ScriptName='spell_hun_wyvern_sting';
++SELECT COUNT(*) FROM spell_script_names WHERE spell_id=-19386 AND ScriptName='spell_hun_wyvern_sting';
++SELECT COUNT(*) FROM ranks_before b LEFT JOIN spell_ranks a USING(first_spell_id,spell_id,`rank`) WHERE b.first_spell_id<>19386 AND a.spell_id IS NULL;
++SELECT COUNT(*) FROM spell_ranks a LEFT JOIN ranks_before b USING(first_spell_id,spell_id,`rank`) WHERE b.spell_id IS NULL;
++SELECT COUNT(*) FROM scripts_before b LEFT JOIN spell_script_names a USING(spell_id,ScriptName) WHERE NOT(b.spell_id IN (-19386,19386) AND b.ScriptName='spell_hun_wyvern_sting') AND a.spell_id IS NULL;
++SELECT COUNT(*) FROM spell_script_names a LEFT JOIN scripts_before b USING(spell_id,ScriptName) WHERE NOT(a.spell_id=19386 AND a.ScriptName='spell_hun_wyvern_sting') AND b.spell_id IS NULL;
++'''
++data=subprocess.check_output(['docker','exec','-i','ascension-freepick-database','mysql','--defaults-extra-file=/run/secrets/mysql-root.cnf','-BN','acore_world'],input=sql.encode()).decode()
++assert list(map(int,data.split()))==[0,1,0,0,0,0,0],data
++print('Migration twice: obsolete Wyvern ranks removed, exact root handler bound once, every other chain and binding preserved including shared sleep. Temporary tables only.')
