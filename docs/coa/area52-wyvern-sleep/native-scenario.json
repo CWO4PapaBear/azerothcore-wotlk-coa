@@ -1,0 +1,177 @@
+{
+  "schema": 1,
+  "name": "Area52 Wyvern sleep origin and damage exclusion",
+  "contract": "Native expiry applies sleep; Serpent Sting ticks preserve only Area52-origin sleep; other damage and other sleep sources retain interruption.",
+  "timeout_ms": 90000,
+  "players": [
+    {
+      "id": "hero",
+      "race": 1,
+      "class": 10,
+      "level": 80,
+      "spell_hit_rating": 10000
+    }
+  ],
+  "creatures": [
+    {
+      "id": "enemy",
+      "owner": "hero",
+      "entry": 36,
+      "level": 80,
+      "health": 100000,
+      "distance": 15
+    },
+    {
+      "id": "other",
+      "owner": "hero",
+      "entry": 36,
+      "level": 80,
+      "health": 100000,
+      "distance": 3,
+      "faction": 1
+    }
+  ],
+  "steps": [
+    {
+      "action": "learn",
+      "actor": "hero",
+      "spell": 264
+    },
+    {
+      "action": "client_packet",
+      "actor": "hero",
+      "opcode": 1831,
+      "fields": [
+        {
+          "u32": 1
+        },
+        {
+          "u32": 3355
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        }
+      ]
+    },
+    {
+      "action": "add_item",
+      "actor": "hero",
+      "item": 2504
+    },
+    {
+      "action": "equip",
+      "actor": "hero",
+      "item": 2504,
+      "slot": 17
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "target": "enemy",
+      "spell": 19386
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "aura",
+      "spell": 19386,
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "aura",
+      "spell": 24131,
+      "equals": 1,
+      "within_ms": 35000
+    },
+    {
+      "action": "cast",
+      "actor": "other",
+      "target": "enemy",
+      "spell": 1978
+    },
+    {
+      "action": "snapshot",
+      "actor": "enemy",
+      "metric": "health",
+      "save_as": "before_tick"
+    },
+    {
+      "action": "wait",
+      "ms": 3500
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "health",
+      "relative_to": "before_tick",
+      "max": -1
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "aura",
+      "spell": 24131,
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "cast",
+      "actor": "other",
+      "target": "enemy",
+      "spell": 2136
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "aura",
+      "spell": 24131,
+      "equals": 0,
+      "within_ms": 1000
+    },
+    {
+      "action": "cast",
+      "actor": "other",
+      "target": "enemy",
+      "spell": 24131
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "aura",
+      "spell": 24131,
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "wait",
+      "ms": 3500
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "aura",
+      "spell": 24131,
+      "equals": 0,
+      "within_ms": 1000
+    }
+  ]
+}

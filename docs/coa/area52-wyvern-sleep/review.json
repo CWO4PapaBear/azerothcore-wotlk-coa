@@ -7,5 +7,23 @@
   "verification": "passed",
   "test_scope": "Build, unit and focused policy harness passed. Explicit negative cases for other poison, nonspell damage, other origins and non-FreePick mode. No in-game or full reconnect claim.",
   "remaining": "Life Tap redesign and obsolete rank removal remain separate. This change does not mark Wyvern Sting VERIFIED.",
-  "activation": "Not activated; source candidate only."
+  "activation": "Not activated; source candidate only.",
+  "native_checks": {
+    "fixture_corrections": [
+      "Direct spell learning blocked correctly",
+      "Generic advancement helper did not use Area52 packet format",
+      "Creature hostility",
+      "Serpent Sting minimum range"
+    ],
+    "passed": [
+      "Initial debuff applied through Area52 advancement selection",
+      "Expiry applied sleep",
+      "Actual Serpent Sting damage reduced health while sleep remained",
+      "Fire Blast removed sleep"
+    ],
+    "status": "failed",
+    "result": "verification-wyvern-range/report.json",
+    "unresolved": "Sleep cast by another source remained after waiting for a further Serpent Sting tick. That interval did not assert health loss, so scope defect versus absent/zero damage is unresolved.",
+    "activation": "Not activated; NOT VERIFIED retained"
+  }
 }
