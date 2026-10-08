@@ -324,3 +324,7 @@ Ascension.CallboardCache.ItemLevelAllowance = 6
 #        Default:     1
 
 CoA.DungeonTuning.Enable = 1
+
+# Area 52 alpha tester crate: once per character on login, independent of the level-10 warchest.
+# Disable future delivery without disabling redemption of crates already received.
+Area52.TesterCache.Enabled = 0

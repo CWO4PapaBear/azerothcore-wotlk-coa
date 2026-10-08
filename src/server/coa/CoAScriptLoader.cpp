@@ -318,6 +318,7 @@ void AddSC_AscensionRunemasterElementalTalents();
 void AddSC_AscensionRunemasterTalentProcs();
 void AddSC_AscensionRunemasterTalentMechanics();
 void AddSC_AscensionWelcomeWarchest();
+void AddSC_Area52TesterSupplies();
 void AddSC_AscensionClassBundleStore();
 void AddSC_AscensionLfgObjective();
 void AddSC_AscensionBushcraft();
@@ -638,6 +639,7 @@ void AddCoAScripts()
     AddSC_AscensionSummonedEffects();
     AddSC_AscensionKeepersScrollZoneBuff();
     AddSC_AscensionWelcomeWarchest();
+    AddSC_Area52TesterSupplies();
     AddSC_AscensionClassBundleStore();
     AddSC_AscensionLfgObjective();
     AddSC_AscensionBushcraft();

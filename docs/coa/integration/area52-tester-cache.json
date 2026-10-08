@@ -1,0 +1,283 @@
+{
+  "schema": 1,
+  "name": "Area 52 tester supply crate exact rewards",
+  "contract": "Free Pick Hero receives all nine rewards in exact quantities and 1000 gold; cache is consumed. Also checks repeat login delivery, full-bag overflow, non-Hero refusal and potion availability at an existing vendor and an innkeeper without original vendor flags.",
+  "players": [
+    {
+      "id": "tester",
+      "race": 1,
+      "class": 10,
+      "level": 1
+    },
+    {
+      "id": "stuffed",
+      "race": 1,
+      "class": 10,
+      "level": 1
+    },
+    {
+      "id": "standard",
+      "race": 1,
+      "class": 1,
+      "level": 1
+    }
+  ],
+  "steps": [
+    {
+      "action": "wait",
+      "ms": 3000
+    },
+    {
+      "action": "add_item",
+      "actor": "tester",
+      "item": 9900052
+    },
+    {
+      "action": "snapshot",
+      "actor": "tester",
+      "metric": "carried_money",
+      "save_as": "gold_before"
+    },
+    {
+      "action": "use_item",
+      "actor": "tester",
+      "item": 9900052,
+      "spell": 93461
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "item_count",
+      "item": 9900052,
+      "equals": 0
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "item_count",
+      "item": 375250,
+      "equals": 100000
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "item_count",
+      "item": 97866,
+      "equals": 500
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "item_count",
+      "item": 657112,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "item_count",
+      "item": 3648545,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "item_count",
+      "item": 3818046,
+      "equals": 5
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "item_count",
+      "item": 190190,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "item_count",
+      "item": 101169,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "item_count",
+      "item": 339075,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "item_count",
+      "item": 1642991,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "carried_money",
+      "relative_to": "gold_before",
+      "equals": 10000000
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "snapshot",
+      "actor": "tester",
+      "metric": "mail_item_count",
+      "item": 9900052,
+      "save_as": "delivered"
+    },
+    {
+      "action": "login_hooks",
+      "actor": "tester"
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "mail_item_count",
+      "item": 9900052,
+      "relative_to": "delivered",
+      "equals": 0
+    },
+    {
+      "action": "add_item",
+      "actor": "stuffed",
+      "item": 9900052
+    },
+    {
+      "action": "fill_bags",
+      "actor": "stuffed"
+    },
+    {
+      "action": "use_item",
+      "actor": "stuffed",
+      "item": 9900052,
+      "spell": 93461
+    },
+    {
+      "action": "assert",
+      "actor": "stuffed",
+      "metric": "item_count",
+      "item": 9900052,
+      "equals": 0
+    },
+    {
+      "action": "assert",
+      "actor": "stuffed",
+      "metric": "mail_has_item",
+      "item": 1642991,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "stuffed",
+      "metric": "carried_money",
+      "equals": 10000000
+    },
+    {
+      "action": "add_item",
+      "actor": "standard",
+      "item": 9900052
+    },
+    {
+      "action": "use_item",
+      "actor": "standard",
+      "item": 9900052,
+      "spell": 93461
+    },
+    {
+      "action": "assert",
+      "actor": "standard",
+      "metric": "item_count",
+      "item": 9900052,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "standard",
+      "metric": "item_count",
+      "item": 375250,
+      "equals": 0
+    },
+    {
+      "action": "gossip_hello",
+      "actor": "tester",
+      "target": "inn"
+    },
+    {
+      "action": "client_packet",
+      "actor": "tester",
+      "opcode": 414,
+      "consumed": false,
+      "fields": [
+        {
+          "actor_guid": "inn"
+        }
+      ]
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "vendor_price",
+      "item": 3818046,
+      "min": 4000,
+      "max": 5000
+    },
+    {
+      "action": "gossip_hello",
+      "actor": "tester",
+      "target": "nonvendor"
+    },
+    {
+      "action": "client_packet",
+      "actor": "tester",
+      "opcode": 414,
+      "consumed": false,
+      "fields": [
+        {
+          "actor_guid": "nonvendor"
+        }
+      ]
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "vendor_price",
+      "item": 3818046,
+      "min": 4000,
+      "max": 5000
+    }
+  ],
+  "location": {
+    "map": 0,
+    "x": -9465,
+    "y": 64,
+    "z": 56,
+    "o": 0
+  },
+  "creatures": [
+    {
+      "id": "inn",
+      "entry": 295,
+      "owner": "tester",
+      "distance": 2,
+      "faction": 35
+    },
+    {
+      "id": "nonvendor",
+      "entry": 33970,
+      "owner": "tester",
+      "distance": 2,
+      "faction": 35
+    }
+  ]
+}
