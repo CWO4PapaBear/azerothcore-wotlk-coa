@@ -1,0 +1,220 @@
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261008_05_area52_advancement_rank_alignment.sql
+@@ -0,0 +1,165 @@
++DELETE FROM `spell_ranks` WHERE `first_spell_id` IN (168, 596, 604, 687, 706, 853, 976, 1008, 1495, 2050, 2054, 2060, 6117, 7302, 13165, 14752, 16689, 19740, 19742, 20925, 25782, 25894, 26573, 27681, 27683, 29890, 29893, 32175, 32176, 44949, 954824, 954825, 954837, 954838) OR `spell_id` IN (168, 596, 604, 620, 687, 696, 706, 853, 976, 996, 1008, 1086, 1495, 1496, 2050, 2052, 2053, 2054, 2055, 2060, 5588, 5589, 6063, 6064, 6117, 7300, 7301, 7302, 7320, 8450, 8451, 8455, 10169, 10170, 10173, 10174, 10219, 10220, 10308, 10957, 10958, 10960, 10961, 10963, 10964, 10965, 11733, 11734, 11735, 13165, 13169, 14269, 14270, 14271, 14318, 14319, 14320, 14321, 14322, 14752, 14818, 14819, 16689, 16810, 16811, 16812, 16813, 17329, 19740, 19742, 19834, 19835, 19836, 19837, 19838, 19850, 19852, 19853, 19854, 20116, 20922, 20923, 20924, 20925, 20927, 20928, 22782, 22783, 25210, 25213, 25290, 25291, 25296, 25308, 25312, 25314, 25316, 25433, 25782, 25894, 25916, 25918, 26573, 26620, 26621, 27009, 27044, 27124, 27125, 27130, 27140, 27141, 27142, 27143, 27173, 27179, 27260, 27681, 27683, 27841, 29890, 29893, 32175, 32176, 32539, 32540, 32541, 32542, 32543, 32544, 32545, 32875, 32876, 32877, 32878, 32879, 32880, 32881, 32999, 33944, 33946, 36916, 39374, 43008, 43015, 43017, 43023, 43024, 44949, 46489, 46490, 46491, 46492, 46493, 46494, 46495, 47793, 47889, 48062, 48063, 48072, 48073, 48074, 48169, 48170, 48818, 48819, 48931, 48932, 48933, 48934, 48935, 48936, 48937, 48938, 48951, 48952, 53312, 53339, 58887, 954824, 954825, 954837, 954838, 955055, 955056, 955057, 955058, 955059, 955164, 955165, 955166, 955167, 955168, 955263, 955264, 955265, 955266, 955267, 955268, 955279, 955280, 955281, 955282, 955283, 955284);
++INSERT INTO `spell_ranks` (`first_spell_id`, `spell_id`, `rank`) VALUES
++(954837, 954837, 1),
++(954837, 955055, 2),
++(954837, 955056, 3),
++(954837, 955057, 4),
++(954837, 955058, 5),
++(954837, 955059, 6),
++(954838, 954838, 1),
++(954838, 955164, 2),
++(954838, 955165, 3),
++(954838, 955166, 4),
++(954838, 955167, 5),
++(954838, 955168, 6),
++(954824, 954824, 1),
++(954824, 955263, 2),
++(954824, 955264, 3),
++(954824, 955265, 4),
++(954824, 955266, 5),
++(954824, 955267, 6),
++(954824, 955268, 7),
++(954825, 954825, 1),
++(954825, 955279, 2),
++(954825, 955280, 3),
++(954825, 955281, 4),
++(954825, 955282, 5),
++(954825, 955283, 6),
++(954825, 955284, 7),
++(168, 168, 1),
++(168, 7300, 2),
++(168, 7301, 3),
++(168, 7302, 4),
++(168, 7320, 5),
++(168, 10219, 6),
++(168, 10220, 7),
++(168, 27124, 8),
++(168, 43008, 9),
++(596, 596, 1),
++(596, 996, 2),
++(596, 10960, 3),
++(596, 10961, 4),
++(596, 25316, 5),
++(596, 25308, 6),
++(596, 48072, 7),
++(687, 687, 1),
++(687, 696, 2),
++(687, 706, 3),
++(687, 1086, 4),
++(687, 11733, 5),
++(687, 11734, 6),
++(687, 11735, 7),
++(687, 27260, 8),
++(687, 47793, 9),
++(687, 47889, 10),
++(976, 976, 1),
++(976, 10957, 2),
++(976, 10958, 3),
++(976, 27683, 4),
++(976, 25433, 5),
++(976, 39374, 6),
++(976, 48169, 7),
++(976, 48170, 8),
++(1495, 1495, 1),
++(1495, 14269, 2),
++(1495, 14270, 3),
++(1495, 14271, 4),
++(1495, 36916, 5),
++(1495, 53339, 6),
++(44949, 44949, 1),
++(44949, 46489, 2),
++(44949, 46490, 3),
++(44949, 46491, 4),
++(44949, 46492, 5),
++(44949, 46493, 6),
++(44949, 46494, 7),
++(44949, 46495, 8),
++(2050, 2050, 1),
++(2050, 2052, 2),
++(2050, 2053, 3),
++(2050, 2054, 4),
++(2050, 2055, 5),
++(2050, 6063, 6),
++(2050, 6064, 7),
++(2050, 2060, 8),
++(2050, 10963, 9),
++(2050, 10964, 10),
++(2050, 10965, 11),
++(2050, 25314, 12),
++(2050, 25210, 13),
++(2050, 25213, 14),
++(2050, 48062, 15),
++(2050, 48063, 16),
++(13165, 13165, 1),
++(13165, 14318, 2),
++(13165, 14319, 3),
++(13165, 14320, 4),
++(13165, 14321, 5),
++(13165, 14322, 6),
++(13165, 25296, 7),
++(13165, 27044, 8),
++(14752, 14752, 1),
++(14752, 14818, 2),
++(14752, 14819, 3),
++(14752, 27841, 4),
++(14752, 27681, 5),
++(14752, 25312, 6),
++(14752, 32999, 7),
++(14752, 48073, 8),
++(14752, 48074, 9),
++(19740, 19740, 1),
++(19740, 19834, 2),
++(19740, 19835, 3),
++(19740, 19836, 4),
++(19740, 19837, 5),
++(19740, 19838, 6),
++(19740, 25782, 7),
++(19740, 25291, 8),
++(19740, 25916, 9),
++(19740, 27140, 10),
++(19740, 27141, 11),
++(19740, 48931, 12),
++(19740, 48933, 13),
++(19740, 48932, 14),
++(19740, 48934, 15),
++(19742, 19742, 1),
++(19742, 19850, 2),
++(19742, 19852, 3),
++(19742, 19853, 4),
++(19742, 19854, 5),
++(19742, 25894, 6),
++(19742, 25290, 7),
++(19742, 25918, 8),
++(19742, 27142, 9),
++(19742, 27143, 10),
++(19742, 48935, 11),
++(19742, 48937, 12),
++(19742, 48936, 13),
++(19742, 48938, 14),
++(26573, 26573, 1),
++(26573, 20116, 2),
++(26573, 20922, 3),
++(26573, 20923, 4),
++(26573, 20924, 5),
++(26573, 27173, 6),
++(26573, 48818, 7),
++(26573, 48819, 8),
++(29890, 29890, 1),
++(29890, 29893, 2),
++(29890, 58887, 3),
++(32175, 32175, 1),
++(32175, 32539, 2),
++(32175, 32540, 3),
++(32175, 32541, 4),
++(32175, 32542, 5),
++(32175, 32543, 6),
++(32175, 32544, 7),
++(32175, 32545, 8),
++(32176, 32176, 1),
++(32176, 32875, 2),
++(32176, 32876, 3),
++(32176, 32877, 4),
++(32176, 32878, 5),
++(32176, 32879, 6),
++(32176, 32880, 7),
++(32176, 32881, 8);
+--- /dev/null
++++ b/apps/coa-tests/area52_rank_batch22/run.py
+@@ -0,0 +1,49 @@
++from pathlib import Path
++import json,subprocess,sys,struct,re,hashlib
++root=Path(__file__).resolve().parents[3];p=root.parent/'Area52_Rank_Batch22'
++changes=json.loads((p/'decisions.json').read_text());migration=(p/'rev_20261008_05_area52_advancement_rank_alignment.sql').read_text()
++review=json.loads((p/'client-review.json').read_text())
++definitions={int(spell):row for entry in review for chain in entry['chains'] for spell,row in chain['spells'].items()}
++sql='CREATE TEMPORARY TABLE spell_ranks_copy AS SELECT * FROM spell_ranks; CREATE TEMPORARY TABLE spell_ranks AS SELECT * FROM spell_ranks_copy;\n'+migration+migration+'\nSELECT first_spell_id,spell_id,`rank` FROM spell_ranks ORDER BY first_spell_id,`rank`;'
++data=subprocess.check_output(['docker','exec','-i','ascension-freepick-database','mysql','--defaults-extra-file=/run/secrets/mysql-root.cnf','-BN','acore_world'],input=sql.encode()).decode()
++chains={};spell_roots={}
++for line in data.splitlines():
++    first,spell,rank=map(int,line.split('\t'));chains.setdefault(first,[]).append((rank,spell));assert spell not in spell_roots;spell_roots[spell]=first
++for change in changes:
++    target=change['target'];actual=[s for _,s in chains.get(change['root'],[])] or [change['root']]
++    assert actual==target,(change['name'],actual,target)
++    if len(target)>1:
++        assert [r for r,_ in chains[change['root']]]==list(range(1,len(target)+1))
++        assert len(target)==len(set(target))
++        for rank in target:assert spell_roots[rank]==change['root']
++        levels=[max(definitions[spell]['level'],definitions[spell]['base_level']) for spell in target]
++        assert levels==sorted(levels),(change['name'],levels)
++print('All 25 chain decisions / 22 abilities pass against a temporary live-data copy; migration applied twice; no live writes.')
++if (p/'client-stage.json').exists():
++    sys.path.insert(0,str(root.parents[1]/'work/github-upload/tools'))
++    from lib.mpq import MPQArchive
++    client=Path('/mnt/d/DML WOTLK Client Side/Ascension A52 Free Pick/ascension-live/ascension-live/Data/area-52/patch-D.MPQ')
++    receipt=json.loads((p/'client-stage.json').read_text())
++    assert hashlib.sha256(client.read_bytes()).hexdigest()==receipt['before_sha256']
++    with MPQArchive(client) as before,MPQArchive(p/'patch-D.MPQ') as after:
++        names=before.read_file('(listfile)').decode().splitlines()
++        for name in names:
++            if name.lower() in ('(listfile)','(attributes)','(signature)') or not name:continue
++            old,new=before.read_file(name),after.read_file(name)
++            if name=='DBFilesClient\\Spell.dbc':
++                _,count,fields,size,_=struct.unpack_from('<4s4I',old)
++                old_pool,new_pool=old[20+count*size:],new[20+count*size:]
++                for i in range(count):
++                    a=list(struct.unpack_from('<'+'I'*fields,old,20+i*size));b=list(struct.unpack_from('<'+'I'*fields,new,20+i*size))
++                    x=old_pool[a[170]:old_pool.find(b'\0',a[170])];y=new_pool[b[170]:new_pool.find(b'\0',b[170])]
++                    pattern=rb'\|cff[0-9a-fA-F]{6}(?:NOT VERIFIED|VERIFIED)\|r'
++                    assert re.sub(pattern,b'',x)==re.sub(pattern,b'',y),a[0]
++                    a[170]=b[170]=0;assert a==b
++            elif name=='DBFilesClient\\SpellRank.dbc':
++                _,count,fields,size,_=struct.unpack_from('<4s4I',new)
++                for i in range(count):
++                    a=list(struct.unpack_from('<4I',old,20+i*size));b=list(struct.unpack_from('<4I',new,20+i*size))
++                    if a[1]==976 and a[2] in (48169,48170):a[3]=7 if a[2]==48169 else 8
++                    assert a==b
++            else:assert old==new,name
++    print('Client archive preserves all non-status tooltip text and fields; only two Shadow Protection rank indices change.')

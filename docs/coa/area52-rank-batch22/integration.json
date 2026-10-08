@@ -1,0 +1,25 @@
+{
+  "scope": "Area 52-only database migration; do not apply globally to CoA or Wildcard realms. Existing independent Free Pick runtime required.",
+  "upstream_revision": "a6a97f2aaffac8a791049a2d5eaa00dffe5a5da4",
+  "ptr_revision": "826c9ee207313c0dafcc7b4b9ad37d655b4723d2",
+  "comparison": "PTR Desired() traverses native ranks and uses stock level fallback; Area 52 RankUpgrades uses selected AE roots and excludes talents. Upstream shared rank loader reads spell_ranks; no matching Area 52 chain repair found in reviewed CoA source/pending updates. Preserve current client mode-specific chains rather than copying stock rank tables.",
+  "reviewed_source_sha256": {
+    "src/server/coa/AscensionFreePick.cpp": "ea7edc3d3651a30c64d25e00df07a5d6631308629044c985af2a1812ec280f07",
+    "src/server/coa/AscensionFreePickRules.cpp": "4f7b6ef8ffa5a185d546422fa6d947b31d72a194be389487d07b90b5d911a6c9",
+    "src/server/game/Entities/Player/PlayerStorage.cpp": "04d486032f5983291ab134244c9159fba7fc97654c9561e3eb7556208d1ed4f7",
+    "src/server/game/Spells/SpellMgr.cpp": "958702214085e5fbb28b13316e9b7753aa56a184350490d96c485449006590e2",
+    "modules/mod-spellbook/src/spellbook.cpp": "a03605e632eac748d8e64f2ea2efc0a6f3b3b3fcec5b9ed3a9f56b20dd957181"
+  },
+  "user_clarification": "Frost Armor, Demon Skin and Greater Heal are player-facing selections. Legacy names remain linked ranks, not additional selectable abilities.",
+  "implementation": "Align 25 rank-chain decisions across 22 entries, merging legacy roots, adding hidden triggered-rank mappings, removing obsolete chains for six unranked redesigned roots. Four primary chains already matched live data.",
+  "verification": "Temporary-table migration and idempotence passed; native effective export reviewed separately. No combat or full reconnect certification.",
+  "client": "Replace only existing status labels for qualified batch spells; preserve all existing SHIFT sections and spacing. Install only with the paired SQL. No proprietary archive is included.",
+  "activation": "Pending; backup affected spell_ranks before applying only to Area 52, restart server, install staged overlay while client is closed. Client release publication is separate.",
+  "shadow_protection": "Correct both server and client chain order: 48169 at level 76 precedes 48170 at level 77. No spell level or effect values changed.",
+  "harness_prerequisites": "Runtime checkout sibling Area52_Rank_Batch22 contains decisions.json, client-review.json, SQL, and staged archive. Docker database ascension-freepick-database supplies read-only source data; migration runs in session TEMPORARY tables. Client archive verification requires owner baseline under /mnt/d and workspace MPQ library.",
+  "native_fixture": "Starter-cache delivery disabled only in isolated audit: fixture omits the cache item template. Initial fixture runs failed before export; final ordered audit is recorded separately.",
+  "results": {
+    "verification-package-final": "passed",
+    "verification-rank-audit-ordered": "incomplete"
+  }
+}

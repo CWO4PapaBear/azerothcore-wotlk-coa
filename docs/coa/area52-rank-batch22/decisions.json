@@ -1,0 +1,534 @@
+[
+  {
+    "entry": 1600,
+    "name": "Raging Blow",
+    "root": 954837,
+    "target": [
+      954837,
+      955055,
+      955056,
+      955057,
+      955058,
+      955059
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      954837
+    ]
+  },
+  {
+    "entry": 1600,
+    "name": "Raging Blow",
+    "root": 954838,
+    "target": [
+      954838,
+      955164,
+      955165,
+      955166,
+      955167,
+      955168
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      954838
+    ]
+  },
+  {
+    "entry": 1618,
+    "name": "Glaive Toss",
+    "root": 954824,
+    "target": [
+      954824,
+      955263,
+      955264,
+      955265,
+      955266,
+      955267,
+      955268
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      954824
+    ]
+  },
+  {
+    "entry": 1618,
+    "name": "Glaive Toss",
+    "root": 954825,
+    "target": [
+      954825,
+      955279,
+      955280,
+      955281,
+      955282,
+      955283,
+      955284
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      954825
+    ]
+  },
+  {
+    "entry": 2675,
+    "name": "Frost Armor",
+    "root": 168,
+    "target": [
+      168,
+      7300,
+      7301,
+      7302,
+      7320,
+      10219,
+      10220,
+      27124,
+      43008
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      168,
+      7300,
+      7301
+    ]
+  },
+  {
+    "entry": 2704,
+    "name": "Prayer of Healing",
+    "root": 596,
+    "target": [
+      596,
+      996,
+      10960,
+      10961,
+      25316,
+      25308,
+      48072
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      596,
+      996,
+      10960,
+      10961,
+      25316,
+      25308,
+      48072
+    ]
+  },
+  {
+    "entry": 2706,
+    "name": "Dampen Magic",
+    "root": 604,
+    "target": [
+      604
+    ],
+    "action": "Remove legacy rank chain; installed Area 52 root is unranked",
+    "prior_live": [
+      604,
+      8450,
+      8451,
+      10173,
+      10174,
+      33944,
+      43015
+    ]
+  },
+  {
+    "entry": 2713,
+    "name": "Demon Skin",
+    "root": 687,
+    "target": [
+      687,
+      696,
+      706,
+      1086,
+      11733,
+      11734,
+      11735,
+      27260,
+      47793,
+      47889
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      687,
+      696
+    ]
+  },
+  {
+    "entry": 2736,
+    "name": "Hammer of Justice",
+    "root": 853,
+    "target": [
+      853
+    ],
+    "action": "Remove legacy rank chain; installed Area 52 root is unranked",
+    "prior_live": [
+      853,
+      5588,
+      5589,
+      10308
+    ]
+  },
+  {
+    "entry": 2740,
+    "name": "Shadow Protection",
+    "root": 976,
+    "target": [
+      976,
+      10957,
+      10958,
+      27683,
+      25433,
+      39374,
+      48169,
+      48170
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      976,
+      10957,
+      10958,
+      25433,
+      48169
+    ]
+  },
+  {
+    "entry": 2743,
+    "name": "Amplify Magic",
+    "root": 1008,
+    "target": [
+      1008
+    ],
+    "action": "Remove legacy rank chain; installed Area 52 root is unranked",
+    "prior_live": [
+      1008,
+      8455,
+      10169,
+      10170,
+      27130,
+      33946,
+      43017
+    ]
+  },
+  {
+    "entry": 2766,
+    "name": "Mongoose Bite",
+    "root": 1495,
+    "target": [
+      1495,
+      14269,
+      14270,
+      14271,
+      36916,
+      53339
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      1495,
+      14269,
+      14270,
+      14271,
+      36916,
+      53339
+    ]
+  },
+  {
+    "entry": 2772,
+    "name": "Whirlwind",
+    "root": 44949,
+    "target": [
+      44949,
+      46489,
+      46490,
+      46491,
+      46492,
+      46493,
+      46494,
+      46495
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      44949
+    ]
+  },
+  {
+    "entry": 2796,
+    "name": "Greater Heal",
+    "root": 2050,
+    "target": [
+      2050,
+      2052,
+      2053,
+      2054,
+      2055,
+      6063,
+      6064,
+      2060,
+      10963,
+      10964,
+      10965,
+      25314,
+      25210,
+      25213,
+      48062,
+      48063
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      2050,
+      2052,
+      2053
+    ]
+  },
+  {
+    "entry": 2864,
+    "name": "Mage Armor",
+    "root": 6117,
+    "target": [
+      6117
+    ],
+    "action": "Remove legacy rank chain; installed Area 52 root is unranked",
+    "prior_live": [
+      6117,
+      22782,
+      22783,
+      27125,
+      43023,
+      43024
+    ]
+  },
+  {
+    "entry": 2923,
+    "name": "Aspect of the Hawk",
+    "root": 13165,
+    "target": [
+      13165,
+      14318,
+      14319,
+      14320,
+      14321,
+      14322,
+      25296,
+      27044
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      13165,
+      14318,
+      14319,
+      14320,
+      14321,
+      14322,
+      25296,
+      27044
+    ]
+  },
+  {
+    "entry": 2927,
+    "name": "Divine Spirit",
+    "root": 14752,
+    "target": [
+      14752,
+      14818,
+      14819,
+      27841,
+      27681,
+      25312,
+      32999,
+      48073,
+      48074
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      14752,
+      14818,
+      14819,
+      27841,
+      25312,
+      48073
+    ]
+  },
+  {
+    "entry": 2930,
+    "name": "Nature's Grasp",
+    "root": 16689,
+    "target": [
+      16689
+    ],
+    "action": "Remove legacy rank chain; installed Area 52 root is unranked",
+    "prior_live": [
+      16689,
+      16810,
+      16811,
+      16812,
+      16813,
+      17329,
+      27009,
+      53312
+    ]
+  },
+  {
+    "entry": 2937,
+    "name": "Blessing of Might",
+    "root": 19740,
+    "target": [
+      19740,
+      19834,
+      19835,
+      19836,
+      19837,
+      19838,
+      25782,
+      25291,
+      25916,
+      27140,
+      27141,
+      48931,
+      48933,
+      48932,
+      48934
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      19740,
+      19834,
+      19835,
+      19836,
+      19837,
+      19838,
+      25291,
+      27140,
+      48931,
+      48932
+    ]
+  },
+  {
+    "entry": 2938,
+    "name": "Blessing of Wisdom",
+    "root": 19742,
+    "target": [
+      19742,
+      19850,
+      19852,
+      19853,
+      19854,
+      25894,
+      25290,
+      25918,
+      27142,
+      27143,
+      48935,
+      48937,
+      48936,
+      48938
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      19742,
+      19850,
+      19852,
+      19853,
+      19854,
+      25290,
+      27142,
+      48935,
+      48936
+    ]
+  },
+  {
+    "entry": 2968,
+    "name": "Consecration",
+    "root": 26573,
+    "target": [
+      26573,
+      20116,
+      20922,
+      20923,
+      20924,
+      27173,
+      48818,
+      48819
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      26573,
+      20116,
+      20922,
+      20923,
+      20924,
+      27173,
+      48818,
+      48819
+    ]
+  },
+  {
+    "entry": 2975,
+    "name": "Ritual of Souls",
+    "root": 29890,
+    "target": [
+      29890,
+      29893,
+      58887
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      29890
+    ]
+  },
+  {
+    "entry": 3290,
+    "name": "Stormstrike",
+    "root": 32175,
+    "target": [
+      32175,
+      32539,
+      32540,
+      32541,
+      32542,
+      32543,
+      32544,
+      32545
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      32175
+    ]
+  },
+  {
+    "entry": 3290,
+    "name": "Stormstrike",
+    "root": 32176,
+    "target": [
+      32176,
+      32875,
+      32876,
+      32877,
+      32878,
+      32879,
+      32880,
+      32881
+    ],
+    "action": "Align server to installed Area 52 rank chain",
+    "prior_live": [
+      32176
+    ]
+  },
+  {
+    "entry": 3394,
+    "name": "Holy Shield",
+    "root": 20925,
+    "target": [
+      20925
+    ],
+    "action": "Remove legacy rank chain; installed Area 52 root is unranked",
+    "prior_live": [
+      20925,
+      20927,
+      20928,
+      27179,
+      48951,
+      48952
+    ]
+  }
+]

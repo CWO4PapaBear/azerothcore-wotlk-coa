@@ -1,0 +1,1039 @@
+[
+  {
+    "kind": "advancement",
+    "id": 1600,
+    "name": "Raging Blow",
+    "spells": [
+      954836,
+      954837,
+      954838,
+      954935,
+      954936,
+      954937,
+      954938,
+      954939,
+      955055,
+      955056,
+      955057,
+      955058,
+      955059,
+      955164,
+      955165,
+      955166,
+      955167,
+      955168
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 1618,
+    "name": "Glaive Toss",
+    "spells": [
+      954821,
+      954824,
+      954825,
+      955253,
+      955254,
+      955255,
+      955256,
+      955257,
+      955258,
+      955263,
+      955264,
+      955265,
+      955266,
+      955267,
+      955268,
+      955279,
+      955280,
+      955281,
+      955282,
+      955283,
+      955284
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2675,
+    "name": "Frost Armor",
+    "spells": [
+      168,
+      7300,
+      7301,
+      7302,
+      7320,
+      10219,
+      10220,
+      27124,
+      43008
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2704,
+    "name": "Prayer of Healing",
+    "spells": [
+      596,
+      996,
+      10960,
+      10961,
+      25308,
+      25316,
+      48072
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2706,
+    "name": "Dampen Magic",
+    "spells": [
+      604
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2713,
+    "name": "Demon Skin",
+    "spells": [
+      687,
+      696,
+      706,
+      1086,
+      11733,
+      11734,
+      11735,
+      27260,
+      47793,
+      47889
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2736,
+    "name": "Hammer of Justice",
+    "spells": [
+      853
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2740,
+    "name": "Shadow Protection",
+    "spells": [
+      976,
+      10957,
+      10958,
+      25433,
+      27683,
+      39374,
+      48169,
+      48170
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2743,
+    "name": "Amplify Magic",
+    "spells": [
+      1008
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2766,
+    "name": "Mongoose Bite",
+    "spells": [
+      1495,
+      14269,
+      14270,
+      14271,
+      36916,
+      53339
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2772,
+    "name": "Whirlwind",
+    "spells": [
+      1680,
+      1681,
+      1682,
+      1683,
+      1684,
+      1685,
+      1686,
+      1687,
+      44949,
+      46489,
+      46490,
+      46491,
+      46492,
+      46493,
+      46494,
+      46495
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2796,
+    "name": "Greater Heal",
+    "spells": [
+      2050,
+      2052,
+      2053,
+      2054,
+      2055,
+      2060,
+      6063,
+      6064,
+      10963,
+      10964,
+      10965,
+      25210,
+      25213,
+      25314,
+      48062,
+      48063
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2864,
+    "name": "Mage Armor",
+    "spells": [
+      6117
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2923,
+    "name": "Aspect of the Hawk",
+    "spells": [
+      13165,
+      14318,
+      14319,
+      14320,
+      14321,
+      14322,
+      25296,
+      27044
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2927,
+    "name": "Divine Spirit",
+    "spells": [
+      14752,
+      14818,
+      14819,
+      25312,
+      27681,
+      27841,
+      32999,
+      48073,
+      48074
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2930,
+    "name": "Nature's Grasp",
+    "spells": [
+      16689,
+      19970,
+      19971,
+      19972,
+      19973,
+      19974,
+      19975,
+      27010,
+      53313
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2937,
+    "name": "Blessing of Might",
+    "spells": [
+      19740,
+      19834,
+      19835,
+      19836,
+      19837,
+      19838,
+      25291,
+      25782,
+      25916,
+      27140,
+      27141,
+      48931,
+      48932,
+      48933,
+      48934
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2938,
+    "name": "Blessing of Wisdom",
+    "spells": [
+      19742,
+      19850,
+      19852,
+      19853,
+      19854,
+      25290,
+      25894,
+      25918,
+      27142,
+      27143,
+      48935,
+      48936,
+      48937,
+      48938
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2968,
+    "name": "Consecration",
+    "spells": [
+      20116,
+      20922,
+      20923,
+      20924,
+      26573,
+      27173,
+      48818,
+      48819
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2975,
+    "name": "Ritual of Souls",
+    "spells": [
+      29890,
+      29893,
+      58887
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 3290,
+    "name": "Stormstrike",
+    "spells": [
+      17364,
+      17373,
+      17374,
+      17375,
+      17376,
+      17377,
+      17378,
+      17379,
+      32175,
+      32176,
+      32539,
+      32540,
+      32541,
+      32542,
+      32543,
+      32544,
+      32545,
+      32875,
+      32876,
+      32877,
+      32878,
+      32879,
+      32880,
+      32881
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "RankUpgrades traverses selected AE chains, excludes TE, enforces previous rank and max(BaseLevel,SpellLevel). LearnRankUpgrade saves successful learning. Books call this path and animate only when learning succeeds."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 3394,
+    "name": "Holy Shield",
+    "spells": [
+      20925
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Apply saves selected entries and learned spells; _LoadSpells restores saved spells under SpellLearningScope. Common structural persistence review, not reconnect certification."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  }
+]
