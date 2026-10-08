@@ -1,6 +1,7 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 
 #include "AscensionWildcard.h"
+#include "AscensionRemovedSpellActionBars.h"
 #include "AscensionCacheRewards.h"
 #include "AscensionHeroClass.h"
 #include "AscensionFreepick.h"
@@ -3405,6 +3406,7 @@ bool UnlearnForReroll(Player* player, std::uint32_t entryId)
 
 void AddAscensionWildcardScripts()
 {
+    new AscensionRemovedSpellActionBars::Script(AscensionWildcard::IsWildcardHero);
     for (uint16 opcode : { AscensionWildcard::CMSG_WILDCARD_REROLL_UNLOCKED_STARTING_ABILITIES,
              AscensionWildcard::CMSG_WILDCARD_ROLL_ABILITIES, AscensionWildcard::CMSG_WILDCARD_UNLEARN_ABILITY,
              AscensionWildcard::CMSG_CHARACTER_ADVANCEMENT_LOCK_ENTRY,
