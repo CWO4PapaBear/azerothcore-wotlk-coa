@@ -1,0 +1,15 @@
+{
+  "upstream_revision": "a6a97f2aaffac8a791049a2d5eaa00dffe5a5da4",
+  "scope": "Area52 independent runtime only. Do not apply shared SQL automatically to CoA or Wildcard. No activation or client label promotion.",
+  "repairs": [
+    "Mind Sear adds five missing damage ranks to root 49821.",
+    "Mutilate adds three intermediate damage ranks to each hand, roots 5374 and 27576."
+  ],
+  "evidence": "Current installed Area52 client SpellRank and Spell definitions; live server rank and negative-root script bindings. All parent casts already reference matching damage spells. Existing Mind Sear target filtering inherits via -49821; Mutilate cast handler remains -1329.",
+  "verification": "verify_all harness PASSED: temporary live-table migration applied twice, uniqueness and contiguous ranks, level order, every cast-to-damage rank reference. SQL lint passed. No native gameplay/reconnect claim.",
+  "remaining": {
+    "Life Tap": "Client root 1454 uses 6% of max health or mana plus healing reduction. Installed handler uses flat effect and spell power, no matching redesigned behavior. Keep NOT VERIFIED; do not add legacy ranks.",
+    "Wyvern Sting": "Client root 19386 reduces damage then sleeps; installed handler subscribes to old stun removal and casts ranked damage. Keep NOT VERIFIED; do not add legacy ranks."
+  },
+  "reproduction": "Harness requires workspace sibling Area52_Rank_Batch4 decisions.json and client-review.json plus the read-only live database connection. All SQL mutations run in temporary session tables."
+}

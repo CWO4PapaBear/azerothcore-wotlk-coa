@@ -1,0 +1,63 @@
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261008_06_area52_triggered_damage_ranks.sql
+@@ -0,0 +1,27 @@
++DELETE FROM `spell_ranks` WHERE `first_spell_id` IN (49821, 5374, 27576);
++INSERT INTO `spell_ranks` (`first_spell_id`, `spell_id`, `rank`) VALUES
++(49821, 49821, 1),
++(49821, 53022, 2),
++(49821, 954949, 3),
++(49821, 954950, 4),
++(49821, 954951, 5),
++(49821, 954952, 6),
++(49821, 954953, 7),
++(5374, 5374, 1),
++(5374, 302016, 2),
++(5374, 302017, 3),
++(5374, 302018, 4),
++(5374, 34414, 5),
++(5374, 34416, 6),
++(5374, 34419, 7),
++(5374, 48662, 8),
++(5374, 48665, 9),
++(27576, 27576, 1),
++(27576, 302020, 2),
++(27576, 302021, 3),
++(27576, 302022, 4),
++(27576, 34415, 5),
++(27576, 34417, 6),
++(27576, 34418, 7),
++(27576, 48661, 8),
++(27576, 48664, 9);
+--- /dev/null
++++ b/apps/coa-tests/area52_rank_batch4/run.py
+@@ -0,0 +1,30 @@
++from pathlib import Path
++import json,subprocess,sys,struct,re,hashlib
++root=Path(__file__).resolve().parents[3];p=root.parent/'Area52_Rank_Batch4'
++changes=json.loads((p/'decisions.json').read_text());migration=(p/'rev_20261008_06_area52_triggered_damage_ranks.sql').read_text()
++review=json.loads((p/'client-review.json').read_text())
++definitions={int(spell):row for entry in review for chain in entry['chains'] for spell,row in chain['spells'].items()}
++sql='CREATE TEMPORARY TABLE spell_ranks_copy AS SELECT * FROM spell_ranks; CREATE TEMPORARY TABLE spell_ranks AS SELECT * FROM spell_ranks_copy;\n'+migration+migration+'\nSELECT first_spell_id,spell_id,`rank` FROM spell_ranks ORDER BY first_spell_id,`rank`;'
++data=subprocess.check_output(['docker','exec','-i','ascension-freepick-database','mysql','--defaults-extra-file=/run/secrets/mysql-root.cnf','-BN','acore_world'],input=sql.encode()).decode()
++chains={};spell_roots={}
++for line in data.splitlines():
++    first,spell,rank=map(int,line.split('\t'));chains.setdefault(first,[]).append((rank,spell));assert spell not in spell_roots;spell_roots[spell]=first
++for change in changes:
++    target=change['target'];actual=[s for _,s in chains.get(change['root'],[])] or [change['root']]
++    assert actual==target,(change['name'],actual,target)
++    if len(target)>1:
++        assert [r for r,_ in chains[change['root']]]==list(range(1,len(target)+1))
++        assert len(target)==len(set(target))
++        for rank in target:assert spell_roots[rank]==change['root']
++        levels=[max(definitions[spell]['level'],definitions[spell]['base_level']) for spell in target]
++        assert levels==sorted(levels),(change['name'],levels)
++print('All 3 triggered damage chains / 2 abilities pass against a temporary live-data copy; migration applied twice; no live writes.')
++
++for entry in review:
++    if entry['entry'] not in (354,3500):continue
++    primary=entry['chains'][0]
++    for index,parent in enumerate(primary['current_client']):
++        triggers=primary['spells'][str(parent)]['triggers']
++        expected=[c['current_client'][index] for c in entry['chains'][1:]]
++        assert all(spell in triggers for spell in expected),(entry['name'],parent,expected,triggers)
++print('Every primary cast rank references the matching damage rank, including both Mutilate hands.')
