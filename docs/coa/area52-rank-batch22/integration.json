@@ -14,7 +14,7 @@
   "implementation": "Align 25 rank-chain decisions across 22 entries, merging legacy roots, adding hidden triggered-rank mappings, removing obsolete chains for six unranked redesigned roots. Four primary chains already matched live data.",
   "verification": "Temporary-table migration and idempotence passed; native effective export reviewed separately. No combat or full reconnect certification.",
   "client": "Replace only existing status labels for qualified batch spells; preserve all existing SHIFT sections and spacing. Install only with the paired SQL. No proprietary archive is included.",
-  "activation": "Pending; backup affected spell_ranks before applying only to Area 52, restart server, install staged overlay while client is closed. Client release publication is separate.",
+  "activation": "Activated on Area 52 October 8, 2026. Rank rows backed up, all 25 decisions verified, worldserver ready. Compose unchanged; Bear Cave PTR untouched. Local client installed with archive backup.",
   "shadow_protection": "Correct both server and client chain order: 48169 at level 76 precedes 48170 at level 77. No spell level or effect values changed.",
   "harness_prerequisites": "Runtime checkout sibling Area52_Rank_Batch22 contains decisions.json, client-review.json, SQL, and staged archive. Docker database ascension-freepick-database supplies read-only source data; migration runs in session TEMPORARY tables. Client archive verification requires owner baseline under /mnt/d and workspace MPQ library.",
   "native_fixture": "Starter-cache delivery disabled only in isolated audit: fixture omits the cache item template. Initial fixture runs failed before export; final ordered audit is recorded separately.",
