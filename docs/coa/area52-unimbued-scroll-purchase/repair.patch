@@ -1,0 +1,49 @@
+--- a/src/server/coa/Area52MysticScrolls.inc
++++ b/src/server/coa/Area52MysticScrolls.inc
+@@ -115,6 +115,36 @@
+ void HandleScrollRequest(Player* player, WorldPacket& packet)
+ {
+     auto* state = player->CustomData.Get<State>(StateKey);
++    if (packet.GetOpcode() == 0x611)
++    {
++        char const* result = "RE_PURCHASE_UNKNOWN";
++        ItemTemplate const* scroll = sObjectMgr->GetItemTemplate(992720);
++        ItemPosCountVec destination;
++        if (packet.size())
++            result = "RE_PURCHASE_UNKNOWN";
++        else if (!scroll)
++            result = "RE_PURCHASE_ITEM_NOT_FOUND";
++        else if (player->GetMoney() < scroll->BuyPrice)
++            result = "RE_PURCHASE_NOT_ENOUGH_MONEY";
++        else if (player->CanStoreNewItem(NULL_BAG, NULL_SLOT, destination, 992720, 1) != EQUIP_ERR_OK)
++            result = "RE_PURCHASE_NOT_ENOUGH_SPACE";
++        else if (!NearAltar(player))
++            result = "RE_PURCHASE_NO_MYSTIC_ALTAR";
++        else if (!CanChange(player, state))
++            result = "RE_PURCHASE_NOT_WHILE_CASTING";
++        else if (scroll->BuyPrice <= uint32(INT32_MAX))
++            if (Item* item = player->StoreNewItem(destination, 992720, true))
++            {
++                player->ModifyMoney(-int32(scroll->BuyPrice));
++                player->SendNewItem(item, 1, true, false);
++                auto transaction = CharacterDatabase.BeginTransaction();
++                player->SaveInventoryAndGoldToDB(transaction);
++                CharacterDatabase.CommitTransaction(transaction);
++                result = "RE_PURCHASE_OK";
++            }
++        SendResult(player, 0x612, result);
++        return;
++    }
+     if (packet.GetOpcode() == 0x607)
+     {
+         char const* error = "RE_DISENCHANT_UNKNOWN";
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -822,6 +822,7 @@
+     new MysticCommands();
+     new item_area52_unidentified_mystic();
+     new item_area52_identified_mystic();
++    AscensionCompatOpcodes::Claim(0x611, QueueScrollRequest);
+     AscensionCompatOpcodes::Claim(0x603, QueueScrollRequest);
+     AscensionCompatOpcodes::Claim(0x607, QueueScrollRequest);
+     AscensionCompatOpcodes::Claim(0x733, QueueScrollRequest);
