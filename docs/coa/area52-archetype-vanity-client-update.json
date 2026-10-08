@@ -1,0 +1,30 @@
+{
+  "status": "staged_not_activated",
+  "upstream_review": "5346bc9aa",
+  "upstream_new_change": "PR 6488 captured item stats reviewed; separate integration deferred. No changes to bundle redemption or character creation preview.",
+  "naturalist": {
+    "appearance_id": 7283,
+    "preview_item_id": 2061021,
+    "vanity_item_id": 9910019,
+    "archive": "Data/patch-M.MPQ",
+    "table": "CharacterCreationArchetypeDetails.dbc",
+    "archetype_id": 1,
+    "operation": "Append preview item to first empty equipment field (16 through 27) for each race/sex row",
+    "expected_rows": 20
+  },
+  "client_equipment": {
+    "archive": "Data/area-52/patch-D.MPQ",
+    "item_definitions": "Clone source Item.dbc rows to the new vanity IDs in area52-archetype-vanity-equipment.json, preserving display and equipment slot",
+    "appearance_aliases": "area52-archetype-vanity-item-aliases.json",
+    "sets": "area52-archetype-wardrobe-sets.json"
+  },
+  "verification": {
+    "gameplay": "Pending player testing",
+    "source": "PASSED",
+    "archive_members": "PASSED",
+    "build": "PASSED",
+    "unit": "PASSED",
+    "cpp_sql_style": "PASSED"
+  },
+  "delivery": "Physical equippable Quality 6 vanity gear; overflow mailed. Existing appearance and incarnation unlocks retained. No automatic reissue of consumed bundles."
+}

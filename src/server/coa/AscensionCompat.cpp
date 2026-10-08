@@ -5117,7 +5117,7 @@ public:
         }
     }
 
-    bool RedeemVanityBundle(Player* player, Item* item, std::vector<uint32> const& appearances)
+    bool RedeemVanityBundle(Player* player, Item* item, std::vector<uint32> const& appearances, std::vector<uint32> const& rewards)
     {
         if (!AscensionFreepick::IsFreepickHero(player) || !item || appearances.empty())
             return false;
@@ -5130,13 +5130,45 @@ public:
                 ChatHandler(player->GetSession()).SendSysMessage("This bundle has an unavailable appearance. It has not been consumed.");
                 return false;
             }
+        std::vector<std::unique_ptr<Item>> rewardItems;
+        for (uint32 entry : rewards)
+        {
+            std::unique_ptr<Item> reward(Item::CreateItem(entry, 1));
+            if (!reward)
+                return false;
+            rewardItems.push_back(std::move(reward));
+        }
         CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
         for (uint32 id : appearances)
             trans->Append("INSERT IGNORE INTO account_appearance_collection (account_id, appearance_id, source_item) VALUES ({}, {}, {})",
                 state->AccountId, id, _appearances.at(id).SourceItem);
         uint32 count = 1;
         player->DestroyItemCount(item, count, true);
+        std::vector<std::unique_ptr<Item>> overflow;
+        for (auto& reward : rewardItems)
+        {
+            ItemPosCountVec dest;
+            if (player->CanStoreItem(NULL_BAG, NULL_SLOT, dest, reward.get()) == EQUIP_ERR_OK)
+            {
+                Item* stored = player->StoreItem(dest, reward.release(), true);
+                sScriptMgr->OnPlayerStoreNewItem(player, stored, 1);
+                player->SendNewItem(stored, 1, true, false);
+            }
+            else
+                overflow.push_back(std::move(reward));
+        }
         player->SaveInventoryAndGoldToDB(trans);
+        for (std::size_t start = 0; start < overflow.size(); start += MAX_MAIL_ITEMS)
+        {
+            MailDraft draft("Archetype Vanity Equipment", "Your bundle's vanity equipment that did not fit in your bags.");
+            auto const end = std::min(start + std::size_t(MAX_MAIL_ITEMS), overflow.size());
+            for (auto index = start; index < end; ++index)
+            {
+                overflow[index]->SaveToDB(trans);
+                draft.AddItem(overflow[index].release());
+            }
+            draft.SendMailTo(trans, MailReceiver(player), MailSender(player));
+        }
         CharacterDatabase.CommitTransaction(trans);
         for (uint32 id : appearances)
             if (state->CollectedAppearances.insert(id).second)
@@ -8713,9 +8745,9 @@ void AppendConfiguredClientConfigs(AscensionClientConfig& config) {
                                   config.Integers);
 }
 
-bool RedeemArea52ArchetypeVanity(Player* player, Item* item, std::vector<uint32> const& appearances)
+bool RedeemArea52ArchetypeVanity(Player* player, Item* item, std::vector<uint32> const& appearances, std::vector<uint32> const& rewards)
 {
-    return AscensionCollectionService::Instance().RedeemVanityBundle(player, item, appearances);
+    return AscensionCollectionService::Instance().RedeemVanityBundle(player, item, appearances, rewards);
 }
 
 void AddAscensionCompatScripts() {

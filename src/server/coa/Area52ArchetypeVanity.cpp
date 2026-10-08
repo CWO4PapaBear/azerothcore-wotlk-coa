@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <memory>
 
-bool RedeemArea52ArchetypeVanity(Player* player, Item* item, std::vector<uint32> const& appearances);
+bool RedeemArea52ArchetypeVanity(Player* player, Item* item, std::vector<uint32> const& appearances, std::vector<uint32> const& rewards);
 
 class item_area52_archetype_vanity : public ItemScript
 {
@@ -26,7 +26,7 @@ public:
             return true;
         auto const bundle = Area52ArchetypeVanity::Bundles.find(item->GetEntry());
         if (bundle != Area52ArchetypeVanity::Bundles.end())
-            RedeemArea52ArchetypeVanity(player, item, bundle->second);
+            RedeemArea52ArchetypeVanity(player, item, bundle->second, Area52ArchetypeVanity::Items.at(item->GetEntry()));
         return true;
     }
 };
