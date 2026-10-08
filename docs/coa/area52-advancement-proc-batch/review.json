@@ -1,0 +1,429 @@
+{
+  "upstream": "fc359be9bf79ffb532c192d7afe754be21feba40",
+  "ptr": "e1823bb2db751a7cc0a90a8543e778449ebf7d84",
+  "scope": "All 38 initial proc-only flags reviewed against actual descriptions and trigger graphs. No generic proc guessing; unchanged unresolved labels.",
+  "entries": [
+    {
+      "entry": 396,
+      "name": "Molten Shields",
+      "status": "needs_handler_work",
+      "reason": "Ward-school-specific reflection window must be set from the ward cast; generic proc would not configure reflection school.",
+      "spells": [
+        11094,
+        13043
+      ]
+    },
+    {
+      "entry": 400,
+      "name": "Flame Throwing",
+      "status": "needs_handler_work",
+      "reason": "Flagged spell 811100 is a downstream next-Fireball cast-time buff; its internal-cooldown and consumption lifecycle need wiring, not a blanket parent proc.",
+      "spells": [
+        11100,
+        12353,
+        812352
+      ]
+    },
+    {
+      "entry": 416,
+      "name": "Frost Channeling",
+      "status": "needs_handler_work",
+      "reason": "XP/honor frost-kill eligibility and the 812519 periodic wrapper -> 812520 mana restoration duration require explicit validation.",
+      "spells": [
+        11160,
+        12518,
+        12519
+      ]
+    },
+    {
+      "entry": 452,
+      "name": "Adaptive Defense",
+      "status": "repair_candidate",
+      "reason": "Scoped event predicate and target/value handler implemented; compile, unit and negative-event policy checks passed. Existing ownership/rank paths unchanged.",
+      "spells": [
+        12297,
+        12750,
+        12751,
+        12752,
+        12753
+      ]
+    },
+    {
+      "entry": 455,
+      "name": "Improved Bloodrage",
+      "status": "needs_handler_work",
+      "reason": "Defensive Stance condition, damage-reduction value and capstone Stagger clearing require linked custom logic.",
+      "spells": [
+        12301,
+        12818
+      ]
+    },
+    {
+      "entry": 457,
+      "name": "Fracture",
+      "status": "repair_candidate",
+      "reason": "Scoped event predicate and target/value handler implemented; compile, unit and negative-event policy checks passed. Existing ownership/rank paths unchanged.",
+      "spells": [
+        12308,
+        12810,
+        12811
+      ]
+    },
+    {
+      "entry": 465,
+      "name": "Commanding Presence",
+      "status": "needs_handler_work",
+      "reason": "Battle/Commanding Shout dispatch and level-scaled Strength/Stamina values must be linked for both talent ranks.",
+      "spells": [
+        12318,
+        12857
+      ]
+    },
+    {
+      "entry": 501,
+      "name": "Malice",
+      "status": "repair_candidate",
+      "reason": "Scoped event predicate and target/value handler implemented; compile, unit and negative-event policy checks passed. Existing ownership/rank paths unchanged.",
+      "spells": [
+        14138,
+        14139,
+        14140,
+        14141,
+        14142
+      ]
+    },
+    {
+      "entry": 519,
+      "name": "Improved Power Word: Shield",
+      "status": "repair_candidate",
+      "reason": "Scoped event predicate and target/value handler implemented; compile, unit and negative-event policy checks passed. Existing ownership/rank paths unchanged.",
+      "spells": [
+        14748,
+        14768,
+        14769
+      ]
+    },
+    {
+      "entry": 526,
+      "name": "Copious Power",
+      "status": "needs_handler_work",
+      "reason": "Triggered buff 965418 has a zero magnitude; must receive rank amount and consume on the next eligible cast-time heal.",
+      "spells": [
+        14523,
+        14784,
+        14785
+      ]
+    },
+    {
+      "entry": 562,
+      "name": "Reverberation",
+      "status": "needs_handler_work",
+      "reason": "Must select the next DIFFERENT shock, exclude the originating shock, and consume the correct modifier.",
+      "spells": [
+        16040,
+        16113,
+        16114
+      ]
+    },
+    {
+      "entry": 574,
+      "name": "Tidal Mastery",
+      "status": "needs_handler_work",
+      "reason": "Different critical healing spells add different Tidal Force duration increments; child trigger alone is insufficient.",
+      "spells": [
+        16194,
+        16218,
+        16219
+      ]
+    },
+    {
+      "entry": 578,
+      "name": "Improved Ghost Wolf",
+      "status": "needs_handler_work",
+      "reason": "Capstone root/snare removal plus 20-second internal cooldown needs a cast-specific handler.",
+      "spells": [
+        16262,
+        16287,
+        16288
+      ]
+    },
+    {
+      "entry": 581,
+      "name": "Enhancing Totems",
+      "status": "needs_handler_work",
+      "reason": "Child attack/spell power values are zero; must calculate level scaling and recognize actual totem placement.",
+      "spells": [
+        16259,
+        16295,
+        52456
+      ]
+    },
+    {
+      "entry": 614,
+      "name": "Shredding Attacks",
+      "status": "repair_candidate",
+      "reason": "Scoped event predicate and target/value handler implemented; compile, unit and negative-event policy checks passed. Existing ownership/rank paths unchanged.",
+      "spells": [
+        16966,
+        16968,
+        816968
+      ]
+    },
+    {
+      "entry": 645,
+      "name": "Emberstorm",
+      "status": "needs_handler_work",
+      "reason": "Cooldown-reduction dummy triggers need Chaos Bolt target binding; mixed Wild Felfire trigger requires compatibility review.",
+      "spells": [
+        17954,
+        17955,
+        17956,
+        17957,
+        17958
+      ]
+    },
+    {
+      "entry": 698,
+      "name": "Improved Counterattack",
+      "status": "needs_handler_work",
+      "reason": "Client parent and child descriptions disagree on cooldown timing; preserve parent behavior and review Killer Instinct cooldown linkage.",
+      "spells": [
+        19295,
+        19297,
+        19298
+      ]
+    },
+    {
+      "entry": 729,
+      "name": "Improved Blessing of Might",
+      "status": "needs_handler_work",
+      "reason": "Must maintain self/one-ally ownership and replace the previously buffed ally while calculating level scaling.",
+      "spells": [
+        20042,
+        20045
+      ]
+    },
+    {
+      "entry": 756,
+      "name": "Sanctified Light",
+      "status": "needs_handler_work",
+      "reason": "Blinding Light must arm a one-use critical modifier with the correct value and eligible heal consumption.",
+      "spells": [
+        20359,
+        20360,
+        20361
+      ]
+    },
+    {
+      "entry": 761,
+      "name": "Raging Berserker",
+      "status": "needs_handler_work",
+      "reason": "Flag is in downstream aura 818501; its enabling/consumption path and AP-scaled lifesteal need review with the parent 820501.",
+      "spells": [
+        20500,
+        20501,
+        820501
+      ]
+    },
+    {
+      "entry": 762,
+      "name": "Improved Execute",
+      "status": "needs_handler_work",
+      "reason": "Below-20-percent damage doubling and conditional stacking critical bonus must agree; proc-only repair does not cover full tooltip.",
+      "spells": [
+        20502,
+        20503,
+        820503
+      ]
+    },
+    {
+      "entry": 799,
+      "name": "Improved Berserker Stance",
+      "status": "needs_handler_work",
+      "reason": "Conditional execute-range/enrage damage multiplier plus Raging Blow/Recklessness duration extension requires custom logic.",
+      "spells": [
+        29759,
+        29760,
+        29761
+      ]
+    },
+    {
+      "entry": 819,
+      "name": "Unrelenting Storm",
+      "status": "needs_handler_work",
+      "reason": "Three-stack state must empower Chain Lightning and apply the target vulnerability; generic haste proc is incomplete.",
+      "spells": [
+        30664,
+        30665,
+        30666
+      ]
+    },
+    {
+      "entry": 866,
+      "name": "Empowering Frostbolt",
+      "status": "repair_candidate",
+      "reason": "Scoped event predicate and target/value handler implemented; compile, unit and negative-event policy checks passed. Existing ownership/rank paths unchanged.",
+      "spells": [
+        31682,
+        31683,
+        31684
+      ]
+    },
+    {
+      "entry": 883,
+      "name": "Fanaticism",
+      "status": "needs_handler_work",
+      "reason": "Crusader Strike mark, Execution Sentence-dependent amplification, Judgement movement and PvE cooldown reduction form a multi-event chain.",
+      "spells": [
+        31879,
+        31880,
+        31881
+      ]
+    },
+    {
+      "entry": 895,
+      "name": "Improved Flash Heal",
+      "status": "needs_handler_work",
+      "reason": "Cooldown trigger description refers to another ability; verify effect mapping to Inner Focus rather than trusting trigger name.",
+      "spells": [
+        63504,
+        63505,
+        63506
+      ]
+    },
+    {
+      "entry": 897,
+      "name": "Void-touched Mind",
+      "status": "needs_handler_work",
+      "reason": "Dummy duration trigger references Divine Illumination; must explicitly link Mind Blast extension and Mind Flay stacking to Void Eruption.",
+      "spells": [
+        33213,
+        33214,
+        33215
+      ]
+    },
+    {
+      "entry": 898,
+      "name": "Shadow Power",
+      "status": "partial_repair",
+      "reason": "Periodic Holy/Shadow capstone proc repaired. Baseline critical-damage modifier is zero in reviewed data and still requires separate review before whole-entry VERIFIED.",
+      "spells": [
+        33221,
+        33222,
+        33223,
+        33224,
+        33225
+      ]
+    },
+    {
+      "entry": 927,
+      "name": "Resourcefulness",
+      "status": "needs_handler_work",
+      "reason": "Periodic trap/Black Arrow events must reduce three specific cooldowns; dummy trigger needs an explicit implementation.",
+      "spells": [
+        34491,
+        34492,
+        34493
+      ]
+    },
+    {
+      "entry": 944,
+      "name": "Spell Power",
+      "status": "needs_handler_work",
+      "reason": "Below-50-percent mana condition, direct critical hit and 30-second cooldown plus critical-damage baseline need review.",
+      "spells": [
+        35578,
+        35581,
+        835581,
+        835582,
+        835583
+      ]
+    },
+    {
+      "entry": 949,
+      "name": "Netherwind Presence",
+      "status": "needs_handler_work",
+      "reason": "Stacked haste needs seven spell-family roots and the full-stack Slow movement bonus; proc row alone is incomplete.",
+      "spells": [
+        44400,
+        44402,
+        44403
+      ]
+    },
+    {
+      "entry": 1039,
+      "name": "Improved Earth Shield",
+      "status": "needs_handler_work",
+      "reason": "Earth Shield healing must credit the caster, require final-rank Tidal Waves and observe five-second cooldown.",
+      "spells": [
+        51560,
+        51561,
+        851561
+      ]
+    },
+    {
+      "entry": 1126,
+      "name": "Booming Echoes",
+      "status": "needs_handler_work",
+      "reason": "Must select the matching shock school and triggered modifier, not always use the Nature variant.",
+      "spells": [
+        63370,
+        63372,
+        863372
+      ]
+    },
+    {
+      "entry": 1141,
+      "name": "Improved Feral Spirit",
+      "status": "needs_handler_work",
+      "reason": "Spirit Walk owner/pet relationship, rank-dependent dispel chance and both wolves Stormstrike empowerment must be linked.",
+      "spells": [
+        954215,
+        954216,
+        954217
+      ]
+    },
+    {
+      "entry": 1143,
+      "name": "Wind Rush",
+      "status": "needs_handler_work",
+      "reason": "Only a successful Wind Shear interruption should trigger haste; cast/hit alone cannot prove an interrupt occurred.",
+      "spells": [
+        32509,
+        32510,
+        32511
+      ]
+    },
+    {
+      "entry": 1191,
+      "name": "Combat Readiness",
+      "status": "needs_handler_work",
+      "reason": "Taking eligible hits must refresh the defensive stack and enforce the ten-second inactivity expiry, not just add a proc.",
+      "spells": [
+        86378
+      ]
+    },
+    {
+      "entry": 1700,
+      "name": "A New Dawn",
+      "status": "needs_handler_work",
+      "reason": "Per-caster healing vulnerability must consume on the next eligible heal from its original caster, with correct value.",
+      "spells": [
+        760189,
+        760190,
+        760191
+      ]
+    },
+    {
+      "entry": 14143,
+      "name": "Wind Rush",
+      "status": "needs_handler_work",
+      "reason": "Only a successful Wind Shear interruption should trigger haste; cast/hit alone cannot prove an interrupt occurred.",
+      "spells": [
+        32509,
+        32510,
+        32511
+      ]
+    }
+  ]
+}
