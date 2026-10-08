@@ -1,0 +1,208 @@
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -41,6 +41,7 @@
+ extern pEffect SpellEffects[TOTAL_SPELL_EFFECTS];
+ 
+ #include "AscensionMysticAudit.h"
++#include "Area52MysticTestAccess.h"
+ 
+ namespace AscensionMysticEnchant
+ {
+@@ -49,6 +50,16 @@
+ Catalog Data;
+ std::map<std::uint32_t, std::uint32_t> Connected;
+ bool Active = false;
++std::set<std::uint32_t> TestAccess;
++std::mutex TestAccessLock;
++std::atomic<std::uint64_t> TestAccessRevision{0};
++
++std::uint64_t AddTestAccess(std::set<std::uint32_t>& known)
++{
++    std::lock_guard<std::mutex> lock(TestAccessLock);
++    known.insert(TestAccess.begin(), TestAccess.end());
++    return TestAccessRevision.load();
++}
+ std::atomic<std::uint64_t> NextGeneration{0};
+ constexpr char StateKey[] = "coa.freepick.mystic";
+ constexpr std::array<std::uint32_t, 6> Prices = {0, 0, 300000, 600000, 1000000, 2500000};
+@@ -60,6 +71,7 @@
+     std::uint64_t Generation = ++NextGeneration;
+     bool Loaded = false;
+     bool Busy = false;
++    std::uint64_t AccessRevision = 0;
+ };
+ 
+ bool Applies(Player const* player)
+@@ -198,6 +210,7 @@
+                     if (Data.BySpell.contains(spell))
+                         current->Known.insert(spell);
+                 } while (result->NextRow());
++            current->AccessRevision = AddTestAccess(current->Known);
+             if (!current->Loaded)
+                 for (auto const& [spell, entry] : Data.BySpell)
+                     if (auto const* aura = owner->GetAura(spell, owner->GetGUID()))
+@@ -399,6 +412,7 @@
+ {
+     Active = false;
+     Connected.clear();
++    TestAccess.clear();
+     if (!AscensionFreePick::Enabled() || !sConfigMgr->GetOption<bool>("CoA.FreePickMysticEnchants.Enable", false) ||
+         !LoadCatalog(Data, GetClientDBCPath("MysticEnchant.dbc")))
+         return;
+@@ -497,6 +511,33 @@
+         Data.BySpell.size());
+ }
+ 
++void RefreshTestAccess()
++{
++    std::set<std::uint32_t> next;
++    if (Active && sConfigMgr->GetOption<bool>("CoA.FreePickMysticEnchants.VerifiedTestAccess", false))
++    {
++        try
++        {
++            boost::property_tree::ptree report;
++            boost::property_tree::read_json(sConfigMgr->GetOption<std::string>(
++                "CoA.FreePickMysticEnchants.VerificationFile", ""), report);
++            next = VerifiedTestAccess(report, [](uint32 id)
++                { return Data.BySpell.contains(id) && Connected.contains(id); });
++        }
++        catch (std::exception const& error)
++        {
++            LOG_ERROR("coa", "Area 52 verified Mystic Enchant access disabled: {}", error.what());
++        }
++    }
++    std::lock_guard<std::mutex> lock(TestAccessLock);
++    if (next != TestAccess)
++    {
++        TestAccess.swap(next);
++        ++TestAccessRevision;
++        LOG_INFO("coa", "Area 52 temporary verified Mystic Enchant access: {} entries", TestAccess.size());
++    }
++}
++
+ void ClientConfig(AscensionClientConfig& config)
+ {
+     if (!Active)
+@@ -528,7 +569,19 @@
+ {
+ public:
+     MysticWorld() : WorldScript("FreePickMysticWorld") { }
+-    void OnStartup() override { LoadConnections(); }
++    void OnStartup() override { LoadConnections(); RefreshTestAccess(); }
++    void OnUpdate(uint32 diff) override
++    {
++        if (diff < Remaining)
++            Remaining -= diff;
++        else
++        {
++            Remaining = 30000;
++            RefreshTestAccess();
++        }
++    }
++private:
++    uint32 Remaining = 30000;
+ };
+ 
+ class item_area52_unidentified_mystic final : public ItemScript
+@@ -625,7 +678,14 @@
+         if (Applies(player))
+             SendScrollProgress(player);
+     }
+-    void OnPlayerUpdate(Player* player, uint32) override { ProcessScrollRequests(player); }
++    void OnPlayerUpdate(Player* player, uint32) override
++    {
++        if (Applies(player))
++            if (auto* state = player->CustomData.Get<State>(StateKey);
++                state && state->Loaded && !state->Busy && state->AccessRevision != TestAccessRevision.load())
++                Load(player);
++        ProcessScrollRequests(player);
++    }
+     void OnPlayerLogout(Player* player) override
+     {
+         std::lock_guard<std::mutex> lock(ScrollRequestLock);
+@@ -808,6 +868,7 @@
+             known.insert(result->Fetch()[0].Get<std::uint32_t>());
+         } while (result->NextRow());
+     auto const slots = ReadSlots(player);
++    AddTestAccess(known);
+     if (!ValidateSlots(Data, slots, player->GetLevel(), known, Connected))
+         return;
+     for (auto const& grant : SpellGrants)
+--- /dev/null
++++ b/src/server/coa/Area52MysticTestAccess.h
+@@ -0,0 +1,35 @@
++#ifndef AREA52_MYSTIC_TEST_ACCESS_H
++#define AREA52_MYSTIC_TEST_ACCESS_H
++
++#include <boost/property_tree/ptree.hpp>
++#include <cstdint>
++#include <set>
++#include <stdexcept>
++#include <string>
++
++namespace AscensionMysticEnchant
++{
++template <typename Supported>
++std::set<std::uint32_t> VerifiedTestAccess(boost::property_tree::ptree const& report, Supported supported)
++{
++    if (report.get<unsigned>("schema") != 1)
++        throw std::runtime_error("Unsupported Mystic Enchant verification schema");
++    std::set<std::uint32_t> result;
++    std::set<std::uint32_t> seen;
++    for (auto const& child : report.get_child("entries"))
++    {
++        auto const& row = child.second;
++        if (row.get<std::string>("kind") != "mystic")
++            continue;
++        auto const id = row.get<std::uint32_t>("id");
++        if (!seen.insert(id).second)
++            throw std::runtime_error("Duplicate Mystic Enchant verification entry");
++        auto const status = row.get<std::string>("status");
++        if ((status == "VERIFIED" || status == "CERTIFIED") && supported(id))
++            result.insert(id);
++    }
++    return result;
++}
++}
++
++#endif
+--- /dev/null
++++ b/apps/coa-tests/area52_verified_access/run.py
+@@ -0,0 +1,37 @@
++from pathlib import Path
++import os,subprocess,tempfile
++root=Path(__file__).resolve().parents[3]
++source=r'''
++#include "Area52MysticTestAccess.h"
++#include <boost/property_tree/json_parser.hpp>
++#include <sstream>
++#include <cassert>
++int main()
++{
++    boost::property_tree::ptree report;
++    std::istringstream input(R"({"schema":1,"entries":[
++        {"kind":"mystic","id":1,"status":"VERIFIED"},
++        {"kind":"mystic","id":2,"status":"CERTIFIED"},
++        {"kind":"mystic","id":3,"status":"NOT VERIFIED"},
++        {"kind":"mystic","id":4,"status":"VERIFIED"},
++        {"kind":"advancement","id":5,"status":"VERIFIED"}]})");
++    boost::property_tree::read_json(input,report);
++    auto ids=AscensionMysticEnchant::VerifiedTestAccess(report,[](unsigned id){return id!=4;});
++    assert((ids==std::set<std::uint32_t>{1,2}));
++    auto earned=std::set<std::uint32_t>{9};auto effective=earned;
++    effective.insert(ids.begin(),ids.end());assert(effective.size()==3 && earned.size()==1);
++    effective=earned;assert(effective==std::set<std::uint32_t>{9});
++    report.put("schema",2);bool rejected=false;
++    try { AscensionMysticEnchant::VerifiedTestAccess(report,[](unsigned){return true;}); }
++    catch(std::exception const&) { rejected=true; } assert(rejected);
++    report.put("schema",1);report.get_child("entries").push_back({"",report.get_child("entries").front().second});
++    rejected=false;
++    try { AscensionMysticEnchant::VerifiedTestAccess(report,[](unsigned){return true;}); }
++    catch(std::exception const&) { rejected=true; } assert(rejected);
++}
++'''
++with tempfile.TemporaryDirectory() as directory:
++    path=Path(directory);cpp=path/'test.cpp';cpp.write_text(source);binary=path/'test'
++    subprocess.run([os.environ.get('CXX','c++'),'-std=c++20','-I'+str(root/'src/server/coa'),str(cpp),'-o',str(binary)],check=True)
++    subprocess.run([str(binary)],check=True)
++print('Verified/certified filtering, connection gating, earned ownership isolation and malformed report rejection passed.')

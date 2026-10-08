@@ -1,0 +1,24 @@
+{
+  "scope": "Patch against deployed independent Area 52 runtime; not a replacement for upstream CoA handlers.",
+  "base_sha256": "eb618eae778c530535185cd0a0a5622914f56e6629bb143be81687de906c0dbf",
+  "upstream_reviewed": "446d3a44790c5e489fadcc8dc05d3639cda76208",
+  "upstream_delta": "Hellfire Advance Path stack distance fix; unrelated to collection access.",
+  "source_status_sha256": "3c5f3dc7c3fdb87649008ecbf8ac8fff5f795b6fe429e42908d77c802f261c68",
+  "eligible_count": 1666,
+  "configuration": {
+    "CoA.FreePickMysticEnchants.VerifiedTestAccess": true,
+    "CoA.FreePickMysticEnchants.VerificationFile": "/verified-access/test-access-status.json"
+  },
+  "default": "disabled; Area 52 Free Pick gates required",
+  "triggers": [
+    "Startup reads status list",
+    "Every 30 seconds rereads status file and configuration",
+    "Changed eligible list increments revision; online players asynchronously reload earned collection and merge access",
+    "Login collection load and early ME spell restoration both merge access",
+    "Equip retains existing ownership, requirements, slots and cost checks"
+  ],
+  "ownership": "Temporary union only; account earned collection is not written. Disable configuration and reload configuration to remove temporary access; genuinely earned collection is retained.",
+  "promotion": "Regenerate reduced status list from authoritative engineering report and atomically replace mounted status file after verification promotions. No client patch needed.",
+  "certification": "Include VERIFIED and CERTIFIED. Retire the rule explicitly after all certification completes; no automatic last-entry shutdown.",
+  "verification": "Build, unit and focused C++ filtering harness passed; live activation and player acceptance pending."
+}
