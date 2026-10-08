@@ -1,0 +1,65 @@
+--- a/src/server/coa/AscensionCompat.cpp
++++ b/src/server/coa/AscensionCompat.cpp
+@@ -24,6 +24,7 @@
+ #include "AscensionCoATalentData.h"
+ #include "AscensionCoAConfig.h"
+ #include "AscensionFreePick.h"
++#include "Area52ArchetypeVanityData.h"
+ #include "Area52ActiveBuild.h"
+ #include "WorldSessionMgr.h"
+ #include "AscensionCoATalentState.h"
+@@ -3726,6 +3727,9 @@
+         CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+         trans->Append("INSERT IGNORE INTO account_vanity_collection (account_id, item_id) VALUES ({}, {})",
+             state->AccountId, bundleEntry);
++        for (uint32 entry : rewards)
++            trans->Append("INSERT IGNORE INTO account_vanity_collection (account_id, item_id) VALUES ({}, {})",
++                state->AccountId, entry);
+         for (uint32 id : appearances)
+             trans->Append("INSERT IGNORE INTO account_appearance_collection (account_id, appearance_id, source_item) VALUES ({}, {}, {})",
+                 state->AccountId, id, _appearances.at(id).SourceItem);
+@@ -3760,12 +3764,15 @@
+         for (uint32 id : appearances)
+             if (state->CollectedAppearances.insert(id).second)
+                 SendAppearanceAdded(player, id, _appearances.at(id).SourceItem);
+-        if (state->OwnedVanityItems.insert(bundleEntry).second)
+-        {
+-            WorldPacket packet(SMSG_VANITY_COLLECTION_ADDED, sizeof(uint32));
+-            packet << bundleEntry;
+-            player->GetSession()->SendPacket(&packet);
+-        }
++        std::vector<uint32> ownership = rewards;
++        ownership.push_back(bundleEntry);
++        for (uint32 entry : ownership)
++            if (state->OwnedVanityItems.insert(entry).second)
++            {
++                WorldPacket packet(SMSG_VANITY_COLLECTION_ADDED, sizeof(uint32));
++                packet << entry;
++                player->GetSession()->SendPacket(&packet);
++            }
+         ChatHandler(player->GetSession()).PSendSysMessage("{} wardrobe appearances collected.", archetypeName);
+         return true;
+     }
+@@ -4221,6 +4228,22 @@
+     auto state = std::make_shared<PlayerCollectionState>();
+     state->AccountId = player->GetSession()->GetAccountId();
+     LoadPlayerState(player, *state);
++    if (AscensionFreePick::Applies(player))
++    {
++        CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
++        bool changed = false;
++        for (auto const& [bundle, pieces] : Area52ArchetypeVanity::Items)
++            if (state->OwnedVanityItems.contains(bundle))
++                for (uint32 entry : pieces)
++                    if (state->OwnedVanityItems.insert(entry).second)
++                    {
++                        trans->Append("INSERT IGNORE INTO account_vanity_collection (account_id, item_id) VALUES ({}, {})",
++                            state->AccountId, entry);
++                        changed = true;
++                    }
++        if (changed)
++            CharacterDatabase.CommitTransaction(trans);
++    }
+     return state;
+   }
+ 
