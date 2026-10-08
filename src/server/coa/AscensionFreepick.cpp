@@ -1,6 +1,7 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 
 #include "AscensionFreepick.h"
+#include "AscensionRemovedSpellActionBars.h"
 #include "AscensionFreepickRules.h"
 #include "AscensionCoATalentState.h"
 #include "AscensionWildcard.h"
@@ -167,21 +168,6 @@ std::unordered_set<uint32> GrantedSpells(std::vector<Entry> const& entries)
     return spells;
 }
 
-void RemoveFromActionBars(Player* player, std::unordered_set<uint32> const& spells)
-{
-    bool removed = false;
-    for (uint8 button = 0; button < MAX_ACTION_BUTTONS; ++button)
-    {
-        ActionButton const* action = player->GetActionButton(button);
-        if (!action || action->GetType() != ACTION_BUTTON_SPELL || !spells.contains(action->GetAction()))
-            continue;
-        player->removeActionButton(button);
-        removed = true;
-    }
-    if (removed)
-        player->SendActionButtons(1);
-}
-
 void ClearActionBars(Player* player)
 {
     player->SendActionButtons(2);
@@ -193,7 +179,7 @@ void SyncSpells(Player* player, std::vector<Entry> const& before, std::vector<En
     bool keepActionBars = true)
 {
     std::unordered_set<uint32> const granted = GrantedSpells(after);
-    std::unordered_set<uint32> removed;
+    auto const actionSpells = AscensionRemovedSpellActionBars::Capture(player);
     for (Entry const& entry : before)
         if (Row const* row = Loaded.Find(entry.EntryId))
             for (std::uint32_t rank = row->MaxRank(); rank > 0; --rank)
@@ -202,13 +188,12 @@ void SyncSpells(Player* player, std::vector<Entry> const& before, std::vector<En
                 if (granted.contains(spellId) || !player->HasSpell(spellId))
                     continue;
                 player->removeSpell(spellId, SPEC_MASK_ALL, false);
-                removed.insert(spellId);
             }
     for (uint32 spellId : granted)
         if (!player->HasSpell(spellId))
             player->learnSpell(spellId);
     if (keepActionBars)
-        RemoveFromActionBars(player, removed);
+        AscensionRemovedSpellActionBars::Reconcile(player, actionSpells);
 }
 }
 
@@ -471,6 +456,7 @@ void ApplyAscensionPathPassiveContract(SpellInfo* spellInfo)
 
 void AddAscensionFreepickScripts()
 {
+    new AscensionRemovedSpellActionBars::Script(AscensionFreepick::IsFreepickHero);
     new AscensionFreepick::AscensionFreepickPlayer();
     new AscensionFreepick::AscensionFreepickWorld();
     RegisterSpellScriptWithArgs(AscensionFreepick::spell_ascension_freepick_specialization_swap,

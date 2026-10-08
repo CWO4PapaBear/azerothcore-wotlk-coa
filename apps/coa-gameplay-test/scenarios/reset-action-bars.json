@@ -1,0 +1,185 @@
+{
+  "schema": 1,
+  "name": "reset-action-bars",
+  "contract": "Reset and generic unlearning clear removed spell buttons; unrelated known spells remain on their buttons.",
+  "timeout_ms": 20000,
+  "location": {
+    "map": 0,
+    "x": -9465,
+    "y": 64,
+    "z": 56,
+    "o": 0
+  },
+  "players": [
+    {
+      "id": "hero",
+      "race": 1,
+      "class": 10,
+      "level": 80
+    }
+  ],
+  "steps": [
+    {
+      "action": "money",
+      "actor": "hero",
+      "copper": 10000000
+    },
+    {
+      "action": "add_item",
+      "actor": "hero",
+      "item": 375250,
+      "count": 250
+    },
+    {
+      "action": "client_packet",
+      "actor": "hero",
+      "opcode": 1831,
+      "fields": [
+        {
+          "u32": 2
+        },
+        {
+          "u32": 3075
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 732
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        }
+      ]
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 11958,
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 20101,
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "learn",
+      "actor": "hero",
+      "spell": 6603
+    },
+    {
+      "action": "set_action_button",
+      "actor": "hero",
+      "button": 0,
+      "spell": 11958
+    },
+    {
+      "action": "set_action_button",
+      "actor": "hero",
+      "button": 1,
+      "spell": 6603
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "action_button",
+      "button": 0,
+      "equals": 11958
+    },
+    {
+      "action": "client_packet",
+      "actor": "hero",
+      "opcode": 1320,
+      "fields": []
+    },
+    {
+      "action": "wait",
+      "ms": 500
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 11958,
+      "equals": 0,
+      "within_ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 20101,
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "item_count",
+      "item": 375250,
+      "equals": 0,
+      "within_ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "action_button",
+      "button": 0,
+      "equals": 0
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "action_button",
+      "button": 1,
+      "equals": 6603
+    },
+    {
+      "action": "unlearn",
+      "actor": "hero",
+      "spell": 6603,
+      "all_specs": true
+    },
+    {
+      "action": "wait",
+      "ms": 200
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "action_button",
+      "button": 1,
+      "equals": 0
+    }
+  ]
+}
