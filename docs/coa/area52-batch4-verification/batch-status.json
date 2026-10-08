@@ -1,0 +1,189 @@
+[
+  {
+    "kind": "advancement",
+    "id": 354,
+    "name": "Mind Sear",
+    "spells": [
+      48045,
+      49821,
+      53022,
+      53023,
+      954944,
+      954945,
+      954946,
+      954947,
+      954948,
+      954949,
+      954950,
+      954951,
+      954952,
+      954953
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Primary and triggered damage ranks correspond; existing target-filter handler applies to the repaired damage chain."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No additional learned abilities; triggered effects and auras are not permanent spell grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Common selected-ability SaveToDB and PlayerStorage restore paths reviewed; no custom removal/regrant lifecycle. No full reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Candidate rank migration and direct bindings passed temporary-table idempotence and isolation checks; selected-ability books use native rank chains. Life Tap/Wyvern remain unranked."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 2761,
+    "name": "Life Tap",
+    "spells": [
+      1454
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Area52-specific percentage handler connects mana restore and Tapped; direct root binding and obsolete upgrade removal verified."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No additional learned abilities; triggered effects and auras are not permanent spell grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Common selected-ability SaveToDB and PlayerStorage restore paths reviewed; no custom removal/regrant lifecycle. No full reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Candidate rank migration and direct bindings passed temporary-table idempotence and isolation checks; selected-ability books use native rank chains. Life Tap/Wyvern remain unranked."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 3355,
+    "name": "Wyvern Sting",
+    "spells": [
+      19386
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Area52 expiry handler connects shared sleep; originating-aura check scopes Serpent Sting exemption. Other-source runtime control remains a certification follow-up, not a confirmed defect."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No additional learned abilities; triggered effects and auras are not permanent spell grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Common selected-ability SaveToDB and PlayerStorage restore paths reviewed; no custom removal/regrant lifecycle. No full reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Candidate rank migration and direct bindings passed temporary-table idempotence and isolation checks; selected-ability books use native rank chains. Life Tap/Wyvern remain unranked."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 3500,
+    "name": "Mutilate",
+    "spells": [
+      1329,
+      5374,
+      27576,
+      34411,
+      34412,
+      34413,
+      34414,
+      34415,
+      34416,
+      34417,
+      34418,
+      34419,
+      48661,
+      48662,
+      48663,
+      48664,
+      48665,
+      48666,
+      302012,
+      302013,
+      302014,
+      302016,
+      302017,
+      302018,
+      302020,
+      302021,
+      302022
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Both weapon-hit rank chains match primary cast ranks; existing Mutilate cast handler retained."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No additional learned abilities; triggered effects and auras are not permanent spell grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Common selected-ability SaveToDB and PlayerStorage restore paths reviewed; no custom removal/regrant lifecycle. No full reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Candidate rank migration and direct bindings passed temporary-table idempotence and isolation checks; selected-ability books use native rank chains. Life Tap/Wyvern remain unranked."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  }
+]

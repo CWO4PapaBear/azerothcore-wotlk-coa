@@ -1,0 +1,30 @@
+{
+  "scope": "Four staged advancement entries qualify under structural VERIFIED criteria; no CERTIFIED claim. Do not install or release labels before paired candidate server activation.",
+  "entries": [
+    "Mind Sear",
+    "Mutilate",
+    "Life Tap",
+    "Wyvern Sting"
+  ],
+  "source_sha256": {
+    "src/server/coa/AscensionFreePick.cpp": "ea7edc3d3651a30c64d25e00df07a5d6631308629044c985af2a1812ec280f07",
+    "src/server/game/Entities/Player/PlayerStorage.cpp": "04d486032f5983291ab134244c9159fba7fc97654c9561e3eb7556208d1ed4f7",
+    "modules/mod-spellbook/src/spellbook.cpp": "a03605e632eac748d8e64f2ea2efc0a6f3b3b3fcec5b9ed3a9f56b20dd957181",
+    "src/server/scripts/Spells/spell_warlock.cpp": "746c9e8cf102a930b9f2d1f3d4747a072de516fe433a45ab5b9bf44cd58399fd",
+    "src/server/scripts/Spells/spell_hunter.cpp": "8c2ed49ae52bee4058a0ad624d609ed14507e5f19abc05201ca4191006e2497a",
+    "src/server/game/Entities/Unit/Unit.cpp": "c74b105e0247a90c398364f0cd03fd7daa11df46eedc9636622ec4879e963610",
+    "src/server/coa/Area52LifeTap.h": "5b1d9c2a4cb215c3aa91399a2adc8a5c650f0f23e215952acdb5340f959ae172",
+    "src/server/coa/Area52WyvernSleep.h": "b81cc05abac74e259ab2b7bc19f1ee3a5190cc66782a710f67e701e7d4017971"
+  },
+  "checks": {
+    "verification-links": "passed",
+    "verification-wyvern-final": "passed",
+    "verification-wyvern-ranks": "passed",
+    "verification-life-tap": "passed",
+    "verification-life-tap-ranks": "passed",
+    "verification-tooltips": "passed"
+  },
+  "certification_followup": "Wyvern other-source runtime control did not establish damage in its assertion interval; no confirmed defect, retained for gameplay follow-up.",
+  "client": "Only existing NOT VERIFIED labels changed to green VERIFIED for current ability/rank spell IDs. Shared Wyvern sleep and obsolete legacy ranks are not relabeled. Preservation harness compares every non-status description and all other DBC fields/archive members.",
+  "activation": "Pending; live status ledger, installed client and tester release unchanged."
+}
