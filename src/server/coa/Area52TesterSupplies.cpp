@@ -89,6 +89,7 @@ public:
             if (player->CanStoreItem(NULL_BAG, NULL_SLOT, dest, item.get()) == EQUIP_ERR_OK)
             {
                 Item* stored = player->StoreItem(dest, item.release(), true);
+                sScriptMgr->OnPlayerStoreNewItem(player, stored, count);
                 player->SendNewItem(stored, count, true, false);
             }
             else
