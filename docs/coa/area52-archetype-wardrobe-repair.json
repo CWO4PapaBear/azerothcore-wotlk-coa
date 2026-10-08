@@ -1,0 +1,672 @@
+{
+  "status": "staged_not_installed",
+  "grant_policy": "Appearance unlocks only; no physical item rewards or combat spells. Existing source gear remains unchanged.",
+  "input_sha256": {
+    "Appearances": "7c7b27fa9e535d7ec7549eb61ef1490ec69b990fa243a2ed36fb6dbf7df118f9",
+    "ItemAppearances": "c2533eaa0c84ccb35e1087b6244e8881f89642385e646a9f7fc6dddf1e6ea434"
+  },
+  "changes": [
+    {
+      "source_item_id": 55844,
+      "name": "Gloves of Haze",
+      "appearance_id": 900100,
+      "categories": [
+        8,
+        0,
+        0
+      ],
+      "appearance_row": [
+        900100,
+        55844,
+        0,
+        55844,
+        0,
+        8,
+        0,
+        0,
+        55844,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645267,
+        55844,
+        900100
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 69564,
+      "name": "The Savager's Mask",
+      "appearance_id": 900101,
+      "categories": [
+        1,
+        0,
+        0
+      ],
+      "appearance_row": [
+        900101,
+        69564,
+        0,
+        69564,
+        0,
+        1,
+        0,
+        0,
+        69564,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645268,
+        69564,
+        900101
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 90127,
+      "name": "Echo Spirit Windfury Belt ",
+      "appearance_id": 179688,
+      "categories": [
+        9,
+        0,
+        0
+      ],
+      "appearance_row": [
+        179688,
+        90127,
+        0,
+        90127,
+        0,
+        9,
+        0,
+        0,
+        90127,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": null,
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 107910,
+      "name": "bulkmake_staff_2h_artifactaegwynsstaff_d_06_darkpurple",
+      "appearance_id": 900102,
+      "categories": [
+        13,
+        14,
+        0
+      ],
+      "appearance_row": [
+        900102,
+        107910,
+        0,
+        107910,
+        0,
+        13,
+        14,
+        0,
+        107910,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645269,
+        107910,
+        900102
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 129754,
+      "name": "Aluneth, Greatstaff of the Magna",
+      "appearance_id": 900103,
+      "categories": [
+        13,
+        14,
+        0
+      ],
+      "appearance_row": [
+        900103,
+        129754,
+        0,
+        129754,
+        0,
+        13,
+        14,
+        0,
+        129754,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645270,
+        129754,
+        900103
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 131509,
+      "name": "Soul Eater Pauldrons",
+      "appearance_id": 900104,
+      "categories": [
+        2,
+        0,
+        0
+      ],
+      "appearance_row": [
+        900104,
+        131509,
+        0,
+        131509,
+        0,
+        2,
+        0,
+        0,
+        131509,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645271,
+        131509,
+        900104
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 150560,
+      "name": "Skyshatter Mantle",
+      "appearance_id": 900105,
+      "categories": [
+        2,
+        0,
+        0
+      ],
+      "appearance_row": [
+        900105,
+        150560,
+        0,
+        150560,
+        0,
+        2,
+        0,
+        0,
+        150560,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645272,
+        150560,
+        900105
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 171942,
+      "name": "Cowl of Absolution",
+      "appearance_id": 900106,
+      "categories": [
+        1,
+        0,
+        0
+      ],
+      "appearance_row": [
+        900106,
+        171942,
+        0,
+        171942,
+        0,
+        1,
+        0,
+        0,
+        171942,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645273,
+        171942,
+        900106
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 612845,
+      "name": "Arcweaver Spell Sword (Character Creation)",
+      "appearance_id": 900107,
+      "categories": [
+        14,
+        0,
+        0
+      ],
+      "appearance_row": [
+        900107,
+        612845,
+        0,
+        612845,
+        0,
+        14,
+        0,
+        0,
+        612845,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645274,
+        612845,
+        900107
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 612850,
+      "name": "Marauder's Hacker (Character Creation)",
+      "appearance_id": 900108,
+      "categories": [
+        14,
+        0,
+        0
+      ],
+      "appearance_row": [
+        900108,
+        612850,
+        0,
+        612850,
+        0,
+        14,
+        0,
+        0,
+        612850,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645275,
+        612850,
+        900108
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 612851,
+      "name": "Shadowblade (Character Creation)",
+      "appearance_id": 900109,
+      "categories": [
+        14,
+        0,
+        0
+      ],
+      "appearance_row": [
+        900109,
+        612851,
+        0,
+        612851,
+        0,
+        14,
+        0,
+        0,
+        612851,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645276,
+        612851,
+        900109
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 612852,
+      "name": "Bonebreaker (Character Creation)",
+      "appearance_id": 900110,
+      "categories": [
+        14,
+        0,
+        0
+      ],
+      "appearance_row": [
+        900110,
+        612852,
+        0,
+        612852,
+        0,
+        14,
+        0,
+        0,
+        612852,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645277,
+        612852,
+        900110
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 612853,
+      "name": "Dread Gladiator's Cleaver (Character Creation)",
+      "appearance_id": 900111,
+      "categories": [
+        14,
+        0,
+        0
+      ],
+      "appearance_row": [
+        900111,
+        612853,
+        0,
+        612853,
+        0,
+        14,
+        0,
+        0,
+        612853,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645278,
+        612853,
+        900111
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 612854,
+      "name": "Geargrind Gunblade (Character Creation)",
+      "appearance_id": 900112,
+      "categories": [
+        13,
+        0,
+        0
+      ],
+      "appearance_row": [
+        900112,
+        612854,
+        0,
+        612854,
+        0,
+        13,
+        0,
+        0,
+        612854,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645279,
+        612854,
+        900112
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 612857,
+      "name": "Standard Fenser's Rapier (Character Creation)",
+      "appearance_id": 900113,
+      "categories": [
+        14,
+        0,
+        0
+      ],
+      "appearance_row": [
+        900113,
+        612857,
+        0,
+        612857,
+        0,
+        14,
+        0,
+        0,
+        612857,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645280,
+        612857,
+        900113
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 8210096,
+      "name": "Pyke's Belt",
+      "appearance_id": 900114,
+      "categories": [
+        9,
+        0,
+        0
+      ],
+      "appearance_row": [
+        900114,
+        8210096,
+        0,
+        8210096,
+        0,
+        9,
+        0,
+        0,
+        8210096,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645281,
+        8210096,
+        900114
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 8210097,
+      "name": "Pyke's Boots",
+      "appearance_id": 900115,
+      "categories": [
+        11,
+        0,
+        0
+      ],
+      "appearance_row": [
+        900115,
+        8210097,
+        0,
+        8210097,
+        0,
+        11,
+        0,
+        0,
+        8210097,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645282,
+        8210097,
+        900115
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    },
+    {
+      "source_item_id": 8210099,
+      "name": "Pyke's Pants",
+      "appearance_id": 900116,
+      "categories": [
+        10,
+        0,
+        0
+      ],
+      "appearance_row": [
+        900116,
+        8210099,
+        0,
+        8210099,
+        0,
+        10,
+        0,
+        0,
+        8210099,
+        0,
+        0,
+        100,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "new_item_appearance_row": [
+        645283,
+        8210099,
+        900116
+      ],
+      "grant_mode": "appearance_unlock_only",
+      "grant_item": false,
+      "client_item_present": true
+    }
+  ]
+}

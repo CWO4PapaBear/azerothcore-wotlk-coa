@@ -1,5 +1,5 @@
 {
-  "status": "catalog_and_bundle_definitions_only_not_activated",
+  "status": "complete_equipment_mappings_staged_not_installed",
   "policy": "Unlock wardrobe appearances only. Never grant source equipment, combat spells, or preview effects automatically. Preview incarnations require a cosmetic-only path.",
   "upstream_revision": "413e03e986ad5d9a3e1d95f88af7effe39972b4f",
   "source_tables": {
@@ -48,28 +48,9 @@
     "archetypes": 56,
     "preview_variants": 1120,
     "unique_equipment": 522,
-    "mapped_unique_equipment": 504,
+    "mapped_unique_equipment": 522,
     "equippable_source_items": 521,
-    "unmapped_unique_items": [
-      55844,
-      69564,
-      90127,
-      107910,
-      129754,
-      131509,
-      150560,
-      171942,
-      612845,
-      612850,
-      612851,
-      612852,
-      612853,
-      612854,
-      612857,
-      8210096,
-      8210097,
-      8210099
-    ]
+    "unmapped_unique_items": []
   },
   "bundles": [
     {
@@ -952,7 +933,7 @@
       "name": "Cryotherapist Vanity Bundle",
       "archetype_id": 13,
       "category_id": 6,
-      "complete_equipment_mapping": false,
+      "complete_equipment_mapping": true,
       "equipment": [
         {
           "source_item_id": 105918,
@@ -1028,8 +1009,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900106,
+          "mapping": "new_staged_wardrobe_definition"
         },
         {
           "source_item_id": 179626,
@@ -1050,7 +1031,8 @@
         13438,
         13463,
         21216,
-        33663
+        33663,
+        900106
       ],
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
@@ -1206,7 +1188,7 @@
       "name": "Grove Ranger Vanity Bundle",
       "archetype_id": 15,
       "category_id": 6,
-      "complete_equipment_mapping": false,
+      "complete_equipment_mapping": true,
       "equipment": [
         {
           "source_item_id": 9474,
@@ -1260,8 +1242,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900101,
+          "mapping": "new_staged_wardrobe_definition"
         },
         {
           "source_item_id": 140585,
@@ -1316,7 +1298,8 @@
         29365,
         42198,
         42199,
-        42201
+        42201,
+        900101
       ],
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
@@ -1997,7 +1980,7 @@
       "name": "Swashbuckler Vanity Bundle",
       "archetype_id": 21,
       "category_id": 1,
-      "complete_equipment_mapping": false,
+      "complete_equipment_mapping": true,
       "equipment": [
         {
           "source_item_id": 375346,
@@ -2106,8 +2089,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900113,
+          "mapping": "new_staged_wardrobe_definition"
         }
       ],
       "appearance_unlocks": [
@@ -2119,7 +2102,8 @@
         46158,
         46159,
         46161,
-        180395
+        180395,
+        900113
       ],
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
@@ -2958,7 +2942,7 @@
       "name": "Stormguard Vanity Bundle",
       "archetype_id": 30,
       "category_id": 3,
-      "complete_equipment_mapping": false,
+      "complete_equipment_mapping": true,
       "equipment": [
         {
           "source_item_id": 31011,
@@ -3034,8 +3018,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900105,
+          "mapping": "new_staged_wardrobe_definition"
         },
         {
           "source_item_id": 150561,
@@ -3056,7 +3040,8 @@
         14787,
         15029,
         33967,
-        33969
+        33969,
+        900105
       ],
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
@@ -3485,7 +3470,7 @@
       "name": "Thunderpaw Vanity Bundle",
       "archetype_id": 34,
       "category_id": 3,
-      "complete_equipment_mapping": false,
+      "complete_equipment_mapping": true,
       "equipment": [
         {
           "source_item_id": 81865,
@@ -3583,8 +3568,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 179688,
+          "mapping": "new_staged_wardrobe_definition"
         }
       ],
       "appearance_unlocks": [
@@ -3595,7 +3580,8 @@
         179653,
         179654,
         179655,
-        179656
+        179656,
+        179688
       ],
       "incarnations": [
         {
@@ -4257,7 +4243,7 @@
       "name": "Dragon Warrior Vanity Bundle",
       "archetype_id": 78,
       "category_id": 9,
-      "complete_equipment_mapping": false,
+      "complete_equipment_mapping": true,
       "equipment": [
         {
           "source_item_id": 103946,
@@ -4366,8 +4352,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900107,
+          "mapping": "new_staged_wardrobe_definition"
         }
       ],
       "appearance_unlocks": [
@@ -4379,7 +4365,8 @@
         45947,
         45948,
         45949,
-        45950
+        45950,
+        900107
       ],
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
@@ -4393,7 +4380,7 @@
       "name": "Son of Gruul Vanity Bundle",
       "archetype_id": 79,
       "category_id": 9,
-      "complete_equipment_mapping": false,
+      "complete_equipment_mapping": true,
       "equipment": [
         {
           "source_item_id": 499112,
@@ -4502,8 +4489,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900108,
+          "mapping": "new_staged_wardrobe_definition"
         }
       ],
       "appearance_unlocks": [
@@ -4515,7 +4502,8 @@
         25610,
         25611,
         25612,
-        25613
+        25613,
+        900108
       ],
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
@@ -4527,7 +4515,7 @@
       "name": "Master of Shadows Vanity Bundle",
       "archetype_id": 80,
       "category_id": 12,
-      "complete_equipment_mapping": false,
+      "complete_equipment_mapping": true,
       "equipment": [
         {
           "source_item_id": 104172,
@@ -4548,8 +4536,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900109,
+          "mapping": "new_staged_wardrobe_definition"
         },
         {
           "source_item_id": 732595,
@@ -4661,7 +4649,8 @@
         42182,
         42183,
         42184,
-        42185
+        42185,
+        900109
       ],
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
@@ -5074,7 +5063,7 @@
       "name": "Defias Gunslinger Vanity Bundle",
       "archetype_id": 86,
       "category_id": 9,
-      "complete_equipment_mapping": false,
+      "complete_equipment_mapping": true,
       "equipment": [
         {
           "source_item_id": 5106,
@@ -5095,8 +5084,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900100,
+          "mapping": "new_staged_wardrobe_definition"
         },
         {
           "source_item_id": 85064,
@@ -5117,8 +5106,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900104,
+          "mapping": "new_staged_wardrobe_definition"
         },
         {
           "source_item_id": 499715,
@@ -5139,8 +5128,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900112,
+          "mapping": "new_staged_wardrobe_definition"
         },
         {
           "source_item_id": 8210096,
@@ -5150,8 +5139,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900114,
+          "mapping": "new_staged_wardrobe_definition"
         },
         {
           "source_item_id": 8210097,
@@ -5161,8 +5150,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900115,
+          "mapping": "new_staged_wardrobe_definition"
         },
         {
           "source_item_id": 8210099,
@@ -5172,14 +5161,20 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900116,
+          "mapping": "new_staged_wardrobe_definition"
         }
       ],
       "appearance_unlocks": [
         3226,
         32104,
-        46158
+        46158,
+        900100,
+        900104,
+        900112,
+        900114,
+        900115,
+        900116
       ],
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
@@ -5191,7 +5186,7 @@
       "name": "Evoker Vanity Bundle",
       "archetype_id": 88,
       "category_id": 11,
-      "complete_equipment_mapping": false,
+      "complete_equipment_mapping": true,
       "equipment": [
         {
           "source_item_id": 107910,
@@ -5201,8 +5196,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900102,
+          "mapping": "new_staged_wardrobe_definition"
         },
         {
           "source_item_id": 118401,
@@ -5313,7 +5308,8 @@
         43200,
         43201,
         43202,
-        43203
+        43203,
+        900102
       ],
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
@@ -5467,7 +5463,7 @@
       "name": "Shadowseer Vanity Bundle",
       "archetype_id": 95,
       "category_id": 11,
-      "complete_equipment_mapping": false,
+      "complete_equipment_mapping": true,
       "equipment": [
         {
           "source_item_id": 129754,
@@ -5477,8 +5473,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900103,
+          "mapping": "new_staged_wardrobe_definition"
         },
         {
           "source_item_id": 136858,
@@ -5601,7 +5597,8 @@
         31005,
         31006,
         31007,
-        31008
+        31008,
+        900103
       ],
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
@@ -6026,7 +6023,7 @@
       "name": "Gutripper Vanity Bundle",
       "archetype_id": 129,
       "category_id": 9,
-      "complete_equipment_mapping": false,
+      "complete_equipment_mapping": true,
       "equipment": [
         {
           "source_item_id": 111622,
@@ -6135,8 +6132,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900110,
+          "mapping": "new_staged_wardrobe_definition"
         }
       ],
       "appearance_unlocks": [
@@ -6148,7 +6145,8 @@
         23390,
         23391,
         45983,
-        45984
+        45984,
+        900110
       ],
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
@@ -7114,7 +7112,7 @@
       "name": "Wind Rager Vanity Bundle",
       "archetype_id": 141,
       "category_id": 9,
-      "complete_equipment_mapping": false,
+      "complete_equipment_mapping": true,
       "equipment": [
         {
           "source_item_id": 81881,
@@ -7234,8 +7232,8 @@
           "source_is_equippable": true,
           "grant_mode": "appearance_unlock_only",
           "grant_item": false,
-          "appearance_id": null,
-          "mapping": "needs_mapping"
+          "appearance_id": 900111,
+          "mapping": "new_staged_wardrobe_definition"
         }
       ],
       "appearance_unlocks": [
@@ -7248,7 +7246,8 @@
         179670,
         179671,
         179672,
-        179691
+        179691,
+        900111
       ],
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
