@@ -8,4 +8,4 @@ Runtime patch targets the existing Area 52 reconstruction, not bare upstream. Up
 
 Verification: build and unit stages passed through verify_all.py; focused harness reproduced the 454 missing mappings and checked complete repaired coverage and preservation of existing records/other archive members. C++ style passed. These checks do not claim in-game acceptance.
 
-Status: source implemented; paired server binary/catalog and client archive staged. Not activated, installed or released. Activation needs both catalogs and the server binary. Existing collectors should relog after activation; no re-opening or new mail required.
+Status: paired server binary/catalog activated on Area 52 and local client archive installed with rollback backups. Startup and mounted catalog hash verified; protected services unchanged. Tester launcher assets have not been republished for this repair. Existing collectors should relog after activation; no re-opening or new mail required.
