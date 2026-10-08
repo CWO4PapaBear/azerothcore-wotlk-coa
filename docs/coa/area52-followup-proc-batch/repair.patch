@@ -1,0 +1,262 @@
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -45,6 +45,9 @@
+ 
+ #include "Area52AdvancementProcRules.h"
+ #include "Area52AdvancementProcs.inc"
++#include "Area52FollowupProcRules.h"
++#include "AllSpellScript.h"
++#include "Area52FollowupProcs.inc"
+ 
+ namespace AscensionMysticEnchant
+ {
+@@ -817,6 +820,8 @@
+ void AddSC_AscensionMysticEnchant()
+ {
+     RegisterSpellScript(spell_area52_advancement_proc);
++    RegisterSpellScript(spell_area52_followup_proc);
++    new area52_followup_casts();
+     using namespace AscensionMysticEnchant;
+     AscensionCompatOpcodes::Claim(0x60F, Handle);
+     AscensionCompatOpcodes::Claim(0x617, Handle);
+--- /dev/null
++++ b/src/server/coa/Area52FollowupProcRules.h
+@@ -0,0 +1,70 @@
++#ifndef AREA52_FOLLOWUP_PROC_RULES_H
++#define AREA52_FOLLOWUP_PROC_RULES_H
++#include <cstdint>
++namespace Area52FollowupProcs
++{
++inline bool WindRush(bool freePick, bool capstone, std::uint32_t root, bool successfulInterrupt)
++{
++    return freePick && capstone && root == 57994 && successfulInterrupt;
++}
++struct Event
++{
++    bool FreePick = false;
++    bool OwnerIsActor = false;
++    bool Periodic = false;
++    bool Damage = false;
++    bool Healing = false;
++    bool Critical = false;
++    std::uint32_t Root = 0;
++};
++inline std::uint32_t Trigger(std::uint32_t aura, Event const& event)
++{
++    if (!event.FreePick || !event.OwnerIsActor)
++        return 0;
++    if (aura == 34493)
++        return event.Periodic && event.Damage &&
++            (event.Root == 13797 || event.Root == 13812 || event.Root == 3674) ? 734493 : 0;
++    if (event.Periodic)
++        return 0;
++    switch (aura)
++    {
++        case 16288:
++            return event.Root == 2645 ? 965489 : 0;
++        case 63506:
++            return event.Root == 2061 ? 415011 : 0;
++        case 17958:
++            return event.Root == 5676 || event.Root == 29722 || event.Root == 2948 || event.Root == 133 ? 411119 : 0;
++        case 12318: case 12857:
++            if (event.Root == 6673)
++                return aura == 12318 ? 812316 : 812318;
++            if (event.Root == 469)
++                return aura == 12318 ? 812317 : 812319;
++            return 0;
++        case 16219:
++            return event.Healing && event.Critical &&
++                (event.Root == 331 || event.Root == 61295 || event.Root == 8004 || event.Root == 1064) ? 986107 : 0;
++        case 863372:
++            if (!event.Damage)
++                return 0;
++            switch (event.Root)
++            {
++                case 8042: return 863375;
++                case 8050: return 863376;
++                case 8056: return 863377;
++                default: return 0;
++            }
++        default: return 0;
++    }
++}
++inline std::int32_t TidalExtension(std::uint32_t root)
++{
++    switch (root)
++    {
++        case 331: case 61295: return 2000;
++        case 8004: return 1000;
++        case 1064: return 500;
++        default: return 0;
++    }
++}
++}
++#endif
+--- /dev/null
++++ b/src/server/coa/Area52FollowupProcs.inc
+@@ -0,0 +1,82 @@
++class spell_area52_followup_proc : public AuraScript
++{
++    PrepareAuraScript(spell_area52_followup_proc);
++
++    bool Validate(SpellInfo const*) override
++    {
++        return ValidateSpellInfo({965489, 415011, 411119, 734493, 812316, 812317, 812318,
++            812319, 986107, 863375, 863376, 863377});
++    }
++
++    Area52FollowupProcs::Event Facts(ProcEventInfo& event)
++    {
++        Area52FollowupProcs::Event facts;
++        Player* owner = GetTarget()->ToPlayer();
++        facts.FreePick = owner && AscensionFreePick::Applies(owner);
++        facts.OwnerIsActor = event.GetActor() == GetTarget();
++        facts.Periodic = (event.GetTypeMask() & PROC_FLAG_DONE_PERIODIC) != 0;
++        facts.Damage = event.GetDamageInfo() && event.GetDamageInfo()->GetDamage() > 0;
++        facts.Healing = event.GetHealInfo() != nullptr;
++        facts.Critical = (event.GetHitMask() & PROC_HIT_CRITICAL) != 0;
++        facts.Root = event.GetSpellInfo() ? event.GetSpellInfo()->GetFirstRankSpell()->Id : 0;
++        return facts;
++    }
++
++    bool CheckProc(ProcEventInfo& event)
++    {
++        return Area52FollowupProcs::Trigger(GetId(), Facts(event)) != 0;
++    }
++
++    void HandleProc(AuraEffect const* effect, ProcEventInfo& event)
++    {
++        PreventDefaultAction();
++        if (GetId() == 17958 && effect->GetEffIndex() != EFFECT_1)
++            return;
++        auto const facts = Facts(event);
++        uint32 const trigger = Area52FollowupProcs::Trigger(GetId(), facts);
++        Unit* owner = GetTarget();
++        if (GetId() == 16219)
++        {
++            int32 duration = Area52FollowupProcs::TidalExtension(facts.Root);
++            owner->CastCustomSpell(owner, trigger, &duration, nullptr, nullptr, true, nullptr, effect);
++            return;
++        }
++        if (GetId() == 34493)
++        {
++            int32 reduction = -1000;
++            owner->CastCustomSpell(owner, trigger, &reduction, &reduction, &reduction, true, nullptr, effect);
++            return;
++        }
++        owner->CastSpell(owner, trigger, true, nullptr, effect);
++        if (GetId() == 12318 || GetId() == 12857)
++            if (Aura* buff = owner->GetAura(trigger, owner->GetGUID()))
++            {
++                buff->SetMaxDuration(10 * MINUTE * IN_MILLISECONDS);
++                buff->SetDuration(buff->GetMaxDuration());
++            }
++    }
++
++    void Register() override
++    {
++        DoCheckProc += AuraCheckProcFn(spell_area52_followup_proc::CheckProc);
++        OnEffectProc += AuraEffectProcFn(spell_area52_followup_proc::HandleProc, EFFECT_ALL, SPELL_AURA_PROC_TRIGGER_SPELL);
++    }
++};
++
++class area52_followup_casts : public AllSpellScript
++{
++public:
++    area52_followup_casts() : AllSpellScript("area52_followup_casts",
++        {ALLSPELLHOOK_ON_SUCCESSFUL_INTERRUPT}) { }
++
++    void OnSpellSuccessfulInterrupt(Spell* spell, Unit*) override
++    {
++        Player* player = spell && spell->GetCaster() ? spell->GetCaster()->ToPlayer() : nullptr;
++        if (!player || !Area52FollowupProcs::WindRush(AscensionFreePick::Applies(player),
++            player->HasAura(32511), spell->GetSpellInfo()->GetFirstRankSpell()->Id, true) ||
++            spell->GetScriptValue(411139))
++            return;
++        spell->SetScriptValue(411139, 1);
++        player->CastSpell(player, 411139, true);
++    }
++};
+--- /dev/null
++++ b/apps/coa-tests/area52_followup_procs/run.py
+@@ -0,0 +1,57 @@
++from pathlib import Path
++import subprocess,tempfile,sqlite3,re
++root=Path(__file__).resolve().parents[3]
++source=r'''#include "Area52FollowupProcRules.h"
++#include <cassert>
++#include <initializer_list>
++using namespace Area52FollowupProcs;
++int main()
++{
++    assert(WindRush(true,true,57994,true));
++    assert(!WindRush(true,true,57994,false));
++    assert(!WindRush(true,false,57994,true));
++    assert(!WindRush(false,true,57994,true));
++    assert(!WindRush(true,true,1766,true));
++    Event e; e.FreePick=true; e.OwnerIsActor=true;
++    e.Root=2645; assert(Trigger(16288,e)==965489);
++    e.Root=2061; assert(Trigger(63506,e)==415011); assert(!Trigger(16288,e));
++    for (auto root : {5676u,29722u,2948u,133u}) {e.Root=root; assert(Trigger(17958,e)==411119);}
++    e.Root=116; assert(!Trigger(17958,e));
++    e.Root=6673; assert(Trigger(12318,e)==812316 && Trigger(12857,e)==812318);
++    e.Root=469; assert(Trigger(12318,e)==812317 && Trigger(12857,e)==812319);
++    e.Healing=true; e.Critical=true;
++    for (auto root : {331u,61295u,8004u,1064u}) {e.Root=root; assert(Trigger(16219,e)==986107);}
++    assert(TidalExtension(331)==2000 && TidalExtension(61295)==2000);
++    assert(TidalExtension(8004)==1000 && TidalExtension(1064)==500);
++    e.Critical=false; assert(!Trigger(16219,e)); e.Critical=true; e.Periodic=true; assert(!Trigger(16219,e));
++    e.Damage=true;
++    for (auto root : {13797u,13812u,3674u}) {e.Root=root; assert(Trigger(34493,e)==734493);}
++    e.Root=1978; assert(!Trigger(34493,e)); e.Periodic=false; e.Root=3674; assert(!Trigger(34493,e));
++    e.Root=8042; assert(Trigger(863372,e)==863375);
++    e.Root=8050; assert(Trigger(863372,e)==863376);
++    e.Root=8056; assert(Trigger(863372,e)==863377);
++    e.Periodic=true; assert(!Trigger(863372,e)); e.Periodic=false;
++    e.Damage=false; assert(!Trigger(863372,e)); e.Damage=true;
++    e.FreePick=false; assert(!Trigger(863372,e)); e.FreePick=true; e.OwnerIsActor=false; assert(!Trigger(863372,e));
++}
++'''
++with tempfile.TemporaryDirectory() as directory:
++    path=Path(directory);(path/'test.cpp').write_text(source)
++    subprocess.run(['c++','-std=c++20','-Wall','-Wextra','-Werror','-I',str(root/'src/server/coa'),str(path/'test.cpp'),'-o',str(path/'test')],check=True)
++    subprocess.run([str(path/'test')],check=True)
++sql=(root/'data/sql/updates/pending_db_world/rev_20261008_10_area52_followup_procs.sql').read_text()
++db=sqlite3.connect(':memory:')
++for table in ('spell_proc','spell_script_names'):
++    columns=re.search(r'INSERT INTO `'+table+r'` \(([^)]+)\)',sql)[1]
++    db.execute('CREATE TABLE '+table+' ('+columns+')')
++db.execute('INSERT INTO spell_proc (SpellId,Chance) VALUES (99999999,73)')
++db.execute("INSERT INTO spell_script_names VALUES (16288,'unrelated')")
++db.executescript(sql)
++first=[db.execute('SELECT * FROM '+t).fetchall() for t in ('spell_proc','spell_script_names')]
++db.executescript(sql)
++assert first==[db.execute('SELECT * FROM '+t).fetchall() for t in ('spell_proc','spell_script_names')]
++assert len(first[0])==9 and len(first[1])==9
++assert db.execute('SELECT Cooldown FROM spell_proc WHERE SpellId=16288').fetchone()==(20000,)
++assert db.execute('SELECT Cooldown FROM spell_proc WHERE SpellId=34493').fetchone()==(1000,)
++assert db.execute('SELECT DisableEffectsMask FROM spell_proc WHERE SpellId=17958').fetchone()==(4,)
++print('PASS: seven event policies, target ownership, critical/periodic exclusions, duration increments and SQL replay isolation.')
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261008_10_area52_followup_procs.sql
+@@ -0,0 +1,20 @@
++DELETE FROM `spell_proc` WHERE `SpellId` IN (16288,63506,17958,34493,12318,12857,16219,863372);
++INSERT INTO `spell_proc` (`SpellId`,`SchoolMask`,`SpellFamilyName`,`SpellFamilyMask0`,`SpellFamilyMask1`,`SpellFamilyMask2`,`ProcFlags`,`SpellTypeMask`,`SpellPhaseMask`,`HitMask`,`AttributesMask`,`DisableEffectsMask`,`ProcsPerMinute`,`Chance`,`Cooldown`,`Charges`) VALUES
++(16288,0,0,0,0,0,17408,0,1,0,0,0,0,100,20000,0),
++(63506,0,0,0,0,0,17408,0,1,0,0,0,0,100,0,0),
++(17958,0,0,0,0,0,69632,0,1,0,0,4,0,100,0,0),
++(34493,0,0,0,0,0,262144,1,2,0,0,0,0,100,1000,0),
++(12318,0,0,0,0,0,17408,0,1,0,0,0,0,100,0,0),
++(12857,0,0,0,0,0,17408,0,1,0,0,0,0,100,0,0),
++(16219,0,0,0,0,0,17408,2,2,2,0,0,0,100,0,0),
++(863372,0,0,0,0,0,65536,1,2,0,0,0,0,100,0,0);
++DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_area52_followup_proc' AND `spell_id` IN (16288,63506,17958,34493,12318,12857,16219,863372);
++INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES
++(16288,'spell_area52_followup_proc'),
++(63506,'spell_area52_followup_proc'),
++(17958,'spell_area52_followup_proc'),
++(34493,'spell_area52_followup_proc'),
++(12318,'spell_area52_followup_proc'),
++(12857,'spell_area52_followup_proc'),
++(16219,'spell_area52_followup_proc'),
++(863372,'spell_area52_followup_proc');

@@ -1,0 +1,9 @@
+Area 52 follow-up proc repairs
+
+Nine catalog entries (eight unique designs) are implemented from the remaining 31-entry review. review.json accounts for all 31. This is a focused runtime adaptation for the independent Area 52 reconstruction, not a patch that applies directly to bare upstream main. The registration hunk follows the prior six-repair batch; the new handlers are separate. Upstream reviewed: fc359be9bf79ffb532c192d7afe754be21feba40. PTR comparison: e1823bb2db751a7cc0a90a8543e778449ebf7d84. Primary client descriptions and effective server records were inspected; unrelated CoA-only class behavior was not imported.
+
+Reuse native helper effects where their data already specifies the correct behavior. Area 52 checks and exact originating spell roots prevent unrelated casts from activating these handlers. Wind Rush uses the existing successful-interrupt hook instead of treating a cast as an interrupt. Commanding Presence corrects the one-hour helper duration to the visible ten-minute description. Resourcefulness forwards exactly -1000ms to all three cooldown effects. Emberstorm suppresses the separate Wild Felfire proc effect to avoid unrelated or duplicate reductions.
+
+VERIFY ALL: PASSED for build, unit and focused harness (verification-windrush/report.json in local task output). C++ and SQL style passed. SQL replay uses an in-memory fixture, not a live migration; live reads confirmed zero conflicting proc, script and spell_dbc overrides for reviewed parent/helper IDs. No combat certification or reconnect persistence claim. Full unrelated-checkout source suite was not run. These changes do not learn/remove spells or change talent rank acquisition.
+
+Not activated, not marked VERIFIED, no tooltip or client release changes. Remaining 22 entries are still NOT VERIFIED. Shadow Power's prior partial repair is outside this 31-entry subset. Planned activation requires the owner's three-minute restart announcement/countdown.

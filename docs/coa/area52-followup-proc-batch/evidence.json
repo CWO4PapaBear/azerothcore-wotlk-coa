@@ -1,0 +1,20 @@
+{
+  "verification": "passed",
+  "stages": [
+    "build",
+    "unit",
+    "area52_followup_procs harness"
+  ],
+  "scope": "Event policies and SQL replay isolation; not simulated combat or live activation.",
+  "source_sha256": {
+    "src/server/coa/Area52FollowupProcRules.h": "23339c6bc3edf2d0d39bcaff05792adba167bb02b604b538a9a676d1a5eb1716",
+    "src/server/coa/Area52FollowupProcs.inc": "2675774beed795815ae577a40d9ade76c9f277dcbbe25127b28f61a1edbaeddc",
+    "apps/coa-tests/area52_followup_procs/run.py": "4ac0eb3aa71d110a8372640a9d86227265118c74266147633e8ac2b0e568d0f5",
+    "data/sql/updates/pending_db_world/rev_20261008_10_area52_followup_procs.sql": "66c515f3dbcf776a2f5deb6fe4614c4137f13333f62d1fbc722c60206f385368"
+  },
+  "live_override_counts": {
+    "spell_proc": "matching_rows\n0\n",
+    "spell_script_names": "matching_rows\n0\n",
+    "spell_dbc": "matching_rows\n0\n"
+  }
+}
