@@ -1,0 +1,1842 @@
+[
+  {
+    "kind": "advancement",
+    "id": 2841,
+    "name": "Wrath",
+    "spells": [
+      5176,
+      5177,
+      5178,
+      5179,
+      5180,
+      6780,
+      8905,
+      9912,
+      26984,
+      26985,
+      48459,
+      48461
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2688,
+    "name": "Thorns",
+    "spells": [
+      467,
+      782,
+      1075,
+      8914,
+      9756,
+      9910,
+      26992,
+      53307
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2679,
+    "name": "Entangling Roots",
+    "spells": [
+      339,
+      1062,
+      5195,
+      5196,
+      9852,
+      9853,
+      26989,
+      53308
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2810,
+    "name": "Hibernate",
+    "spells": [
+      2637,
+      18657,
+      18658
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2729,
+    "name": "Faerie Fire",
+    "spells": [
+      770
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2822,
+    "name": "Starfire",
+    "spells": [
+      2912,
+      8949,
+      8950,
+      8951,
+      9875,
+      9876,
+      25298,
+      26986,
+      48464,
+      48465
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 1624,
+    "name": "Hypnosis",
+    "spells": [
+      955072
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 1614,
+    "name": "Starsurge",
+    "spells": [
+      954800,
+      955023,
+      955024,
+      955025,
+      955026,
+      955027,
+      955028,
+      955029
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2932,
+    "name": "Hurricane",
+    "spells": [
+      16914,
+      17401,
+      17402,
+      27012,
+      42230,
+      42231,
+      42232,
+      42233,
+      48466,
+      48467
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2962,
+    "name": "Barkskin",
+    "spells": [
+      22812
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2935,
+    "name": "Teleport: Moonglade",
+    "spells": [
+      18960
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 1208,
+    "name": "Stampeding Roar",
+    "spells": [
+      954508
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2662,
+    "name": "Demoralizing Roar",
+    "spells": [
+      99,
+      1735,
+      9490,
+      9747,
+      9898,
+      26998,
+      48559,
+      48560
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2881,
+    "name": "Growl",
+    "spells": [
+      6795
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2931,
+    "name": "Faerie Fire (Feral)",
+    "spells": [
+      16857
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2844,
+    "name": "Bash",
+    "spells": [
+      5211,
+      6798,
+      8983
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2990,
+    "name": "Lacerate",
+    "spells": [
+      33745,
+      48567,
+      48568,
+      300933,
+      300934,
+      300935,
+      300936,
+      300937,
+      300938,
+      300939
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2882,
+    "name": "Maul",
+    "spells": [
+      6807,
+      6808,
+      6809,
+      8972,
+      9745,
+      9880,
+      9881,
+      26996,
+      48479,
+      48480
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2734,
+    "name": "Travel Form",
+    "spells": [
+      783
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2728,
+    "name": "Cat Form",
+    "spells": [
+      768,
+      1082,
+      3029,
+      5201,
+      9849,
+      9850,
+      27000,
+      48569,
+      48570
+    ],
+    "checks": {
+      "connections": {
+        "result": "fail",
+        "evidence": [
+          {
+            "kind": "trigger_not_in_dbc",
+            "spell": 768
+          }
+        ]
+      },
+      "granted_abilities": {
+        "result": "pending",
+        "evidence": [
+          "Grant or custom-script ownership review required."
+        ]
+      },
+      "persistence": {
+        "result": "pending",
+        "evidence": [
+          "Special grant/replacement lifecycle not covered by the common persistence profile."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pending",
+        "evidence": []
+      }
+    },
+    "status": "Needs Investigation",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2847,
+    "name": "Shred",
+    "spells": [
+      5221,
+      6800,
+      8992,
+      9829,
+      9830,
+      27001,
+      27002,
+      48571,
+      48572
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 3032,
+    "name": "Swipe (Cat)",
+    "spells": [
+      62078
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2783,
+    "name": "Rake",
+    "spells": [
+      1822,
+      1823,
+      1824,
+      9904,
+      27003,
+      48573,
+      48574
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2879,
+    "name": "Ravage",
+    "spells": [
+      6785,
+      6787,
+      9866,
+      9867,
+      27005,
+      48578,
+      48579
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 306,
+    "name": "Ferocious Bite",
+    "spells": [
+      22568,
+      22827,
+      22828,
+      22829,
+      24248,
+      31018,
+      48576,
+      48577,
+      300905,
+      300906,
+      300907
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2915,
+    "name": "Pounce",
+    "spells": [
+      9005,
+      9007,
+      9823,
+      9824,
+      9826,
+      9827,
+      27006,
+      27007,
+      49803,
+      49804
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2845,
+    "name": "Prowl",
+    "spells": [
+      5215
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2754,
+    "name": "Mark of the Wild",
+    "spells": [
+      1126,
+      5232,
+      5234,
+      6756,
+      8907,
+      9884,
+      9885,
+      21849,
+      21850,
+      26990,
+      26991,
+      48469,
+      48470
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 621,
+    "name": "Improved Mark of the Wild",
+    "spells": [
+      17050,
+      17051
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Talent ranks match advancement selection; books must not grant talent ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2842,
+    "name": "Healing Touch",
+    "spells": [
+      5185,
+      5186,
+      5187,
+      5188,
+      5189,
+      6778,
+      8903,
+      9758,
+      9888,
+      9889,
+      25297,
+      26978,
+      26979,
+      48377,
+      48378
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2912,
+    "name": "Regrowth",
+    "spells": [
+      8936,
+      8938,
+      8939,
+      8940,
+      8941,
+      9750,
+      9856,
+      9857,
+      9858,
+      26980,
+      48442,
+      48443
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Client/server chains agree; common selected-ability book path.",
+          "Reviewed RankUpgrades/LearnRankUpgrade selected AE path and level gates; candidate native rank cases passed. Per-entry client/server chains checked; talents excluded from books."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 626,
+    "name": "Natural Shapeshifter",
+    "spells": [
+      16833,
+      16834,
+      16835
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Talent ranks match advancement selection; books must not grant talent ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 634,
+    "name": "Tranquil Spirit",
+    "spells": [
+      24968,
+      24969,
+      24970,
+      24971,
+      24972
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Talent ranks match advancement selection; books must not grant talent ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2731,
+    "name": "Rejuvenation",
+    "spells": [
+      774,
+      1058,
+      1430,
+      2090,
+      2091,
+      3627,
+      8910,
+      9839,
+      9840,
+      9841,
+      25299,
+      26981,
+      26982,
+      48440,
+      48441
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pending",
+        "evidence": [
+          "Grant or custom-script ownership review required."
+        ]
+      },
+      "persistence": {
+        "result": "pending",
+        "evidence": [
+          "Special grant/replacement lifecycle not covered by the common persistence profile."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pending",
+        "evidence": []
+      }
+    },
+    "status": "Structurally Connected, Unverified",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 630,
+    "name": "Improved Rejuvenation",
+    "spells": [
+      17111,
+      17112,
+      17113
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Talent ranks match advancement selection; books must not grant talent ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 3284,
+    "name": "Natural Alacrity",
+    "spells": [
+      17116
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 2919,
+    "name": "Evocation",
+    "spells": [
+      12051
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "No higher rank in the reviewed effective graph."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  },
+  {
+    "kind": "advancement",
+    "id": 628,
+    "name": "Gift of Nature",
+    "spells": [
+      17104,
+      24943,
+      24944,
+      24945,
+      24946
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Effective effect/handler graph has no unresolved connection flags."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Talent ranks match advancement selection; books must not grant talent ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": true,
+    "certification": {
+      "source": "Owner-reported tester certification in this conversation",
+      "date": "2026-10-08",
+      "scope": "Named ability/talent accepted by testers; engineering checks retained independently."
+    }
+  }
+]

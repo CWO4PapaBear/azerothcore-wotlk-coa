@@ -1,0 +1,3 @@
+Tester acceptance reported by the owner on 2026-10-08 covers these 38 named advancement abilities/talents. Engineering statuses and checks are retained independently: Cat Form and Rejuvenation still have open engineering-review flags. This report does not claim individual rank-by-rank testing.
+
+Client candidate changes only existing status labels for the 228 associated spell IDs to green CERTIFIED. No description, SHIFT markup, server mechanics, or rank data is intentionally changed. Candidate remains staged, not installed or released. Palette: NOT VERIFIED red, VERIFIED yellow, CERTIFIED green. Proprietary client assets are excluded.
