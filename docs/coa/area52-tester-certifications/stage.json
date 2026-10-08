@@ -1,5 +1,5 @@
 {
-  "status": "staged_not_installed",
+  "status": "installed_and_published",
   "entries": 38,
   "tooltip_spells": 228,
   "before_sha256": "deeac8b4504b30c3fa22904836960eb095669b9219785af02383849435053079",
@@ -233,5 +233,8 @@
     955028,
     955029,
     955072
-  ]
+  ],
+  "client_source_commit": "97345d9c93d67fd1cdbd0dfe46890307eadf8722",
+  "manifest_sha256": "5f5d927c91656ceaff90e4d78fc3b6263f404acdb9e819607ba58294ea38e6e9",
+  "launcher_live_verification": "passed"
 }

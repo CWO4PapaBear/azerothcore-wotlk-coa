@@ -1,0 +1,5 @@
+{
+  "status": "passed",
+  "runner": "python -B tools/verify_all.py --stages harness --harness area52_certifications",
+  "scope": "228 labels exactly replaced; all other descriptions, SHIFT text, DBC fields and archive members unchanged."
+}
