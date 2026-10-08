@@ -1,0 +1,11 @@
+{
+  "scope": "Area52 Free Pick Hero caster, sleep 24131 triggered by aura 19386 only. Other sources/realms remain unchanged.",
+  "source_tracking": "CastSpell passes the triggering AuraEffect; existing engine SetTriggeredByAuraSpellInfo tracks aura provenance. Damage interruption skips only Serpent Sting rank root 1978 for that provenance.",
+  "expiry": "Damage reduction aura 19386 triggers sleep only on natural expiry, not dispel or other removal. Existing legacy stun-removal handler remains unchanged.",
+  "tooltip": "Shared sleep tooltip unchanged. No client archive modification.",
+  "upstream": "c0e0dbc855cc02f5754c1e1cd1faf9eb2e2fe917",
+  "verification": "passed",
+  "test_scope": "Build, unit and focused policy harness passed. Explicit negative cases for other poison, nonspell damage, other origins and non-FreePick mode. No in-game or full reconnect claim.",
+  "remaining": "Life Tap redesign and obsolete rank removal remain separate. This change does not mark Wyvern Sting VERIFIED.",
+  "activation": "Not activated; source candidate only."
+}

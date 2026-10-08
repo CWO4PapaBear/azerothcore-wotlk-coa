@@ -1,0 +1,94 @@
+--- /dev/null
++++ b/src/server/coa/Area52WyvernSleep.h
+@@ -0,0 +1,15 @@
++#ifndef AREA52_WYVERN_SLEEP_H
++#define AREA52_WYVERN_SLEEP_H
++
++#include <cstdint>
++
++namespace Area52WyvernSleep
++{
++constexpr bool PreservesSleep(bool freePick, std::uint32_t sleep, std::uint32_t source,
++    std::uint32_t damageRoot)
++{
++    return freePick && sleep == 24131 && source == 19386 && damageRoot == 1978;
++}
++}
++
++#endif
+--- /dev/null
++++ b/apps/coa-tests/area52_wyvern_sleep/run.py
+@@ -0,0 +1,19 @@
++from pathlib import Path
++import subprocess,tempfile
++root=Path(__file__).resolve().parents[3]
++source='''#include "Area52WyvernSleep.h"
++using Area52WyvernSleep::PreservesSleep;
++static_assert(PreservesSleep(true,24131,19386,1978));
++static_assert(!PreservesSleep(false,24131,19386,1978));
++static_assert(!PreservesSleep(true,24131,619386,1978));
++static_assert(!PreservesSleep(true,24131,0,1978));
++static_assert(!PreservesSleep(true,24131,19386,2818));
++static_assert(!PreservesSleep(true,24131,19386,0));
++static_assert(!PreservesSleep(true,24134,19386,1978));
++int main(){}
++'''
++with tempfile.TemporaryDirectory() as d:
++ p=Path(d);(p/'test.cpp').write_text(source)
++ subprocess.run(['c++','-std=c++20','-I'+str(root/'src/server/coa'),str(p/'test.cpp'),'-o',str(p/'test')],check=True)
++ subprocess.run([str(p/'test')],check=True)
++print('Area52 Wyvern-origin sleep alone exempts Serpent Sting; other poison, damage, sources and realms unchanged.')
+--- a/src/server/game/Entities/Unit/Unit.cpp
++++ b/src/server/game/Entities/Unit/Unit.cpp
+@@ -17,6 +17,7 @@
+ 
+ #include "Unit.h"
+ #include "../../../coa/AscensionFreePick.h"
++#include "../../../coa/Area52WyvernSleep.h"
+ #include "AbstractFollower.h"
+ #include "AreaDefines.h"
+ #include "ArenaSpectator.h"
+@@ -6020,6 +6021,14 @@
+     {
+         Aura* aura = (*iter)->GetBase();
+         ++iter;
++        if ((flag & AURA_INTERRUPT_FLAG_TAKE_DAMAGE) && except && aura->GetId() == 24131)
++        {
++            Unit* caster = aura->GetCaster();
++            SpellInfo const* source = aura->GetTriggeredByAuraSpellInfo();
++            if (Area52WyvernSleep::PreservesSleep(caster && AscensionFreePick::Applies(caster->ToPlayer()),
++                aura->GetId(), source ? source->Id : 0, sSpellMgr->GetFirstSpellInChain(except)))
++                continue;
++        }
+         uint32 const auraFlags = mobileChannel && aura->GetId() == channelId
+             ? flag & ~(AURA_INTERRUPT_FLAG_MOVE | AURA_INTERRUPT_FLAG_TURNING) : flag;
+         if ((aura->GetSpellInfo()->AuraInterruptFlags & auraFlags) && (!except || aura->GetId() != except))
+--- a/src/server/scripts/Spells/spell_hunter.cpp
++++ b/src/server/scripts/Spells/spell_hunter.cpp
+@@ -16,6 +16,7 @@
+  */
+ 
+ #include "Cell.h"
++#include "../../coa/AscensionFreePick.h"
+ #include "CellImpl.h"
+ #include "GridNotifiers.h"
+ #include "Pet.h"
+@@ -146,9 +147,18 @@
+             caster->CastSpell(GetTarget(), sSpellMgr->GetSpellWithRank(SPELL_HUNTER_WYVERN_STING_DOT, GetSpellInfo()->GetRank()), true);
+     }
+ 
++    void HandleArea52Expire(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
++    {
++        Unit* caster = GetCaster();
++        if (GetId() == 19386 && caster && AscensionFreePick::Applies(caster->ToPlayer()) &&
++            GetTargetApplication()->GetRemoveMode() == AURA_REMOVE_BY_EXPIRE)
++            caster->CastSpell(GetTarget(), 24131, true, nullptr, aurEff);
++    }
++
+     void Register() override
+     {
+         AfterEffectRemove += AuraEffectRemoveFn(spell_hun_wyvern_sting::HandleEffectRemove, EFFECT_0, SPELL_AURA_MOD_STUN, AURA_EFFECT_HANDLE_REAL);
++        AfterEffectRemove += AuraEffectRemoveFn(spell_hun_wyvern_sting::HandleArea52Expire, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, AURA_EFFECT_HANDLE_REAL);
+     }
+ };
+ 
