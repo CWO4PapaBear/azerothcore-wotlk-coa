@@ -10,7 +10,7 @@ Contents:
 - 100,000 progression runes, item 375250 (client-facing Rune of Ascension; server item name is Rune of Descension).
 - 1,000 gold.
 - 500 common Unidentified Mystic Scrolls, 97866; stack size increased to 500.
-- Fel Enchanted Warchest, 657112.
+- Three 36-slot Mekkatorque's Neverending Storage Contraptions, 134993, replacing Fel Enchanted Warchest.
 - QA Mystic Altar, 3648545.
 - Five stackable Potion of Experience, 3818046.
 - Loot-Transfigurator 5000, 190190.

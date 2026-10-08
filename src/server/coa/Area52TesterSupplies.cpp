@@ -58,7 +58,7 @@ public:
         if (!AscensionFreepick::IsFreepickHero(player))
             return true;
         std::pair<uint32, uint32> const rewards[] = {
-            {375250, 100000}, {97866, 500}, {657112, 1}, {3648545, 1}, {3818046, 5},
+            {375250, 100000}, {97866, 500}, {134993, 3}, {3648545, 1}, {3818046, 5},
             {190190, 1}, {101169, 1}, {339075, 1}, {1642991, 1}
         };
         std::vector<std::unique_ptr<Item>> items;

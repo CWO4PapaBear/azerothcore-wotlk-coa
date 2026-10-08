@@ -69,8 +69,8 @@
       "action": "assert",
       "actor": "tester",
       "metric": "item_count",
-      "item": 657112,
-      "equals": 1
+      "item": 134993,
+      "equals": 3
     },
     {
       "action": "assert",
