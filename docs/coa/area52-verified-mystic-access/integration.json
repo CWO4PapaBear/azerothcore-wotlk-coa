@@ -12,13 +12,12 @@
   "default": "disabled; Area 52 Free Pick gates required",
   "triggers": [
     "Startup reads status list",
-    "Every 30 seconds rereads status file and configuration",
-    "Changed eligible list increments revision; online players asynchronously reload earned collection and merge access",
+    "No periodic polling; explicit collection refresh uses the startup-loaded list",
     "Login collection load and early ME spell restoration both merge access",
     "Equip retains existing ownership, requirements, slots and cost checks"
   ],
-  "ownership": "Temporary union only; account earned collection is not written. Disable configuration and reload configuration to remove temporary access; genuinely earned collection is retained.",
-  "promotion": "Regenerate reduced status list from authoritative engineering report and atomically replace mounted status file after verification promotions. No client patch needed.",
+  "ownership": "Temporary union only; account earned collection is not written. Disable configuration and restart Area 52 to remove temporary access; genuinely earned collection is retained.",
+  "promotion": "Regenerate reduced status list from authoritative engineering report and atomically replace mounted status file after verification promotions; restart Area 52 to load the updated list. No client patch needed.",
   "certification": "Include VERIFIED and CERTIFIED. Retire the rule explicitly after all certification completes; no automatic last-entry shutdown.",
   "verification": "Build, unit and focused C++ filtering harness passed; live activation and player acceptance pending."
 }

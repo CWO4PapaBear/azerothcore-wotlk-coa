@@ -8,40 +8,27 @@
  
  namespace AscensionMysticEnchant
  {
-@@ -49,6 +50,16 @@
+@@ -49,6 +50,11 @@
  Catalog Data;
  std::map<std::uint32_t, std::uint32_t> Connected;
  bool Active = false;
 +std::set<std::uint32_t> TestAccess;
-+std::mutex TestAccessLock;
-+std::atomic<std::uint64_t> TestAccessRevision{0};
-+
-+std::uint64_t AddTestAccess(std::set<std::uint32_t>& known)
++void AddTestAccess(std::set<std::uint32_t>& known)
 +{
-+    std::lock_guard<std::mutex> lock(TestAccessLock);
 +    known.insert(TestAccess.begin(), TestAccess.end());
-+    return TestAccessRevision.load();
 +}
  std::atomic<std::uint64_t> NextGeneration{0};
  constexpr char StateKey[] = "coa.freepick.mystic";
  constexpr std::array<std::uint32_t, 6> Prices = {0, 0, 300000, 600000, 1000000, 2500000};
-@@ -60,6 +71,7 @@
-     std::uint64_t Generation = ++NextGeneration;
-     bool Loaded = false;
-     bool Busy = false;
-+    std::uint64_t AccessRevision = 0;
- };
- 
- bool Applies(Player const* player)
-@@ -198,6 +210,7 @@
+@@ -198,6 +204,7 @@
                      if (Data.BySpell.contains(spell))
                          current->Known.insert(spell);
                  } while (result->NextRow());
-+            current->AccessRevision = AddTestAccess(current->Known);
++            AddTestAccess(current->Known);
              if (!current->Loaded)
                  for (auto const& [spell, entry] : Data.BySpell)
                      if (auto const* aura = owner->GetAura(spell, owner->GetGUID()))
-@@ -399,6 +412,7 @@
+@@ -399,6 +406,7 @@
  {
      Active = false;
      Connected.clear();
@@ -49,7 +36,7 @@
      if (!AscensionFreePick::Enabled() || !sConfigMgr->GetOption<bool>("CoA.FreePickMysticEnchants.Enable", false) ||
          !LoadCatalog(Data, GetClientDBCPath("MysticEnchant.dbc")))
          return;
-@@ -497,6 +511,33 @@
+@@ -497,6 +505,31 @@
          Data.BySpell.size());
  }
  
@@ -71,11 +58,9 @@
 +            LOG_ERROR("coa", "Area 52 verified Mystic Enchant access disabled: {}", error.what());
 +        }
 +    }
-+    std::lock_guard<std::mutex> lock(TestAccessLock);
 +    if (next != TestAccess)
 +    {
 +        TestAccess.swap(next);
-+        ++TestAccessRevision;
 +        LOG_INFO("coa", "Area 52 temporary verified Mystic Enchant access: {} entries", TestAccess.size());
 +    }
 +}
@@ -83,44 +68,16 @@
  void ClientConfig(AscensionClientConfig& config)
  {
      if (!Active)
-@@ -528,7 +569,19 @@
+@@ -528,7 +561,7 @@
  {
  public:
      MysticWorld() : WorldScript("FreePickMysticWorld") { }
 -    void OnStartup() override { LoadConnections(); }
 +    void OnStartup() override { LoadConnections(); RefreshTestAccess(); }
-+    void OnUpdate(uint32 diff) override
-+    {
-+        if (diff < Remaining)
-+            Remaining -= diff;
-+        else
-+        {
-+            Remaining = 30000;
-+            RefreshTestAccess();
-+        }
-+    }
-+private:
-+    uint32 Remaining = 30000;
  };
  
  class item_area52_unidentified_mystic final : public ItemScript
-@@ -625,7 +678,14 @@
-         if (Applies(player))
-             SendScrollProgress(player);
-     }
--    void OnPlayerUpdate(Player* player, uint32) override { ProcessScrollRequests(player); }
-+    void OnPlayerUpdate(Player* player, uint32) override
-+    {
-+        if (Applies(player))
-+            if (auto* state = player->CustomData.Get<State>(StateKey);
-+                state && state->Loaded && !state->Busy && state->AccessRevision != TestAccessRevision.load())
-+                Load(player);
-+        ProcessScrollRequests(player);
-+    }
-     void OnPlayerLogout(Player* player) override
-     {
-         std::lock_guard<std::mutex> lock(ScrollRequestLock);
-@@ -808,6 +868,7 @@
+@@ -808,6 +841,7 @@
              known.insert(result->Fetch()[0].Get<std::uint32_t>());
          } while (result->NextRow());
      auto const slots = ReadSlots(player);
