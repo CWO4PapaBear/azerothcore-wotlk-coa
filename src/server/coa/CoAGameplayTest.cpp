@@ -1910,6 +1910,8 @@ private:
             return unit->GetVictim() == GetUnit(step.get<std::string>("target")) ? 1.0 : 0.0;
         if (metric == "player_name")
             return unit->GetName() == step.get<std::string>("name") ? 1.0 : 0.0;
+        if (metric == "race")
+            return unit->getRace();
         if (metric == "name_lookup")
         {
             std::string name = step.get<std::string>("name");
@@ -3227,7 +3229,8 @@ private:
             metric == "pet_aura_amplitude_ms" || metric == "pet_aura_duration_ms" || metric == "pet_max_health" ||
             metric == "pet_health" ||
             metric == "pet_attack_power" || metric == "pet_run_speed_rate" || metric == "pet_is_banker" ||
-            metric == "pet_display" || metric == "pet_scale" || metric == "pet_knows_spell" ||
+            metric == "pet_display" || metric == "pet_native_display" || metric == "pet_scale" ||
+            metric == "pet_knows_spell" ||
             metric == "pet_distance" || metric == "pet_spell_bar_count")
         {
             Creature* pet = player->GetGuardianPet();
@@ -3241,6 +3244,8 @@ private:
                 return pet && pet->HasNpcFlag(UNIT_NPC_FLAG_BANKER);
             if (metric == "pet_display")
                 return pet ? pet->GetDisplayId() : 0;
+            if (metric == "pet_native_display")
+                return pet ? pet->GetNativeDisplayId() : 0;
             if (metric == "pet_scale")
                 return pet ? double(pet->GetObjectScale()) : 0.0;
             if (metric == "pet_spell_bar_count")
@@ -3991,8 +3996,20 @@ private:
             if (!_relogging)
             {
                 Player* player = GetPlayer(step.get<std::string>("actor"));
+                auto const race = step.get_optional<uint32>("race");
+                if (race)
+                    Require(*race > 0 && *race <= 255 && sObjectMgr->GetPlayerInfo(uint8(*race), player->getClass()),
+                        "Relog race needs an available race/class combination");
                 CharacterDatabaseTransaction transaction = CharacterDatabase.BeginTransaction();
                 player->SaveToDB(transaction, false, true);
+                if (race)
+                {
+                    CharacterDatabasePreparedStatement* change =
+                        CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHAR_RACE);
+                    change->SetData(0, uint8(*race));
+                    change->SetData(1, player->GetGUID().GetCounter());
+                    transaction->Append(change);
+                }
                 _relogSave.emplace(CharacterDatabase.AsyncCommitTransaction(transaction));
                 _relogging = true;
                 return;
@@ -4004,6 +4021,12 @@ private:
                 Require(_relogSave->m_future.get(), "Relog save transaction failed");
                 _relogSave.reset();
                 actor.session->LogoutPlayer(false);
+                if (auto race = step.get_optional<uint32>("race"))
+                {
+                    CharacterCacheEntry const* cached = sCharacterCache->GetCharacterCacheByGuid(actor.guid);
+                    Require(cached != nullptr, "Relog race needs a cached character");
+                    sCharacterCache->UpdateCharacterData(actor.guid, cached->Name, cached->Sex, uint8(*race));
+                }
                 LogIn(actor);
                 return;
             }
