@@ -1,0 +1,246 @@
+[
+  {
+    "kind": "advancement",
+    "id": 452,
+    "name": "Adaptive Defense",
+    "spells": [
+      12297,
+      12750,
+      12751,
+      12752,
+      12753
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Explicit Area 52 proc bindings and event, target and value handlers; build, unit, predicate and SQL replay checks passed."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Talent ranks match advancement selection; books must not grant talent ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 457,
+    "name": "Fracture",
+    "spells": [
+      12308,
+      12810,
+      12811
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Explicit Area 52 proc bindings and event, target and value handlers; build, unit, predicate and SQL replay checks passed."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Talent ranks match advancement selection; books must not grant talent ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 501,
+    "name": "Malice",
+    "spells": [
+      14138,
+      14139,
+      14140,
+      14141,
+      14142
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Explicit Area 52 proc bindings and event, target and value handlers; build, unit, predicate and SQL replay checks passed."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Talent ranks match advancement selection; books must not grant talent ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 519,
+    "name": "Improved Power Word: Shield",
+    "spells": [
+      14748,
+      14768,
+      14769
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Explicit Area 52 proc bindings and event, target and value handlers; build, unit, predicate and SQL replay checks passed."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Talent ranks match advancement selection; books must not grant talent ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 614,
+    "name": "Shredding Attacks",
+    "spells": [
+      16966,
+      16968,
+      816968
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Explicit Area 52 proc bindings and event, target and value handlers; build, unit, predicate and SQL replay checks passed."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Talent ranks match advancement selection; books must not grant talent ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "advancement",
+    "id": 866,
+    "name": "Empowering Frostbolt",
+    "spells": [
+      31682,
+      31683,
+      31684
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Explicit Area 52 proc bindings and event, target and value handlers; build, unit, predicate and SQL replay checks passed."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "No learn/replacement grant in the reviewed graph or description."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "advancement_spells",
+          "Reviewed selection SaveToDB and PlayerStorage spell/settings load path; player previously confirmed selected spells survive logout. Special script/grant entries excluded."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Talent ranks match advancement selection; books must not grant talent ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  }
+]

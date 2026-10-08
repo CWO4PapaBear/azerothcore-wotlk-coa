@@ -1,0 +1,31 @@
+{
+  "status": "staged_not_installed",
+  "before_sha256": "6e1c04d3e468fb04eb12530a5568890e910152e956c732a32c9ce3c4bc2c5415",
+  "after_sha256": "9fe7ee84a322b899cbe6e37b0f6421876f48482c2fad0e8b048863969743244d",
+  "label_changes": [
+    12297,
+    12308,
+    12750,
+    12751,
+    12752,
+    12753,
+    12810,
+    12811,
+    14138,
+    14139,
+    14140,
+    14141,
+    14142,
+    14748,
+    14768,
+    14769,
+    16966,
+    16968,
+    31682,
+    31683,
+    31684,
+    816968
+  ],
+  "promoted_entries": 6,
+  "requires": "Paired server proc repair activation"
+}
