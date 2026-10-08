@@ -1,0 +1,147 @@
+--- /dev/null
++++ b/src/server/coa/Area52LifeTap.h
+@@ -0,0 +1,20 @@
++#ifndef AREA52_LIFE_TAP_H
++#define AREA52_LIFE_TAP_H
++
++#include <algorithm>
++#include <cstdint>
++
++namespace Area52LifeTap
++{
++constexpr std::uint32_t Cost(std::uint32_t health, std::uint32_t mana)
++{
++    return std::max<std::uint32_t>(1, std::uint64_t(std::max(health, mana)) * 6 / 100);
++}
++
++constexpr bool CanPay(std::uint32_t currentHealth, std::uint32_t cost)
++{
++    return currentHealth > cost;
++}
++}
++
++#endif
+--- a/src/server/scripts/Spells/spell_warlock.cpp
++++ b/src/server/scripts/Spells/spell_warlock.cpp
+@@ -16,6 +16,8 @@
+  */
+ 
+ #include "AreaDefines.h"
++#include "../../coa/AscensionFreePick.h"
++#include "../../coa/Area52LifeTap.h"
+ #include "Pet.h"
+ #include "PetDefines.h"
+ #include "Player.h"
+@@ -820,7 +822,8 @@
+ 
+     bool Validate(SpellInfo const* /*spell*/) override
+     {
+-        return ValidateSpellInfo({ SPELL_WARLOCK_LIFE_TAP_ENERGIZE, SPELL_WARLOCK_LIFE_TAP_ENERGIZE_2 });
++        return ValidateSpellInfo({ SPELL_WARLOCK_LIFE_TAP_ENERGIZE, SPELL_WARLOCK_LIFE_TAP_ENERGIZE_2 }) &&
++            (!AscensionFreePick::Enabled() || ValidateSpellInfo({ 85059 }));
+     }
+ 
+     void HandleDummy(SpellEffIndex /*effIndex*/)
+@@ -828,8 +831,11 @@
+         Player* caster = GetCaster()->ToPlayer();
+         if (Unit* target = GetHitUnit())
+         {
+-            int32 spellEffect = GetEffectValue();
+-            int32 mana = int32(spellEffect + (caster->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_SHADOW) * 0.5f));
++            bool const area52 = GetSpellInfo()->Id == 1454 && AscensionFreePick::Applies(caster);
++            int32 spellEffect = area52 ? Area52LifeTap::Cost(caster->GetMaxHealth(), caster->GetMaxPower(POWER_MANA)) : GetEffectValue();
++            if (area52 && !Area52LifeTap::CanPay(caster->GetHealth(), spellEffect))
++                return;
++            int32 mana = area52 ? spellEffect : int32(spellEffect + (caster->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_SHADOW) * 0.5f));
+ 
+             // Shouldn't Appear in Combat Log
+             target->ModifyHealth(-spellEffect);
+@@ -838,7 +844,9 @@
+             if (AuraEffect const* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, WARLOCK_ICON_ID_IMPROVED_LIFE_TAP, 0))
+                 AddPct(mana, aurEff->GetAmount());
+ 
+-            caster->CastCustomSpell(target, SPELL_WARLOCK_LIFE_TAP_ENERGIZE, &mana, nullptr, nullptr, false);
++            caster->CastCustomSpell(target, SPELL_WARLOCK_LIFE_TAP_ENERGIZE, &mana, nullptr, nullptr, area52);
++            if (area52)
++                caster->CastSpell(caster, 85059, true);
+ 
+             // Mana Feed
+             int32 manaFeedVal = 0;
+@@ -847,7 +855,10 @@
+ 
+             if (manaFeedVal > 0)
+             {
+-                ApplyPct(manaFeedVal, mana);
++                if (area52)
++                    manaFeedVal = CalculatePct(mana, manaFeedVal);
++                else
++                    ApplyPct(manaFeedVal, mana);
+                 caster->CastCustomSpell(caster, SPELL_WARLOCK_LIFE_TAP_ENERGIZE_2, &manaFeedVal, nullptr, nullptr, true, nullptr);
+             }
+         }
+@@ -855,6 +866,10 @@
+ 
+     SpellCastResult CheckCast()
+     {
++        if (GetSpellInfo()->Id == 1454 && AscensionFreePick::Applies(GetCaster()->ToPlayer()))
++            return Area52LifeTap::CanPay(GetCaster()->GetHealth(),
++                Area52LifeTap::Cost(GetCaster()->GetMaxHealth(), GetCaster()->GetMaxPower(POWER_MANA)))
++                ? SPELL_CAST_OK : SPELL_FAILED_FIZZLE;
+         if ((int32(GetCaster()->GetHealth()) > int32(GetSpellInfo()->Effects[EFFECT_0].CalcValue())))
+             return SPELL_CAST_OK;
+         return SPELL_FAILED_FIZZLE;
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261008_08_area52_life_tap_unranked.sql
+@@ -0,0 +1,3 @@
++DELETE FROM `spell_ranks` WHERE `first_spell_id` = 1454;
++DELETE FROM `spell_script_names` WHERE `spell_id` IN (-1454, 1454) AND `ScriptName` = 'spell_warl_life_tap';
++INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (1454, 'spell_warl_life_tap');
+--- /dev/null
++++ b/apps/coa-tests/area52_life_tap/run.py
+@@ -0,0 +1,22 @@
++from pathlib import Path
++import subprocess,tempfile
++root=Path(__file__).resolve().parents[3]
++source='''#include "Area52LifeTap.h"
++using namespace Area52LifeTap;
++static_assert(Cost(10000,20000)==1200);
++static_assert(Cost(20000,10000)==1200);
++static_assert(Cost(10000,10000)==600);
++static_assert(Cost(101,0)==6);
++static_assert(Cost(1,0)==1);
++static_assert(Cost(4294967295u,0)==257698037u);
++static_assert(!CanPay(1200,1200));
++static_assert(!CanPay(1199,1200));
++static_assert(CanPay(1201,1200));
++int main(){}
++'''
++with tempfile.TemporaryDirectory() as d:
++ p=Path(d);(p/'test.cpp').write_text(source)
++ subprocess.run(['c++','-std=c++20','-I'+str(root/'src/server/coa'),str(p/'test.cpp'),'-o',str(p/'test')],check=True)
++ subprocess.run([str(p/'test')],check=True)
++print('Life Tap uses 6 percent of the higher maximum; rounding, wide arithmetic and nonlethal health boundaries pass.')
++
+--- /dev/null
++++ b/apps/coa-tests/area52_life_tap_ranks/run.py
+@@ -0,0 +1,21 @@
++from pathlib import Path
++import subprocess
++root=Path(__file__).resolve().parents[3]
++migration=(root/'data/sql/updates/pending_db_world/rev_20261008_08_area52_life_tap_unranked.sql').read_text()
++sql='''CREATE TEMPORARY TABLE ranks_before AS SELECT * FROM spell_ranks;
++CREATE TEMPORARY TABLE scripts_before AS SELECT * FROM spell_script_names;
++CREATE TEMPORARY TABLE spell_ranks AS SELECT * FROM ranks_before;
++CREATE TEMPORARY TABLE spell_script_names AS SELECT * FROM scripts_before;
++'''+migration+migration+'''
++SELECT COUNT(*) FROM spell_ranks WHERE first_spell_id=1454;
++SELECT COUNT(*) FROM spell_script_names WHERE spell_id=1454 AND ScriptName='spell_warl_life_tap';
++SELECT COUNT(*) FROM spell_script_names WHERE spell_id=-1454 AND ScriptName='spell_warl_life_tap';
++SELECT COUNT(*) FROM ranks_before b LEFT JOIN spell_ranks a USING(first_spell_id,spell_id,`rank`) WHERE b.first_spell_id<>1454 AND a.spell_id IS NULL;
++SELECT COUNT(*) FROM spell_ranks a LEFT JOIN ranks_before b USING(first_spell_id,spell_id,`rank`) WHERE b.spell_id IS NULL;
++SELECT COUNT(*) FROM scripts_before b LEFT JOIN spell_script_names a USING(spell_id,ScriptName) WHERE NOT(b.spell_id IN (-1454,1454) AND b.ScriptName='spell_warl_life_tap') AND a.spell_id IS NULL;
++SELECT COUNT(*) FROM spell_script_names a LEFT JOIN scripts_before b USING(spell_id,ScriptName) WHERE NOT(a.spell_id=1454 AND a.ScriptName='spell_warl_life_tap') AND b.spell_id IS NULL;
++'''
++data=subprocess.check_output(['docker','exec','-i','ascension-freepick-database','mysql','--defaults-extra-file=/run/secrets/mysql-root.cnf','-BN','acore_world'],input=sql.encode()).decode()
++assert list(map(int,data.split()))==[0,1,0,0,0,0,0],data
++print('Migration twice: obsolete Life Tap ranks removed, exact root handler bound once, every other chain and binding preserved including shared sleep. Temporary tables only.')
++

@@ -1,0 +1,20 @@
+{
+  "scope": "Independent Area52 reconstruction only; SQL must not be applied globally to other modes. Runtime branch applies only to Hero FreePick caster and spell 1454; existing other-mode handler retained.",
+  "upstream": "c0e0dbc855cc02f5754c1e1cd1faf9eb2e2fe917",
+  "definition": "Installed Area52 client root 1454: convert 6 percent of higher max health or mana, apply Tapped 85059. Client rank definition is unranked.",
+  "implementation": "Same cost formula for cast check and effect execution. Recheck health at execution. Keep Improved Life Tap bonus and Mana Feed with percentage calculation corrected only for Area52. Trigger existing mana restore and Tapped spells; DBC owns Tapped duration, stack cap and healing modifier.",
+  "ranks": "Remove obsolete 1454 upgrade chain; bind spell_warl_life_tap directly to 1454. Every unrelated chain/binding preserved.",
+  "verification": {
+    "verification-life-tap": "passed",
+    "verification-life-tap-ranks": "passed"
+  },
+  "limits": "Structural verification only. Player gameplay certification pending. No added permanent spells or special persistence needed.",
+  "source_sha256": {
+    "src/server/coa/Area52LifeTap.h": "5b1d9c2a4cb215c3aa91399a2adc8a5c650f0f23e215952acdb5340f959ae172",
+    "src/server/scripts/Spells/spell_warlock.cpp": "746c9e8cf102a930b9f2d1f3d4747a072de516fe433a45ab5b9bf44cd58399fd",
+    "data/sql/updates/pending_db_world/rev_20261008_08_area52_life_tap_unranked.sql": "dbfb0afa2a10191a980598e0f5146b4de82751853f492aa3384c08da6078c779",
+    "apps/coa-tests/area52_life_tap/run.py": "774b0578639b626a26101870b696fddb231b37081b161c2a71b77ce5ad86956f",
+    "apps/coa-tests/area52_life_tap_ranks/run.py": "ad61ee5d266a3f5dc7a68d5520e691004bd521e13f421a6db6869d563bf3aff9"
+  },
+  "activation": "Not activated; joins staged four-ability bundle."
+}
