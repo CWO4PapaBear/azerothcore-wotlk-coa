@@ -1,0 +1,45 @@
+{
+  "status": "staged_not_installed",
+  "scrolls": 3822,
+  "all_icons_and_collection_flags_verified": true,
+  "archive_sha256": "f441d3ab2b3c55492412d77d4dae8c1f04c4eb9401878a4ac25c60cbdef4d510",
+  "original_ui_sha256": "ee9bfb0093b39e77a60ef1c8fd88f90750feec353ee6abe2a12d1a8c9671d9a1",
+  "right_click": "native collection confirmation, 1 Mystic Extract or rune fallback",
+  "reroll": "existing animations and rarity reveal sounds via native item and result events",
+  "upstream_revision": "5346bc9aa3360b25ab8dd3a9b6f8f759470bd2bd",
+  "source_scope": "Patch for the deployed Area 52 account-wide Mystic Enchant implementation; not an automatic replacement for upstream character-specific handlers.",
+  "upstream_base": "5346bc9aa3360b25ab8dd3a9b6f8f759470bd2bd",
+  "runtime_source_before_sha256": "93407d5c989fbe2d17cab44206ec76d50a10312949aec666c787d2f253c93bdf",
+  "runtime_source_after_sha256": "eb618eae778c530535185cd0a0a5622914f56e6629bb143be81687de906c0dbf",
+  "currency": {
+    "item": 375250,
+    "name": "Rune of Descension",
+    "reroll": 250,
+    "reroll_money_fallback_copper": 25000,
+    "collection_extract_item": 98463,
+    "collection_extract_count": 1,
+    "extract_purchase_formula": "min(5000, mystic_level * 200 + 1000)"
+  },
+  "verification": {
+    "build": "passed",
+    "unit": "passed",
+    "server_workflow_harness": "passed",
+    "temporary_table_migration_and_idempotence": "passed",
+    "lua51_client_harness": "passed",
+    "cpp_sql_style": "passed",
+    "client_scroll_icons_and_catalog_flags": "3822 passed",
+    "gameplay": "Pending player acceptance; no restart or client installation performed."
+  },
+  "client_patch": {
+    "archive": "Data/area-52/patch-D.MPQ",
+    "ui_member": "Interface/AddOns/Ascension_EnchantCollection/EnchantCollection.lua",
+    "ui_operation": "Append Client-Scrolls.lua to the effective existing member; preserve other Area 52 customizations.",
+    "dbc_changes": [
+      "Item: use scroll item display mappings in scroll-items.json.",
+      "ItemDisplayInfo: reuse matching icon rows or add icon-only rows; icon strings are basenames.",
+      "ItemAddon: quality from scroll-items.json, flag 0x400000, name/description; item 375250 name Rune of Descension."
+    ],
+    "animations": "Native shockwave/glow and rarity sounds are preserved. New bag item plus 0x604 result invokes reveal; 0x609 then 0x5FA invokes collection feedback."
+  },
+  "activation": "Apply runtime.patch only to the matching deployed source, rebuild, apply its pending world SQL only on Area 52, mount staged Item/ItemDisplayInfo/ItemAddon DBCs, install the combined client archive while closed, and restart Area 52. Keep Bear Cave PTR shut down. This source publication does not publish launcher assets."
+}
