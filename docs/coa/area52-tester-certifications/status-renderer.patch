@@ -1,0 +1,20 @@
+diff --git a/tools/area52_verification/status.py b/tools/area52_verification/status.py
+index 6039eb7fc..44b6b798f 100644
+--- a/tools/area52_verification/status.py
++++ b/tools/area52_verification/status.py
+@@ -122,10 +122,12 @@ def build(audit, evidence_path):
+ 
+ 
+ def tooltip(status, certified=False):
+-    if status == 'VERIFIED':
+-        label, color = ('CERTIFIED' if certified else 'VERIFIED'), '00ff00'
++    if certified:
++        label, color = 'CERTIFIED', '00ff00'
++    elif status == 'VERIFIED':
++        label, color = 'VERIFIED', 'ffff00'
+     else:
+-        label, color = 'NOT VERIFIED', 'ffff80'
++        label, color = 'NOT VERIFIED', 'ff0000'
+     return '\n@ext:|cff' + color + label + '|r:ext@'
+ 
+ 
