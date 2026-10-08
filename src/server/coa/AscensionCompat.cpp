@@ -5138,7 +5138,14 @@ public:
                 return false;
             rewardItems.push_back(std::move(reward));
         }
+        uint32 const bundleEntry = item->GetEntry();
+        std::string archetypeName = item->GetTemplate()->Name1;
+        std::string const suffix = " Vanity Bundle";
+        if (archetypeName.ends_with(suffix))
+            archetypeName.resize(archetypeName.size() - suffix.size());
         CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+        trans->Append("INSERT IGNORE INTO account_vanity_collection (account_id, item_id) VALUES ({}, {})",
+            state->AccountId, bundleEntry);
         for (uint32 id : appearances)
             trans->Append("INSERT IGNORE INTO account_appearance_collection (account_id, appearance_id, source_item) VALUES ({}, {}, {})",
                 state->AccountId, id, _appearances.at(id).SourceItem);
@@ -5173,7 +5180,13 @@ public:
         for (uint32 id : appearances)
             if (state->CollectedAppearances.insert(id).second)
                 SendAppearanceAdded(player, id, _appearances.at(id).SourceItem);
-        ChatHandler(player->GetSession()).SendSysMessage("Archetype wardrobe appearances collected.");
+        if (state->OwnedVanityItems.insert(bundleEntry).second)
+        {
+            WorldPacket packet(SMSG_VANITY_COLLECTION_ADDED, sizeof(uint32));
+            packet << bundleEntry;
+            player->GetSession()->SendPacket(&packet);
+        }
+        ChatHandler(player->GetSession()).PSendSysMessage("{} wardrobe appearances collected.", archetypeName);
         return true;
     }
 
