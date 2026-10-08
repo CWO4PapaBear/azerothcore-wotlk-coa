@@ -164,6 +164,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809897
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90001,
+          "appearance_id": 900501,
+          "name": "Naturalist Archetype"
+        }
       ]
     },
     {
@@ -289,6 +296,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         635
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90002,
+          "appearance_id": 900502,
+          "name": "Dawnkeeper Archetype"
+        }
       ]
     },
     {
@@ -414,6 +428,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809888
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90003,
+          "appearance_id": 900503,
+          "name": "Eternal Caretaker Archetype"
+        }
       ]
     },
     {
@@ -551,6 +572,18 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809895
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90006,
+          "appearance_id": 900506,
+          "name": "Sacred Sentinel Archetype - Variant 1"
+        },
+        {
+          "id": 90206,
+          "appearance_id": 900706,
+          "name": "Sacred Sentinel Archetype - Variant 2"
+        }
       ]
     },
     {
@@ -688,6 +721,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         954861
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90007,
+          "appearance_id": 900507,
+          "name": "Tide Mender Archetype"
+        }
       ]
     },
     {
@@ -813,6 +853,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809887
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90010,
+          "appearance_id": 900510,
+          "name": "Grove Keeper Archetype"
+        }
       ]
     },
     {
@@ -926,6 +973,18 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         2006
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90012,
+          "appearance_id": 900512,
+          "name": "Hierophant Archetype - Male"
+        },
+        {
+          "id": 90212,
+          "appearance_id": 900712,
+          "name": "Hierophant Archetype - Variant 2"
+        }
       ]
     },
     {
@@ -1039,6 +1098,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809893
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90013,
+          "appearance_id": 900513,
+          "name": "Cryotherapist Archetype"
+        }
       ]
     },
     {
@@ -1181,6 +1247,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         283692
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90014,
+          "appearance_id": 900514,
+          "name": "Tree of Wrath Archetype"
+        }
       ]
     },
     {
@@ -1306,6 +1379,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809898
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90015,
+          "appearance_id": 900515,
+          "name": "Grove Ranger Archetype"
+        }
       ]
     },
     {
@@ -1443,6 +1523,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         276343
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90016,
+          "appearance_id": 900516,
+          "name": "Steward of Eternity Archetype"
+        }
       ]
     },
     {
@@ -1550,6 +1637,13 @@
       ],
       "preview_spells_not_granted": [
         809891
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90017,
+          "appearance_id": 900517,
+          "name": "Fire Sage Archetype"
+        }
       ]
     },
     {
@@ -1687,6 +1781,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809892
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90018,
+          "appearance_id": 900518,
+          "name": "Vampire Lord Archetype"
+        }
       ]
     },
     {
@@ -1824,6 +1925,18 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         900972
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90019,
+          "appearance_id": 900519,
+          "name": "Blade Warden Archetype - Male"
+        },
+        {
+          "id": 90219,
+          "appearance_id": 900719,
+          "name": "Blade Warden Archetype - Variant 2"
+        }
       ]
     },
     {
@@ -1973,6 +2086,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809904
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90020,
+          "appearance_id": 900520,
+          "name": "Bulwark Archetype"
+        }
       ]
     },
     {
@@ -2110,6 +2230,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         900975
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90021,
+          "appearance_id": 900521,
+          "name": "Swashbuckler Archetype"
+        }
       ]
     },
     {
@@ -2247,6 +2374,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809909
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90022,
+          "appearance_id": 900522,
+          "name": "Relentless Archetype"
+        }
       ]
     },
     {
@@ -2378,6 +2512,13 @@
       ],
       "preview_spells_not_granted": [
         965425
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90024,
+          "appearance_id": 900524,
+          "name": "Vanguard Sentinel Archetype"
+        }
       ]
     },
     {
@@ -2527,6 +2668,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         283392
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90025,
+          "appearance_id": 900525,
+          "name": "Templar of Flame Archetype"
+        }
       ]
     },
     {
@@ -2649,7 +2797,14 @@
           "grant": false
         }
       ],
-      "preview_spells_not_granted": []
+      "preview_spells_not_granted": [],
+      "wardrobe_sets": [
+        {
+          "id": 90026,
+          "appearance_id": 900526,
+          "name": "Demoniac Archetype"
+        }
+      ]
     },
     {
       "key": "area52-archetype-27",
@@ -2786,6 +2941,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         701463
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90027,
+          "appearance_id": 900527,
+          "name": "Mystic Knight Archetype"
+        }
       ]
     },
     {
@@ -2935,6 +3097,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809903
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90029,
+          "appearance_id": 900529,
+          "name": "Crimson Champion Archetype"
+        }
       ]
     },
     {
@@ -3048,6 +3217,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809890
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90030,
+          "appearance_id": 900530,
+          "name": "Stormguard Archetype"
+        }
       ]
     },
     {
@@ -3185,6 +3361,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809889
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90031,
+          "appearance_id": 900531,
+          "name": "Icebound Archetype"
+        }
       ]
     },
     {
@@ -3327,6 +3510,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809910
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90032,
+          "appearance_id": 900532,
+          "name": "Plague Bearer Archetype"
+        }
       ]
     },
     {
@@ -3463,6 +3653,13 @@
       ],
       "preview_spells_not_granted": [
         15473
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90033,
+          "appearance_id": 900533,
+          "name": "Beast of Nightmare Archetype"
+        }
       ]
     },
     {
@@ -3605,6 +3802,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         277080
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90034,
+          "appearance_id": 900534,
+          "name": "Thunderpaw Archetype"
+        }
       ]
     },
     {
@@ -3872,7 +4076,19 @@
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
       "preview_pets": [],
-      "preview_spells_not_granted": []
+      "preview_spells_not_granted": [],
+      "wardrobe_sets": [
+        {
+          "id": 90073,
+          "appearance_id": 900573,
+          "name": "Hoplite Archetype - Male"
+        },
+        {
+          "id": 90273,
+          "appearance_id": 900773,
+          "name": "Hoplite Archetype - Female"
+        }
+      ]
     },
     {
       "key": "area52-archetype-74",
@@ -4007,7 +4223,14 @@
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
       "preview_pets": [],
-      "preview_spells_not_granted": []
+      "preview_spells_not_granted": [],
+      "wardrobe_sets": [
+        {
+          "id": 90074,
+          "appearance_id": 900574,
+          "name": "Warden Archetype"
+        }
+      ]
     },
     {
       "key": "area52-archetype-75",
@@ -4099,7 +4322,14 @@
         47577
       ],
       "preview_pets": [],
-      "preview_spells_not_granted": []
+      "preview_spells_not_granted": [],
+      "wardrobe_sets": [
+        {
+          "id": 90075,
+          "appearance_id": 900575,
+          "name": "Druid of the Fang Archetype"
+        }
+      ]
     },
     {
       "key": "area52-archetype-77",
@@ -4236,6 +4466,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         282867
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90077,
+          "appearance_id": 900577,
+          "name": "Heavyweight Archetype"
+        }
       ]
     },
     {
@@ -4373,6 +4610,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         271895
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90078,
+          "appearance_id": 900578,
+          "name": "Dragon Warrior Archetype"
+        }
       ]
     },
     {
@@ -4508,7 +4752,14 @@
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
       "preview_pets": [],
-      "preview_spells_not_granted": []
+      "preview_spells_not_granted": [],
+      "wardrobe_sets": [
+        {
+          "id": 90079,
+          "appearance_id": 900579,
+          "name": "Son of Gruul Archetype"
+        }
+      ]
     },
     {
       "key": "area52-archetype-80",
@@ -4663,6 +4914,13 @@
       ],
       "preview_spells_not_granted": [
         15473
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90080,
+          "appearance_id": 900580,
+          "name": "Master of Shadows Archetype"
+        }
       ]
     },
     {
@@ -4798,7 +5056,14 @@
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
       "preview_pets": [],
-      "preview_spells_not_granted": []
+      "preview_spells_not_granted": [],
+      "wardrobe_sets": [
+        {
+          "id": 90082,
+          "appearance_id": 900582,
+          "name": "Marksman Archetype"
+        }
+      ]
     },
     {
       "key": "area52-archetype-84",
@@ -4927,7 +5192,14 @@
           "grant": false
         }
       ],
-      "preview_spells_not_granted": []
+      "preview_spells_not_granted": [],
+      "wardrobe_sets": [
+        {
+          "id": 90084,
+          "appearance_id": 900584,
+          "name": "Paratrooper Archetype"
+        }
+      ]
     },
     {
       "key": "area52-archetype-85",
@@ -5056,7 +5328,14 @@
           "grant": false
         }
       ],
-      "preview_spells_not_granted": []
+      "preview_spells_not_granted": [],
+      "wardrobe_sets": [
+        {
+          "id": 90085,
+          "appearance_id": 900585,
+          "name": "Bestial Ranger Archetype"
+        }
+      ]
     },
     {
       "key": "area52-archetype-86",
@@ -5179,7 +5458,14 @@
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
       "preview_pets": [],
-      "preview_spells_not_granted": []
+      "preview_spells_not_granted": [],
+      "wardrobe_sets": [
+        {
+          "id": 90086,
+          "appearance_id": 900586,
+          "name": "Defias Gunslinger Archetype"
+        }
+      ]
     },
     {
       "key": "area52-archetype-88",
@@ -5316,6 +5602,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809907
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90088,
+          "appearance_id": 900588,
+          "name": "Evoker Archetype"
+        }
       ]
     },
     {
@@ -5456,6 +5749,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809913
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90090,
+          "appearance_id": 900590,
+          "name": "Druid of the Eclipse Archetype"
+        }
       ]
     },
     {
@@ -5611,6 +5911,13 @@
       ],
       "preview_spells_not_granted": [
         809901
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90095,
+          "appearance_id": 900595,
+          "name": "Shadowseer Archetype"
+        }
       ]
     },
     {
@@ -5754,6 +6061,13 @@
       ],
       "preview_spells_not_granted": [
         45438
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90097,
+          "appearance_id": 900597,
+          "name": "Cryomancer Archetype"
+        }
       ]
     },
     {
@@ -5891,6 +6205,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         270182
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90101,
+          "appearance_id": 900601,
+          "name": "Ascendant Archetype"
+        }
       ]
     },
     {
@@ -6016,6 +6337,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809908
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90104,
+          "appearance_id": 900604,
+          "name": "Stormcaller Archetype"
+        }
       ]
     },
     {
@@ -6151,7 +6479,19 @@
       "incarnations": [],
       "incarnation_appearance_unlocks": [],
       "preview_pets": [],
-      "preview_spells_not_granted": []
+      "preview_spells_not_granted": [],
+      "wardrobe_sets": [
+        {
+          "id": 90129,
+          "appearance_id": 900629,
+          "name": "Gutripper Archetype - Variant 1"
+        },
+        {
+          "id": 90329,
+          "appearance_id": 900829,
+          "name": "Gutripper Archetype - Male"
+        }
+      ]
     },
     {
       "key": "area52-archetype-131",
@@ -6279,7 +6619,14 @@
         47579
       ],
       "preview_pets": [],
-      "preview_spells_not_granted": []
+      "preview_spells_not_granted": [],
+      "wardrobe_sets": [
+        {
+          "id": 90131,
+          "appearance_id": 900631,
+          "name": "Hellcat Archetype"
+        }
+      ]
     },
     {
       "key": "area52-archetype-132",
@@ -6416,6 +6763,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         585
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90132,
+          "appearance_id": 900632,
+          "name": "Crusader Archetype"
+        }
       ]
     },
     {
@@ -6553,6 +6907,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809894
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90133,
+          "appearance_id": 900633,
+          "name": "White Walker Archetype"
+        }
       ]
     },
     {
@@ -6714,6 +7075,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         12654
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90134,
+          "appearance_id": 900634,
+          "name": "Firelord Archetype"
+        }
       ]
     },
     {
@@ -6839,6 +7207,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809896
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90136,
+          "appearance_id": 900636,
+          "name": "Divine Sentinel Archetype"
+        }
       ]
     },
     {
@@ -6968,7 +7343,14 @@
           "grant": false
         }
       ],
-      "preview_spells_not_granted": []
+      "preview_spells_not_granted": [],
+      "wardrobe_sets": [
+        {
+          "id": 90139,
+          "appearance_id": 900639,
+          "name": "Locust Ranger Archetype"
+        }
+      ]
     },
     {
       "key": "area52-archetype-140",
@@ -7105,6 +7487,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809900
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90140,
+          "appearance_id": 900640,
+          "name": "Dark Ranger Archetype"
+        }
       ]
     },
     {
@@ -7254,6 +7643,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809899
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90141,
+          "appearance_id": 900641,
+          "name": "Wind Rager Archetype"
+        }
       ]
     },
     {
@@ -7391,6 +7787,13 @@
       "preview_pets": [],
       "preview_spells_not_granted": [
         809905
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90142,
+          "appearance_id": 900642,
+          "name": "Storm Giant Archetype"
+        }
       ]
     },
     {
@@ -7537,7 +7940,14 @@
           "grant": false
         }
       ],
-      "preview_spells_not_granted": []
+      "preview_spells_not_granted": [],
+      "wardrobe_sets": [
+        {
+          "id": 90143,
+          "appearance_id": 900643,
+          "name": "Carnage Incarnate Archetype"
+        }
+      ]
     },
     {
       "key": "area52-archetype-144",
@@ -7656,6 +8066,13 @@
       ],
       "preview_spells_not_granted": [
         809906
+      ],
+      "wardrobe_sets": [
+        {
+          "id": 90144,
+          "appearance_id": 900644,
+          "name": "Fel Apostate Archetype"
+        }
       ]
     }
   ]

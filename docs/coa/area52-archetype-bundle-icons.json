@@ -1,0 +1,282 @@
+[
+  {
+    "archetype_id": 1,
+    "display_id": 900201,
+    "icon": "spell_nature_regeneration_02"
+  },
+  {
+    "archetype_id": 2,
+    "display_id": 900202,
+    "icon": "Ability_Paladin_BeaconofLight"
+  },
+  {
+    "archetype_id": 3,
+    "display_id": 900203,
+    "icon": "ability_priest_halo"
+  },
+  {
+    "archetype_id": 6,
+    "display_id": 900206,
+    "icon": "ability_priest_spiritoftheredeemer"
+  },
+  {
+    "archetype_id": 7,
+    "display_id": 900207,
+    "icon": "Spell_Nature_Riptide"
+  },
+  {
+    "archetype_id": 10,
+    "display_id": 900210,
+    "icon": "ability_druid_giftoftheearthmother"
+  },
+  {
+    "archetype_id": 12,
+    "display_id": 900212,
+    "icon": "ability_paladin_blindinglight2"
+  },
+  {
+    "archetype_id": 13,
+    "display_id": 900213,
+    "icon": "spell_deathknight_frostfever"
+  },
+  {
+    "archetype_id": 14,
+    "display_id": 900214,
+    "icon": "ability_druid_treeoflife_Red"
+  },
+  {
+    "archetype_id": 15,
+    "display_id": 900215,
+    "icon": "ability_druid_healinginstincts"
+  },
+  {
+    "archetype_id": 16,
+    "display_id": 900216,
+    "icon": "spell_azerite_essence06"
+  },
+  {
+    "archetype_id": 17,
+    "display_id": 900217,
+    "icon": "spell_fire_flamebolt"
+  },
+  {
+    "archetype_id": 18,
+    "display_id": 900218,
+    "icon": "Spell_Shadow_ImprovedVampiricEmbrace"
+  },
+  {
+    "archetype_id": 19,
+    "display_id": 900219,
+    "icon": "Ability_Warrior_Challange"
+  },
+  {
+    "archetype_id": 20,
+    "display_id": 900220,
+    "icon": "ability_racial_forceshield"
+  },
+  {
+    "archetype_id": 21,
+    "display_id": 900221,
+    "icon": "inv_helm_cloth_b_01pirate_black"
+  },
+  {
+    "archetype_id": 22,
+    "display_id": 900222,
+    "icon": "ability_rogue_ruthlessness"
+  },
+  {
+    "archetype_id": 24,
+    "display_id": 900224,
+    "icon": "Ability_Warrior_IntensifyRage"
+  },
+  {
+    "archetype_id": 25,
+    "display_id": 900225,
+    "icon": "spell_mage_flameorb"
+  },
+  {
+    "archetype_id": 26,
+    "display_id": 900226,
+    "icon": "ability_demonhunter_spectank"
+  },
+  {
+    "archetype_id": 27,
+    "display_id": 900227,
+    "icon": "spell_mage_overpowered"
+  },
+  {
+    "archetype_id": 29,
+    "display_id": 900229,
+    "icon": "spell_holy_blessingofprotection_red"
+  },
+  {
+    "archetype_id": 30,
+    "display_id": 900230,
+    "icon": "Ability_Shaman_Stormstrike"
+  },
+  {
+    "archetype_id": 31,
+    "display_id": 900231,
+    "icon": "Spell_Ice_Lament"
+  },
+  {
+    "archetype_id": 32,
+    "display_id": 900232,
+    "icon": "ability_druid_markofursolgreen"
+  },
+  {
+    "archetype_id": 33,
+    "display_id": 900233,
+    "icon": "ability_druid_markofursol"
+  },
+  {
+    "archetype_id": 34,
+    "display_id": 900234,
+    "icon": "ability_druid_markofursolblue"
+  },
+  {
+    "archetype_id": 73,
+    "display_id": 900273,
+    "icon": "ability_warrior_unrelentingassault"
+  },
+  {
+    "archetype_id": 74,
+    "display_id": 900274,
+    "icon": "ability_glaivetoss"
+  },
+  {
+    "archetype_id": 75,
+    "display_id": 900275,
+    "icon": "spell_nature_poisoncleansingtotem"
+  },
+  {
+    "archetype_id": 77,
+    "display_id": 900277,
+    "icon": "ability_butcher_heavyhanded"
+  },
+  {
+    "archetype_id": 78,
+    "display_id": 900278,
+    "icon": "Ability_Warrior_DragonRoar"
+  },
+  {
+    "archetype_id": 79,
+    "display_id": 900279,
+    "icon": "_D3rend"
+  },
+  {
+    "archetype_id": 80,
+    "display_id": 900280,
+    "icon": "spell_nzinsanity_chasedbyshadows"
+  },
+  {
+    "archetype_id": 82,
+    "display_id": 900282,
+    "icon": "5_bowshot_Border"
+  },
+  {
+    "archetype_id": 84,
+    "display_id": 900284,
+    "icon": "ability_hunter_disarmingshot"
+  },
+  {
+    "archetype_id": 85,
+    "display_id": 900285,
+    "icon": "ability_druid_ferociousbite"
+  },
+  {
+    "archetype_id": 86,
+    "display_id": 900286,
+    "icon": "Ability_Rogue_PistolShot"
+  },
+  {
+    "archetype_id": 88,
+    "display_id": 900288,
+    "icon": "Ability_Mage_MissileBarrage"
+  },
+  {
+    "archetype_id": 90,
+    "display_id": 900290,
+    "icon": "Ability_Druid_Eclipse"
+  },
+  {
+    "archetype_id": 95,
+    "display_id": 900295,
+    "icon": "Spell_Shadow_NetherCloak"
+  },
+  {
+    "archetype_id": 97,
+    "display_id": 900297,
+    "icon": "Spell_Mage_FrostBomb"
+  },
+  {
+    "archetype_id": 101,
+    "display_id": 900301,
+    "icon": "spell_holy_searinglight"
+  },
+  {
+    "archetype_id": 104,
+    "display_id": 900304,
+    "icon": "Spell_Shaman_ThunderStorm"
+  },
+  {
+    "archetype_id": 129,
+    "display_id": 900329,
+    "icon": "ability_demonhunter_bloodlet"
+  },
+  {
+    "archetype_id": 131,
+    "display_id": 900331,
+    "icon": "inv_staff_99"
+  },
+  {
+    "archetype_id": 132,
+    "display_id": 900332,
+    "icon": "ability_paladin_righteousvengeance"
+  },
+  {
+    "archetype_id": 133,
+    "display_id": 900333,
+    "icon": "spell_mage_iceflows"
+  },
+  {
+    "archetype_id": 134,
+    "display_id": 900334,
+    "icon": "Ability_Shaman_Lavalash"
+  },
+  {
+    "archetype_id": 136,
+    "display_id": 900336,
+    "icon": "Ability_Paladin_BeaconsOfLight"
+  },
+  {
+    "archetype_id": 139,
+    "display_id": 900339,
+    "icon": "ability_hunter_cobrashot"
+  },
+  {
+    "archetype_id": 140,
+    "display_id": 900340,
+    "icon": "custom_T_Nhance_RPG_Icons_ShadowArrow_Border"
+  },
+  {
+    "archetype_id": 141,
+    "display_id": 900341,
+    "icon": "spell_Shaman_Unleashweapon_Wind"
+  },
+  {
+    "archetype_id": 142,
+    "display_id": 900342,
+    "icon": "Ability_ThunderKing_Overcharge"
+  },
+  {
+    "archetype_id": 143,
+    "display_id": 900343,
+    "icon": "ability_druid_denmother"
+  },
+  {
+    "archetype_id": 144,
+    "display_id": 900344,
+    "icon": "INV__FelBarrage"
+  }
+]

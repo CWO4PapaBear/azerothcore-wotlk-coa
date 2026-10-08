@@ -5117,6 +5117,34 @@ public:
         }
     }
 
+    bool RedeemVanityBundle(Player* player, Item* item, std::vector<uint32> const& appearances)
+    {
+        if (!AscensionFreepick::IsFreepickHero(player) || !item || appearances.empty())
+            return false;
+        auto state = GetState(player);
+        if (!state)
+            return false;
+        for (uint32 id : appearances)
+            if (!_appearances.contains(id))
+            {
+                ChatHandler(player->GetSession()).SendSysMessage("This bundle has an unavailable appearance. It has not been consumed.");
+                return false;
+            }
+        CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+        for (uint32 id : appearances)
+            trans->Append("INSERT IGNORE INTO account_appearance_collection (account_id, appearance_id, source_item) VALUES ({}, {}, {})",
+                state->AccountId, id, _appearances.at(id).SourceItem);
+        uint32 count = 1;
+        player->DestroyItemCount(item, count, true);
+        player->SaveInventoryAndGoldToDB(trans);
+        CharacterDatabase.CommitTransaction(trans);
+        for (uint32 id : appearances)
+            if (state->CollectedAppearances.insert(id).second)
+                SendAppearanceAdded(player, id, _appearances.at(id).SourceItem);
+        ChatHandler(player->GetSession()).SendSysMessage("Archetype wardrobe appearances collected.");
+        return true;
+    }
+
   void OnItemObtained(Player *player, Item *item) {
     if (!item)
       return;
@@ -8683,6 +8711,11 @@ void AppendConfiguredClientConfigs(AscensionClientConfig& config) {
   AppendAscensionClientConfigList(ascensionCompatConfig.GetConfigValue<std::string>(
                                       AscensionCompatConfig::CLIENT_INTEGER_CONFIGS),
                                   config.Integers);
+}
+
+bool RedeemArea52ArchetypeVanity(Player* player, Item* item, std::vector<uint32> const& appearances)
+{
+    return AscensionCollectionService::Instance().RedeemVanityBundle(player, item, appearances);
 }
 
 void AddAscensionCompatScripts() {
