@@ -1,0 +1,66 @@
+{
+  "build_unit_harness": "passed",
+  "tooltip_preservation": "passed",
+  "source_sha256": {
+    "src/server/coa/Area52AdvancementProcRules.h": "fed34aa46b828459ecb242b51e80d7403586c9ef9f12422aed14deb84ce63165",
+    "src/server/coa/Area52AdvancementProcs.inc": "cb6fa55fc0d7714489e2b2da01e785b72df3a6a3de8d9074903132c210feda19",
+    "src/server/coa/Area52FollowupProcRules.h": "a849b36593c2a3f83180a56c7c5dccd2682d0f91709801b69cd1a9b185999855",
+    "src/server/coa/Area52FollowupProcs.inc": "bf7b5e8b5ec737b0abe493c5a1bef7b38747847eef3a980e8c19fecb39f1e6ef",
+    "apps/coa-tests/area52_proc_batch/run.py": "6ffb10ec12c40aa4f22a622cf4ec766ce5be4fead1f495caba7768cd7d0872df",
+    "apps/coa-tests/area52_followup_procs/run.py": "6945e50c3a09accaa94943a1858400e95b35fb809a597f3b8265e5c301b0f96e",
+    "apps/coa-tests/area52_proc_release/run.py": "dbd8de52daa6c603152fe34ea61fa16d6a22a6f6b2f86b5ec1ce72468aebf980",
+    "data/sql/updates/pending_db_world/rev_20261008_09_area52_advancement_procs.sql": "fd0c5663b673d14141498b0d9148361a846ff2d659f6b2c4e7bd8d0fa3640fcd",
+    "data/sql/updates/pending_db_world/rev_20261008_10_area52_followup_procs.sql": "66c515f3dbcf776a2f5deb6fe4614c4137f13333f62d1fbc722c60206f385368",
+    "data/sql/updates/pending_db_world/rev_20261008_11_area52_stateful_procs.sql": "7c6818c65ac17321f24a7b9b71f53e991bc1b1cc7ae70813264270f38cf266d6",
+    "src/server/coa/AscensionMysticEnchant.cpp": "67bebcdbb75d5e149b7d73c8feb4cec6a34ef4fa4259ac0234bd0892c9c7e3d3",
+    "src/server/game/Entities/Unit/Unit.cpp": "0e40aa64bc9736843a84a0b74e5946464fcf768e87082c3b53a0f1effedd30b8",
+    "apps/coa-tests/area52_proc_activation/run.py": "8040d11a63dbf28f6ae7dca3eed8dbd45e24fa79c9a864aed497dd5f89500fb6"
+  },
+  "server": {
+    "stage": "/home/dml/games/ascension-freepick-test/private/proc-combined-20261008-154539",
+    "binary_sha256": "e3817de29ee80a559d239c82da3196f9ab8990add782bc395accb390e02431d0",
+    "compose_sha256": "eb79932be00eef335cd530a1ea90bcbbe549729273f085187fe8fcd6954c7658",
+    "image": "sha256:78062172fb7ad5b90c2b739456d87446de58f5c3086b7dac9a0f5382cb9090ab",
+    "network": "ascension-freepick-local-access",
+    "migrations": [
+      "rev_20261008_09_area52_advancement_procs.sql",
+      "rev_20261008_10_area52_followup_procs.sql",
+      "rev_20261008_11_area52_stateful_procs.sql"
+    ],
+    "status": "staged_not_active"
+  },
+  "scope": "Structural verification only. No combat or reconnect certification. Full source suite not run against unrelated dirty runtime.",
+  "activation": {
+    "stage": "/home/dml/games/ascension-freepick-test/private/proc-combined-20261008-154539",
+    "binary_sha256": "e3817de29ee80a559d239c82da3196f9ab8990add782bc395accb390e02431d0",
+    "compose_sha256": "eb79932be00eef335cd530a1ea90bcbbe549729273f085187fe8fcd6954c7658",
+    "image": "sha256:78062172fb7ad5b90c2b739456d87446de58f5c3086b7dac9a0f5382cb9090ab",
+    "network": "ascension-freepick-network",
+    "migrations": [
+      "rev_20261008_09_area52_advancement_procs.sql",
+      "rev_20261008_10_area52_followup_procs.sql",
+      "rev_20261008_11_area52_stateful_procs.sql"
+    ],
+    "status": "activated",
+    "activated": true,
+    "started_at": "2026-10-09T02:35:34.280670925Z",
+    "protected_unchanged": true
+  },
+  "runtime_verification": {
+    "live_rows": {
+      "spell_proc": 30,
+      "spell_script_names": 31
+    },
+    "binary_sha256": "e3817de29ee80a559d239c82da3196f9ab8990add782bc395accb390e02431d0",
+    "script_validation_errors": []
+  },
+  "migration_verification": {
+    "updater": "passed",
+    "migrations": [
+      "rev_20261008_09_area52_advancement_procs.sql\t8691B63295878A70417E6FCEDFF24017BB24898E",
+      "rev_20261008_10_area52_followup_procs.sql\tFAE5F2A6C50A9672B25CE9A469E744EBFF6304F7",
+      "rev_20261008_11_area52_stateful_procs.sql\tA8130DF3BF656CCAF0467231C8941FD571C81D2E"
+    ]
+  },
+  "deployment_note": "Initial updater helper used the external-access network and failed DNS before migration. Automatic rollback restored the previous server. Retry selected the shared database network and all checks passed."
+}

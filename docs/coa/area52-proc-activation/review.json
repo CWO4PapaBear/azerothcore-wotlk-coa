@@ -1,0 +1,348 @@
+{
+  "upstream": "fc359be9bf79ffb532c192d7afe754be21feba40",
+  "ptr": "e1823bb2db751a7cc0a90a8543e778449ebf7d84",
+  "scope": "31-entry follow-up: 17 catalog entries VERIFIED and activated; A New Dawn partial repair active but NOT VERIFIED; 13 unresolved. Six earlier proc-batch entries also activated and VERIFIED, for 23 total promotions.",
+  "entries": [
+    {
+      "entry": 396,
+      "name": "Molten Shields",
+      "status": "needs_handler_work",
+      "reason": "Ward-school-specific reflection window must be set from the ward cast; generic proc would not configure reflection school.",
+      "spells": [
+        11094,
+        13043
+      ]
+    },
+    {
+      "entry": 400,
+      "name": "Flame Throwing",
+      "status": "VERIFIED",
+      "reason": "Periodic readiness now respects its cooldown and existing ready buff; one-use Fireball spellmod consumption starts the native cooldown.",
+      "spells": [
+        11100,
+        12353,
+        812352
+      ]
+    },
+    {
+      "entry": 416,
+      "name": "Frost Channeling",
+      "status": "VERIFIED",
+      "reason": "Exact killing-spell context checks Frost damage, direct player ownership, reward permission and XP/honor target eligibility; restores mana once through native 812520.",
+      "spells": [
+        11160,
+        12518,
+        12519
+      ]
+    },
+    {
+      "entry": 455,
+      "name": "Improved Bloodrage",
+      "status": "needs_handler_work",
+      "reason": "Defensive Stance condition, damage-reduction value and capstone Stagger clearing require linked custom logic.",
+      "spells": [
+        12301,
+        12818
+      ]
+    },
+    {
+      "entry": 465,
+      "name": "Commanding Presence",
+      "status": "VERIFIED",
+      "reason": "Both ranks select Battle/Commanding helper; native per-level stats; correct helper duration to 10 minutes.",
+      "spells": [
+        12318,
+        12857
+      ]
+    },
+    {
+      "entry": 526,
+      "name": "Copious Power",
+      "status": "needs_handler_work",
+      "reason": "Triggered buff 965418 has a zero magnitude; must receive rank amount and consume on the next eligible cast-time heal.",
+      "spells": [
+        14523,
+        14784,
+        14785
+      ]
+    },
+    {
+      "entry": 562,
+      "name": "Reverberation",
+      "status": "needs_handler_work",
+      "reason": "Three next-different-shock helpers exist, but native damage spellmods can also amplify periodic Flame Shock. Need direct-only application and consumption without a periodic snapshot leak.",
+      "spells": [
+        16040,
+        16113,
+        16114
+      ]
+    },
+    {
+      "entry": 574,
+      "name": "Tidal Mastery",
+      "status": "VERIFIED",
+      "reason": "Direct healing criticals dispatch native Tidal Force extension with 2000/1000/500ms by spell root.",
+      "spells": [
+        16194,
+        16218,
+        16219
+      ]
+    },
+    {
+      "entry": 578,
+      "name": "Improved Ghost Wolf",
+      "status": "VERIFIED",
+      "reason": "Ghost Wolf cast -> native Spirit Dash root/snare dispel and speed; 20-second proc cooldown.",
+      "spells": [
+        16262,
+        16287,
+        16288
+      ]
+    },
+    {
+      "entry": 581,
+      "name": "Enhancing Totems",
+      "status": "VERIFIED",
+      "reason": "Successful cast must have created a matching live totem; custom base points provide rank and level-scaled attack/spell power.",
+      "spells": [
+        16259,
+        16295,
+        52456
+      ]
+    },
+    {
+      "entry": 645,
+      "name": "Emberstorm",
+      "status": "VERIFIED",
+      "reason": "Four allowed cast roots -> native Chaos Bolt cooldown helper; suppress unrelated Wild Felfire branch.",
+      "spells": [
+        17954,
+        17955,
+        17956,
+        17957,
+        17958
+      ]
+    },
+    {
+      "entry": 698,
+      "name": "Improved Counterattack",
+      "status": "VERIFIED",
+      "reason": "Mongoose Bite and Raptor Strike direct critical hits trigger the existing two-second Killer Instinct cooldown reduction, with the visible parent four-second proc cooldown.",
+      "spells": [
+        19295,
+        19297,
+        19298
+      ]
+    },
+    {
+      "entry": 729,
+      "name": "Improved Blessing of Might",
+      "status": "VERIFIED",
+      "reason": "Rank and level-scaled self/ally buffs; native caster-owned single-target aura tracking replaces only that caster's previous ally buff.",
+      "spells": [
+        20042,
+        20045
+      ]
+    },
+    {
+      "entry": 756,
+      "name": "Sanctified Light",
+      "status": "VERIFIED",
+      "reason": "Blinding Light arms the existing critical modifier; one charge and spellmod-required finish consumption limit it to the next affected cast.",
+      "spells": [
+        20359,
+        20360,
+        20361
+      ]
+    },
+    {
+      "entry": 761,
+      "name": "Raging Berserker",
+      "status": "needs_handler_work",
+      "reason": "Enabling events and low-health window are identifiable; helper 818502 has no authoritative numeric AP coefficient. Do not invent lifesteal scaling.",
+      "spells": [
+        20500,
+        20501,
+        820501
+      ]
+    },
+    {
+      "entry": 762,
+      "name": "Improved Execute",
+      "status": "needs_handler_work",
+      "reason": "Below-20-percent damage doubling and conditional stacking critical bonus must agree; proc-only repair does not cover full tooltip.",
+      "spells": [
+        20502,
+        20503,
+        820503
+      ]
+    },
+    {
+      "entry": 799,
+      "name": "Improved Berserker Stance",
+      "status": "needs_handler_work",
+      "reason": "Conditional execute-range/enrage damage multiplier plus Raging Blow/Recklessness duration extension requires custom logic.",
+      "spells": [
+        29759,
+        29760,
+        29761
+      ]
+    },
+    {
+      "entry": 819,
+      "name": "Unrelenting Storm",
+      "status": "needs_handler_work",
+      "reason": "Three-stack state must empower Chain Lightning and apply the target vulnerability; generic haste proc is incomplete.",
+      "spells": [
+        30664,
+        30665,
+        30666
+      ]
+    },
+    {
+      "entry": 883,
+      "name": "Fanaticism",
+      "status": "needs_handler_work",
+      "reason": "Crusader Strike mark, Execution Sentence-dependent amplification, Judgement movement and PvE cooldown reduction form a multi-event chain.",
+      "spells": [
+        31879,
+        31880,
+        31881
+      ]
+    },
+    {
+      "entry": 895,
+      "name": "Improved Flash Heal",
+      "status": "VERIFIED",
+      "reason": "Flash Heal cast -> native effect 165 reduces Inner Focus by 2 seconds; stale helper text is not its actual target.",
+      "spells": [
+        63504,
+        63505,
+        63506
+      ]
+    },
+    {
+      "entry": 897,
+      "name": "Void-touched Mind",
+      "status": "needs_handler_work",
+      "reason": "Helper 833215 actually extends Void Eruption by 3000ms despite stale Divine Illumination text. Mind Flay stacking and extension ceiling still require an aura-owned lifecycle.",
+      "spells": [
+        33213,
+        33214,
+        33215
+      ]
+    },
+    {
+      "entry": 927,
+      "name": "Resourcefulness",
+      "status": "VERIFIED",
+      "reason": "Three allowed periodic damage roots -> three explicit 1000ms cooldown reductions; 1-second proc cooldown.",
+      "spells": [
+        34491,
+        34492,
+        34493
+      ]
+    },
+    {
+      "entry": 944,
+      "name": "Spell Power",
+      "status": "needs_handler_work",
+      "reason": "Critical-damage baseline is zero-valued and must obey highest/nonstacking behavior with existing critical modifiers. Capstone helper also needs explicit 10-second duration and 10% magic plus 5% Arcane values.",
+      "spells": [
+        35578,
+        35581,
+        835581,
+        835582,
+        835583
+      ]
+    },
+    {
+      "entry": 949,
+      "name": "Netherwind Presence",
+      "status": "VERIFIED",
+      "reason": "Seven originating spell roots select rank-specific haste; final-rank Slow requires three haste stacks before granting movement speed.",
+      "spells": [
+        44400,
+        44402,
+        44403
+      ]
+    },
+    {
+      "entry": 1039,
+      "name": "Improved Earth Shield",
+      "status": "VERIFIED",
+      "reason": "Original-caster healing proc requires final Tidal Waves, permits triggered healing and observes a five-second cooldown.",
+      "spells": [
+        51560,
+        51561,
+        851561
+      ]
+    },
+    {
+      "entry": 1126,
+      "name": "Booming Echoes",
+      "status": "VERIFIED",
+      "reason": "Direct shock hit selects Nature/Fire/Frost helper; periodic ticks excluded.",
+      "spells": [
+        63370,
+        63372,
+        863372
+      ]
+    },
+    {
+      "entry": 1141,
+      "name": "Improved Feral Spirit",
+      "status": "needs_handler_work",
+      "reason": "Spirit Walk owner/pet relationship, rank-dependent dispel chance and both wolves Stormstrike empowerment must be linked.",
+      "spells": [
+        954215,
+        954216,
+        954217
+      ]
+    },
+    {
+      "entry": 1143,
+      "name": "Wind Rush",
+      "status": "VERIFIED",
+      "reason": "Wind Shear successful-interrupt hook only, capstone required, once per cast.",
+      "spells": [
+        32509,
+        32510,
+        32511
+      ]
+    },
+    {
+      "entry": 1191,
+      "name": "Combat Readiness",
+      "status": "needs_handler_work",
+      "reason": "Taking eligible hits must refresh the defensive stack and enforce the ten-second inactivity expiry, not just add a proc.",
+      "spells": [
+        86378
+      ]
+    },
+    {
+      "entry": 1700,
+      "name": "A New Dawn",
+      "status": "active_partial_not_verified",
+      "reason": "Light of Dawn applies caster-owned marks; eligible healing consumes the original caster's mark. Native damage modifier interpretation is excluded for Area 52. Baseline all-ability critical chance still needs review before VERIFIED.",
+      "spells": [
+        760189,
+        760190,
+        760191
+      ]
+    },
+    {
+      "entry": 14143,
+      "name": "Wind Rush",
+      "status": "VERIFIED",
+      "reason": "Same Wind Rush implementation; duplicate catalog entry.",
+      "spells": [
+        32509,
+        32510,
+        32511
+      ]
+    }
+  ],
+  "publication": "Activation and local client installation complete; source/client release/Discord publication tracked separately.",
+  "latest_verification": "verification-healing-isolation/report.json"
+}

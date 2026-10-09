@@ -1,0 +1,800 @@
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -42,6 +42,13 @@
+ 
+ #include "AscensionMysticAudit.h"
+ #include "Area52MysticTestAccess.h"
++
++#include "Area52AdvancementProcRules.h"
++#include "Area52AdvancementProcs.inc"
++#include "Area52FollowupProcRules.h"
++#include "AllSpellScript.h"
++#include "Creature.h"
++#include "Area52FollowupProcs.inc"
+ 
+ namespace AscensionMysticEnchant
+ {
+@@ -813,6 +820,11 @@
+ 
+ void AddSC_AscensionMysticEnchant()
+ {
++    RegisterSpellScript(spell_area52_advancement_proc);
++    RegisterSpellScript(spell_area52_followup_proc);
++    new area52_followup_casts();
++    RegisterSpellScript(spell_area52_flame_throwing);
++    RegisterSpellScript(spell_area52_shared_might);
+     using namespace AscensionMysticEnchant;
+     AscensionCompatOpcodes::Claim(0x60F, Handle);
+     AscensionCompatOpcodes::Claim(0x617, Handle);
+--- /dev/null
++++ b/src/server/coa/Area52AdvancementProcRules.h
+@@ -0,0 +1,47 @@
++#ifndef AREA52_ADVANCEMENT_PROC_RULES_H
++#define AREA52_ADVANCEMENT_PROC_RULES_H
++#include <cstdint>
++namespace Area52AdvancementProcs
++{
++struct Event
++{
++    bool FreePick = false;
++    bool OwnerIsActor = false;
++    bool Damage = false;
++    bool Periodic = false;
++    bool Dodged = false;
++    bool Behind = false;
++    std::uint32_t SpellRoot = 0;
++    std::uint32_t Family = 0;
++    std::uint32_t School = 0;
++};
++inline bool Accept(std::uint32_t aura, Event const& event)
++{
++    if (!event.FreePick)
++        return false;
++    if (aura == 12753)
++        return !event.OwnerIsActor && event.Dodged;
++    if (!event.OwnerIsActor)
++        return false;
++    switch (aura)
++    {
++        case 12308: case 12810: case 12811:
++            return event.Damage && !event.Periodic && event.Family == 4;
++        case 14142:
++            return event.Damage && event.Periodic &&
++                (event.SpellRoot == 703 || event.SpellRoot == 1943 || event.SpellRoot == 954809);
++        case 14769:
++            return !event.Periodic && event.SpellRoot == 17;
++        case 816968:
++            return event.Damage && !event.Periodic && event.Behind &&
++                (event.SpellRoot == 5221 || event.SpellRoot == 6785);
++        case 31682: case 31683: case 31684:
++            return !event.Periodic && event.SpellRoot == 116;
++        case 33225:
++            return event.Damage && event.Periodic && (event.School & (2 | 32));
++        default:
++            return false;
++    }
++}
++}
++#endif
+--- /dev/null
++++ b/src/server/coa/Area52AdvancementProcs.inc
+@@ -0,0 +1,52 @@
++class spell_area52_advancement_proc : public AuraScript
++{
++    PrepareAuraScript(spell_area52_advancement_proc);
++
++    bool Validate(SpellInfo const*) override
++    {
++        return ValidateSpellInfo({912753, 12309, 901118, 814142, 814769, 816969, 831682, 833228});
++    }
++
++    bool CheckProc(ProcEventInfo& event)
++    {
++        Player* player = GetTarget()->ToPlayer();
++        SpellInfo const* spell = event.GetSpellInfo();
++        DamageInfo const* damage = event.GetDamageInfo();
++        Unit* target = event.GetActionTarget();
++        Area52AdvancementProcs::Event facts;
++        facts.FreePick = player && AscensionFreePick::Applies(player);
++        facts.OwnerIsActor = event.GetActor() == GetTarget();
++        facts.Damage = damage && damage->GetDamage() > 0;
++        facts.Periodic = (event.GetTypeMask() & PROC_FLAG_DONE_PERIODIC) != 0;
++        facts.Dodged = (event.GetHitMask() & PROC_HIT_DODGE) != 0;
++        facts.Behind = target && !target->HasInArc(float(M_PI), GetTarget());
++        facts.SpellRoot = spell ? spell->GetFirstRankSpell()->Id : 0;
++        facts.Family = spell ? spell->SpellFamilyName : 0;
++        facts.School = spell ? spell->SchoolMask : 0;
++        return Area52AdvancementProcs::Accept(GetId(), facts);
++    }
++
++    void HandleProc(AuraEffect const* effect, ProcEventInfo& event)
++    {
++        PreventDefaultAction();
++        Unit* owner = GetTarget();
++        uint32 const trigger = GetSpellInfo()->Effects[effect->GetEffIndex()].TriggerSpell;
++        if (GetId() == 31682 || GetId() == 31683 || GetId() == 31684)
++        {
++            int32 critical = GetEffect(EFFECT_0)->GetAmount();
++            int32 frost = GetEffect(EFFECT_1)->GetAmount();
++            owner->CastCustomSpell(owner, trigger, &critical, &frost, nullptr, true, nullptr, effect);
++            return;
++        }
++        bool const self = GetId() == 12753 || GetId() == 14142;
++        Unit* target = self ? owner : event.GetActionTarget();
++        if (target && trigger)
++            owner->CastSpell(target, trigger, true, nullptr, effect);
++    }
++
++    void Register() override
++    {
++        DoCheckProc += AuraCheckProcFn(spell_area52_advancement_proc::CheckProc);
++        OnEffectProc += AuraEffectProcFn(spell_area52_advancement_proc::HandleProc, EFFECT_ALL, SPELL_AURA_PROC_TRIGGER_SPELL);
++    }
++};
+--- /dev/null
++++ b/src/server/coa/Area52FollowupProcRules.h
+@@ -0,0 +1,110 @@
++#ifndef AREA52_FOLLOWUP_PROC_RULES_H
++#define AREA52_FOLLOWUP_PROC_RULES_H
++#include <cstdint>
++namespace Area52FollowupProcs
++{
++inline bool HealingOnly(bool freePick, std::uint32_t aura)
++{
++    return freePick && aura == 760192;
++}
++inline bool FrostKill(bool freePick, bool capstone, bool frost, bool rewardAllowed, bool eligible)
++{
++    return freePick && capstone && frost && rewardAllowed && eligible;
++}
++inline bool WindRush(bool freePick, bool capstone, std::uint32_t root, bool successfulInterrupt)
++{
++    return freePick && capstone && root == 57994 && successfulInterrupt;
++}
++inline bool FlameReady(bool capstone, bool cooldown, bool ready)
++{
++    return capstone && !cooldown && !ready;
++}
++inline std::int32_t TotemPower(std::uint32_t level, std::uint32_t rank, bool attackPower)
++{
++    return rank >= 1 && rank <= 3 ? level * rank * (attackPower ? 30 : 15) / 100 : 0;
++}
++struct Event
++{
++    bool FreePick = false;
++    bool OwnerIsActor = false;
++    bool Periodic = false;
++    bool Damage = false;
++    bool Healing = false;
++    bool Critical = false;
++    bool OtherTarget = false;
++    bool FinalTidalWaves = false;
++    std::uint32_t NetherwindStacks = 0;
++    std::uint32_t Root = 0;
++};
++inline std::uint32_t Trigger(std::uint32_t aura, Event const& event)
++{
++    if (!event.FreePick || !event.OwnerIsActor)
++        return 0;
++    if (aura == 34493)
++        return event.Periodic && event.Damage &&
++            (event.Root == 13797 || event.Root == 13812 || event.Root == 3674) ? 734493 : 0;
++    if (event.Periodic)
++        return 0;
++    switch (aura)
++    {
++        case 16288:
++            return event.Root == 2645 ? 965489 : 0;
++        case 63506:
++            return event.Root == 2061 ? 415011 : 0;
++        case 20361:
++            return event.Root == 954500 ? 20362 : 0;
++        case 19298:
++            return event.Damage && event.Critical && (event.Root == 1495 || event.Root == 2973) ? 983791 : 0;
++        case 811100:
++            return event.Root == 133 ? 811101 : 0;
++        case 20042: case 20045:
++            return event.Root == 19740 && event.OtherTarget ? 920043 : 0;
++        case 851561:
++            return event.Root == 379 && event.Healing && event.FinalTidalWaves ? 851562 : 0;
++        case 760191:
++            return event.Root == 760106 && event.Healing ? 760192 : 0;
++        case 44400: case 44402: case 44403:
++            if (aura == 44403 && event.Root == 31589 && event.NetherwindStacks >= 3)
++                return 844405;
++            switch (event.Root)
++            {
++                case 5143: case 44425: case 30451: case 955032: case 8921: case 2912: case 954800:
++                    return aura == 44400 ? 966120 : aura == 44402 ? 966121 : 966122;
++                default: return 0;
++            }
++        case 17958:
++            return event.Root == 5676 || event.Root == 29722 || event.Root == 2948 || event.Root == 133 ? 411119 : 0;
++        case 12318: case 12857:
++            if (event.Root == 6673)
++                return aura == 12318 ? 812316 : 812318;
++            if (event.Root == 469)
++                return aura == 12318 ? 812317 : 812319;
++            return 0;
++        case 16219:
++            return event.Healing && event.Critical &&
++                (event.Root == 331 || event.Root == 61295 || event.Root == 8004 || event.Root == 1064) ? 986107 : 0;
++        case 863372:
++            if (!event.Damage)
++                return 0;
++            switch (event.Root)
++            {
++                case 8042: return 863375;
++                case 8050: return 863376;
++                case 8056: return 863377;
++                default: return 0;
++            }
++        default: return 0;
++    }
++}
++inline std::int32_t TidalExtension(std::uint32_t root)
++{
++    switch (root)
++    {
++        case 331: case 61295: return 2000;
++        case 8004: return 1000;
++        case 1064: return 500;
++        default: return 0;
++    }
++}
++}
++#endif
+--- /dev/null
++++ b/src/server/coa/Area52FollowupProcs.inc
+@@ -0,0 +1,186 @@
++class spell_area52_followup_proc : public AuraScript
++{
++    PrepareAuraScript(spell_area52_followup_proc);
++
++    bool Validate(SpellInfo const*) override
++    {
++        return ValidateSpellInfo({965489, 415011, 411119, 734493, 812316, 812317, 812318,
++            812319, 986107, 863375, 863376, 863377, 20362, 811101, 920042, 920043,
++            851562, 53390, 844405, 966120, 966121, 966122, 760192, 983791, 983792});
++    }
++
++    Area52FollowupProcs::Event Facts(ProcEventInfo& event)
++    {
++        Area52FollowupProcs::Event facts;
++        Player* owner = GetTarget()->ToPlayer();
++        facts.FreePick = owner && AscensionFreePick::Applies(owner);
++        facts.OwnerIsActor = event.GetActor() == GetTarget();
++        facts.OtherTarget = event.GetActionTarget() && event.GetActionTarget() != GetTarget();
++        facts.FinalTidalWaves = GetTarget()->HasAura(51564);
++        if (Aura* haste = GetTarget()->GetAura(966122))
++            facts.NetherwindStacks = haste->GetStackAmount();
++        facts.Periodic = (event.GetTypeMask() & PROC_FLAG_DONE_PERIODIC) != 0;
++        facts.Damage = event.GetDamageInfo() && event.GetDamageInfo()->GetDamage() > 0;
++        facts.Healing = event.GetHealInfo() != nullptr;
++        facts.Critical = (event.GetHitMask() & PROC_HIT_CRITICAL) != 0;
++        facts.Root = event.GetSpellInfo() ? event.GetSpellInfo()->GetFirstRankSpell()->Id : 0;
++        return facts;
++    }
++
++    bool CheckProc(ProcEventInfo& event)
++    {
++        return Area52FollowupProcs::Trigger(GetId(), Facts(event)) != 0;
++    }
++
++    void HandleProc(AuraEffect const* effect, ProcEventInfo& event)
++    {
++        PreventDefaultAction();
++        if (GetId() == 17958 && effect->GetEffIndex() != EFFECT_1)
++            return;
++        auto const facts = Facts(event);
++        uint32 const trigger = Area52FollowupProcs::Trigger(GetId(), facts);
++        Unit* owner = GetTarget();
++        if (GetId() == 760191)
++        {
++            if (Unit* target = event.GetActionTarget())
++                owner->CastSpell(target, 760192, true, nullptr, effect);
++            return;
++        }
++        if (GetId() == 20042 || GetId() == 20045)
++        {
++            if (effect->GetEffIndex() != EFFECT_0 || !event.GetActionTarget())
++                return;
++            int32 amount = Area52FollowupProcs::TotemPower(owner->GetLevel(), GetId() == 20042 ? 1 : 2, true);
++            owner->CastCustomSpell(owner, 920042, &amount, &amount, nullptr, true, nullptr, effect);
++            owner->CastCustomSpell(event.GetActionTarget(), 920043, &amount, &amount, nullptr, true, nullptr, effect);
++            return;
++        }
++        if (GetId() == 16219)
++        {
++            int32 duration = Area52FollowupProcs::TidalExtension(facts.Root);
++            owner->CastCustomSpell(owner, trigger, &duration, nullptr, nullptr, true, nullptr, effect);
++            return;
++        }
++        if (GetId() == 34493)
++        {
++            int32 reduction = -1000;
++            owner->CastCustomSpell(owner, trigger, &reduction, &reduction, &reduction, true, nullptr, effect);
++            return;
++        }
++        owner->CastSpell(owner, trigger, true, nullptr, effect);
++        if (GetId() == 12318 || GetId() == 12857)
++            if (Aura* buff = owner->GetAura(trigger, owner->GetGUID()))
++            {
++                buff->SetMaxDuration(10 * MINUTE * IN_MILLISECONDS);
++                buff->SetDuration(buff->GetMaxDuration());
++            }
++    }
++
++    void Register() override
++    {
++        DoCheckProc += AuraCheckProcFn(spell_area52_followup_proc::CheckProc);
++        OnEffectProc += AuraEffectProcFn(spell_area52_followup_proc::HandleProc, EFFECT_ALL, SPELL_AURA_PROC_TRIGGER_SPELL);
++    }
++};
++
++class spell_area52_shared_might : public AuraScript
++{
++    PrepareAuraScript(spell_area52_shared_might);
++
++    void Apply(AuraEffect const*, AuraEffectHandleModes)
++    {
++        Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr;
++        if (!player || !AscensionFreePick::Applies(player) || GetAura()->IsSingleTarget())
++            return;
++        auto previous = player->GetSingleCastAuras();
++        for (Aura* aura : previous)
++            if (aura != GetAura() && aura->GetId() == 920043)
++                aura->Remove();
++        GetAura()->SetIsSingleTarget(true);
++        player->GetSingleCastAuras().push_back(GetAura());
++    }
++
++    void Register() override
++    {
++        AfterEffectApply += AuraEffectApplyFn(spell_area52_shared_might::Apply, EFFECT_0,
++            SPELL_AURA_MOD_ATTACK_POWER, AURA_EFFECT_HANDLE_REAL);
++    }
++};
++
++class area52_followup_casts : public AllSpellScript
++{
++public:
++    area52_followup_casts() : AllSpellScript("area52_followup_casts",
++        {ALLSPELLHOOK_ON_SUCCESSFUL_INTERRUPT, ALLSPELLHOOK_ON_CAST, ALLSPELLHOOK_ON_CALCULATED_TARGET}) { }
++
++    void OnSpellCalculatedTarget(Spell* spell, Unit* target, TargetInfo& hit) override
++    {
++        Player* player = spell && spell->GetCaster() ? spell->GetCaster()->ToPlayer() : nullptr;
++        if (!player || !AscensionFreePick::Applies(player) || !target || hit.damage >= 0 ||
++            hit.missCondition != SPELL_MISS_NONE)
++            return;
++        if (AuraEffect* dawn = target->GetAuraEffect(760192, EFFECT_0, player->GetGUID()))
++            if (dawn->IsAffectedOnSpell(spell->GetSpellInfo()))
++            {
++                AddPct(hit.damage, dawn->GetAmount());
++                dawn->GetBase()->Remove();
++            }
++    }
++
++    void OnSpellCast(Spell* spell, Unit* caster, SpellInfo const* info, bool) override
++    {
++        Player* player = caster ? caster->ToPlayer() : nullptr;
++        if (!player || !AscensionFreePick::Applies(player) || !spell || spell->IsTriggered())
++            return;
++        uint32 rank = player->HasAura(52456) ? 3 : player->HasAura(16295) ? 2 : player->HasAura(16259) ? 1 : 0;
++        if (!rank)
++            return;
++        bool summon = false;
++        for (auto const& effect : info->Effects)
++            if (effect.Effect == SPELL_EFFECT_SUMMON)
++                if (auto const* properties = sSummonPropertiesStore.LookupEntry(effect.MiscValueB))
++                    summon = summon || properties->Type == SUMMON_TYPE_TOTEM;
++        if (!summon)
++            return;
++        for (auto const& guid : player->m_SummonSlot)
++            if (Creature* totem = ObjectAccessor::GetCreature(*player, guid))
++                if (totem->IsTotem() && totem->GetUInt32Value(UNIT_CREATED_BY_SPELL) == info->Id)
++                {
++                    int32 attack = Area52FollowupProcs::TotemPower(player->GetLevel(), rank, true);
++                    int32 magic = Area52FollowupProcs::TotemPower(player->GetLevel(), rank, false);
++                    player->CastCustomSpell(player, 816259, &attack, &magic, nullptr, true);
++                    break;
++                }
++    }
++
++    void OnSpellSuccessfulInterrupt(Spell* spell, Unit*) override
++    {
++        Player* player = spell && spell->GetCaster() ? spell->GetCaster()->ToPlayer() : nullptr;
++        if (!player || !Area52FollowupProcs::WindRush(AscensionFreePick::Applies(player),
++            player->HasAura(32511), spell->GetSpellInfo()->GetFirstRankSpell()->Id, true) ||
++            spell->GetScriptValue(411139))
++            return;
++        spell->SetScriptValue(411139, 1);
++        player->CastSpell(player, 411139, true);
++    }
++};
++
++class spell_area52_flame_throwing : public AuraScript
++{
++    PrepareAuraScript(spell_area52_flame_throwing);
++
++    void Tick(AuraEffect const*)
++    {
++        Player* player = GetTarget()->ToPlayer();
++        if (!player || !AscensionFreePick::Applies(player))
++            return;
++        PreventDefaultAction();
++        if (Area52FollowupProcs::FlameReady(player->HasAura(812352), player->HasAura(811101), player->HasAura(811100)))
++            player->CastSpell(player, 811100, true);
++    }
++
++    void Register() override
++    {
++        OnEffectPeriodic += AuraEffectPeriodicFn(spell_area52_flame_throwing::Tick, EFFECT_2, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
++    }
++};
+--- /dev/null
++++ b/apps/coa-tests/area52_proc_batch/run.py
+@@ -0,0 +1,50 @@
++from pathlib import Path
++import subprocess,tempfile,sqlite3,re
++root=Path(__file__).resolve().parents[3]
++source = r'''#include "Area52AdvancementProcRules.h"
++#include <cassert>
++using namespace Area52AdvancementProcs;
++int main()
++{
++    Event e; e.FreePick=true; e.OwnerIsActor=true;
++    e.SpellRoot=17; assert(Accept(14769,e)); e.SpellRoot=2061; assert(!Accept(14769,e));
++    e.SpellRoot=116; assert(Accept(31682,e) && Accept(31683,e) && Accept(31684,e));
++    e.SpellRoot=133; assert(!Accept(31684,e));
++    e.Damage=true; e.Periodic=true;
++    for (auto root : {703u,1943u,954809u}) {e.SpellRoot=root; assert(Accept(14142,e));}
++    e.SpellRoot=1752; assert(!Accept(14142,e));
++    e.School=2; assert(Accept(33225,e)); e.School=32; assert(Accept(33225,e));
++    e.School=4; assert(!Accept(33225,e)); e.Periodic=false; e.School=32; assert(!Accept(33225,e));
++    e.Family=4; assert(Accept(12308,e)&&Accept(12810,e)&&Accept(12811,e));
++    e.Family=8; assert(!Accept(12811,e)); e.Family=4; e.Periodic=true; assert(!Accept(12811,e));
++    e.Periodic=false; e.SpellRoot=5221; e.Behind=true; assert(Accept(816968,e));
++    e.SpellRoot=6785; assert(Accept(816968,e)); e.Behind=false; assert(!Accept(816968,e));
++    e.Dodged=true; assert(!Accept(12753,e)); e.OwnerIsActor=false; assert(Accept(12753,e));
++    e.Dodged=false; assert(!Accept(12753,e)); e.Dodged=true; e.FreePick=false; assert(!Accept(12753,e));
++    e.OwnerIsActor=true; e.SpellRoot=17; assert(!Accept(14769,e));
++    e.FreePick=true; assert(!Accept(99999,e));
++}
++'''
++source=source.replace('#include <cassert>','#include <cassert>\n#include <initializer_list>')
++with tempfile.TemporaryDirectory() as directory:
++    path=Path(directory);(path/'test.cpp').write_text(source)
++    subprocess.run(['c++','-std=c++20','-Wall','-Wextra','-Werror','-I',str(root/'src/server/coa'),str(path/'test.cpp'),'-o',str(path/'test')],check=True)
++    subprocess.run([str(path/'test')],check=True)
++print('PASS: source predicates accept required events and reject unrelated spells, periodic/direct mismatches, targets and other modes.')
++sql = (root/'data/sql/updates/pending_db_world/rev_20261008_09_area52_advancement_procs.sql').read_text()
++connection = sqlite3.connect(':memory:')
++for table in ('spell_proc', 'spell_script_names'):
++    columns = re.search(r'INSERT INTO `' + table + r'` \(([^)]+)\)', sql)[1]
++    connection.execute('CREATE TABLE ' + table + ' (' + columns + ')')
++connection.execute('INSERT INTO spell_proc (SpellId, Chance) VALUES (99999999, 73)')
++connection.execute("INSERT INTO spell_script_names VALUES (14769, 'unrelated_handler')")
++connection.executescript(sql)
++first = [connection.execute('SELECT * FROM ' + table).fetchall() for table in ('spell_proc', 'spell_script_names')]
++connection.executescript(sql)
++second = [connection.execute('SELECT * FROM ' + table).fetchall() for table in ('spell_proc', 'spell_script_names')]
++assert first == second
++assert len(first[0]) == 12 and len(first[1]) == 12
++assert connection.execute('SELECT Chance FROM spell_proc WHERE SpellId=99999999').fetchone() == (73,)
++assert connection.execute("SELECT COUNT(*) FROM spell_script_names WHERE ScriptName='unrelated_handler'").fetchone() == (1,)
++assert connection.execute('SELECT COUNT(*) FROM spell_proc WHERE SpellId<0').fetchone() == (0,)
++print('PASS: SQL statement replay is idempotent, preserves unrelated bindings, and uses explicit positive spell IDs.')
+--- /dev/null
++++ b/apps/coa-tests/area52_followup_procs/run.py
+@@ -0,0 +1,106 @@
++from pathlib import Path
++import subprocess,tempfile,sqlite3,re
++root=Path(__file__).resolve().parents[3]
++source=r'''#include "Area52FollowupProcRules.h"
++#include <cassert>
++#include <initializer_list>
++using namespace Area52FollowupProcs;
++int main()
++{
++    assert(HealingOnly(true,760192));
++    assert(!HealingOnly(false,760192) && !HealingOnly(true,31882));
++    assert(FrostKill(true,true,true,true,true));
++    assert(!FrostKill(false,true,true,true,true));
++    assert(!FrostKill(true,false,true,true,true));
++    assert(!FrostKill(true,true,false,true,true));
++    assert(!FrostKill(true,true,true,false,true));
++    assert(!FrostKill(true,true,true,true,false));
++    assert(WindRush(true,true,57994,true));
++    assert(!WindRush(true,true,57994,false));
++    assert(!WindRush(true,false,57994,true));
++    assert(!WindRush(false,true,57994,true));
++    assert(!WindRush(true,true,1766,true));
++    assert(FlameReady(true,false,false));
++    assert(!FlameReady(true,true,false) && !FlameReady(true,false,true) && !FlameReady(false,false,false));
++    assert(TotemPower(80,1,true)==24 && TotemPower(80,1,false)==12);
++    assert(TotemPower(80,2,true)==48 && TotemPower(80,3,false)==36);
++    assert(TotemPower(1,3,false)==0 && TotemPower(80,4,true)==0);
++    Event e; e.FreePick=true; e.OwnerIsActor=true;
++    e.Root=2645; assert(Trigger(16288,e)==965489);
++    e.Root=2061; assert(Trigger(63506,e)==415011); assert(!Trigger(16288,e));
++    e.Root=954500; assert(Trigger(20361,e)==20362);
++    e.Root=133; assert(Trigger(811100,e)==811101 && !Trigger(20361,e));
++    e.Root=19740; assert(!Trigger(20042,e)); e.OtherTarget=true;
++    assert(Trigger(20042,e)==920043 && Trigger(20045,e)==920043);
++    e.Root=20217; assert(!Trigger(20045,e));
++    for (auto root : {5143u,44425u,30451u,955032u,8921u,2912u,954800u})
++    {
++        e.Root=root;
++        assert(Trigger(44400,e)==966120 && Trigger(44402,e)==966121 && Trigger(44403,e)==966122);
++    }
++    e.Root=31589; e.NetherwindStacks=2; assert(!Trigger(44403,e));
++    e.NetherwindStacks=3; assert(Trigger(44403,e)==844405 && !Trigger(44402,e));
++    e.Root=379; e.Healing=true; assert(!Trigger(851561,e));
++    e.FinalTidalWaves=true; assert(Trigger(851561,e)==851562);
++    e.Healing=false; assert(!Trigger(851561,e));
++    e.Root=760106; assert(!Trigger(760191,e));
++    e.Healing=true; assert(Trigger(760191,e)==760192);
++    e.OwnerIsActor=false; assert(!Trigger(760191,e) && !Trigger(851561,e));
++    e.OwnerIsActor=true; e.Periodic=true; assert(!Trigger(760191,e));
++    e.Periodic=false;
++    e.Damage=true; e.Critical=true;
++    e.Root=1495; assert(Trigger(19298,e)==983791);
++    e.Root=2973; assert(Trigger(19298,e)==983791);
++    e.Root=6603; assert(!Trigger(19298,e));
++    e.Root=1495; e.Critical=false; assert(!Trigger(19298,e));
++    e.Critical=true; e.Periodic=true; assert(!Trigger(19298,e));
++    e.Periodic=false; e.Damage=false; assert(!Trigger(19298,e));
++    for (auto root : {5676u,29722u,2948u,133u}) {e.Root=root; assert(Trigger(17958,e)==411119);}
++    e.Root=116; assert(!Trigger(17958,e));
++    e.Root=6673; assert(Trigger(12318,e)==812316 && Trigger(12857,e)==812318);
++    e.Root=469; assert(Trigger(12318,e)==812317 && Trigger(12857,e)==812319);
++    e.Healing=true; e.Critical=true;
++    for (auto root : {331u,61295u,8004u,1064u}) {e.Root=root; assert(Trigger(16219,e)==986107);}
++    assert(TidalExtension(331)==2000 && TidalExtension(61295)==2000);
++    assert(TidalExtension(8004)==1000 && TidalExtension(1064)==500);
++    e.Critical=false; assert(!Trigger(16219,e)); e.Critical=true; e.Periodic=true; assert(!Trigger(16219,e));
++    e.Damage=true;
++    for (auto root : {13797u,13812u,3674u}) {e.Root=root; assert(Trigger(34493,e)==734493);}
++    e.Root=1978; assert(!Trigger(34493,e)); e.Periodic=false; e.Root=3674; assert(!Trigger(34493,e));
++    e.Root=8042; assert(Trigger(863372,e)==863375);
++    e.Root=8050; assert(Trigger(863372,e)==863376);
++    e.Root=8056; assert(Trigger(863372,e)==863377);
++    e.Periodic=true; assert(!Trigger(863372,e)); e.Periodic=false;
++    e.Damage=false; assert(!Trigger(863372,e)); e.Damage=true;
++    e.FreePick=false; assert(!Trigger(863372,e)); e.FreePick=true; e.OwnerIsActor=false; assert(!Trigger(863372,e));
++}
++'''
++with tempfile.TemporaryDirectory() as directory:
++    path=Path(directory);(path/'test.cpp').write_text(source)
++    subprocess.run(['c++','-std=c++20','-Wall','-Wextra','-Werror','-I',str(root/'src/server/coa'),str(path/'test.cpp'),'-o',str(path/'test')],check=True)
++    subprocess.run([str(path/'test')],check=True)
++sql=(root/'data/sql/updates/pending_db_world/rev_20261008_10_area52_followup_procs.sql').read_text()
++db=sqlite3.connect(':memory:')
++for table in ('spell_proc','spell_script_names'):
++    columns=re.search(r'INSERT INTO `'+table+r'` \(([^)]+)\)',sql)[1]
++    db.execute('CREATE TABLE '+table+' ('+columns+')')
++db.execute('INSERT INTO spell_proc (SpellId,Chance) VALUES (99999999,73)')
++db.execute("INSERT INTO spell_script_names VALUES (16288,'unrelated')")
++db.executescript(sql)
++first=[db.execute('SELECT * FROM '+t).fetchall() for t in ('spell_proc','spell_script_names')]
++db.executescript(sql)
++assert first==[db.execute('SELECT * FROM '+t).fetchall() for t in ('spell_proc','spell_script_names')]
++assert len(first[0])==9 and len(first[1])==9
++assert db.execute('SELECT Cooldown FROM spell_proc WHERE SpellId=16288').fetchone()==(20000,)
++assert db.execute('SELECT Cooldown FROM spell_proc WHERE SpellId=34493').fetchone()==(1000,)
++assert db.execute('SELECT DisableEffectsMask FROM spell_proc WHERE SpellId=17958').fetchone()==(4,)
++print('PASS: seven event policies, target ownership, critical/periodic exclusions, duration increments and SQL replay isolation.')
++stateful=(root/'data/sql/updates/pending_db_world/rev_20261008_11_area52_stateful_procs.sql').read_text()
++db.executescript(stateful)
++first=[db.execute('SELECT * FROM '+t+' ORDER BY 1,2').fetchall() for t in ('spell_proc','spell_script_names')]
++db.executescript(sql+stateful)
++assert first==[db.execute('SELECT * FROM '+t+' ORDER BY 1,2').fetchall() for t in ('spell_proc','spell_script_names')]
++for sid in (20362,811100):
++    assert db.execute('SELECT Charges,AttributesMask,SpellPhaseMask FROM spell_proc WHERE SpellId=?',(sid,)).fetchone()==(1,8,4)
++assert db.execute('SELECT DisableEffectsMask FROM spell_proc WHERE SpellId=20045').fetchone()==(2,)
++print('PASS: combined migration replay, one-use spellmod charge consumption and single grant effect binding.')
+--- /dev/null
++++ b/apps/coa-tests/area52_proc_release/run.py
+@@ -0,0 +1,26 @@
++from pathlib import Path
++import json,sys,struct,re,hashlib
++root=Path(__file__).resolve().parents[3];p=root.parent/'Area52_Proc_Remaining31'
++if True:
++    sys.path.insert(0,str(root.parents[1]/'work/github-upload/tools'))
++    from lib.mpq import MPQArchive
++    client=Path('D:/DML WOTLK Client Side/Ascension A52 Free Pick/ascension-live/ascension-live/Data/area-52/patch-D.MPQ')
++    receipt=json.loads((p/'client-stage.json').read_text())
++    assert hashlib.sha256(client.read_bytes()).hexdigest()==receipt['before_sha256']
++    with MPQArchive(client) as before,MPQArchive(p/'patch-D.MPQ') as after:
++        names=before.read_file('(listfile)').decode().splitlines()
++        for name in names:
++            if name.lower() in ('(listfile)','(attributes)','(signature)') or not name:continue
++            old,new=before.read_file(name),after.read_file(name)
++            if name=='DBFilesClient\\Spell.dbc':
++                _,count,fields,size,_=struct.unpack_from('<4s4I',old)
++                old_pool,new_pool=old[20+count*size:],new[20+count*size:]
++                for i in range(count):
++                    a=list(struct.unpack_from('<'+'I'*fields,old,20+i*size));b=list(struct.unpack_from('<'+'I'*fields,new,20+i*size))
++                    x=old_pool[a[170]:old_pool.find(b'\0',a[170])];y=new_pool[b[170]:new_pool.find(b'\0',b[170])]
++                    pattern=rb'\|cff[0-9a-fA-F]{6}(?:NOT VERIFIED|VERIFIED)\|r'
++                    assert re.sub(pattern,b'',x)==re.sub(pattern,b'',y),a[0]
++                    a[170]=b[170]=0;assert a==b
++            else:assert old==new,name
++    print('Client archive preserves all non-status tooltip text and fields; all rank data remains unchanged.')
++
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261008_09_area52_advancement_procs.sql
+@@ -0,0 +1,26 @@
++DELETE FROM `spell_proc` WHERE `SpellId` IN (12753,12308,12810,12811,14142,14769,816968,31682,31683,31684,33225);
++INSERT INTO `spell_proc` (`SpellId`,`SchoolMask`,`SpellFamilyName`,`SpellFamilyMask0`,`SpellFamilyMask1`,`SpellFamilyMask2`,`ProcFlags`,`SpellTypeMask`,`SpellPhaseMask`,`HitMask`,`AttributesMask`,`DisableEffectsMask`,`ProcsPerMinute`,`Chance`,`Cooldown`,`Charges`) VALUES
++(12753,0,0,0,0,0,40,0,2,16,0,0,0,0,0,0),
++(12308,0,0,0,0,0,69648,1,2,0,0,0,0,0,0,0),
++(12810,0,0,0,0,0,69648,1,2,0,0,0,0,0,0,0),
++(12811,0,0,0,0,0,69648,1,2,0,0,0,0,0,0,0),
++(14142,0,0,0,0,0,262144,1,2,0,0,0,0,100,0,0),
++(14769,0,0,0,0,0,17408,4,2,0,0,0,0,100,0,0),
++(816968,0,0,0,0,0,16,1,2,0,0,0,0,100,0,0),
++(31682,0,0,0,0,0,65536,0,1,0,0,0,0,100,0,0),
++(31683,0,0,0,0,0,65536,0,1,0,0,0,0,100,0,0),
++(31684,0,0,0,0,0,65536,0,1,0,0,0,0,100,0,0),
++(33225,0,0,0,0,0,262144,1,2,0,0,0,0,30,0,0);
++DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_area52_advancement_proc' AND `spell_id` IN (12753,12308,12810,12811,14142,14769,816968,31682,31683,31684,33225);
++INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES
++(12753,'spell_area52_advancement_proc'),
++(12308,'spell_area52_advancement_proc'),
++(12810,'spell_area52_advancement_proc'),
++(12811,'spell_area52_advancement_proc'),
++(14142,'spell_area52_advancement_proc'),
++(14769,'spell_area52_advancement_proc'),
++(816968,'spell_area52_advancement_proc'),
++(31682,'spell_area52_advancement_proc'),
++(31683,'spell_area52_advancement_proc'),
++(31684,'spell_area52_advancement_proc'),
++(33225,'spell_area52_advancement_proc');
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261008_10_area52_followup_procs.sql
+@@ -0,0 +1,20 @@
++DELETE FROM `spell_proc` WHERE `SpellId` IN (16288,63506,17958,34493,12318,12857,16219,863372);
++INSERT INTO `spell_proc` (`SpellId`,`SchoolMask`,`SpellFamilyName`,`SpellFamilyMask0`,`SpellFamilyMask1`,`SpellFamilyMask2`,`ProcFlags`,`SpellTypeMask`,`SpellPhaseMask`,`HitMask`,`AttributesMask`,`DisableEffectsMask`,`ProcsPerMinute`,`Chance`,`Cooldown`,`Charges`) VALUES
++(16288,0,0,0,0,0,17408,0,1,0,0,0,0,100,20000,0),
++(63506,0,0,0,0,0,17408,0,1,0,0,0,0,100,0,0),
++(17958,0,0,0,0,0,69632,0,1,0,0,4,0,100,0,0),
++(34493,0,0,0,0,0,262144,1,2,0,0,0,0,100,1000,0),
++(12318,0,0,0,0,0,17408,0,1,0,0,0,0,100,0,0),
++(12857,0,0,0,0,0,17408,0,1,0,0,0,0,100,0,0),
++(16219,0,0,0,0,0,17408,2,2,2,0,0,0,100,0,0),
++(863372,0,0,0,0,0,65536,1,2,0,0,0,0,100,0,0);
++DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_area52_followup_proc' AND `spell_id` IN (16288,63506,17958,34493,12318,12857,16219,863372);
++INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES
++(16288,'spell_area52_followup_proc'),
++(63506,'spell_area52_followup_proc'),
++(17958,'spell_area52_followup_proc'),
++(34493,'spell_area52_followup_proc'),
++(12318,'spell_area52_followup_proc'),
++(12857,'spell_area52_followup_proc'),
++(16219,'spell_area52_followup_proc'),
++(863372,'spell_area52_followup_proc');
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261008_11_area52_stateful_procs.sql
+@@ -0,0 +1,29 @@
++DELETE FROM `spell_proc` WHERE `SpellId` IN (20361,20362,811100,20042,20045,851561,44400,44402,44403,760191,19298);
++INSERT INTO `spell_proc` (`SpellId`,`SchoolMask`,`SpellFamilyName`,`SpellFamilyMask0`,`SpellFamilyMask1`,`SpellFamilyMask2`,`ProcFlags`,`SpellTypeMask`,`SpellPhaseMask`,`HitMask`,`AttributesMask`,`DisableEffectsMask`,`ProcsPerMinute`,`Chance`,`Cooldown`,`Charges`) VALUES
++(20361,0,0,0,0,0,69632,0,1,0,0,0,0,100,0,0),
++(20362,0,0,0,0,0,87040,0,4,0,8,0,0,100,0,1),
++(811100,0,0,0,0,0,65536,0,4,0,8,0,0,100,0,1),
++(20042,0,0,0,0,0,17408,0,2,0,0,2,0,100,0,0),
++(20045,0,0,0,0,0,17408,0,2,0,0,2,0,100,0,0),
++(851561,0,0,0,0,0,17408,2,2,0,2,0,0,100,5000,0),
++(44400,0,0,0,0,0,65536,0,1,0,0,0,0,100,0,0),
++(44402,0,0,0,0,0,65536,0,1,0,0,0,0,100,0,0),
++(44403,0,0,0,0,0,65536,0,1,0,0,0,0,100,0,0),
++(760191,0,0,0,0,0,17408,2,2,0,0,0,0,100,0,0),
++(19298,0,0,0,0,0,16,1,2,2,0,0,0,100,4000,0);
++DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_area52_followup_proc' AND `spell_id` IN (20361,811100,20042,20045,851561,44400,44402,44403,760191,19298);
++INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES
++(20361,'spell_area52_followup_proc'),
++(811100,'spell_area52_followup_proc'),
++(20042,'spell_area52_followup_proc'),
++(20045,'spell_area52_followup_proc'),
++(851561,'spell_area52_followup_proc'),
++(44400,'spell_area52_followup_proc'),
++(44402,'spell_area52_followup_proc'),
++(44403,'spell_area52_followup_proc'),
++(760191,'spell_area52_followup_proc'),
++(19298,'spell_area52_followup_proc');
++DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_area52_flame_throwing' AND `spell_id`=812352;
++INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES (812352,'spell_area52_flame_throwing');
++DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_area52_shared_might' AND `spell_id`=920043;
++INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES (920043,'spell_area52_shared_might');
+--- a/src/server/game/Entities/Unit/Unit.cpp
++++ b/src/server/game/Entities/Unit/Unit.cpp
+@@ -17,6 +17,7 @@
+ 
+ #include "Unit.h"
+ #include "../../../coa/AscensionFreePick.h"
++#include "../../../coa/Area52FollowupProcRules.h"
+ #include "../../../coa/Area52WyvernSleep.h"
+ #include "AbstractFollower.h"
+ #include "AreaDefines.h"
+@@ -9755,6 +9756,8 @@
+     {
+         TakenTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_DAMAGE_FROM_CASTER, [caster, spellProto](AuraEffect const* aurEff) -> bool
+         {
++            if (Area52FollowupProcs::HealingOnly(AscensionFreePick::Applies(caster->ToPlayer()), aurEff->GetId()))
++                return false;
+             if (aurEff->GetCasterGUID() == caster->GetGUID() && aurEff->IsAffectedOnSpell(spellProto))
+                 return true;
+             return false;
+@@ -11270,6 +11273,8 @@
+         // From caster spells
+         TakenTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_DAMAGE_FROM_CASTER, [attacker, spellProto](AuraEffect const* aurEff)
+         {
++            if (Area52FollowupProcs::HealingOnly(AscensionFreePick::Applies(attacker->ToPlayer()), aurEff->GetId()))
++                return false;
+             return attacker->GetGUID() == aurEff->GetCasterGUID() && aurEff->IsAffectedOnSpell(spellProto);
+         });
+ 
+@@ -15021,7 +15026,7 @@
+     return true;
+ }
+ 
+-void Unit::Kill(Unit* killer, Unit* victim, bool durabilityLoss, WeaponAttackType attackType, SpellInfo const* /*spellProto*/, Spell const* /*spell*/ /*= nullptr*/)
++void Unit::Kill(Unit* killer, Unit* victim, bool durabilityLoss, WeaponAttackType attackType, SpellInfo const* spellProto, Spell const* /*spell*/ /*= nullptr*/)
+ {
+     // Prevent killing unit twice (and giving reward from kill twice)
+     if (!victim->GetHealth())
+@@ -15133,6 +15138,13 @@
+ 
+         player->RewardPlayerAndGroupAtKill(victim, false);
+     }
++
++    if (killer && killer != victim && spellProto && killer->HasAura(12519))
++        if (Player* frostCaster = killer->ToPlayer())
++            if (Area52FollowupProcs::FrostKill(AscensionFreePick::Applies(frostCaster), true,
++                (spellProto->SchoolMask & SPELL_SCHOOL_MASK_FROST) != 0, isRewardAllowed,
++                frostCaster->isHonorOrXPTarget(victim)))
++                frostCaster->CastSpell(frostCaster, 812520, true);
+ 
+     // Do KILL and KILLED procs. KILL proc is called only for the unit who landed the killing blow (and its owner - for pets and totems) regardless of who tapped the victim
+     // Spell context is not passed to avoid the killing spell's triggered status from suppressing nested proc events
+--- /dev/null
++++ b/apps/coa-tests/area52_proc_activation/run.py
+@@ -0,0 +1,36 @@
++from pathlib import Path
++import decimal,hashlib,json,re,sqlite3,subprocess
++root=Path(__file__).resolve().parents[3]
++p=root.parent/'Area52_Proc_Remaining31'
++receipt=json.loads((p/'activated.json').read_text())
++assert receipt['activated']
++stage=Path(receipt['stage'])
++migration='\n'.join((stage/'source/data/sql/updates/pending_db_world'/n).read_text() for n in receipt['migrations'])
++db=sqlite3.connect(':memory:')
++columns={}
++for table in ('spell_proc','spell_script_names'):
++    columns[table]=re.search(r'INSERT INTO `'+table+r'` \(([^)]+)\)',migration)[1]
++    db.execute('CREATE TABLE '+table+' ('+columns[table]+')')
++db.executescript(migration)
++def query(q):return subprocess.check_output(['docker','exec','ascension-freepick-database','mysql','--defaults-extra-file=/run/secrets/mysql-root.cnf','-BN','acore_world','-e',q],text=True).splitlines()
++counts={}
++for table in columns:
++    expected=db.execute('SELECT * FROM '+table+' ORDER BY 1,2').fetchall()
++    ids=','.join(str(row[0]) for row in expected)
++    key='SpellId' if table=='spell_proc' else 'spell_id'
++    condition=key+' IN ('+ids+')'
++    if table=='spell_script_names':condition+=" AND ScriptName IN ("+','.join("'"+row[1]+"'" for row in expected)+')'
++    actual=query('SELECT '+columns[table]+' FROM '+table+' WHERE '+condition+' ORDER BY 1,2;')
++    assert len(actual)==len(expected),(table,len(actual),len(expected))
++    for a,b in zip(actual,expected):
++        values=a.split('\t');assert len(values)==len(b)
++        for value,wanted in zip(values,b):
++            assert value==wanted if isinstance(wanted,str) else decimal.Decimal(value)==decimal.Decimal(str(wanted)),(table,b[0])
++    counts[table]=len(actual)
++binary=subprocess.check_output(['docker','exec','ascension-freepick-worldserver','sha256sum','/proc/1/exe'],text=True).split()[0]
++assert binary==receipt['binary_sha256']
++log=(stage/'startup.log').read_text()
++bad=[line for line in log.splitlines() if 'area52_' in line.lower() and any(s in line.lower() for s in ('did not pass','not found','failed','not exist'))]
++assert not bad,bad
++(p/'runtime-verification.json').write_text(json.dumps({'live_rows':counts,'binary_sha256':binary,'script_validation_errors':bad},indent=2))
++print('PASS: live proc rows and script bindings match migrations; running binary matches candidate; no Area 52 script validation failures.')
