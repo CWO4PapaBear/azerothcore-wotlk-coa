@@ -1,0 +1,22 @@
+{
+  "status": "staged_not_installed",
+  "source": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\area-52\\patch-D.MPQ",
+  "before": "cce7463b131a0a6df7ca50ffa0ea170248ddfad17cffa646b68a40c82491638e",
+  "after": "c7da1e0d9ff8d947ccf1e5f6458e9503b0710746b8d2e577c39219e3125b494f",
+  "changes": [
+    {
+      "table": "ItemSet",
+      "entry": 90073,
+      "offset": 504268,
+      "item": 168665
+    },
+    {
+      "table": "VanityCollection",
+      "entry": 9901073,
+      "offset": 3323804,
+      "item": 168665
+    }
+  ],
+  "appearance": 12179,
+  "female_set_unchanged": true
+}
