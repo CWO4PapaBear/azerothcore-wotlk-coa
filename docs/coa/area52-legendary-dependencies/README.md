@@ -1,7 +1,7 @@
 # Area 52 Legendary dependency repairs
 
 The 54 abilities/talents linked to the 20 previously VERIFIED Legendary enchants now contain
-49 VERIFIED entries and 5 tester-CERTIFIED entries in the staged ledger. This adds 27 VERIFIED
+49 VERIFIED entries and 5 tester-CERTIFIED entries in the active ledger. This adds 27 VERIFIED
 entries: the preceding 13-entry review plus the final 14-entry repair batch.
 
 The runtime patch fixes proc filters, rank-wide overrides, Mangle child grants/ranks, damage and
@@ -24,5 +24,5 @@ The existing Legendary labels are not a claim that every optional Legendary inte
 newly re-certified by this dependency batch.
 
 Client tooltip status is yellow VERIFIED, with existing SHIFT content preserved. The combined
-archive is staged locally. No server activation, client installation or tester-channel promotion
-is implied by this source publication.
+archive was installed locally and published to the tester channel after an announced three-minute
+restart. The live server binary, SQL migration and actual-launcher feed checks passed.

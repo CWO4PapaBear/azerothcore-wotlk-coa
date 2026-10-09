@@ -20,7 +20,7 @@
         84510,
         965503
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -40,7 +40,7 @@
       "legendary_roots": [
         99634
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -60,7 +60,7 @@
       "legendary_roots": [
         99634
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -70,7 +70,7 @@
       "legendary_roots": [
         414080
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -80,7 +80,7 @@
       "legendary_roots": [
         965504
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -100,7 +100,7 @@
       "legendary_roots": [
         965282
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -110,7 +110,7 @@
       "legendary_roots": [
         965282
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -120,7 +120,7 @@
       "legendary_roots": [
         978217
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -130,7 +130,7 @@
       "legendary_roots": [
         81116
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -150,7 +150,7 @@
       "legendary_roots": [
         978217
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -160,7 +160,7 @@
       "legendary_roots": [
         965504
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -170,7 +170,7 @@
       "legendary_roots": [
         978217
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -180,7 +180,7 @@
       "legendary_roots": [
         965473
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -191,7 +191,7 @@
         99634,
         414080
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -201,7 +201,7 @@
       "legendary_roots": [
         414080
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -231,7 +231,7 @@
       "legendary_roots": [
         965501
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -261,7 +261,7 @@
       "legendary_roots": [
         978217
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -301,7 +301,7 @@
       "legendary_roots": [
         978217
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -342,7 +342,7 @@
       "legendary_roots": [
         99634
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -403,7 +403,7 @@
         81258,
         965504
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -413,7 +413,7 @@
       "legendary_roots": [
         414080
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -423,7 +423,7 @@
       "legendary_roots": [
         965282
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -443,7 +443,7 @@
       "legendary_roots": [
         965504
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -453,7 +453,7 @@
       "legendary_roots": [
         99634
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -475,7 +475,7 @@
       "legendary_roots": [
         965504
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -505,7 +505,7 @@
       "legendary_roots": [
         965473
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -515,7 +515,7 @@
       "legendary_roots": [
         965282
       ],
-      "batch_result": "VERIFIED_STAGED",
+      "batch_result": "VERIFIED_ACTIVE",
       "follow_up": null
     },
     {
@@ -593,10 +593,13 @@
     ]
   },
   "release": {
-    "client": "combined archive staged, not installed",
-    "server": "compiled, not activated",
-    "tester_channel": "unchanged",
-    "source": "focused runtime patch; requires deployed Area 52 base"
+    "client": "installed locally and published to Area 52 tester channel",
+    "server": "activated; live binary and migration verified",
+    "tester_channel": "live actual-launcher validator passed",
+    "source": "04aa79a309e8ba5dd451f823c51e48c4f36a198b focused runtime patch",
+    "client_feed_commit": "eb58fbe0d1f53b943c90266c8010901c26b18582",
+    "server_sha256": "6ebe00b10c71fa8881480de67bf816188a9c5e9737f9e9c3c549f9aba73f844a",
+    "restart": "native three-minute in-game countdown and announcement"
   },
   "exclusions": {
     "577": "Hoplite Flurry is its own helper, not the Shaman Flurry talent.",

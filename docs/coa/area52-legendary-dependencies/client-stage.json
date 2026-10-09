@@ -1,5 +1,5 @@
 {
-  "status": "staged_not_installed",
+  "status": "installed_and_published",
   "baseline_sha256": "5c94a375b7701a62bd8549b04ea420e449957cb9f64501408e1e024650e98bdf",
   "sha256": "29b236edf09756b3e7987add1bdc0a29a2fa56f98f0144c96567f5caa3ac482f",
   "new_entries": [
