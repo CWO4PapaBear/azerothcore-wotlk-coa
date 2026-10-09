@@ -19,6 +19,7 @@
 #include "CharmInfo.h"
 #include "Chat.h"
 #include "ClientDBC.h"
+#include "CoACreatureScaling.h"
 #include "Config.h"
 #include "Creature.h"
 #include "CreatureAI.h"
@@ -1124,6 +1125,8 @@ public:
         Require(_scenario.get<uint32>("schema") == 1, "Unsupported scenario schema");
         _timeout = _scenario.get<uint32>("timeout_ms", 90000);
         Require(_timeout > 0 && _timeout <= 600000, "Invalid scenario timeout");
+        if (_scenario.get<bool>("creature_scaling", false))
+            _creatureScaling.emplace();
         _report.put("schema", 1);
         _report.put("run_id", _runId);
         _report.put("scenario", _scenario.get<std::string>("name"));
@@ -5214,6 +5217,7 @@ private:
     std::map<std::string, Target> _targets;
     std::map<std::string, double> _snapshots;
     QueryCallbackProcessor _queries;
+    std::optional<CreatureScaling::TestOverride> _creatureScaling;
 };
 
 enum class TeardownStage
