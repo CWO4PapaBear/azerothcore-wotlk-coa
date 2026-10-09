@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/src/server/coa/Area52CastMovementRules.h
-@@ -0,0 +1,125 @@
+@@ -0,0 +1,126 @@
 +#ifndef AREA52_CAST_MOVEMENT_RULES_H
 +#define AREA52_CAST_MOVEMENT_RULES_H
 +
@@ -114,6 +114,7 @@
 +        case 300947:
 +        case 300948:
 +        case 300949:
++        case 954611:
 +        case 954954:
 +        case 954955:
 +        case 954956:
@@ -214,8 +215,8 @@
 +        assert(info.InterruptFlags == 14);
 +        config.mode = 0x400;
 +    }
-+    assert(count == 106);
-+    for (uint32 id : {955072u, 834491u, 954611u, 286356u, 133u, 0u}) {
++    assert(count == 107);
++    for (uint32 id : {955072u, 834491u, 286356u, 133u, 0u}) {
 +        SpellInfo info{id, 14, 0};
 +        hook.OnLoadSpellCustomAttr(&info);
 +        assert(info.InterruptFlags == 14);
@@ -228,10 +229,10 @@
 +    subprocess.run(['c++', '-std=c++20', '-Wall', '-Wextra', '-Werror', '-I', str(root / 'src/server/coa'),
 +                    str(path / 'test.cpp'), '-o', str(path / 'test')], check=True)
 +    subprocess.run([str(path / 'test')], check=True)
-+print('PASS: production movement metadata, 106 ranks, mode gates, idempotence and exception preservation.')
++print('PASS: production movement metadata, 107 ranks, mode gates, idempotence and exception preservation.')
 --- /dev/null
 +++ b/apps/coa-tests/area52_cast_movement_client/run.py
-@@ -0,0 +1,33 @@
+@@ -0,0 +1,32 @@
 +from pathlib import Path
 +import json,sys,struct,re,hashlib
 +root=Path(__file__).resolve().parents[3];p=root.parent/'Area52_Movement_Casting'
@@ -258,11 +259,10 @@
 +                        assert a[31]==14 and b[31]==15
 +                        a[31]=b[31]
 +                    else:assert a[31]==b[31]
-+                    if a[0]!=954611:assert x==y
-+                    else:assert b'|cffff0000NOT VERIFIED|r' in y
++                    assert x==y
 +                    a[170]=b[170]=0;assert a==b
 +            else:assert old==new,name
-+    print('Client archive preserves all non-status tooltip text and fields; 106 movement flags are corrected; only unresolved Hand of Guldan status is downgraded.')
++    print('Client archive preserves all non-status tooltip text and fields; 107 movement flags are corrected; all tooltip text is preserved.')
 +
 +
 --- a/src/server/coa/AscensionMysticEnchant.cpp

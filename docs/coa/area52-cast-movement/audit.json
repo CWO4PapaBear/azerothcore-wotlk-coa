@@ -97,12 +97,12 @@
     "kind": "advancement",
     "id": 1206,
     "name": "Hand of Gul'dan",
-    "movement_result": "needs_investigation",
+    "movement_result": "pass",
     "spells": [
       {
         "spell": 954611,
-        "result": "needs_investigation",
-        "evidence": "Missing movement bit; no independent expected-behavior reference yet."
+        "result": "repaired_candidate",
+        "evidence": "Owner explicitly selected stationary casting for Hand of Guldan; retain aura313 exceptions."
       }
     ]
   },
