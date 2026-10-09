@@ -1,0 +1,131 @@
+--- a/src/server/coa/AscensionFreePick.cpp
++++ b/src/server/coa/AscensionFreePick.cpp
+@@ -15,6 +15,7 @@
+ #include "Player.h"
+ #include "ScriptMgr.h"
+ #include "SpellInfo.h"
++#include "SpellAuras.h"
+ #include "SpellMgr.h"
+ #include "WorldSession.h"
+ #include <algorithm>
+@@ -28,7 +29,6 @@
+ bool Active = false;
+ std::set<std::uint32_t> ClassSpells;
+ constexpr char SelectionSetting[] = "core.ascension_freepick_entries";
+-constexpr std::uint32_t MarkOfAscension = 375250;
+ 
+ bool RacialSpell(Player const* player, uint32 spell)
+ {
+@@ -67,6 +67,58 @@
+                 for (auto child : group.Children)
+                     add(child);
+     }
++}
++
++void ExpandBuffSources(std::set<uint32>& spells)
++{
++    ExpandGrantedSpells(spells, true);
++    std::vector<uint32> pending(spells.begin(), spells.end());
++    for (std::size_t i = 0; i < pending.size(); ++i)
++    {
++        auto add = [&](uint32 spell)
++        {
++            if (spell && spells.insert(spell).second)
++                pending.push_back(spell);
++        };
++        if (auto const* info = sSpellMgr->GetSpellInfo(pending[i]))
++            for (auto const& effect : info->GetEffects())
++                add(effect.TriggerSpell);
++        for (auto type : {SPELL_LINK_CAST, SPELL_LINK_HIT, SPELL_LINK_AURA})
++            if (auto const* linked = sSpellMgr->GetSpellLinked(int32(pending[i]) + type))
++                for (auto spell : *linked)
++                    if (spell > 0)
++                        add(uint32(spell));
++    }
++}
++
++void RemoveSelectionBuffs(Player* player, std::set<uint32> removed, std::set<uint32> retained)
++{
++    for (auto const& grant : AscensionMysticEnchant::SpellGrants)
++        if (AscensionMysticEnchant::GrantsActive(player, grant.Enchant))
++            retained.insert(grant.Spell);
++    ExpandBuffSources(removed);
++    ExpandBuffSources(retained);
++    std::set<uint32> cleanup;
++    bool changed;
++    do
++    {
++        changed = false;
++        for (auto const& [id, application] : player->GetAppliedAuras())
++        {
++            auto const* aura = application->GetBase();
++            if (aura->GetCasterGUID() != player->GetGUID() || retained.contains(id))
++                continue;
++            auto const* source = aura->GetTriggeredByAuraSpellInfo();
++            if (removed.contains(id) || (source && removed.contains(source->Id)
++                && !retained.contains(source->Id)))
++            {
++                cleanup.insert(id);
++                changed = removed.insert(id).second || changed;
++            }
++        }
++    } while (changed);
++    for (auto spell : cleanup)
++        player->RemoveAurasDueToSpell(spell, player->GetGUID());
+ }
+ 
+ std::set<std::uint32_t> SelectedSpells(std::vector<KnownEntry> const& entries)
+@@ -234,6 +286,7 @@
+         { return pair.first == "CONFIG_CHARACTER_ADVANCEMENT_HERO_ABILITY_TALENT_PURGE_ENABLED"; });
+     config.Booleans.emplace_back(purge, true);
+     config.Booleans.emplace_back("CONFIG_AREA52_FLAT_RUNE_RESETS", true);
++    config.Booleans.emplace_back("CONFIG_AREA52_FREE_RESETS", true);
+     constexpr std::array<char const*, 4> qualities = { "UNCOMMON", "RARE", "EPIC", "LEGENDARY" };
+     for (char const* expansion : { "CLASSIC", "THE_BURNING_CRUSADE", "WRATH_OF_THE_LICH_KING" })
+         for (std::size_t i = 0; i < qualities.size(); ++i)
+@@ -281,7 +334,7 @@
+     return Area52Build::Select(Data, plan, player->GetLevel(), wanted, KnownEntries(player), retainExisting, maximumLevel, learnSpells);
+ }
+ 
+-Result Apply(Player* player, std::vector<KnownEntry> const& wanted, bool chargeIndividualRemoval)
++Result Apply(Player* player, std::vector<KnownEntry> const& wanted, bool)
+ {
+     if (!Applies(player) || !player->IsInWorld())
+         return { "CA_UPDATE_ENTRIES_UNKNOWN" };
+@@ -302,22 +355,10 @@
+         if (!sSpellMgr->GetSpellInfo(spell))
+             return { "CA_UPDATE_ENTRIES_BAD_ENTRY", "CA_LEARN_BAD_ABILITY" };
+ 
+-    std::uint32_t marks = 0;
+-    if (chargeIndividualRemoval)
+-        for (auto const& pick : before)
+-        {
+-            auto const target = std::find_if(wanted.begin(), wanted.end(),
+-                [&](KnownEntry const& item) { return item.EntryId == pick.EntryId; });
+-            if (target == wanted.end() || target->Rank < pick.Rank)
+-                marks += 250;
+-        }
+-    if (marks && !player->HasItemCount(MarkOfAscension, marks))
+-        return { "CA_UPDATE_ENTRIES_MISSING_TOKENS" };
+     if (SameSelection(before, wanted))
+         return {};
+     auto const actionSpells = AscensionRemovedSpellActionBars::Capture(player);
+-    if (marks)
+-        player->DestroyItemCount(MarkOfAscension, marks, true);
++    RemoveSelectionBuffs(player, oldSpells, newSpells);
+     auto const* settings = player->FindPlayerSettings(SelectionSetting);
+     std::size_t const oldSize = settings ? settings->size() : 0;
+     for (std::size_t index = 0; index < std::max(oldSize, wanted.size()); ++index)
+@@ -357,12 +398,9 @@
+         { return talents ? Data.Entries.at(pick.EntryId).TE != 0 : Data.Entries.at(pick.EntryId).AE != 0; });
+     if (before == wanted.size())
+         return { "CA_UPDATE_ENTRIES_BAD_ENTRY" };
+-    if (!player->HasItemCount(MarkOfAscension, 250))
+-        return { "CA_UPDATE_ENTRIES_MISSING_TOKENS" };
+     auto const result = Apply(player, wanted, false);
+     if (!result)
+         return result;
+-    player->DestroyItemCount(MarkOfAscension, 250, true);
+     Area52Build::PauseAutoLearnForReset(player);
+     player->SaveToDB(false, false);
+     return {};
