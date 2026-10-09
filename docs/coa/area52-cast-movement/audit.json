@@ -1,0 +1,2784 @@
+[
+  {
+    "kind": "advancement",
+    "id": 354,
+    "name": "Mind Sear",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 954948,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 954947,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 954946,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 954945,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 954944,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 53023,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 48045,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 357,
+    "name": "Lava Burst",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 954957,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 954956,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 954955,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 954954,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 60043,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 51505,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1199,
+    "name": "Bind Elemental",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 954520,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1206,
+    "name": "Hand of Gul'dan",
+    "movement_result": "needs_investigation",
+    "spells": [
+      {
+        "spell": 954611,
+        "result": "needs_investigation",
+        "evidence": "Missing movement bit; no independent expected-behavior reference yet."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1302,
+    "name": "Invocation",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 986067,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1614,
+    "name": "Starsurge",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 955029,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 955028,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 955027,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 955026,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 955025,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 955024,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 955023,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 954800,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1624,
+    "name": "Hypnosis",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 955072,
+        "result": "intentional_mobile_cast",
+        "evidence": "Current SHIFT description explicitly allows casting while moving; retain CERTIFIED tooltip."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1638,
+    "name": "Flourish",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 760184,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 760183,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 760182,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 760181,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 760180,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 760179,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 760178,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 760177,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 760176,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 760107,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2664,
+    "name": "Frostbolt",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 42842,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 42841,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 38697,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 27072,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 27071,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25304,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10181,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10180,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10179,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8408,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8407,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8406,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 7322,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 837,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 205,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 116,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2678,
+    "name": "Healing Wave",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 49273,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 49272,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 25396,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 25391,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 25357,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 10396,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 10395,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 8005,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 959,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 939,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 913,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 547,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 332,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 331,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2679,
+    "name": "Entangling Roots",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 53308,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 26989,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9853,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9852,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5196,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5195,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 1062,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 339,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2683,
+    "name": "Lightning Bolt",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 49238,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 49237,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 25449,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 25448,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 15208,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 15207,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 10392,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 10391,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 6041,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 943,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 915,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 548,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 529,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 403,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2685,
+    "name": "Chain Lightning",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 49271,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 49270,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 25442,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 25439,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 10605,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 2860,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 930,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 421,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2698,
+    "name": "Astral Recall",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 556,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2699,
+    "name": "Smite",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48123,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 48122,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25364,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25363,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10934,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10933,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 6060,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 1004,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 984,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 598,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 591,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 585,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2701,
+    "name": "Conjure Food",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 33717,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 28612,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10145,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10144,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 6129,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 990,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 597,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 587,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2704,
+    "name": "Prayer of Healing",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48072,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 25316,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 25308,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 10961,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 10960,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 996,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 596,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2709,
+    "name": "Holy Light",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48782,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 48781,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 27136,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 27135,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25292,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10329,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10328,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 3472,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 1042,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 1026,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 647,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 639,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 635,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2712,
+    "name": "Shadow Bolt",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 47809,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 47808,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 27209,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25307,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 57,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 11661,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 11660,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 11659,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 7641,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 1106,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 1088,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 705,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 695,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 686,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2714,
+    "name": "Summon Imp",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 688,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2716,
+    "name": "Summon Felhunter",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 691,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2717,
+    "name": "Create Soulstone",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 47884,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 27238,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20757,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20756,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20755,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20752,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 693,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2719,
+    "name": "Summon Voidwalker",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 697,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2724,
+    "name": "Summon Succubus",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 712,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2738,
+    "name": "Exorcism",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48801,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 48800,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 27138,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10314,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10313,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10312,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5615,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5614,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 879,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2751,
+    "name": "Temporary Enslaved Demon",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 61191,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 11726,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 11725,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 1098,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2753,
+    "name": "Inferno",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 1122,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2769,
+    "name": "Scare Beast",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 14327,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 14326,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 1513,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2782,
+    "name": "Pick Lock",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 1804,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2785,
+    "name": "Disarm Trap",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 1842,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2790,
+    "name": "Hellfire",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 47823,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 27213,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 11684,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 11683,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 1949,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2794,
+    "name": "Resurrection",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48171,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25435,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20770,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10881,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10880,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 2010,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 2006,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2795,
+    "name": "Ancestral Spirit",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 49277,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25590,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20777,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20776,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20610,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20609,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 2008,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2796,
+    "name": "Greater Heal",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48063,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 48062,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25314,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25210,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25213,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10965,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10964,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10963,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 6064,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 2060,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 6063,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 2055,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 2054,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 2053,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 2052,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 2050,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2797,
+    "name": "Flash Heal",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48071,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 48070,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25235,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25233,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10917,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10916,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10915,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9474,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9473,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9472,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 2061,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2805,
+    "name": "Create Spellstone",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 47888,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 47886,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 28172,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 17728,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 17727,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 2362,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2810,
+    "name": "Hibernate",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 18658,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 18657,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 2637,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2822,
+    "name": "Starfire",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48465,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 48464,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 26986,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25298,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9876,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9875,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8951,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8950,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8949,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 2912,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2824,
+    "name": "Scorch",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 42859,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 42858,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 27074,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 27073,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 10207,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 10206,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 10205,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 8446,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 8445,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 8444,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 2948,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2841,
+    "name": "Wrath",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48461,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 48459,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 26985,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 26984,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9912,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8905,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 6780,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5180,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5179,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5178,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5177,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5176,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2842,
+    "name": "Healing Touch",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48378,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 48377,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 26979,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 26978,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25297,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9889,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9888,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9758,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8903,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 6778,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5189,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5188,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5187,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5186,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5185,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2854,
+    "name": "Howl of Terror",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 17928,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5484,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2856,
+    "name": "Conjure Water",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 37420,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 27090,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10140,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10139,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10138,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 6127,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5506,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5505,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5504,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2858,
+    "name": "Searing Pain",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 47815,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 47814,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 30459,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 27210,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 17923,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 17922,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 17921,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 17920,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 17919,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 5676,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2862,
+    "name": "Fear",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 6215,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 6213,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 5782,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2872,
+    "name": "Soul Fire",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 47825,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 47824,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 30545,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 27211,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 17924,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 6353,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2873,
+    "name": "Create Firestone",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 60220,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 60219,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 27250,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 17953,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 17952,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 17951,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 6366,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2885,
+    "name": "Redemption",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48950,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 48949,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20773,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20772,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10324,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10322,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 7328,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2888,
+    "name": "Lesser Healing Wave",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 49276,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 49275,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 25420,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 10468,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 10467,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 10466,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 8010,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 8008,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 8004,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2897,
+    "name": "Mind Blast",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48127,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 48126,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25375,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25372,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10947,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10946,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 10945,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8106,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8105,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8104,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8103,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8102,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8092,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2912,
+    "name": "Regrowth",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48443,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 48442,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 26980,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9858,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9857,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9856,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9750,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8941,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8940,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8939,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8938,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 8936,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2916,
+    "name": "Shackle Undead",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 10955,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9485,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 9484,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2917,
+    "name": "Turn Evil",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 10326,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2919,
+    "name": "Evocation",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 12051,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2928,
+    "name": "Holy Fire",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48135,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 48134,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 25384,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 15267,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 15261,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 15266,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 15265,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 15264,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 15263,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 15262,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 14914,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2932,
+    "name": "Hurricane",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48467,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 27012,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 17402,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 17401,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 16914,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2934,
+    "name": "Ritual of Doom",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 18540,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2935,
+    "name": "Teleport: Moonglade",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 18960,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2940,
+    "name": "Flash of Light",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48785,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 48784,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 27137,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 19943,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 19942,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 19941,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 19940,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 19939,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 19750,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2956,
+    "name": "Rebirth",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48477,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 26994,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20748,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20747,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20742,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20739,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 20484,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2973,
+    "name": "Incinerate",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 300949,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 32231,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 47837,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 47838,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 300948,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 300947,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 300946,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 29722,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2975,
+    "name": "Ritual of Souls",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 58887,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 29893,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 29890,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2985,
+    "name": "Mass Dispel",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 32374,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 33786,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2987,
+    "name": "Binding Heal",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 48120,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 48119,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 32546,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2992,
+    "name": "Cyclone",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 33786,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2993,
+    "name": "Flight Form",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 40120,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 33943,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3001,
+    "name": "Conjure Refreshment",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 42956,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 42955,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3002,
+    "name": "Ritual of Refreshment",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 58659,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 43987,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3009,
+    "name": "Revive",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 50769,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 50768,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 50767,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 50766,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 50765,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 50764,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      },
+      {
+        "spell": 50763,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3399,
+    "name": "Repentance",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 20066,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3465,
+    "name": "Summon Felguard",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 30146,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3579,
+    "name": "Silencing Shot",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 834491,
+        "result": "triggered_helper",
+        "evidence": "Triggered by instant Silencing Shot 34490; not a directly learned cast."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3642,
+    "name": "Chaos Bolt",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 59172,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 59171,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 59170,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      },
+      {
+        "spell": 50796,
+        "result": "repaired_candidate",
+        "evidence": "Restore stationary cast contract from PTR; extended ranks follow the same family; retain aura313 exceptions."
+      }
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 20001,
+    "name": "Arcane Bolt",
+    "movement_result": "pass",
+    "spells": [
+      {
+        "spell": 818014,
+        "result": "existing_restriction",
+        "evidence": "Client/server flags match core start/update checks; channel move flag present where applicable."
+      }
+    ]
+  }
+]
