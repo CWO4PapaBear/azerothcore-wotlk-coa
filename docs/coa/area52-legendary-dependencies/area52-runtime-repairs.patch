@@ -1,0 +1,877 @@
+--- a/src/server/coa/AscensionFreePickLinkedSpells.h
++++ b/src/server/coa/AscensionFreePickLinkedSpells.h
+@@ -10,7 +10,8 @@
+     std::uint32_t Parent;
+     std::array<std::uint32_t, 6> Children;
+ };
+-inline constexpr std::array<LinkedSpellGroup, 18> LinkedSpellGroups = {{
++inline constexpr std::array<LinkedSpellGroup, 19> LinkedSpellGroups = {{
++    {33917, {33876, 33878}},
+     {84864, {986202, 986203}},
+     {84865, {986200, 986201}},
+     {84866, {92839, 92840}},
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -60,6 +60,7 @@
+ #include "GridNotifiersImpl.h"
+ #include "Area52CorruptedBear.inc"
+ #include "Area52CastMovement.inc"
++#include "Area52Dependencies.inc"
+ 
+ namespace AscensionMysticEnchant
+ {
+@@ -837,6 +838,15 @@
+ 
+ void AddSC_AscensionMysticEnchant()
+ {
++    RegisterSpellScript(spell_area52_dependency_proc);
++    RegisterSpellScript(spell_area52_deep_freeze);
++    RegisterSpellScript(spell_area52_mana_barrier);
++    RegisterSpellScript(aura_area52_missing_mana_surge);
++    RegisterSpellScript(spell_area52_siegebreaker);
++    RegisterSpellScript(aura_area52_siegebreaker_collision);
++    new area52_dependency_damage();
++    new area52_dependency_metadata();
++    new area52_dependency_casts();
+     RegisterSpellScript(spell_area52_corrupted_bear_instant);
+     new area52_corrupted_bear_casts();
+     RegisterSpellScript(spell_area52_corrupted_bear);
+--- a/src/server/coa/AscensionTalentDataProcs.cpp
++++ b/src/server/coa/AscensionTalentDataProcs.cpp
+@@ -1,6 +1,8 @@
+ /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
+ 
+ #include "GameTime.h"
++#include "AscensionFreePick.h"
++#include "Player.h"
+ #include "ScriptMgr.h"
+ #include "SpellAuraEffects.h"
+ #include "SpellAuras.h"
+@@ -51,6 +53,13 @@
+ 
+     bool Ready(ProcEventInfo& event, SpellSchoolMask school, Milliseconds readyAt) const
+     {
++        if (AscensionFreePick::Applies(GetTarget()->ToPlayer()))
++        {
++            auto const* spell = event.GetSpellInfo();
++            uint32 const required = school == SPELL_SCHOOL_MASK_ARCANE ? 2912 : 5176;
++            if (!spell || spell->GetFirstRankSpell()->Id != required)
++                return false;
++        }
+         return (event.GetSchoolMask() & school) && GameTime::GetGameTimeMS() >= readyAt && !InEclipse();
+     }
+ 
+--- a/src/server/game/Spells/Auras/SpellAuraEffects.cpp
++++ b/src/server/game/Spells/Auras/SpellAuraEffects.cpp
+@@ -16,6 +16,7 @@
+  */
+ 
+ #include "SpellAuraEffects.h"
++#include "../../../coa/AscensionFreePick.h"
+ #include "AreaDefines.h"
+ #include "BattlefieldMgr.h"
+ #include "Battleground.h"
+@@ -2174,7 +2175,10 @@
+                         player->SetCanTeleport(true);
+                     }
+                     // remove movement affects
+-                    target->RemoveAurasByShapeShift();
++                    if (!AscensionFreePick::Applies(target->ToPlayer()) ||
++                        (form != FORM_BEAR && form != FORM_DIREBEAR) ||
++                        target->ToPlayer()->HasSpell(84864) || target->ToPlayer()->HasSpell(84865))
++                        target->RemoveAurasByShapeShift();
+ 
+                     // and polymorphic affects
+                     if (target->IsPolymorphed())
+--- /dev/null
++++ b/src/server/coa/Area52DependencyRules.h
+@@ -0,0 +1,58 @@
++/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
++#ifndef AREA52_DEPENDENCY_RULES_H
++#define AREA52_DEPENDENCY_RULES_H
++#include <cstdint>
++namespace Area52Dependency
++{
++constexpr bool NightfallSource(std::uint32_t root)
++{
++    return root == 172 || root == 689 || root == 1120 || root == 47897;
++}
++constexpr bool HotStreakSource(std::uint32_t root)
++{
++    return root == 133 || root == 2136 || root == 2948 || root == 44457 || root == 44461 || root == 44614;
++}
++constexpr bool FingersSource(std::uint32_t root, std::uint32_t family, std::uint32_t school, bool periodic)
++{
++    return !periodic && (family == 3 || family == 11) && (school & 16) &&
++        root != 10 && root != 42208 && root != 30455;
++}
++constexpr bool CompleteCriticalPair(std::uint8_t& streak, bool critical)
++{
++    if (!critical)
++    {
++        streak = 0;
++        return false;
++    }
++    if (++streak < 2)
++        return false;
++    streak = 0;
++    return true;
++}
++constexpr std::int32_t DamagePercent(std::uint32_t root, bool player, bool nightfall, bool backlash, bool hotStreak)
++{
++    std::int32_t percent = 100;
++    if (nightfall && root == 686)
++        percent = percent * (player ? 75 : 120) / 100;
++    if (backlash && (root == 686 || root == 29722))
++        percent = percent * (player ? 80 : 110) / 100;
++    if (hotStreak && root == 11366 && !player)
++        percent = percent * 140 / 100;
++    return percent;
++}
++constexpr std::uint32_t ManaBarrierAbsorb(std::uint32_t damage, std::uint32_t mana, std::uint32_t maximum, bool magic)
++{
++    if (!maximum)
++        return 0;
++    return std::uint32_t(std::uint64_t(damage) * 90 * mana / maximum / (magic ? 200 : 100));
++}
++constexpr std::uint32_t PlayerDamageTakenPercent(bool playerSource, bool barrier, bool bear)
++{
++    return !playerSource ? 100 : barrier ? 200 : bear ? 115 : 100;
++}
++constexpr std::uint32_t MissingManaSurge(std::uint32_t mana, std::uint32_t maximum)
++{
++    return mana >= maximum ? 0 : std::uint32_t(std::uint64_t(maximum - mana) * 30 / 100);
++}
++}
++#endif
+--- /dev/null
++++ b/src/server/coa/Area52Dependencies.inc
+@@ -0,0 +1,443 @@
++#include "Area52DependencyRules.h"
++
++class spell_area52_dependency_proc : public AuraScript
++{
++    PrepareAuraScript(spell_area52_dependency_proc);
++
++    bool Load() override { return AscensionFreePick::Applies(GetUnitOwner()->ToPlayer()); }
++
++    bool Validate(SpellInfo const*) override
++    {
++        return ValidateSpellInfo({17941, 48108, 74396, 978425, 48391});
++    }
++
++    bool CheckProc(ProcEventInfo& event)
++    {
++        auto const* spell = event.GetSpellInfo();
++        uint32 const root = spell ? spell->GetFirstRankSpell()->Id : 0;
++        switch (GetSpellInfo()->GetFirstRankSpell()->Id)
++        {
++            case 18094:
++                return spell && Area52Dependency::NightfallSource(root);
++            case 44445:
++                return spell && !(event.GetTypeMask() & PROC_FLAG_DONE_PERIODIC) &&
++                    (Area52Dependency::HotStreakSource(root) || (root == 6353 && GetTarget()->HasAura(414080)));
++            case 44543:
++                return spell && Area52Dependency::FingersSource(root, spell->SpellFamilyName,
++                    event.GetSchoolMask(), event.GetTypeMask() & PROC_FLAG_DONE_PERIODIC);
++            case 48389:
++                return GetTarget()->GetShapeshiftForm() == FORM_MOONKIN && event.GetDamageInfo() &&
++                    event.GetDamageInfo()->GetDamage() && event.GetActor() != GetTarget();
++            default:
++                return false;
++        }
++    }
++
++    void Handle(AuraEffect const* effect, ProcEventInfo& event)
++    {
++        PreventDefaultAction();
++        Unit* owner = GetTarget();
++        switch (GetSpellInfo()->GetFirstRankSpell()->Id)
++        {
++            case 18094:
++                owner->CastCustomSpell(17941, SPELLVALUE_BASE_POINT1,
++                    -25 * std::min<uint8>(2, GetSpellInfo()->GetRank()), owner, true, nullptr, effect);
++                break;
++            case 44445:
++                if (Area52Dependency::CompleteCriticalPair(Streak, event.GetHitMask() & PROC_HIT_CRITICAL) &&
++                    roll_chance_i(effect->GetAmount()))
++                    owner->CastSpell(owner, 48108, true, nullptr, effect);
++                break;
++            case 44543:
++                owner->CastSpell(owner, 74396, true, nullptr, effect);
++                if (owner->HasAura(978208))
++                    owner->CastSpell(owner, 978425, true, nullptr, effect);
++                break;
++            case 48389:
++                owner->CastSpell(owner, 48391, true, nullptr, effect);
++                break;
++        }
++    }
++
++    void Register() override
++    {
++        DoCheckProc += AuraCheckProcFn(spell_area52_dependency_proc::CheckProc);
++        OnEffectProc += AuraEffectProcFn(spell_area52_dependency_proc::Handle, EFFECT_0, SPELL_AURA_ANY);
++    }
++
++    uint8 Streak = 0;
++};
++
++class area52_dependency_metadata : public GlobalScript
++{
++public:
++    area52_dependency_metadata() : GlobalScript("area52_dependency_metadata") { }
++
++    void OnLoadSpellCustomAttr(SpellInfo* info) override
++    {
++        if (!sConfigMgr->GetOption<bool>("CoA.Enable", true) ||
++            sConfigMgr->GetOption<std::string>("CoA.ClassModel", "coa") != "hero" ||
++            sConfigMgr->GetOption<std::string>("CoA.RealmType", "live") != "live" ||
++            (sConfigMgr->GetOption<uint32>("CoA.GameModeMask", 0) & ~uint32(0x400)))
++            return;
++        switch (info->Id)
++        {
++            case 34935:
++            case 34938:
++            case 34939:
++                info->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
++                info->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MOD_WEAPON_CRIT_PERCENT;
++                info->Effects[EFFECT_2].BasePoints = info->Effects[EFFECT_1].BasePoints;
++                info->Effects[EFFECT_2].DieSides = 1;
++                info->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
++                break;
++            case 34936:
++                info->Effects[EFFECT_0].SpellClassMask[1] |= 64;
++                info->Effects[EFFECT_1].SpellClassMask[1] |= 64;
++                break;
++            case 48108:
++                info->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
++                info->Effects[EFFECT_2].MiscValue = SPELLMOD_COST;
++                info->Effects[EFFECT_2].BasePoints = -51;
++                info->Effects[EFFECT_2].DieSides = 1;
++                break;
++            case 48391:
++                info->Attributes &= ~SPELL_ATTR0_NOT_SHAPESHIFTED;
++                break;
++            case 701464:
++                info->Effects[EFFECT_0].BasePoints = -31;
++                info->Effects[EFFECT_1].BasePoints = -41;
++                info->Effects[EFFECT_0].RealPointsPerLevel = 0;
++                info->Effects[EFFECT_1].RealPointsPerLevel = 0;
++                info->Effects[EFFECT_2].Effect = 0;
++                break;
++            case 701467:
++                info->Effects[EFFECT_0].Effect = 0;
++                info->Effects[EFFECT_1].Effect = 0;
++                break;
++            case 701463:
++                info->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
++                info->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_DUMMY;
++                info->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
++                break;
++            case 277432:
++                info->AttributesEx5 &= ~SPELL_ATTR5_EXTRA_INITIAL_PERIOD;
++                break;
++            case 954876:
++            case 955126:
++            case 955127:
++            case 955128:
++            case 955129:
++                info->MaxAffectedTargets = 5;
++                break;
++            case 86361:
++            case 93924:
++            case 93925:
++            case 93926:
++            case 93927:
++            case 93928:
++                info->AttributesCu |= SPELL_ATTR0_CU_IGNORE_ARMOR;
++                info->Effects[EFFECT_1].SpellClassMask = flag96();
++                break;
++            default:
++                break;
++        }
++    }
++};
++
++class spell_area52_mana_barrier : public AuraScript
++{
++    PrepareAuraScript(spell_area52_mana_barrier);
++    bool Load() override { return AscensionFreePick::Applies(GetUnitOwner()->ToPlayer()); }
++    bool Validate(SpellInfo const*) override { return ValidateSpellInfo({78102, 701464, 701467, 277432}); }
++
++    void Amount(AuraEffect const*, int32& amount, bool& recalculate)
++    {
++        amount = -1;
++        recalculate = false;
++    }
++
++    void Absorb(AuraEffect*, DamageInfo& damage, uint32& amount)
++    {
++        Unit* owner = GetTarget();
++        amount = Area52Dependency::ManaBarrierAbsorb(damage.GetDamage(), owner->GetPower(POWER_MANA),
++            owner->GetMaxPower(POWER_MANA), damage.GetSchoolMask() & SPELL_SCHOOL_MASK_MAGIC);
++    }
++
++    void Apply(AuraEffect const*, AuraEffectHandleModes)
++    {
++        for (uint32 spell : {78102u, 701464u, 701467u})
++            GetTarget()->CastSpell(GetTarget(), spell, true);
++    }
++
++    void Remove(AuraEffect const*, AuraEffectHandleModes)
++    {
++        for (uint32 spell : {78102u, 701464u, 701467u, 277432u})
++            GetTarget()->RemoveAurasDueToSpell(spell, GetTarget()->GetGUID());
++    }
++
++    bool CheckProc(ProcEventInfo& event)
++    {
++        if (!event.GetDamageInfo() || event.GetActor() == GetTarget() ||
++            GetTarget()->GetPower(POWER_MANA) >= GetTarget()->GetMaxPower(POWER_MANA))
++            return false;
++        Spell* cast = GetTarget()->GetCurrentSpell(CURRENT_CHANNELED_SPELL);
++        if (!cast)
++            cast = GetTarget()->GetCurrentSpell(CURRENT_GENERIC_SPELL);
++        if (!cast)
++            return false;
++        auto const* info = cast->GetSpellInfo();
++        return info->IsChanneled() || info->HasEffect(SPELL_EFFECT_SCHOOL_DAMAGE) ||
++            info->HasEffect(SPELL_EFFECT_HEALTH_LEECH) || info->HasAura(SPELL_AURA_PERIODIC_DAMAGE) ||
++            info->HasAura(SPELL_AURA_PERIODIC_LEECH);
++    }
++
++    void Surge(AuraEffect const* effect, ProcEventInfo&)
++    {
++        PreventDefaultAction();
++        int32 const mana = int32(Area52Dependency::MissingManaSurge(GetTarget()->GetPower(POWER_MANA),
++            GetTarget()->GetMaxPower(POWER_MANA)));
++        GetTarget()->CastCustomSpell(277432, SPELLVALUE_BASE_POINT0, mana, GetTarget(), true, nullptr, effect);
++    }
++
++    void Register() override
++    {
++        DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_area52_mana_barrier::Amount, EFFECT_0, SPELL_AURA_MANA_SHIELD);
++        OnEffectManaShield += AuraEffectManaShieldFn(spell_area52_mana_barrier::Absorb, EFFECT_0);
++        AfterEffectApply += AuraEffectApplyFn(spell_area52_mana_barrier::Apply,
++            EFFECT_0, SPELL_AURA_MANA_SHIELD, AURA_EFFECT_HANDLE_REAL);
++        AfterEffectRemove += AuraEffectRemoveFn(spell_area52_mana_barrier::Remove,
++            EFFECT_0, SPELL_AURA_MANA_SHIELD, AURA_EFFECT_HANDLE_REAL);
++        DoCheckProc += AuraCheckProcFn(spell_area52_mana_barrier::CheckProc);
++        OnEffectProc += AuraEffectProcFn(spell_area52_mana_barrier::Surge, EFFECT_1, SPELL_AURA_DUMMY);
++    }
++};
++
++class aura_area52_missing_mana_surge : public AuraScript
++{
++    PrepareAuraScript(aura_area52_missing_mana_surge);
++    bool Load() override { return AscensionFreePick::Applies(GetUnitOwner()->ToPlayer()); }
++    bool Validate(SpellInfo const*) override { return ValidateSpellInfo({277430}); }
++
++    void Apply(AuraEffect const* effect, AuraEffectHandleModes)
++    {
++        Remaining += std::max(0, effect->GetAmount());
++        Ticks = 4;
++    }
++
++    void Tick(AuraEffect const*)
++    {
++        PreventDefaultAction();
++        if (!Ticks)
++            return;
++        uint32 const amount = Remaining / Ticks;
++        Remaining -= amount;
++        --Ticks;
++        GetTarget()->EnergizeBySpell(GetTarget(), 277430, amount, POWER_MANA);
++    }
++
++    void Register() override
++    {
++        AfterEffectApply += AuraEffectApplyFn(aura_area52_missing_mana_surge::Apply,
++            EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
++        OnEffectPeriodic += AuraEffectPeriodicFn(aura_area52_missing_mana_surge::Tick,
++            EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE);
++    }
++
++    uint32 Remaining = 0;
++    uint32 Ticks = 0;
++};
++
++class area52_dependency_damage : public UnitScript
++{
++public:
++    area52_dependency_damage() : UnitScript("area52_dependency_damage", true,
++        {UNITHOOK_MODIFY_MELEE_DAMAGE, UNITHOOK_MODIFY_SPELL_DAMAGE_TAKEN,
++         UNITHOOK_MODIFY_PERIODIC_DAMAGE_AURAS_TICK}) { }
++
++    uint32 Percent(Unit* target, Unit* attacker) const
++    {
++        if (!target || !attacker || !AscensionFreePick::Applies(target->ToPlayer()))
++            return 100;
++        return Area52Dependency::PlayerDamageTakenPercent(attacker->GetCharmerOrOwnerPlayerOrPlayerItself() != nullptr,
++            target->HasAura(701463), target->GetShapeshiftForm() == FORM_BEAR ||
++            target->GetShapeshiftForm() == FORM_DIREBEAR);
++    }
++
++    void ModifyMeleeDamage(Unit* target, Unit* attacker, uint32& damage) override
++    {
++        damage = uint32(uint64(damage) * Percent(target, attacker) / 100);
++    }
++
++    void ModifySpellDamageTaken(Unit* target, Unit* attacker, int32& damage, SpellInfo const*) override
++    {
++        if (damage > 0)
++            damage = int32(int64(damage) * Percent(target, attacker) / 100);
++    }
++
++    void ModifyPeriodicDamageAurasTick(Unit* target, Unit* attacker, uint32& damage, SpellInfo const* info) override
++    {
++        if (info && !info->IsPositive() &&
++            (info->HasAura(SPELL_AURA_PERIODIC_DAMAGE) || info->HasAura(SPELL_AURA_PERIODIC_DAMAGE_PERCENT) ||
++             info->HasAura(SPELL_AURA_PERIODIC_LEECH)))
++            damage = uint32(uint64(damage) * Percent(target, attacker) / 100);
++        if (info && attacker && target && info->GetFirstRankSpell()->Id == 11366 &&
++            AscensionFreePick::Applies(attacker->ToPlayer()) && !target->GetCharmerOrOwnerPlayerOrPlayerItself())
++            if (Aura* aura = target->GetAura(info->Id, attacker->GetGUID()))
++                if (aura->GetScriptValue(44445))
++                    damage = uint32(uint64(damage) * 140 / 100);
++    }
++};
++
++class area52_dependency_casts : public AllSpellScript
++{
++public:
++    area52_dependency_casts() : AllSpellScript("area52_dependency_casts",
++        {ALLSPELLHOOK_ON_PREPARE, ALLSPELLHOOK_ON_CALCULATED_TARGET, ALLSPELLHOOK_ON_HIT_RESULT}) { }
++
++    void OnSpellPrepare(Spell* spell, Unit* caster, SpellInfo const* info) override
++    {
++        if (!spell || spell->IsTriggered() || !AscensionFreePick::Applies(caster->ToPlayer()))
++            return;
++        uint32 const root = info->GetFirstRankSpell()->Id;
++        if (root == 686 || root == 29722 || root == 11366)
++        {
++            spell->SetScriptValue(18094, caster->HasAura(17941));
++            spell->SetScriptValue(34935, caster->HasAura(34936));
++            spell->SetScriptValue(44445, caster->HasAura(48108));
++        }
++    }
++
++    void OnSpellCalculatedTarget(Spell* spell, Unit* target, TargetInfo& hit) override
++    {
++        if (!spell || !target || hit.damage <= 0 || !AscensionFreePick::Applies(spell->GetCaster()->ToPlayer()))
++            return;
++        auto const percent = Area52Dependency::DamagePercent(spell->GetSpellInfo()->GetFirstRankSpell()->Id,
++            target->GetCharmerOrOwnerPlayerOrPlayerItself() != nullptr, spell->GetScriptValue(18094),
++            spell->GetScriptValue(34935), spell->GetScriptValue(44445));
++        hit.damage = int32(int64(hit.damage) * percent / 100);
++    }
++
++    void OnSpellHitResult(Spell* spell, Unit* target, uint8 miss, uint32, uint32, bool) override
++    {
++        if (!spell || !target || miss != SPELL_MISS_NONE ||
++            spell->GetSpellInfo()->GetFirstRankSpell()->Id != 11366 ||
++            !AscensionFreePick::Applies(spell->GetCaster()->ToPlayer()))
++            return;
++        if (Aura* aura = target->GetAura(spell->GetSpellInfo()->Id, spell->GetCaster()->GetGUID()))
++            aura->SetScriptValue(44445, spell->GetScriptValue(44445));
++    }
++};
++
++class spell_area52_deep_freeze : public SpellScript
++{
++    PrepareSpellScript(spell_area52_deep_freeze);
++    bool Load() override { return AscensionFreePick::Applies(GetCaster()->ToPlayer()); }
++    bool Validate(SpellInfo const*) override { return ValidateSpellInfo({844572, 71757}); }
++
++    void Hit(SpellEffIndex)
++    {
++        Unit* target = GetHitUnit();
++        if (!target)
++            return;
++        bool const permanent = target->IsCreature() &&
++            target->ToCreature()->HasMechanicTemplateImmunity(1ULL << MECHANIC_STUN);
++        GetCaster()->CastSpell(target, permanent ? 71757 : 844572, true);
++    }
++
++    void Register() override
++    {
++        OnEffectHitTarget += SpellEffectFn(spell_area52_deep_freeze::Hit, EFFECT_0, SPELL_EFFECT_DUMMY);
++    }
++};
++
++class spell_area52_siegebreaker : public SpellScript
++{
++    PrepareSpellScript(spell_area52_siegebreaker);
++    bool Load() override { return AscensionFreePick::Applies(GetCaster()->ToPlayer()); }
++    bool Validate(SpellInfo const*) override { return ValidateSpellInfo({954877}); }
++
++    bool Collision()
++    {
++        auto const* aura = GetSpell()->GetTriggeredByAuraSpellInfo();
++        return aura && aura->Id == 954877;
++    }
++
++    void Targets(std::list<WorldObject*>& targets)
++    {
++        if (Collision())
++        {
++            targets.clear();
++            if (Unit* target = GetExplTargetUnit())
++                targets.push_back(target);
++        }
++    }
++
++    void Knock(SpellEffIndex)
++    {
++        if (!Collision() && GetHitUnit() && GetHitUnit()->IsPlayer())
++            GetCaster()->CastSpell(GetHitUnit(), 954877, true);
++    }
++
++    void Register() override
++    {
++        OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_area52_siegebreaker::Targets,
++            EFFECT_0, TARGET_UNIT_CONE_ENEMY_104);
++        OnEffectHitTarget += SpellEffectFn(spell_area52_siegebreaker::Knock, EFFECT_1, SPELL_EFFECT_DUMMY);
++    }
++};
++
++class aura_area52_siegebreaker_collision : public AuraScript
++{
++    PrepareAuraScript(aura_area52_siegebreaker_collision);
++    bool Load() override
++    {
++        return GetCaster() && AscensionFreePick::Applies(GetCaster()->ToPlayer()) && GetUnitOwner()->IsPlayer();
++    }
++    bool Validate(SpellInfo const*) override { return ValidateSpellInfo({954876}); }
++
++    void Start(AuraEffect const*, AuraEffectHandleModes)
++    {
++        Previous.Relocate(GetTarget());
++    }
++
++    void Tick(AuraEffect const* effect)
++    {
++        PreventDefaultAction();
++        Unit* caster = GetCaster();
++        Unit* moving = GetTarget();
++        if (!caster || !moving->IsAlive() || moving->GetExactDist(&Previous) < 0.01f)
++            return;
++        Previous.Relocate(moving);
++        std::list<Unit*> candidates;
++        float const range = moving->GetCombatReach() + 5.0f;
++        Acore::AnyUnfriendlyUnitInObjectRangeCheck check(moving, caster, range);
++        Acore::UnitListSearcher<Acore::AnyUnfriendlyUnitInObjectRangeCheck> searcher(moving, candidates, check);
++        Cell::VisitObjects(moving, searcher, range);
++        for (Unit* target : candidates)
++        {
++            if (target == moving || !target->IsAlive() || !caster->IsValidAttackTarget(target) ||
++                !moving->IsWithinDistInMap(target, 0.0f) || !moving->IsWithinLOSInMap(target) ||
++                !Hit.insert(target->GetGUID()).second)
++                continue;
++            caster->CastCustomSpell(954876, SPELLVALUE_BASE_POINT0, 200, target, true, nullptr, effect);
++            if (!target->HasUnitState(UNIT_STATE_ROOT) && !target->GetVehicle() && !target->IsVehicle() &&
++                (!target->IsCreature() || (!target->ToCreature()->IsImmuneToKnockback() &&
++                !target->ToCreature()->isWorldBoss() && !target->ToCreature()->IsDungeonBoss())))
++                target->KnockbackFrom(moving->GetPositionX(), moving->GetPositionY(),
++                    GetSpellInfo()->Effects[EFFECT_0].MiscValue * 0.05f,
++                    GetSpellInfo()->Effects[EFFECT_0].CalcValue(caster) * 0.05f);
++        }
++    }
++
++    void Register() override
++    {
++        AfterEffectApply += AuraEffectApplyFn(aura_area52_siegebreaker_collision::Start,
++            EFFECT_1, SPELL_AURA_PERIODIC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL);
++        OnEffectPeriodic += AuraEffectPeriodicFn(aura_area52_siegebreaker_collision::Tick,
++            EFFECT_1, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
++    }
++
++    Position Previous;
++    std::set<ObjectGuid> Hit;
++};
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261009_05_area52_legendary_dependencies.sql
+@@ -0,0 +1,58 @@
++DELETE FROM `spell_proc` WHERE `SpellId` IN (-701463, -48393, -48392, -48389, -44545, -44543, -44448, -44446, -44445, -18095, -18094, -17941, -12575, -12574, -12536, -11213, 11213, 12536, 12574, 12575, 17941, 18094, 18095, 44445, 44446, 44448, 44543, 44545, 48389, 48392, 48393, 701463);
++INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `ProcFlags`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
++(11213, 0, 0, 0, 0, 0, 87376, 1, 2, 0, 0, 0, 0, 5, 0, 0),
++(12574, 0, 0, 0, 0, 0, 87376, 1, 2, 0, 0, 0, 0, 10, 0, 0),
++(12575, 0, 0, 0, 0, 0, 87376, 1, 2, 0, 0, 0, 0, 15, 0, 0),
++(18094, 0, 0, 0, 0, 0, 327680, 1, 2, 0, 0, 0, 0, 4, 5000, 0),
++(18095, 0, 0, 0, 0, 0, 327680, 1, 2, 0, 0, 0, 0, 8, 5000, 0),
++(44445, 0, 0, 0, 0, 0, 65536, 1, 2, 3, 0, 0, 0, 100, 0, 0),
++(44446, 0, 0, 0, 0, 0, 65536, 1, 2, 3, 0, 0, 0, 100, 0, 0),
++(44448, 0, 0, 0, 0, 0, 65536, 1, 2, 3, 0, 0, 0, 100, 0, 0),
++(44543, 16, 0, 0, 0, 0, 65536, 1, 2, 0, 0, 6, 0, 7, 0, 0),
++(44545, 16, 0, 0, 0, 0, 65536, 1, 2, 0, 0, 6, 0, 15, 0, 0),
++(48389, 0, 0, 0, 0, 0, 139944, 1, 2, 0, 0, 0, 0, 8, 0, 0),
++(48392, 0, 0, 0, 0, 0, 131752, 1, 2, 0, 0, 0, 0, 16, 0, 0),
++(48393, 0, 0, 0, 0, 0, 131752, 1, 2, 0, 0, 0, 0, 24, 0, 0),
++(12536, 0, 0, 0, 0, 0, 87312, 0, 1, 0, 12, 0, 0, 100, 0, 1),
++(17941, 0, 5, 1, 16, 0, 65536, 1, 1, 0, 8, 0, 0, 100, 0, 1),
++(701463, 0, 0, 0, 0, 0, 40, 1, 2, 1027, 0, 5, 0, 30, 2000, 0);
++DELETE FROM `spell_script_names` WHERE `ScriptName` = 'spell_area52_dependency_proc';
++DELETE FROM `spell_script_names` WHERE `spell_id` IN (-18094, 18094, 18095) AND `ScriptName` = 'spell_warl_nightfall';
++DELETE FROM `spell_script_names` WHERE `spell_id` IN (-44445, 44445, 44446, 44448) AND `ScriptName` = 'spell_mage_hot_streak';
++INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
++(18094, 'spell_area52_dependency_proc'),
++(18095, 'spell_area52_dependency_proc'),
++(44445, 'spell_area52_dependency_proc'),
++(44446, 'spell_area52_dependency_proc'),
++(44448, 'spell_area52_dependency_proc'),
++(44543, 'spell_area52_dependency_proc'),
++(44545, 'spell_area52_dependency_proc'),
++(48389, 'spell_area52_dependency_proc'),
++(48392, 'spell_area52_dependency_proc'),
++(48393, 'spell_area52_dependency_proc');
++DELETE FROM `spell_script_names` WHERE `ScriptName` = 'spell_area52_deep_freeze';
++INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (44572, 'spell_area52_deep_freeze');
++DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_area52_mana_barrier', 'spell_area52_siegebreaker', 'aura_area52_siegebreaker_collision');
++INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (701463, 'spell_area52_mana_barrier'), (-954876, 'spell_area52_siegebreaker'), (954877, 'aura_area52_siegebreaker_collision');
++DELETE FROM `spell_script_names` WHERE `ScriptName` = 'aura_area52_missing_mana_surge';
++INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (277432, 'aura_area52_missing_mana_surge');
++DELETE FROM `spell_ranks` WHERE `first_spell_id` IN (33876, 33878) OR `spell_id` IN (33876, 33878, 33884, 33885, 33982, 33983, 33986, 33987, 48563, 48564, 48565, 48566, 302027, 302028, 302029, 302030, 302031, 302032, 302033, 302034);
++INSERT INTO `spell_ranks` (`first_spell_id`, `spell_id`, `rank`) VALUES
++(33876, 33876, 1),
++(33876, 302027, 2),
++(33876, 302028, 3),
++(33876, 302029, 4),
++(33876, 302030, 5),
++(33876, 33982, 6),
++(33876, 33983, 7),
++(33876, 48565, 8),
++(33876, 48566, 9),
++(33878, 33878, 1),
++(33878, 302031, 2),
++(33878, 302032, 3),
++(33878, 302033, 4),
++(33878, 302034, 5),
++(33878, 33986, 6),
++(33878, 33987, 7),
++(33878, 48563, 8),
++(33878, 48564, 9);
+--- /dev/null
++++ b/apps/coa-tests/area52_dependencies_repair/run.py
+@@ -0,0 +1,66 @@
++from pathlib import Path
++import os
++import shutil
++import subprocess
++import tempfile
++
++root = Path(__file__).resolve().parents[3]
++compiler = shutil.which(os.environ.get('CXX', 'c++'))
++if not compiler:
++    raise SystemExit('C++20 compiler unavailable')
++source = r'''
++#include "Area52DependencyRules.h"
++#include "AscensionFreePickLinkedSpells.h"
++#include <cassert>
++#include <algorithm>
++int main()
++{
++    using namespace Area52Dependency;
++    assert(NightfallSource(172) && NightfallSource(689) && NightfallSource(1120) && NightfallSource(47897));
++    assert(!NightfallSource(686) && !NightfallSource(348));
++    assert(HotStreakSource(133) && HotStreakSource(2136) && HotStreakSource(2948));
++    assert(HotStreakSource(44457) && HotStreakSource(44461) && HotStreakSource(44614));
++    assert(!HotStreakSource(11366) && !HotStreakSource(6353));
++    assert(FingersSource(116, 3, 16, false));
++    assert(FingersSource(8056, 11, 16, false));
++    assert(!FingersSource(30455, 3, 16, false));
++    assert(!FingersSource(42208, 3, 16, false));
++    assert(!FingersSource(116, 3, 16, true));
++    assert(!FingersSource(116, 5, 16, false));
++    assert(!FingersSource(133, 3, 4, false));
++    std::uint8_t streak = 0;
++    assert(!CompleteCriticalPair(streak, true));
++    assert(!CompleteCriticalPair(streak, false));
++    assert(!CompleteCriticalPair(streak, true));
++    assert(CompleteCriticalPair(streak, true));
++    assert(streak == 0);
++    assert(DamagePercent(686, false, true, false, false) == 120);
++    assert(DamagePercent(686, true, true, false, false) == 75);
++    assert(DamagePercent(29722, false, false, true, false) == 110);
++    assert(DamagePercent(29722, true, false, true, false) == 80);
++    assert(DamagePercent(11366, false, false, false, true) == 140);
++    assert(DamagePercent(11366, true, false, false, true) == 100);
++    assert(DamagePercent(133, false, true, true, true) == 100);
++    assert(ManaBarrierAbsorb(1000, 1000, 1000, false) == 900);
++    assert(ManaBarrierAbsorb(1000, 500, 1000, false) == 450);
++    assert(ManaBarrierAbsorb(1000, 500, 1000, true) == 225);
++    assert(ManaBarrierAbsorb(1000, 0, 1000, false) == 0);
++    assert(ManaBarrierAbsorb(1000, 1000, 0, false) == 0);
++    assert(MissingManaSurge(1000, 1000) == 0);
++    assert(MissingManaSurge(500, 1000) == 150);
++    assert(MissingManaSurge(0, 1000) == 300);
++    assert(PlayerDamageTakenPercent(false, true, false) == 100);
++    assert(PlayerDamageTakenPercent(true, true, false) == 200);
++    assert(PlayerDamageTakenPercent(true, false, true) == 115);
++    auto const& groups = AscensionFreePick::LinkedSpellGroups;
++    auto found = std::find_if(groups.begin(), groups.end(), [](auto const& g) { return g.Parent == 33917; });
++    assert(found != groups.end() && found->Children[0] == 33876 && found->Children[1] == 33878);
++}
++'''
++with tempfile.TemporaryDirectory() as tmp:
++    p = Path(tmp)
++    (p / 'test.cpp').write_text(source)
++    subprocess.run([compiler, '-std=c++20', '-Wall', '-Wextra', '-Werror', '-I' + str(root / 'src/server/coa'),
++                    str(p / 'test.cpp'), '-o', str(p / 'test')], check=True)
++    subprocess.run([str(p / 'test')], check=True)
++print('Dependency filters, critical streak reset, target damage rules and Mangle grants passed.')
+--- /dev/null
++++ b/apps/coa-tests/area52_dependencies_final/run.py
+@@ -0,0 +1,152 @@
++from pathlib import Path
++import json
++import re
++import struct
++import sys
++
++repo = Path(__file__).resolve().parents[3]
++p = repo.parent / 'Area52_Legendary_Dependencies'
++data = json.loads((p / 'repair-effective/effective.json').read_text())
++spells = {int(s['id']): s for s in data['spells']}
++report = json.loads((p / 'verification-repair-bindings3/report.json').read_text())
++summary = report['stages']['gameplay']['summary']
++assert summary['counts']['passed'] == 1 and not summary['counts']['failed']
++ids = {425, 654, 935, 953, 956, 1008, 1019, 1187, 1300, 1616, 2655, 2855, 3568, 3613}
++queue = json.loads((p / 'queue.json').read_text())
++entries = [e for e in queue['entries'] if e['id'] in ids]
++assert len(entries) == 14
++checked = {s for e in entries for s in e['spells']}
++checked.update(int(s['id']) for s in spells.values() if int(s.get('rank_root', 0)) in (33876, 33878))
++sys.path.insert(0, str(p.parents[1] / 'work/github-upload/tools'))
++from lib.mpq import MPQArchive
++
++client = Path('D:/DML WOTLK Client Side/Ascension A52 Free Pick/ascension-live/ascension-live/Data/area-52/patch-D.MPQ')
++with MPQArchive(client) as archive:
++    raw = archive.read_file('DBFilesClient\\Spell.dbc')
++    ranks = archive.read_file('DBFilesClient\\SpellRank.dbc')
++_, count, fields, size, _ = struct.unpack_from('<4s4I', raw)
++rows = {struct.unpack_from('<I', raw, 20 + i * size)[0]:
++        struct.unpack_from('<' + 'I' * fields, raw, 20 + i * size) for i in range(count)}
++pool = raw[20 + count * size:]
++chains = {}
++for i in range(struct.unpack_from('<I', ranks, 4)[0]):
++    _, root, spell, rank = struct.unpack_from('<4I', ranks, 20 + i * 16)
++    chains.setdefault(root, []).append((rank, spell))
++for root in {int(spells[s]['rank_root']) for s in checked}:
++    actual = sorted((int(s['rank']), int(s['id'])) for s in spells.values() if int(s.get('rank_root', 0)) == root)
++    if root in chains:
++        assert actual == sorted(chains[root]), (root, actual, chains[root])
++    elif spells[root]['passive'] == 'true':
++        for rank, sid in actual:
++            pointer = rows[sid][153]
++            label = pool[pointer:pool.find(b'\0', pointer)].decode()
++            assert re.search(r'\b' + str(rank) + r'\b', label), (sid, rank, label)
++    else:
++        assert actual == [(1, root)], (root, actual)
++for sid in checked:
++    s = spells[sid]
++    assert s['present'] == 'true'
++    assert rows[sid][39] == int(s['level']), sid
++    assert all(e['effect_handler'] == 'true' and e['aura_handler'] == 'true' for e in s['effects']), sid
++    if int(s['cast_ms']) or s['channel'] == 'true':
++        assert int(s['interrupt']) & 8 and rows[sid][31] & 8, sid
++    if s['channel'] == 'true':
++        assert int(s['channel_interrupt']) & 8 and rows[sid][33] & 8, sid
++
++def effect(sid, index):
++    return next(e for e in spells[sid]['effects'] if int(e['index']) == index)
++
++bindings = {18094: 'spell_area52_dependency_proc', 44445: 'spell_area52_dependency_proc',
++            44543: 'spell_area52_dependency_proc', 48389: 'spell_area52_dependency_proc',
++            48516: 'aura_ascension_eclipse', 701463: 'spell_area52_mana_barrier',
++            954876: 'spell_area52_siegebreaker', 954877: 'aura_area52_siegebreaker_collision',
++            277432: 'aura_area52_missing_mana_surge', 44572: 'spell_area52_deep_freeze'}
++for root, binding in bindings.items():
++    for s in spells.values():
++        if int(s.get('rank_root', 0)) == root:
++            assert binding in s['scripts'], (s['id'], binding)
++log = (p / 'verification-repair-bindings3/gameplay/servers/slot-0-1/worldserver.log').read_text(errors='replace')
++for line in log.splitlines():
++    if 'did not' in line or 'not found' in line:
++        assert not any(binding in line for binding in bindings.values()), line
++for sid in (11213, 12574, 12575, 12536):
++    assert spells[sid]['proc']['SpellFamilyName'] == '0'
++assert effect(812537, 0)['trigger'] == '12536'
++for sid in (18094, 18095):
++    assert spells[sid]['proc']['Cooldown'] == '5000'
++for sid in (34935, 34938, 34939):
++    assert effect(sid, 2)['aura'] == '52'
++    assert spells[sid]['proc']['Cooldown'] == '8000'
++for index in (0, 1):
++    assert int(effect(34936, index)['class_mask1']) & 64
++for sid in (44445, 44446, 44448):
++    assert spells[sid]['proc']['Chance'] == '100'
++    assert spells[sid]['proc']['HitMask'] == '3'
++assert effect(48108, 2)['aura'] == '108' and effect(48108, 2)['base_points'] == '-51'
++for sid in (44543, 44545):
++    assert spells[sid]['proc']['SchoolMask'] == '16'
++    assert spells[sid]['proc']['SpellFamilyName'] == '0'
++assert spells[74396]['proc']['Charges'] == '2'
++assert not int(spells[48391]['attributes0']) & 0x10000
++assert effect(48391, 1)['misc'] == '72'
++assert spells[701463]['proc']['Chance'] == '30'
++assert spells[701463]['proc']['Cooldown'] == '2000'
++assert spells[701463]['proc']['ProcFlags'] == '40'
++assert effect(701463, 1)['aura'] == '4'
++assert spells[277432]['duration_ms'] == '4000'
++assert effect(277432, 0)['amplitude_ms'] == '1000'
++assert not int(spells[277432]['attributes5']) & 512
++assert effect(701464, 0)['base_points'] == '-31' and effect(701464, 1)['base_points'] == '-41'
++assert effect(701467, 2)['misc'] == '68'
++assert spells[844572]['duration_ms'] == '2500' and effect(844572, 0)['aura'] == '12'
++assert effect(71757, 0)['effect'] == '2'
++for sid in (10, 6141, 8427, 10185, 10186, 10187, 27085, 42939, 42940):
++    e = effect(sid, 1)
++    assert e['aura'] == '23' and e['amplitude_ms'] == '1000'
++    child = spells[int(e['trigger'])]
++    assert int(child['rank']) == int(spells[sid]['rank'])
++    assert effect(int(child['id']), 0)['effect'] == '2'
++assert len([s for s in spells.values() if s.get('rank_root') == '33876']) == 9
++assert len([s for s in spells.values() if s.get('rank_root') == '33878']) == 9
++assert any(e['target'] == '33876' for e in spells[33917]['edges'])
++assert any(e['target'] == '277423' for e in spells[701463]['edges'])
++if (p / 'final-patch-D.MPQ').exists():
++    previous = set(json.loads((p / 'native-pass.json').read_text())['checked_ranks'])
++    allowed = checked | previous | {17941}
++    with MPQArchive(client) as base, MPQArchive(p / 'final-patch-D.MPQ') as staged:
++        for name in base.read_file('(listfile)').decode().splitlines():
++            if not name or name.lower() in ('(listfile)', '(attributes)', '(signature)'):
++                continue
++            if name != 'DBFilesClient\\Spell.dbc':
++                assert base.read_file(name) == staged.read_file(name), name
++        final = staged.read_file('DBFilesClient\\Spell.dbc')
++    final_pool = final[20 + count * size:]
++    assert struct.unpack_from('<3I', final, 4) == (count, fields, size)
++    for i in range(count):
++        offset = 20 + i * size
++        original = list(struct.unpack_from('<' + 'I' * fields, raw, offset))
++        updated = list(struct.unpack_from('<' + 'I' * fields, final, offset))
++        a = pool[original[170]:pool.find(b'\0', original[170])].decode()
++        b = final_pool[updated[170]:final_pool.find(b'\0', updated[170])].decode()
++        sid = original[0]
++        original[170] = updated[170] = 0
++        assert original == updated, sid
++        if a == b:
++            continue
++        assert sid in allowed, sid
++        if sid == 17941:
++            assert 'Shadow Bolt deals 25% less damage to players.' in b
++            continue
++        if sid == 701463:
++            a = a.replace('have a chance', 'have a 30% chance')
++        def content(text):
++            text = re.sub(r'\|c[0-9a-fA-F]{8}(?:NOT VERIFIED|VERIFIED|CERTIFIED)\|r', '', text)
++            text = re.sub(r'@ext:\s*:ext@', '', text)
++            return re.sub(r'\s+', ' ', text).strip()
++        assert content(a) == content(b), sid
++        assert '|cffffff00VERIFIED|r' in b, sid
++        assert '\n\n|cffffff00VERIFIED|r' in b.replace('\r', '').replace('@ext:', ''), sid
++(p / 'repair-native-pass.json').write_text(json.dumps({'entries': sorted(ids), 'checked_ranks': sorted(checked),
++    'scope': 'Effective native bindings, proc contracts, primary-client rank and movement parity; no combat or reconnect certification.'}, indent=2))
++print(f'PASS: 14 dependency contracts, {len(checked)} spell/rank records, matching native bindings and movement rules.')
++

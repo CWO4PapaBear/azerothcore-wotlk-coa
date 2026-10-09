@@ -1,0 +1,974 @@
+[
+  {
+    "entry": 2661,
+    "name": "Heroic Strike",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native weapon-damage effect and next-swing execution; Hoplite replacement ownership uses its reviewed original/rank restoration path."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2674,
+    "name": "Renew",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native periodic heal; spell_pri_renew handles Empowered Renew without learned-spell mutation."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2676,
+    "name": "Corruption",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native periodic damage implements the base contract. Zero-target dummy is not a missing learned ability or executable trigger."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2680,
+    "name": "Immolate",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native school damage and periodic damage implement the described contract; auxiliary script-effect marker has no additional base tooltip mechanic."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2715,
+    "name": "Drain Life",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native periodic leech implements damage and healing; auxiliary dummy does not grant/remove a learned spell."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2764,
+    "name": "Slam",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "spell_warr_slam forwards each rank amount to native weapon-damage helper 50783."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2813,
+    "name": "Bloodrage",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native health power cost and rage energize, plus periodic energize 29131; Hoplite Bloodrage binding resolves."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2978,
+    "name": "Ice Lance",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native school damage and Unit frozen-target multiplier; every rank retains Mage family and icon 186. TriggerSpell=1 on school damage is not a cast edge."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 3054,
+    "name": "Pyroblast",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native school damage and periodic damage implement the described contract; auxiliary dummy does not describe a separate base mechanic."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 3255,
+    "name": "Insect Swarm",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native periodic damage and spell_dru_insect_swarm relic modifier; no spellbook grant."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 3552,
+    "name": "Vampiric Touch",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "spell_pri_vampiric_touch handles dispel damage and Mind Blast proc; Replenishment 57669 binding resolves."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 3647,
+    "name": "Penance",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "spell_pri_penance routes friendly/enemy targets to rank-matched heal/damage channels; all 32 helper rank records resolve."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 3674,
+    "name": "Starfall",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native eight one-second periodic triggers select up to two targets; starfall dummy/AOE scripts resolve and handle form/control suppression."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 425,
+    "name": "Arcane Concentration",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Unrestricted damaging-spell proc family; native Clearcasting delay and one-charge power-cost consumption."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Effective graph and explicit scripts reviewed. Bear, Mangle and Mana-forged Barrier use LinkedSpellGroups; remaining effects are native/scripted combat auras, not temporary spellbook grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "SelectedSpells/ExpandGrantedSpells and saved learned-spell ownership retain grants until selection/owner removal. No logout-time removal added; reconnect behavior is not claimed."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native/client rank parity checked; talent rank labels checked separately from SpellRank. RankUpgrades expands linked grants and LearnRankUpgrade enforces level/previous rank and durable learning."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Every selected/granted rank checked against client and native cast/channel flags. Blizzard channels enforce movement interruption. Other batch casts are instant/passive/triggered; existing proc-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 654,
+    "name": "Nightfall",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Four approved sources, rank chance and mana reduction, five-second cooldown, instant-cast and Shadow Bolt PvE/PvP modifiers."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Effective graph and explicit scripts reviewed. Bear, Mangle and Mana-forged Barrier use LinkedSpellGroups; remaining effects are native/scripted combat auras, not temporary spellbook grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "SelectedSpells/ExpandGrantedSpells and saved learned-spell ownership retain grants until selection/owner removal. No logout-time removal added; reconnect behavior is not claimed."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native/client rank parity checked; talent rank labels checked separately from SpellRank. RankUpgrades expands linked grants and LearnRankUpgrade enforces level/previous rank and durable learning."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Every selected/granted rank checked against client and native cast/channel flags. Blizzard channels enforce movement interruption. Other batch casts are instant/passive/triggered; existing proc-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 935,
+    "name": "Backlash",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Weapon and spell crit applied once; both Shadow Bolt and Incinerate receive cast/cost and PvE/PvP modifiers."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Effective graph and explicit scripts reviewed. Bear, Mangle and Mana-forged Barrier use LinkedSpellGroups; remaining effects are native/scripted combat auras, not temporary spellbook grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "SelectedSpells/ExpandGrantedSpells and saved learned-spell ownership retain grants until selection/owner removal. No logout-time removal added; reconnect behavior is not claimed."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native/client rank parity checked; talent rank labels checked separately from SpellRank. RankUpgrades expands linked grants and LearnRankUpgrade enforces level/previous rank and durable learning."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Every selected/granted rank checked against client and native cast/channel flags. Blizzard channels enforce movement interruption. Other batch casts are instant/passive/triggered; existing proc-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 953,
+    "name": "Hot Streak",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Two consecutive eligible criticals, one rank chance roll, instant/cost modifiers and direct/periodic Pyroblast PvE damage."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Effective graph and explicit scripts reviewed. Bear, Mangle and Mana-forged Barrier use LinkedSpellGroups; remaining effects are native/scripted combat auras, not temporary spellbook grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "SelectedSpells/ExpandGrantedSpells and saved learned-spell ownership retain grants until selection/owner removal. No logout-time removal added; reconnect behavior is not claimed."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native/client rank parity checked; talent rank labels checked separately from SpellRank. RankUpgrades expands linked grants and LearnRankUpgrade enforces level/previous rank and durable learning."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Every selected/granted rank checked against client and native cast/channel flags. Blizzard channels enforce movement interruption. Other batch casts are instant/passive/triggered; existing proc-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 956,
+    "name": "Fingers of Frost",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Direct Mage/Shaman Frost source filter; Blizzard/Ice Lance excluded; two-charge frozen-target helper; Legendary helper requires its enchant."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Effective graph and explicit scripts reviewed. Bear, Mangle and Mana-forged Barrier use LinkedSpellGroups; remaining effects are native/scripted combat auras, not temporary spellbook grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "SelectedSpells/ExpandGrantedSpells and saved learned-spell ownership retain grants until selection/owner removal. No logout-time removal added; reconnect behavior is not claimed."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native/client rank parity checked; talent rank labels checked separately from SpellRank. RankUpgrades expands linked grants and LearnRankUpgrade enforces level/previous rank and durable learning."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Every selected/granted rank checked against client and native cast/channel flags. Blizzard channels enforce movement interruption. Other batch casts are instant/passive/triggered; existing proc-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 1008,
+    "name": "Owlkin Frenzy",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Incoming-damage proc restricted to Moonkin; usable Frenzy aura with native damage, pushback and base-mana effects."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Effective graph and explicit scripts reviewed. Bear, Mangle and Mana-forged Barrier use LinkedSpellGroups; remaining effects are native/scripted combat auras, not temporary spellbook grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "SelectedSpells/ExpandGrantedSpells and saved learned-spell ownership retain grants until selection/owner removal. No logout-time removal added; reconnect behavior is not claimed."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native/client rank parity checked; talent rank labels checked separately from SpellRank. RankUpgrades expands linked grants and LearnRankUpgrade enforces level/previous rank and durable learning."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Every selected/granted rank checked against client and native cast/channel flags. Blizzard channels enforce movement interruption. Other batch casts are instant/passive/triggered; existing proc-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 1019,
+    "name": "Eclipse",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Wrath and Starfire source filters; separate thirty-second cooldowns and mutually exclusive Eclipse buffs."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Effective graph and explicit scripts reviewed. Bear, Mangle and Mana-forged Barrier use LinkedSpellGroups; remaining effects are native/scripted combat auras, not temporary spellbook grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "SelectedSpells/ExpandGrantedSpells and saved learned-spell ownership retain grants until selection/owner removal. No logout-time removal added; reconnect behavior is not claimed."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native/client rank parity checked; talent rank labels checked separately from SpellRank. RankUpgrades expands linked grants and LearnRankUpgrade enforces level/previous rank and durable learning."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Every selected/granted rank checked against client and native cast/channel flags. Blizzard channels enforce movement interruption. Other batch casts are instant/passive/triggered; existing proc-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 1187,
+    "name": "Colossus Smash",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "All six ranks use native weapon damage, own-hit armor bypass and caster-specific armor debuff."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Effective graph and explicit scripts reviewed. Bear, Mangle and Mana-forged Barrier use LinkedSpellGroups; remaining effects are native/scripted combat auras, not temporary spellbook grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "SelectedSpells/ExpandGrantedSpells and saved learned-spell ownership retain grants until selection/owner removal. No logout-time removal added; reconnect behavior is not claimed."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native/client rank parity checked; talent rank labels checked separately from SpellRank. RankUpgrades expands linked grants and LearnRankUpgrade enforces level/previous rank and durable learning."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Every selected/granted rank checked against client and native cast/channel flags. Blizzard channels enforce movement interruption. Other batch casts are instant/passive/triggered; existing proc-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 1300,
+    "name": "Mana-forged Barrier",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Mana-dependent absorb, threat, penalties and interrupt immunity helpers; 30% proc chance, two-second cooldown, 30% missing-mana restoration over four seconds."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Effective graph and explicit scripts reviewed. Bear, Mangle and Mana-forged Barrier use LinkedSpellGroups; remaining effects are native/scripted combat auras, not temporary spellbook grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "SelectedSpells/ExpandGrantedSpells and saved learned-spell ownership retain grants until selection/owner removal. No logout-time removal added; reconnect behavior is not claimed."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native/client rank parity checked; talent rank labels checked separately from SpellRank. RankUpgrades expands linked grants and LearnRankUpgrade enforces level/previous rank and durable learning."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Every selected/granted rank checked against client and native cast/channel flags. Blizzard channels enforce movement interruption. Other batch casts are instant/passive/triggered; existing proc-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 1616,
+    "name": "Siegebreaker",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Five-target cone, player knockback and separately guarded collision damage/knockback helper."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Effective graph and explicit scripts reviewed. Bear, Mangle and Mana-forged Barrier use LinkedSpellGroups; remaining effects are native/scripted combat auras, not temporary spellbook grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "SelectedSpells/ExpandGrantedSpells and saved learned-spell ownership retain grants until selection/owner removal. No logout-time removal added; reconnect behavior is not claimed."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native/client rank parity checked; talent rank labels checked separately from SpellRank. RankUpgrades expands linked grants and LearnRankUpgrade enforces level/previous rank and durable learning."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Every selected/granted rank checked against client and native cast/channel flags. Blizzard channels enforce movement interruption. Other batch casts are instant/passive/triggered; existing proc-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2655,
+    "name": "Blizzard",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Nine channel ranks forward the ground destination through native periodic triggers to nine matching damage ranks."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Effective graph and explicit scripts reviewed. Bear, Mangle and Mana-forged Barrier use LinkedSpellGroups; remaining effects are native/scripted combat auras, not temporary spellbook grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "SelectedSpells/ExpandGrantedSpells and saved learned-spell ownership retain grants until selection/owner removal. No logout-time removal added; reconnect behavior is not claimed."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native/client rank parity checked; talent rank labels checked separately from SpellRank. RankUpgrades expands linked grants and LearnRankUpgrade enforces level/previous rank and durable learning."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Every selected/granted rank checked against client and native cast/channel flags. Blizzard channels enforce movement interruption. Other batch casts are instant/passive/triggered; existing proc-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2855,
+    "name": "Bear Form",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native form/stat passives and durable Swipe/Growl grants; stat-path escape restriction and PvP damage modifier."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Effective graph and explicit scripts reviewed. Bear, Mangle and Mana-forged Barrier use LinkedSpellGroups; remaining effects are native/scripted combat auras, not temporary spellbook grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "SelectedSpells/ExpandGrantedSpells and saved learned-spell ownership retain grants until selection/owner removal. No logout-time removal added; reconnect behavior is not claimed."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native/client rank parity checked; talent rank labels checked separately from SpellRank. RankUpgrades expands linked grants and LearnRankUpgrade enforces level/previous rank and durable learning."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Every selected/granted rank checked against client and native cast/channel flags. Blizzard channels enforce movement interruption. Other batch casts are instant/passive/triggered; existing proc-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 3568,
+    "name": "Mangle",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Durable Cat/Bear ability grants, two repaired nine-rank child chains, native weapon damage and bleed vulnerability."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Effective graph and explicit scripts reviewed. Bear, Mangle and Mana-forged Barrier use LinkedSpellGroups; remaining effects are native/scripted combat auras, not temporary spellbook grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "SelectedSpells/ExpandGrantedSpells and saved learned-spell ownership retain grants until selection/owner removal. No logout-time removal added; reconnect behavior is not claimed."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native/client rank parity checked; talent rank labels checked separately from SpellRank. RankUpgrades expands linked grants and LearnRankUpgrade enforces level/previous rank and durable learning."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Every selected/granted rank checked against client and native cast/channel flags. Blizzard channels enforce movement interruption. Other batch casts are instant/passive/triggered; existing proc-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 3613,
+    "name": "Deep Freeze",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Frozen-target gate, 2.5-second stun helper and damage helper for permanent creature stun immunity."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Effective graph and explicit scripts reviewed. Bear, Mangle and Mana-forged Barrier use LinkedSpellGroups; remaining effects are native/scripted combat auras, not temporary spellbook grants."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "SelectedSpells/ExpandGrantedSpells and saved learned-spell ownership retain grants until selection/owner removal. No logout-time removal added; reconnect behavior is not claimed."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native/client rank parity checked; talent rank labels checked separately from SpellRank. RankUpgrades expands linked grants and LearnRankUpgrade enforces level/previous rank and durable learning."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Every selected/granted rank checked against client and native cast/channel flags. Blizzard channels enforce movement interruption. Other batch casts are instant/passive/triggered; existing proc-scoped instant casts remain."
+        ]
+      }
+    }
+  }
+]

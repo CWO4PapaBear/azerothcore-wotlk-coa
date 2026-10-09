@@ -1,0 +1,38 @@
+{
+  "src/server/coa/AscensionFreePickLinkedSpells.h": {
+    "before_utf8_lf_sha256": "6d1fb971beab7a2a57a3a7227be3ce03fd82450d3775fca134875bb0d79ce652",
+    "after_utf8_lf_sha256": "c5f3ea14eba75b6be5158e0e42fd3bba7cd01ae90668dae49b44077a136ceff8"
+  },
+  "src/server/coa/AscensionMysticEnchant.cpp": {
+    "before_utf8_lf_sha256": "daca39f9978fc0b0789943b54ba68401113d96b086f59ef013395a49718df61d",
+    "after_utf8_lf_sha256": "69f53517ac731e3b8f5452f01d33a2d5739d6977dfd75bbdb1e1c1f6337e0d01"
+  },
+  "src/server/coa/AscensionTalentDataProcs.cpp": {
+    "before_utf8_lf_sha256": "06cf250db8d1d6f7e39f08d2685a8bdd0c352889afe98a70571fd80a6d9bd4eb",
+    "after_utf8_lf_sha256": "8080e9bb120403c06c3a07d1305d6eba185388621dd3e2f62eaa22019dcdbdea"
+  },
+  "src/server/game/Spells/Auras/SpellAuraEffects.cpp": {
+    "before_utf8_lf_sha256": "de2bf0d57b9711ad4c606802af43d01f070b1c2a280e01eba5f5232978f2837e",
+    "after_utf8_lf_sha256": "6f74d8a0f122d31768aa6e08749492a367eee5360579e925e16081acf921b4f4"
+  },
+  "src/server/coa/Area52DependencyRules.h": {
+    "before_utf8_lf_sha256": null,
+    "after_utf8_lf_sha256": "cf27da008459f258884a15dc3914d33dfcf92b1ecc540e384fb8f736ffed1236"
+  },
+  "src/server/coa/Area52Dependencies.inc": {
+    "before_utf8_lf_sha256": null,
+    "after_utf8_lf_sha256": "98528df2cfaa58487bccb2cb2ba78405546d601a81aa21d7e2616d47d245431e"
+  },
+  "data/sql/updates/pending_db_world/rev_20261009_05_area52_legendary_dependencies.sql": {
+    "before_utf8_lf_sha256": null,
+    "after_utf8_lf_sha256": "6364739c96bf99d2d26cf02fe21404848112aebd829110a3582fb026f05b362d"
+  },
+  "apps/coa-tests/area52_dependencies_repair/run.py": {
+    "before_utf8_lf_sha256": null,
+    "after_utf8_lf_sha256": "4b97d77ef462f75afa785c4efadf2ecedae06674cd05217248deb142aa424c80"
+  },
+  "apps/coa-tests/area52_dependencies_final/run.py": {
+    "before_utf8_lf_sha256": null,
+    "after_utf8_lf_sha256": "11e4176647c09b722bc8874b60e255fe8a2e47d9aa7f1a542bf832647febbe69"
+  }
+}
