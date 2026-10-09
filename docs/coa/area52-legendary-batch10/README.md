@@ -1,8 +1,11 @@
 # Area 52 Legendary batch of ten
 
 This combined patch connects ten Legendary Mystic Enchants to their Area 52 spell contracts. It includes the
-previously staged Battlemage change; do not apply that earlier patch again. All ten are staged together for one
-client/server activation. No server restart, client installation, tester release or channel promotion is included.
+previously staged Battlemage change; do not apply that earlier patch again. All ten are packaged together.
+The October 9 activation installed the matching local client, applied both migrations through the normal updater,
+and published client channel commit `017c429922d2b62b7e5c5c3dc28792b418451646`. The public feed passed
+the actual launcher validator after GitHub's cache refreshed. Server binary SHA-256:
+`ce46fc5011145ea6e08fbf52d12953c0caec18554559c7b1b238b82a628ad0dd`.
 
 | Enchant | Root | Repair |
 | --- | ---: | --- |
@@ -65,8 +68,8 @@ Effective cast times, channel state and movement interruption are checked across
 Shadow Bolt and both Chaos Bolt families retain movement interruption. Battlemage ranks are instant.
 Triggered helpers do not gain blanket movement flags. Scoped instant-cast modifiers remain intact.
 In-game combat, movement behavior and reconnect persistence remain tester CERTIFICATION work. Candidate VERIFIED
-labels mean structural checks passed, not that those player tests happened. Live status counts remain unchanged
-until activation. No flaky outcome was observed in these final checks; investigation-to-completion timing is unknown.
+labels mean structural checks passed, not that those player tests happened. No flaky outcome was observed in these
+final checks; investigation-to-completion timing is unknown.
 
 ## Applying the package
 
@@ -78,4 +81,6 @@ recorded audit artifacts and primary client; the production-rule harness runs th
 Apply both pending world migrations through the normal server updater with the matching compiled binary and
 staged client definitions. Promote only the tested Area 52 client/server pair through its separate launcher channel.
 Before activation, recheck the installed archive hash and reconcile any later changes rather than overwriting them.
-Use the normal three-minute announcement/countdown for the single combined restart. No activation occurred here.
+Use the normal three-minute announcement/countdown for restarts. Activation exposed a stale mounted automatic-access
+ledger, requiring a second announced restart. Future activation preflight must stage the current verification ledger
+with the binary/client package and compare the expected eligible IDs with the startup access count before completion.
