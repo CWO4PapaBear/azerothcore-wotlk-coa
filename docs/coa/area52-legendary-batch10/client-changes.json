@@ -1,0 +1,120 @@
+{
+  "before_sha256": "e2345ec6c824977214c46552057cb83d1bb6f06d797b14b8c62977e7fe6d233b",
+  "after_sha256": "5c94a375b7701a62bd8549b04ea420e449957cb9f64501408e1e024650e98bdf",
+  "status": "staged_not_installed",
+  "numeric_fields": [
+    {
+      "spell": 81123,
+      "field": 49,
+      "before": 50,
+      "after": 10
+    },
+    {
+      "spell": 81125,
+      "field": 92,
+      "before": 13,
+      "after": 14
+    },
+    {
+      "spell": 81125,
+      "field": 94,
+      "before": 0,
+      "after": 14
+    },
+    {
+      "spell": 81479,
+      "field": 116,
+      "before": 81123,
+      "after": 982220
+    },
+    {
+      "spell": 99634,
+      "field": 72,
+      "before": 6,
+      "after": 0
+    },
+    {
+      "spell": 300600,
+      "field": 208,
+      "before": 0,
+      "after": 5
+    },
+    {
+      "spell": 300600,
+      "field": 95,
+      "before": 4,
+      "after": 275
+    },
+    {
+      "spell": 300600,
+      "field": 122,
+      "before": 0,
+      "after": 1
+    },
+    {
+      "spell": 300600,
+      "field": 123,
+      "before": 0,
+      "after": 0
+    },
+    {
+      "spell": 300600,
+      "field": 124,
+      "before": 0,
+      "after": 0
+    },
+    {
+      "spell": 954048,
+      "field": 80,
+      "before": 0,
+      "after": 4294967295
+    },
+    {
+      "spell": 954048,
+      "field": 77,
+      "before": 1083388723,
+      "after": 1077936128
+    },
+    {
+      "spell": 954340,
+      "field": 73,
+      "before": 6,
+      "after": 0
+    },
+    {
+      "spell": 965509,
+      "field": 210,
+      "before": 0,
+      "after": 32768
+    },
+    {
+      "spell": 982220,
+      "field": 49,
+      "before": 50,
+      "after": 10
+    },
+    {
+      "spell": 983908,
+      "field": 110,
+      "before": 126,
+      "after": 127
+    }
+  ],
+  "verified_roots": [
+    84510,
+    965503,
+    965504,
+    965505,
+    81258,
+    99634,
+    81119,
+    81122,
+    81479,
+    965315
+  ],
+  "text_edits": {
+    "93582": "Use native stack-cap token $u instead of stale literal 3.",
+    "965510": "Match parent tooltip AP 0.2376 and SP 0.3656.",
+    "selected_roots": "Replace red NOT VERIFIED with yellow VERIFIED; preserve all other SHIFT content."
+  }
+}
