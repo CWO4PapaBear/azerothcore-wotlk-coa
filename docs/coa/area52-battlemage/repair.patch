@@ -1,0 +1,243 @@
+diff --git a/src/server/coa/AscensionMysticEnchant.cpp b/src/server/coa/AscensionMysticEnchant.cpp
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -50,7 +50,9 @@
+ #include "Creature.h"
+ #include "Area52FollowupProcs.inc"
+ #include "Area52LegendaryRules.h"
++#include "Area52BattlemageRules.h"
+ #include "Area52LegendaryProcs.inc"
++#include "Area52Battlemage.inc"
+ #include "Area52CastMovement.inc"
+ 
+ namespace AscensionMysticEnchant
+@@ -484,7 +486,7 @@
+             continue;
+         }
+         if (HasEldritchEquipmentHandlers(spell) || HasArea52EpicEquipmentHandlers(spell) ||
+-            HasArea52HopliteHandlers(spell))
++            HasArea52HopliteHandlers(spell) || HasArea52BattlemageHandlers(spell))
+         {
+             Connected.emplace(spell, 1);
+             continue;
+@@ -823,6 +825,8 @@
+ 
+ void AddSC_AscensionMysticEnchant()
+ {
++    RegisterSpellScript(spell_area52_battlemage);
++    RegisterSpellScript(spell_area52_battlemage_damage);
+     RegisterSpellScript(spell_area52_legendary_proc);
+     new area52_legendary_metadata();
+     new area52_cast_movement_metadata();
+diff --git a/src/server/coa/Area52BattlemageRules.h b/src/server/coa/Area52BattlemageRules.h
+new file mode 100644
+--- /dev/null
++++ b/src/server/coa/Area52BattlemageRules.h
+@@ -0,0 +1,17 @@
++#ifndef AREA52_BATTLEMAGE_RULES_H
++#define AREA52_BATTLEMAGE_RULES_H
++#include <cstdint>
++
++namespace Area52Battlemage
++{
++inline bool Accept(bool owner, bool damage, bool warrior, bool nextSwing, bool periodic)
++{
++    return owner && damage && warrior && !nextSwing && !periodic;
++}
++
++inline std::int32_t Damage(std::int32_t damage, bool playerTarget)
++{
++    return playerTarget ? std::int32_t(std::int64_t(damage) * 80 / 100) : damage;
++}
++}
++#endif
+diff --git a/src/server/coa/Area52Battlemage.inc b/src/server/coa/Area52Battlemage.inc
+new file mode 100644
+--- /dev/null
++++ b/src/server/coa/Area52Battlemage.inc
+@@ -0,0 +1,117 @@
++bool HasArea52BattlemageHandlers(uint32 spell)
++{
++    if (spell != 81258 || !sSpellMgr->GetSpellProcEntry(spell))
++        return false;
++    std::list<AuraScript*> auras;
++    sScriptMgr->CreateAuraScripts(spell, auras);
++    bool found = false;
++    for (auto* script : auras)
++    {
++        found |= *script->_GetScriptName() == "spell_area52_battlemage";
++        delete script;
++    }
++    if (!found)
++        return false;
++    for (uint32 first : {44425u, 2136u, 30455u})
++    {
++        std::set<uint32> visited;
++        for (uint32 rank = first; rank && visited.insert(rank).second;
++            rank = sSpellMgr->GetNextSpellInChain(rank))
++        {
++            if (!sSpellMgr->GetSpellInfo(rank))
++                return false;
++            std::list<SpellScript*> scripts;
++            sScriptMgr->CreateSpellScripts(rank, scripts);
++            found = false;
++            for (auto* script : scripts)
++            {
++                found |= *script->_GetScriptName() == "spell_area52_battlemage_damage";
++                delete script;
++            }
++            if (!found)
++                return false;
++        }
++    }
++    return true;
++}
++
++class spell_area52_battlemage : public AuraScript
++{
++    PrepareAuraScript(spell_area52_battlemage);
++
++    bool Load() override
++    {
++        return AscensionFreePick::Applies(GetUnitOwner() ? GetUnitOwner()->ToPlayer() : nullptr);
++    }
++
++    bool Validate(SpellInfo const*) override
++    {
++        return ValidateSpellInfo({44425, 2136, 30455});
++    }
++
++    std::vector<uint32> KnownChoices(Player* player) const
++    {
++        std::vector<uint32> choices;
++        for (uint32 first : {44425u, 2136u, 30455u})
++        {
++            uint32 known = 0;
++            std::set<uint32> visited;
++            for (uint32 rank = first; rank && visited.insert(rank).second;
++                rank = sSpellMgr->GetNextSpellInChain(rank))
++                if (player->HasSpell(rank))
++                    known = rank;
++            if (known)
++                choices.push_back(known);
++        }
++        return choices;
++    }
++
++    bool CheckProc(ProcEventInfo& event)
++    {
++        Player* player = GetTarget()->ToPlayer();
++        SpellInfo const* spell = event.GetSpellInfo();
++        return player && AscensionFreePick::Applies(player) &&
++            Area52Battlemage::Accept(event.GetActor() == player && event.GetActionTarget() &&
++                player->IsValidAttackTarget(event.GetActionTarget()),
++                event.GetDamageInfo() && event.GetDamageInfo()->GetDamage() > 0,
++                spell && spell->SpellFamilyName == SPELLFAMILY_WARRIOR,
++                spell && spell->HasAttribute(SPELL_ATTR0_ON_NEXT_SWING_NO_DAMAGE),
++                (event.GetTypeMask() & PROC_FLAG_DONE_PERIODIC) != 0) && !KnownChoices(player).empty();
++    }
++
++    void Proc(AuraEffect const* effect, ProcEventInfo& event)
++    {
++        PreventDefaultAction();
++        Player* player = GetTarget()->ToPlayer();
++        Unit* target = event.GetActionTarget();
++        if (!player || !target)
++            return;
++        auto const choices = KnownChoices(player);
++        if (!choices.empty())
++            player->CastSpell(target, choices[urand(0, uint32(choices.size() - 1))], true, nullptr, effect);
++    }
++
++    void Register() override
++    {
++        DoCheckProc += AuraCheckProcFn(spell_area52_battlemage::CheckProc);
++        OnEffectProc += AuraEffectProcFn(spell_area52_battlemage::Proc, EFFECT_0, SPELL_AURA_DUMMY);
++    }
++};
++
++class spell_area52_battlemage_damage : public SpellScript
++{
++    PrepareSpellScript(spell_area52_battlemage_damage);
++
++    void Hit()
++    {
++        Player* player = GetCaster()->ToPlayer();
++        SpellInfo const* source = GetSpell()->GetTriggeredByAuraSpellInfo();
++        if (player && AscensionFreePick::Applies(player) && source && source->Id == 81258 && GetHitUnit())
++            SetHitDamage(Area52Battlemage::Damage(GetHitDamage(), GetHitUnit()->IsControlledByPlayer()));
++    }
++
++    void Register() override
++    {
++        OnHit += SpellHitFn(spell_area52_battlemage_damage::Hit);
++    }
++};
+diff --git a/data/sql/updates/pending_db_world/rev_20261009_03_area52_battlemage.sql b/data/sql/updates/pending_db_world/rev_20261009_03_area52_battlemage.sql
+new file mode 100644
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261009_03_area52_battlemage.sql
+@@ -0,0 +1,11 @@
++DELETE FROM `spell_proc` WHERE `SpellId` = 81258;
++INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `ProcFlags`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
++(81258, 0, 4, 0, 0, 0, 65808, 1, 2, 0, 0, 0, 0, 100, 4000, 0);
++
++DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_area52_battlemage', 'spell_area52_battlemage_damage');
++INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`)
++SELECT 81258, 'spell_area52_battlemage'
++UNION SELECT `spell_id`, 'spell_area52_battlemage_damage' FROM `spell_ranks` WHERE `first_spell_id` IN (44425, 2136, 30455)
++UNION SELECT 44425, 'spell_area52_battlemage_damage'
++UNION SELECT 2136, 'spell_area52_battlemage_damage'
++UNION SELECT 30455, 'spell_area52_battlemage_damage';
+diff --git a/apps/coa-tests/area52_battlemage/run.py b/apps/coa-tests/area52_battlemage/run.py
+new file mode 100644
+--- /dev/null
++++ b/apps/coa-tests/area52_battlemage/run.py
+@@ -0,0 +1,47 @@
++from pathlib import Path
++import subprocess,tempfile,sqlite3,re
++root=Path(__file__).resolve().parents[3]
++inc=(root/'src/server/coa/Area52Battlemage.inc').read_text()
++start=inc.index('    std::vector<uint32> KnownChoices(');end=inc.index('\n    bool CheckProc',start)
++choices=inc[start:end]
++source=r'''#include <vector>
++#include <set>
++#include <map>
++using uint32=unsigned;
++struct Player { std::set<uint32> known; bool HasSpell(uint32 id) const { return known.contains(id); } };
++struct Manager { std::map<uint32,uint32> next; uint32 GetNextSpellInChain(uint32 id) { return next[id]; } } manager;
++auto* sSpellMgr=&manager;
++'''+'struct Selector {\n'+choices+'\n};\n'+r''' #include "Area52BattlemageRules.h"
++#include <cassert>
++#include <limits>
++int main() {
++using namespace Area52Battlemage;
++Player p;Selector selector;
++assert(selector.KnownChoices(&p).empty());
++manager.next={{2136,2137},{2137,27079},{44425,44780},{44780,44781}};
++p.known={2136,2137,44425,44781};
++assert((selector.KnownChoices(&p)==std::vector<uint32>{44781,2137}));
++p.known={27079,30455};assert((selector.KnownChoices(&p)==std::vector<uint32>{27079,30455}));
++manager.next[27079]=2136;assert(selector.KnownChoices(&p).size()==2);
++assert(Accept(true,true,true,false,false));
++for (unsigned i=0;i<32;++i) assert(Accept(i&1,i&2,i&4,i&8,i&16)==(i==7));
++assert(Damage(100,true)==80);assert(Damage(100,false)==100);assert(Damage(0,true)==0);
++assert(Damage(std::numeric_limits<std::int32_t>::max(),true)==1717986917);
++}'''
++with tempfile.TemporaryDirectory() as d:
++ p=Path(d);(p/'test.cpp').write_text(source)
++ subprocess.run(['c++','-std=c++20','-Wall','-Wextra','-Werror','-I',str(root/'src/server/coa'),str(p/'test.cpp'),'-o',str(p/'test')],check=True)
++ subprocess.run([str(p/'test')],check=True)
++sql=(root/'data/sql/updates/pending_db_world/rev_20261009_03_area52_battlemage.sql').read_text()
++db=sqlite3.connect(':memory:')
++for table in ('spell_proc','spell_script_names'):
++ columns=re.search(r'INSERT INTO `'+table+r'` \(([^)]+)\)',sql)[1];db.execute('CREATE TABLE '+table+' ('+columns+')')
++db.execute('CREATE TABLE spell_ranks(first_spell_id,spell_id)')
++db.executemany('INSERT INTO spell_ranks VALUES (?,?)',[(44425,44425),(44425,44780),(2136,2136),(2136,2137),(30455,30455)])
++db.execute("INSERT INTO spell_script_names VALUES (2136,'unrelated')")
++for _ in range(2):
++ db.executescript(sql)
++ assert db.execute('SELECT COUNT(*) FROM spell_script_names').fetchone()[0]==7
++ assert db.execute('SELECT Chance,Cooldown,SpellFamilyName FROM spell_proc WHERE SpellId=81258').fetchone()==(100,4000,4)
++ assert db.execute("SELECT COUNT(*) FROM spell_script_names WHERE ScriptName='unrelated'").fetchone()[0]==1
++print('PASS: Battlemage eligibility truth table, PvP damage arithmetic and idempotent rank binding SQL.')
