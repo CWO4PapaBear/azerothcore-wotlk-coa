@@ -1,0 +1,600 @@
+diff --git a/src/server/game/Entities/Creature/Trainer.cpp b/src/server/game/Entities/Creature/Trainer.cpp
+--- a/src/server/game/Entities/Creature/Trainer.cpp
++++ b/src/server/game/Entities/Creature/Trainer.cpp
+@@ -16,6 +16,7 @@
+  */
+ 
+ #include "Trainer.h"
++#include "../../../coa/AscensionFreePick.h"
+ #include "Creature.h"
+ #include "DBCStores.h"
+ #include "NPCPackets.h"
+@@ -44,6 +45,13 @@
+     // class nor the core's rank chains (which miss Ascension's added ranks) decide what it may learn.
+     constexpr uint32 WILDCARD_RANK_TRAINER_ID = std::numeric_limits<uint32>::max();
+     Trainer::WildcardRankRows WildcardRankRowsOf = nullptr;
++    Trainer::RankTrainerHero RankTrainerHeroOf = nullptr;
++
++    bool IsRankTrainerHero(Player const* player)
++    {
++        return AscensionFreePick::Applies(player) ||
++            (RankTrainerHeroOf ? RankTrainerHeroOf(player) : IsWildcardHero(player));
++    }
+ 
+     uint8 ProfessionExpansion(uint32 skill)
+     {
+@@ -146,14 +154,16 @@
+         trainerList.Spells.reserve(_spells.size());
+         for (Spell const& trainerSpell : _spells)
+         {
+-            if (_trainerId != WILDCARD_RANK_TRAINER_ID && !player->IsSpellFitByClassAndRace(trainerSpell.SpellId))
++            if (_trainerId != WILDCARD_RANK_TRAINER_ID &&
++                !player->IsSpellFitByClassAndRace(trainerSpell.SpellId))
+                 continue;
+ 
+             // The state is asked once and then decides both whether the row is written at all and what
+             // the row reads: the same call that gates the purchase gates the window, so a trainer can
+             // never leave out a spell it would have sold, or offer a row it would have refused.
+             SpellState spellState = GetSpellState(player, &trainerSpell);
+-            if (onlyTrainable && spellState == SpellState::Unavailable)
++            if (onlyTrainable && (_trainerId != WILDCARD_RANK_TRAINER_ID || !AscensionFreePick::Applies(player)) &&
++                spellState == SpellState::Unavailable)
+                 continue;
+ 
+             SpellInfo const* trainerSpellInfo = sSpellMgr->AssertSpellInfo(trainerSpell.SpellId);
+@@ -203,6 +213,20 @@
+             return;
+         }
+ 
++        if (_trainerId == WILDCARD_RANK_TRAINER_ID && AscensionFreePick::Applies(player))
++        {
++            if (!AscensionFreePick::LearnRankUpgrade(player, spellId))
++            {
++                SendTeachFailure(npc, player, spellId, FailReason::Unavailable);
++                return;
++            }
++            npc->SendPlaySpellVisual(179);
++            npc->SendPlaySpellImpact(player->GetGUID(), 362);
++            SendTeachSucceeded(npc, player, spellId);
++            sScriptMgr->OnPlayerLearnTrainerSpell(player, npc, spellId);
++            return;
++        }
++
+         float reputationDiscount = player->GetReputationPriceDiscount(npc);
+         int32 moneyCost = int32(trainerSpell->MoneyCost * reputationDiscount);
+         if (!player->HasEnoughMoney(moneyCost))
+@@ -339,7 +363,7 @@
+         {
+             case Type::Class:
+                 // check class for class trainers; a Wildcard Hero trains its ranks at any of them
+-                return player->getClass() == GetTrainerRequirement() || IsWildcardHero(player);
++                return player->getClass() == GetTrainerRequirement() || IsRankTrainerHero(player);
+             case Type::Pet:
+                 return player->getClass() == GetTrainerRequirement();
+             case Type::Mount:
+@@ -385,6 +409,16 @@
+         _greeting[locale] = std::move(greeting);
+     }
+ 
++    bool Trainer::RepublishesAfterPurchase() const
++    {
++        return _trainerId == WILDCARD_RANK_TRAINER_ID;
++    }
++
++    void SetRankTrainerHero(RankTrainerHero heroes)
++    {
++        RankTrainerHeroOf = heroes;
++    }
++
+     void SetWildcardRankRows(WildcardRankRows rows)
+     {
+         WildcardRankRowsOf = rows;
+@@ -395,12 +429,30 @@
+         Trainer* trainer = sObjectMgr->GetTrainer(npc->GetEntry());
+         bool const classTrainerUnit = trainer ? trainer->GetTrainerType() == Type::Class
+                                               : npc->HasNpcFlag(UNIT_NPC_FLAG_TRAINER_CLASS);
+-        if (!classTrainerUnit || !WildcardRankRowsOf || !IsWildcardHero(player))
++        bool const freepick = AscensionFreePick::Applies(player);
++        if (!classTrainerUnit || (!WildcardRankRowsOf && !freepick) || !IsRankTrainerHero(player))
+             return trainer;
+ 
+-        // ponytail: rebuilt for every request, one per thread; cache per player if the lists ever get large.
++        std::vector<Spell> rows;
++        if (freepick)
++        {
++            for (auto const& rank : AscensionFreePick::RankUpgrades(player))
++            {
++                if (npc->GetEntry() == 75118 && rank.Level >= 10)
++                    continue;
++                Spell row;
++                row.SpellId = rank.Spell;
++                row.ReqLevel = uint8(std::min(rank.Level, 255u));
++                row.ReqAbility[0] = rank.Previous;
++                rows.push_back(row);
++            }
++        }
++        else
++            rows = WildcardRankRowsOf(player);
+         thread_local std::optional<Trainer> wildcardRanks;
+-        wildcardRanks.emplace(WILDCARD_RANK_TRAINER_ID, Type::Class, 0, "", WildcardRankRowsOf(player));
++        wildcardRanks.emplace(WILDCARD_RANK_TRAINER_ID, Type::Class, 0,
++            "Train higher ranks of your learned abilities.", std::move(rows));
+         return &*wildcardRanks;
+     }
+ }
++
+diff --git a/src/server/game/Entities/Player/PlayerGossip.cpp b/src/server/game/Entities/Player/PlayerGossip.cpp
+--- a/src/server/game/Entities/Player/PlayerGossip.cpp
++++ b/src/server/game/Entities/Player/PlayerGossip.cpp
+@@ -118,7 +118,7 @@
+                     break;
+                 case GOSSIP_OPTION_TRAINER:
+                 {
+-                    Trainer::Trainer const* trainer = sObjectMgr->GetTrainer(creature->GetEntry());
++                    Trainer::Trainer const* trainer = Trainer::GetTrainerFor(creature, this);
+                     if (!trainer || !trainer->IsTrainerValidForPlayer(this))
+                     {
+                         LOG_ERROR("sql.sql", "GOSSIP_OPTION_TRAINER:: Player {} (GUID: {}) requested wrong gossip menu: {} at Creature: {} (Entry: {})",
+diff --git a/src/server/coa/AscensionFreePick.cpp b/src/server/coa/AscensionFreePick.cpp
+--- a/src/server/coa/AscensionFreePick.cpp
++++ b/src/server/coa/AscensionFreePick.cpp
+@@ -7,6 +7,10 @@
+ #include "AscensionMysticEnchantCatalog.h"
+ #include "AscensionMysticSpellGrants.h"
+ #include "AscensionCoAConfig.h"
++#include "AscensionRacialAbilities.h"
++#include "DBCStores.h"
++#include "ObjectMgr.h"
++#include "QuestDef.h"
+ #include "Log.h"
+ #include "Player.h"
+ #include "ScriptMgr.h"
+@@ -25,6 +29,45 @@
+ std::set<std::uint32_t> ClassSpells;
+ constexpr char SelectionSetting[] = "core.ascension_freepick_entries";
+ constexpr std::uint32_t MarkOfAscension = 375250;
++
++bool RacialSpell(Player const* player, uint32 spell)
++{
++    for (auto const& skill : AscensionRacialAbilities::Skills)
++        if (skill.RaceId == player->getRace())
++            for (auto const* ability : GetSkillLineAbilitiesBySkillLine(skill.SkillId))
++                if (ability->Spell == spell &&
++                    AscensionRacialAbilities::CanLearn(*ability, player->getRace(), player->getClass()))
++                    return true;
++    return false;
++}
++
++void ExpandGrantedSpells(std::set<uint32>& spells, bool ranks, bool triggers = false)
++{
++    std::vector<uint32> pending(spells.begin(), spells.end());
++    for (std::size_t i = 0; i < pending.size(); ++i)
++    {
++        auto add = [&](uint32 spell)
++        {
++            if (spell && spells.insert(spell).second)
++                pending.push_back(spell);
++        };
++        uint32 const spell = pending[i];
++        if (ranks)
++        {
++            add(sSpellMgr->GetFirstSpellInChain(spell));
++            add(sSpellMgr->GetNextSpellInChain(spell));
++        }
++        if (auto const* info = sSpellMgr->GetSpellInfo(spell))
++            for (auto const& effect : info->GetEffects())
++                if (effect.IsEffect(SPELL_EFFECT_LEARN_SPELL) ||
++                    (triggers && effect.IsEffect(SPELL_EFFECT_TRIGGER_SPELL)))
++                    add(effect.TriggerSpell);
++        for (auto const& group : LinkedSpellGroups)
++            if (group.Parent == spell)
++                for (auto child : group.Children)
++                    add(child);
++    }
++}
+ 
+ std::set<std::uint32_t> SelectedSpells(std::vector<KnownEntry> const& entries)
+ {
+@@ -38,6 +81,7 @@
+             for (auto child : group.Children)
+                 if (child)
+                     spells.insert(child);
++    ExpandGrantedSpells(spells, false);
+     return spells;
+ }
+ }
+@@ -47,6 +91,7 @@
+     Active = enabled && LoadCatalog(Data);
+     ClassSpells.clear();
+     if (Active)
++    {
+         for (auto const& [id, entry] : Data.Entries)
+             for (auto spell : entry.Spells)
+             {
+@@ -56,6 +101,13 @@
+                     rank = sSpellMgr->GetNextSpellInChain(rank))
+                     ClassSpells.insert(rank);
+             }
++        for (uint32 i = 0; i < sSkillLineAbilityStore.GetNumRows(); ++i)
++            if (auto const* ability = sSkillLineAbilityStore.LookupEntry(i); ability && ability->ClassMask)
++                if (auto const* skill = sSkillLineStore.LookupEntry(ability->SkillLine);
++                    skill && skill->categoryId == SKILL_CATEGORY_CLASS)
++                    ClassSpells.insert(ability->Spell);
++        ExpandGrantedSpells(ClassSpells, true);
++    }
+     if (enabled)
+         LOG_INFO("coa", "Free Pick advancement: enabled={}, entries={}, essence levels={}",
+             Active, Data.Entries.size(), Data.Budgets.size());
+@@ -82,9 +134,46 @@
+             return ClassSpells.contains(group.Parent) &&
+                 std::find(group.Children.begin(), group.Children.end(), spell) != group.Children.end();
+         });
+-    return !Applies(player) || temporary || alreadyOwned ||
++    return !Applies(player) || alreadyOwned || RacialSpell(player, spell) ||
+         (!ClassSpells.contains(spell) && !companion) ||
+-        SpellLearningScope::Allows(player, spell);
++        SpellLearningScope::Allows(player, spell) ||
++        (temporary && SelectedSpells(KnownEntries(player)).contains(spell));
++}
++
++bool RemoveQuestGrantedClassSpells(Player* player)
++{
++    if (!Applies(player))
++        return false;
++    std::set<uint32> approved = SelectedSpells(KnownEntries(player));
++    for (auto const& grant : AscensionMysticEnchant::SpellGrants)
++        if (AscensionMysticEnchant::GrantsActive(player, grant.Enchant))
++            approved.insert(grant.Spell);
++    ExpandGrantedSpells(approved, true);
++    std::set<uint32> rewards;
++    for (uint32 questId : player->getRewardedQuests())
++        if (auto const* quest = sObjectMgr->GetQuestTemplate(questId))
++        {
++            uint32 const reward = quest->GetRewSpellCast() > 0 ? uint32(quest->GetRewSpellCast()) : quest->GetRewSpell();
++            if (reward)
++                rewards.insert(reward);
++        }
++    ExpandGrantedSpells(rewards, true, true);
++    std::vector<uint32> remove;
++    for (uint32 spell : rewards)
++        if (ClassSpells.contains(spell) && !approved.contains(spell) && !RacialSpell(player, spell) && player->HasSpell(spell))
++        {
++            auto const* owners = player->FindPlayerSettings("core.freepick.mystic.grant." + std::to_string(spell));
++            bool const enchanted = owners && std::any_of(owners->begin() + std::min<std::size_t>(1, owners->size()),
++                owners->end(), [&](auto const& owner)
++                {
++                    return owner.value && AscensionMysticEnchant::GrantsActive(player, owner.value);
++                });
++            if (!enchanted)
++                remove.push_back(spell);
++        }
++    for (uint32 spell : remove)
++        player->removeSpell(spell, SPEC_MASK_ALL, false);
++    return !remove.empty();
+ }
+ 
+ bool IsLinkedSpellParent(std::uint32_t spell)
+@@ -284,35 +373,38 @@
+     std::vector<RankUpgrade> upgrades;
+     if (!Applies(player))
+         return upgrades;
+-    std::set<std::uint32_t> offered;
++    std::set<uint32> roots;
+     for (auto const& selected : KnownEntries(player))
+     {
+-        auto const& entry = Data.Entries.at(selected.EntryId);
+-        if (entry.TE || !entry.AE)
++        auto const found = Data.Entries.find(selected.EntryId);
++        if (found == Data.Entries.end())
+             continue;
++        auto const& entry = found->second;
+         for (std::size_t index = 0; index < selected.Rank && index < entry.Spells.size(); ++index)
+         {
+-            auto previous = entry.Spells[index];
+-            std::set<std::uint32_t> visited;
+-            for (auto rank = sSpellMgr->GetNextSpellInChain(previous); rank && visited.insert(rank).second;
+-                previous = rank, rank = sSpellMgr->GetNextSpellInChain(rank))
+-            {
+-                auto const* info = sSpellMgr->GetSpellInfo(rank);
+-                if (info && offered.insert(rank).second)
+-                    upgrades.push_back({rank, previous, std::max(info->BaseLevel, info->SpellLevel)});
+-            }
++            uint32 const spell = entry.Spells[index];
++            std::set<uint32> granted = {spell};
++            ExpandGrantedSpells(granted, false);
++            if (entry.TE || !entry.AE)
++                granted.erase(spell);
++            roots.insert(granted.begin(), granted.end());
+         }
+     }
+     for (auto const& grant : AscensionMysticEnchant::SpellGrants)
+         if (AscensionMysticEnchant::GrantsActive(player, grant.Enchant))
+-        {
+-            auto previous = grant.Spell;
+-            std::set<std::uint32_t> visited;
+-            for (auto rank = sSpellMgr->GetNextSpellInChain(previous); rank && visited.insert(rank).second;
+-                previous = rank, rank = sSpellMgr->GetNextSpellInChain(rank))
+-                if (auto const* info = sSpellMgr->GetSpellInfo(rank); info && offered.insert(rank).second)
+-                    upgrades.push_back({rank, previous, std::max(info->BaseLevel, info->SpellLevel)});
+-        }
++            roots.insert(grant.Spell);
++    std::set<uint32> offered;
++    for (uint32 root : roots)
++    {
++        if (!player->HasSpell(root))
++            continue;
++        auto previous = root;
++        std::set<uint32> visited;
++        for (auto rank = sSpellMgr->GetNextSpellInChain(previous); rank && visited.insert(rank).second;
++            previous = rank, rank = sSpellMgr->GetNextSpellInChain(rank))
++            if (auto const* info = sSpellMgr->GetSpellInfo(rank); info && offered.insert(rank).second)
++                upgrades.push_back({rank, previous, std::max(info->BaseLevel, info->SpellLevel)});
++    }
+     return upgrades;
+ }
+ 
+diff --git a/src/server/coa/AscensionFreePick.h b/src/server/coa/AscensionFreePick.h
+--- a/src/server/coa/AscensionFreePick.h
++++ b/src/server/coa/AscensionFreePick.h
+@@ -85,6 +85,7 @@
+ };
+ bool CanLearnSpell(Player const* player, std::uint32_t spell, bool temporary, bool alreadyOwned);
+ bool SynchronizeLinkedSpells(Player* player);
++bool RemoveQuestGrantedClassSpells(Player* player);
+ bool IsLinkedSpellParent(std::uint32_t spell);
+ struct RankUpgrade
+ {
+diff --git a/src/server/coa/AscensionCompat.cpp b/src/server/coa/AscensionCompat.cpp
+--- a/src/server/coa/AscensionCompat.cpp
++++ b/src/server/coa/AscensionCompat.cpp
+@@ -5914,6 +5914,8 @@
+             AscensionCompatConfig::ENABLED)) {
+       AscensionClassService::Instance().OnPlayerLogin(player);
+       RemoveLegacyQuestSpells(player);
++      if (AscensionFreePick::RemoveQuestGrantedClassSpells(player))
++        player->SaveToDB(false, false);
+       if (AscensionFreePick::SynchronizeLinkedSpells(player))
+         player->SaveToDB(false, false);
+       SynchronizeAscensionClassMechanics(player);
+diff --git a/modules/mod-spellbook/src/spellbook.cpp b/modules/mod-spellbook/src/spellbook.cpp
+--- a/modules/mod-spellbook/src/spellbook.cpp
++++ b/modules/mod-spellbook/src/spellbook.cpp
+@@ -539,6 +539,7 @@
+         {
+             LearnFreePickBookRanks(player, book);
+             CloseGossipMenuFor(player);
++            player->GetSession()->SendTrainerList(book);
+             return true;
+         }
+ 
+@@ -601,6 +602,9 @@
+     bool HandlePurchase(Player *player, WorldPacket const &packet)
+     {
+         if (!player || (!IsAscensionClass(player->getClass()) && !AscensionFreePick::Applies(player)))
++            return false;
++
++        if (AscensionFreePick::Applies(player))
+             return false;
+ 
+         // A packed guid followed by the spell id; read a copy so the dispatcher's buffer is
+diff --git a/src/server/game/Entities/Creature/Trainer.h b/src/server/game/Entities/Creature/Trainer.h
+--- a/src/server/game/Entities/Creature/Trainer.h
++++ b/src/server/game/Entities/Creature/Trainer.h
+@@ -73,6 +73,7 @@
+             /// buy yet - the upper ranks of a ladder they have not climbed, and every other unavailable
+             /// one - and keeps the rest: the step they are on and the steps open to them.
+             void SendSpells(Creature* npc, Player* player, LocaleConstant locale, bool onlyTrainable = false) const;
++            bool RepublishesAfterPurchase() const;
+             bool CanTeachSpell(Player const* player, Spell const* trainerSpell) const;
+             void TeachSpell(Creature* npc, Player* player, uint32 spellId);
+ 
+@@ -99,6 +100,8 @@
+     /// The rows a Wildcard Hero trains: the next rank of each Wildcard ability it knows, set by AscensionWildcard.
+     using WildcardRankRows = std::vector<Spell> (*)(Player const* player);
+     AC_GAME_API void SetWildcardRankRows(WildcardRankRows rows);
++    using RankTrainerHero = bool (*)(Player const* player);
++    AC_GAME_API void SetRankTrainerHero(RankTrainerHero heroes);
+ 
+     /// The trainer that serves this player at this unit: its own, except that a Wildcard Hero is taught the next rank
+     /// of each Wildcard ability it knows at any class trainer or Book of Ascension. Valid until the next call on this
+diff --git a/src/server/game/Handlers/NPCHandler.cpp b/src/server/game/Handlers/NPCHandler.cpp
+--- a/src/server/game/Handlers/NPCHandler.cpp
++++ b/src/server/game/Handlers/NPCHandler.cpp
+@@ -135,7 +135,10 @@
+     if (!trainer)
+         return;
+ 
++    bool const refresh = trainer->RepublishesAfterPurchase();
+     trainer->TeachSpell(npc, _player, packet.SpellID);
++    if (refresh)
++        SendTrainerList(npc);
+ }
+ 
+ void WorldSession::HandleGossipHelloOpcode(WorldPacket& recvData)
+diff --git a/apps/coa-tests/area52_trainer_access/run.py b/apps/coa-tests/area52_trainer_access/run.py
+new file mode 100644
+--- /dev/null
++++ b/apps/coa-tests/area52_trainer_access/run.py
+@@ -0,0 +1,182 @@
++from pathlib import Path
++import subprocess
++import tempfile
++
++root = Path(__file__).resolve().parents[3]
++freepick = (root / 'src/server/coa/AscensionFreePick.cpp').read_text()
++header = (root / 'src/server/coa/AscensionFreePick.h').read_text()
++rules = (root / 'src/server/coa/AscensionFreePickRules.cpp').read_text()
++book = (root / 'modules/mod-spellbook/src/spellbook.cpp').read_text()
++trainer = (root / 'src/server/game/Entities/Creature/Trainer.cpp').read_text()
++
++def method(text, signature):
++    start = text.index(signature)
++    end = text.index('{', start) + 1
++    depth = 1
++    while depth:
++        depth += (text[end] == '{') - (text[end] == '}')
++        end += 1
++    return text[start:end]
++
++code = r'''
++#include <algorithm>
++#include <array>
++#include <cassert>
++#include <cstdint>
++#include <map>
++#include <set>
++#include <string>
++#include <vector>
++using uint32=std::uint32_t;
++constexpr uint32 SPEC_MASK_ALL=255, SPELL_EFFECT_LEARN_SPELL=36, SPELL_EFFECT_TRIGGER_SPELL=64;
++struct Setting { uint32 value=0; };
++struct Player {
++    bool applies=true,alive=true,inWorld=true;
++    uint32 level=1,saves=0;
++    std::set<uint32> spells,quests,enchants,racials;
++    std::map<std::string,std::vector<Setting>> settings;
++    bool HasSpell(uint32 s) const { return spells.contains(s); }
++    bool IsInWorld() const { return inWorld; }
++    bool IsAlive() const { return alive; }
++    uint32 GetLevel() const { return level; }
++    void learnSpell(uint32);
++    void removeSpell(uint32 s,uint32,bool) { spells.erase(s); }
++    void SaveToDB(bool,bool) { ++saves; }
++    auto const& getRewardedQuests() const { return quests; }
++    auto FindPlayerSettings(std::string const& key) const -> std::vector<Setting> const* {
++        auto it=settings.find(key); return it==settings.end()?nullptr:&it->second;
++    }
++};
++struct Effect { uint32 type=0,TriggerSpell=0; bool IsEffect(uint32 t) const { return type==t; } };
++struct SpellInfo {
++    uint32 BaseLevel=0,SpellLevel=0;
++    std::vector<Effect> effects;
++    auto const& GetEffects() const { return effects; }
++};
++struct SpellMgr {
++    std::map<uint32,uint32> next,first;
++    std::map<uint32,SpellInfo> infos;
++    uint32 GetNextSpellInChain(uint32 id) { return next[id]; }
++    uint32 GetFirstSpellInChain(uint32 id) { return first.contains(id)?first[id]:id; }
++    SpellInfo const* GetSpellInfo(uint32 id) { return infos.contains(id)?&infos.at(id):nullptr; }
++} manager;
++auto* sSpellMgr=&manager;
++struct Quest {
++    int cast=0; uint32 display=0;
++    int GetRewSpellCast() const { return cast; }
++    uint32 GetRewSpell() const { return display; }
++};
++struct ObjectMgr {
++    std::map<uint32,Quest> quests;
++    Quest const* GetQuestTemplate(uint32 id) { return quests.contains(id)?&quests.at(id):nullptr; }
++} objects;
++auto* sObjectMgr=&objects;
++namespace AscensionMysticEnchant {
++struct Grant { uint32 Enchant,Spell; };
++std::vector<Grant> SpellGrants={{900,300}};
++bool GrantsActive(Player const* p,uint32 e) { return p->enchants.contains(e); }
++void SetGrantedSpell(Player* p,uint32,uint32 s,bool) { p->spells.insert(s); }
++}
++namespace AscensionFreePick {
++struct Entry { uint32 AE,TE; std::vector<uint32> Spells; };
++struct KnownEntry { uint32 EntryId,Rank; };
++struct Catalog { std::map<uint32,Entry> Entries; } Data;
++struct Linked { uint32 Parent; std::array<uint32,2> Children; };
++std::vector<Linked> LinkedSpellGroups={{100,{200,0}}};
++std::set<uint32> ClassSpells={100,101,102,200,201,300,301,400,401,500,501,600};
++std::map<Player const*,std::vector<KnownEntry>> selections;
++auto KnownEntries(Player const* p) { return selections[p]; }
++bool Applies(Player const* p) { return p && p->applies; }
++bool RacialSpell(Player const* p,uint32 s) { return p->racials.contains(s); }
++'''
++code += method(header, 'class SpellLearningScope') + ';\n'
++code += rules[rules.index('thread_local SpellLearningScope'):rules.index('\nnamespace\n{')]
++for signature in ('void ExpandGrantedSpells(', 'std::set<std::uint32_t> SelectedSpells(', 'bool CanLearnSpell(',
++                  'bool RemoveQuestGrantedClassSpells('):
++    code += method(freepick, signature) + '\n'
++code += method(header, 'struct RankUpgrade') + ';\n'
++code += 'bool LearnRankUpgrade(Player*,std::uint32_t,bool save=true);\n'
++for signature in ('std::vector<RankUpgrade> RankUpgrades(', 'bool LearnRankUpgrade(', 'std::uint32_t LearnAvailableRanks('):
++    code += method(freepick, signature) + '\n'
++code += r'''
++}
++void Player::learnSpell(uint32 s) {
++    if (AscensionFreePick::CanLearnSpell(this,s,false,HasSpell(s))) spells.insert(s);
++}
++int main() {
++    using namespace AscensionFreePick;
++    Player p,other;
++    Data.Entries[1]={1,0,{100}};
++    Data.Entries[2]={0,1,{500}};
++    manager.next={{100,101},{101,102},{200,201},{300,301},{400,401}};
++    manager.first={{101,100},{102,100},{201,200},{301,300},{401,400}};
++    for (uint32 id : {100u,101u,102u,200u,201u,300u,301u,400u,401u,500u,501u,600u})
++        manager.infos[id]={0,8,{}};
++    manager.infos[102].SpellLevel=16;
++    manager.infos[500].effects={{36,501}};
++    selections[&p]={{1,1},{2,1}};
++    p.spells={100,200,500,501,300};
++    p.enchants={900};
++    assert(!CanLearnSpell(&p,400,false,false));
++    assert(!CanLearnSpell(&p,400,true,false));
++    assert(!CanLearnSpell(&other,100,true,false));
++    assert(CanLearnSpell(&p,200,true,false));
++    assert(CanLearnSpell(&p,501,true,false));
++    assert(CanLearnSpell(&p,777,false,false));
++    p.racials={600};
++    assert(CanLearnSpell(&p,600,false,false));
++    {
++        std::set<uint32> allowed={400}; SpellLearningScope scope(&p,allowed);
++        assert(CanLearnSpell(&p,400,false,false));
++        assert(!CanLearnSpell(&other,400,false,false));
++    }
++    assert(!CanLearnSpell(&p,400,false,false));
++    auto ranks=RankUpgrades(&p);
++    assert(ranks.size()==4);
++    assert(RankUpgrades(&other).empty());
++    assert(!LearnRankUpgrade(&p,101));
++    p.level=8;
++    assert(LearnAvailableRanks(&p)==3);
++    assert(p.HasSpell(101) && p.HasSpell(201) && p.HasSpell(301) && !p.HasSpell(102));
++    assert(LearnAvailableRanks(&p)==0);
++    p.level=16;
++    assert(LearnAvailableRanks(&p)==1 && p.HasSpell(102));
++    assert(!LearnRankUpgrade(&p,400));
++    manager.infos[9000].effects={{64,9001}};
++    manager.infos[9001].effects={{36,400},{36,100},{36,300},{36,600},{36,777}};
++    objects.quests[1]={9000,0};
++    p.quests={1};
++    p.spells.insert({400,401,600,777});
++    assert(RemoveQuestGrantedClassSpells(&p));
++    assert(!p.HasSpell(400) && !p.HasSpell(401));
++    for (uint32 id : {100u,101u,102u,200u,201u,300u,301u,500u,501u,600u,777u}) assert(p.HasSpell(id));
++    assert(!RemoveQuestGrantedClassSpells(&p));
++    p.spells.insert(400);p.settings["core.freepick.mystic.grant.400"]={{1},{900}};
++    assert(!RemoveQuestGrantedClassSpells(&p) && p.HasSpell(400));
++    p.enchants.clear();assert(RemoveQuestGrantedClassSpells(&p) && !p.HasSpell(400));
++    other.applies=false;other.spells={400};other.quests={1};
++    assert(CanLearnSpell(&other,400,false,false));
++    assert(!RemoveQuestGrantedClassSpells(&other) && other.HasSpell(400));
++}
++'''
++with tempfile.TemporaryDirectory() as directory:
++    out = Path(directory)
++    (out / 'test.cpp').write_text(code)
++    subprocess.run(['c++', '-std=c++20', '-Wall', '-Wextra', '-Werror', str(out / 'test.cpp'), '-o', str(out / 'test')], check=True)
++    subprocess.run([str(out / 'test')], check=True)
++summon = method(book, 'void OnCreatureAddWorld(')
++level = method(book, 'void OnPlayerLevelChanged(')
++opened = method(book, 'bool OpenTrainer(')
++for hook in (summon, level):
++    assert 'LearnFreePickBookRanks(' in hook and 'SendTrainerWindow' not in hook
++assert 'GetOwnerGUID() != player->GetGUID()' in level
++assert 'player->GetLevel() <= oldLevel' in level
++assert 'SendTrainerList(book)' in opened and 'rank.Level >= 10' in trainer
++assert 'LearnAvailableRanks(player)' in method(book, 'uint32 LearnFreePickBookRanks(')
++assert 'SendPlaySpellVisual(179)' in method(book, 'uint32 LearnFreePickBookRanks(')
++assert '(!WildcardRankRowsOf && !freepick) || !IsRankTrainerHero(player)' in trainer
++assert 'if (_trainerId == WILDCARD_RANK_TRAINER_ID && AscensionFreePick::Applies(player))' in method(trainer, 'void Trainer::TeachSpell(')
++assert 'AscensionFreePick::LearnRankUpgrade(player, spellId)' in trainer
++assert 'row.ReqAbility[0] = rank.Previous' in trainer
++assert '_trainerId != WILDCARD_RANK_TRAINER_ID || !AscensionFreePick::Applies(player)' in trainer
++print('PASS: production rank traversal, guarded learning, quest cleanup and trainer/book hook wiring. No gameplay claim.')
