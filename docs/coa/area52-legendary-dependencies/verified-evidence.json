@@ -1,0 +1,470 @@
+[
+  {
+    "entry": 2661,
+    "name": "Heroic Strike",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native weapon-damage effect and next-swing execution; Hoplite replacement ownership uses its reviewed original/rank restoration path."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2674,
+    "name": "Renew",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native periodic heal; spell_pri_renew handles Empowered Renew without learned-spell mutation."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2676,
+    "name": "Corruption",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native periodic damage implements the base contract. Zero-target dummy is not a missing learned ability or executable trigger."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2680,
+    "name": "Immolate",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native school damage and periodic damage implement the described contract; auxiliary script-effect marker has no additional base tooltip mechanic."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2715,
+    "name": "Drain Life",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native periodic leech implements damage and healing; auxiliary dummy does not grant/remove a learned spell."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2764,
+    "name": "Slam",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "spell_warr_slam forwards each rank amount to native weapon-damage helper 50783."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2813,
+    "name": "Bloodrage",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native health power cost and rage energize, plus periodic energize 29131; Hoplite Bloodrage binding resolves."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 2978,
+    "name": "Ice Lance",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native school damage and Unit frozen-target multiplier; every rank retains Mage family and icon 186. TriggerSpell=1 on school damage is not a cast edge."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 3054,
+    "name": "Pyroblast",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native school damage and periodic damage implement the described contract; auxiliary dummy does not describe a separate base mechanic."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 3255,
+    "name": "Insect Swarm",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native periodic damage and spell_dru_insect_swarm relic modifier; no spellbook grant."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 3552,
+    "name": "Vampiric Touch",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "spell_pri_vampiric_touch handles dispel damage and Mind Blast proc; Replenishment 57669 binding resolves."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 3647,
+    "name": "Penance",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "spell_pri_penance routes friendly/enemy targets to rank-matched heal/damage channels; all 32 helper rank records resolve."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  },
+  {
+    "entry": 3674,
+    "name": "Starfall",
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Native eight one-second periodic triggers select up to two targets; starfall dummy/AOE scripts resolve and handle form/control suppression."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "No base LEARN_SPELL effect. Script helpers are casts/auras, not temporary learned abilities. Heroic Strike retains the separately reviewed Hoplite replacement ownership path."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Reviewed AscensionFreePick Apply/KnownEntries and SaveToDB: durable selected spell learning; removal follows selection changes. No reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Primary client SpellRank and native effective chains match across 107 ranks. RankUpgrades includes selected AE roots; LearnRankUpgrade enforces previous rank and level and saves durable spells. Bloodrage has no higher rank."
+        ]
+      },
+      "movement": {
+        "result": "pass",
+        "evidence": [
+          "Client and effective server movement/channel flags checked for every applicable rank; 32 Penance helper ranks inspected. Instant and triggered helpers are not forced into cast-time rules. Existing talent-scoped instant casts remain."
+        ]
+      }
+    }
+  }
+]

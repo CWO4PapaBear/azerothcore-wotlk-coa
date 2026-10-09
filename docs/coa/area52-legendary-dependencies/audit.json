@@ -1,0 +1,601 @@
+{
+  "scope": "Named prerequisites, taught/replacement abilities, explicit interactions and their rank families. Generic all-damage procs are filter checks, not links to every ability.",
+  "upstream_revision": "5d2ef8852b337d498a52f03ff38b8f198d7911f3",
+  "implementation": "Independent Area 52 reconstruction; not Ascension official backend.",
+  "baseline_client_sha256": "5c94a375b7701a62bd8549b04ea420e449957cb9f64501408e1e024650e98bdf",
+  "counts": {
+    "verified_legendary_roots": 20,
+    "linked_entries": 54,
+    "already_verified": 22,
+    "already_certified": 5,
+    "newly_verified_staged": 13,
+    "pending_review": 14
+  },
+  "entries": [
+    {
+      "entry": 425,
+      "name": "Arcane Concentration",
+      "baseline_status": "Structurally Connected, Unverified",
+      "legendary_roots": [
+        84510,
+        965503
+      ],
+      "batch_result": "PENDING_REVIEW",
+      "follow_up": "Check broad damaging-spell proc family coverage against Area 52 tooltip; shared Mage-only filter currently narrows it."
+    },
+    {
+      "entry": 645,
+      "name": "Emberstorm",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        965315
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 654,
+      "name": "Nightfall",
+      "baseline_status": "Structurally Connected, Unverified",
+      "legendary_roots": [
+        99634
+      ],
+      "batch_result": "PENDING_REVIEW",
+      "follow_up": "Reconcile proc spell set, five-second cooldown, rank-specific mana modifier and target damage modifiers."
+    },
+    {
+      "entry": 690,
+      "name": "Molten Core",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        414080
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 935,
+      "name": "Backlash",
+      "baseline_status": "Needs Investigation",
+      "legendary_roots": [
+        99634
+      ],
+      "batch_result": "PENDING_REVIEW",
+      "follow_up": "Trace Incinerate coverage and creature/player damage modifiers on Backlash proc buff."
+    },
+    {
+      "entry": 953,
+      "name": "Hot Streak",
+      "baseline_status": "Structurally Connected, Unverified",
+      "legendary_roots": [
+        414080
+      ],
+      "batch_result": "PENDING_REVIEW",
+      "follow_up": "Reconcile SQL proc chance with script two-critical-hit counter to avoid duplicate chance gates; inspect Soul Fire interaction."
+    },
+    {
+      "entry": 956,
+      "name": "Fingers of Frost",
+      "baseline_status": "Needs Investigation",
+      "legendary_roots": [
+        965504
+      ],
+      "batch_result": "PENDING_REVIEW",
+      "follow_up": "Reconcile hit/cast proc phase, Mage/Shaman direct Frost filtering and conditional Fingers of Death helper."
+    },
+    {
+      "entry": 986,
+      "name": "Backdraft",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        414080
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 1008,
+      "name": "Owlkin Frenzy",
+      "baseline_status": "Structurally Connected, Unverified",
+      "legendary_roots": [
+        965282
+      ],
+      "batch_result": "PENDING_REVIEW",
+      "follow_up": "Trace Moonkin form gate and incoming attack proc filtering."
+    },
+    {
+      "entry": 1019,
+      "name": "Eclipse",
+      "baseline_status": "Needs Investigation",
+      "legendary_roots": [
+        965282
+      ],
+      "batch_result": "PENDING_REVIEW",
+      "follow_up": "Reconcile specific Wrath/Starfire triggers with current school-based script and Legendary interactions."
+    },
+    {
+      "entry": 1187,
+      "name": "Colossus Smash",
+      "baseline_status": "Structurally Connected, Unverified",
+      "legendary_roots": [
+        978217
+      ],
+      "batch_result": "PENDING_REVIEW",
+      "follow_up": "Finish armor-bypass and weapon-damage contract review across six ranks."
+    },
+    {
+      "entry": 1300,
+      "name": "Mana-forged Barrier",
+      "baseline_status": "Structurally Connected, Unverified",
+      "legendary_roots": [
+        81116
+      ],
+      "batch_result": "PENDING_REVIEW",
+      "follow_up": "Trace shapeshift/passive dependencies for mana barrier, threat and penalties; Channeled Mana grant already exists."
+    },
+    {
+      "entry": 1614,
+      "name": "Starsurge",
+      "baseline_status": "CERTIFIED",
+      "legendary_roots": [
+        965282
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 1616,
+      "name": "Siegebreaker",
+      "baseline_status": "Needs Investigation",
+      "legendary_roots": [
+        978217
+      ],
+      "batch_result": "PENDING_REVIEW",
+      "follow_up": "Trace cone knockback execution beyond weapon damage and dummy marker."
+    },
+    {
+      "entry": 2655,
+      "name": "Blizzard",
+      "baseline_status": "Needs Investigation",
+      "legendary_roots": [
+        965504
+      ],
+      "batch_result": "PENDING_REVIEW",
+      "follow_up": "Finish ground-area periodic trigger/rank routing review."
+    },
+    {
+      "entry": 2661,
+      "name": "Heroic Strike",
+      "baseline_status": "Structurally Connected, Unverified",
+      "legendary_roots": [
+        978217
+      ],
+      "batch_result": "VERIFIED_STAGED",
+      "follow_up": null
+    },
+    {
+      "entry": 2674,
+      "name": "Renew",
+      "baseline_status": "Structurally Connected, Unverified",
+      "legendary_roots": [
+        965473
+      ],
+      "batch_result": "VERIFIED_STAGED",
+      "follow_up": null
+    },
+    {
+      "entry": 2676,
+      "name": "Corruption",
+      "baseline_status": "Needs Investigation",
+      "legendary_roots": [
+        99634,
+        414080
+      ],
+      "batch_result": "VERIFIED_STAGED",
+      "follow_up": null
+    },
+    {
+      "entry": 2680,
+      "name": "Immolate",
+      "baseline_status": "Needs Investigation",
+      "legendary_roots": [
+        414080
+      ],
+      "batch_result": "VERIFIED_STAGED",
+      "follow_up": null
+    },
+    {
+      "entry": 2699,
+      "name": "Smite",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        965502
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2712,
+      "name": "Shadow Bolt",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        99634
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2715,
+      "name": "Drain Life",
+      "baseline_status": "Needs Investigation",
+      "legendary_roots": [
+        965501
+      ],
+      "batch_result": "VERIFIED_STAGED",
+      "follow_up": null
+    },
+    {
+      "entry": 2738,
+      "name": "Exorcism",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        84508
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2760,
+      "name": "Arcane Explosion",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        84510
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2764,
+      "name": "Slam",
+      "baseline_status": "Structurally Connected, Unverified",
+      "legendary_roots": [
+        978217
+      ],
+      "batch_result": "VERIFIED_STAGED",
+      "follow_up": null
+    },
+    {
+      "entry": 2796,
+      "name": "Greater Heal",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        965473
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2797,
+      "name": "Flash Heal",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        965473
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2803,
+      "name": "Fire Blast",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        81258
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2813,
+      "name": "Bloodrage",
+      "baseline_status": "Structurally Connected, Unverified",
+      "legendary_roots": [
+        978217
+      ],
+      "batch_result": "VERIFIED_STAGED",
+      "follow_up": null
+    },
+    {
+      "entry": 2815,
+      "name": "Holy Wrath",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        81116
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2822,
+      "name": "Starfire",
+      "baseline_status": "CERTIFIED",
+      "legendary_roots": [
+        965282
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2841,
+      "name": "Wrath",
+      "baseline_status": "CERTIFIED",
+      "legendary_roots": [
+        81116,
+        965282
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2855,
+      "name": "Bear Form",
+      "baseline_status": "Structurally Connected, Unverified",
+      "legendary_roots": [
+        99634
+      ],
+      "batch_result": "PENDING_REVIEW",
+      "follow_up": "Finish form passive/stat and granted ability rank review."
+    },
+    {
+      "entry": 2872,
+      "name": "Soul Fire",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        414080
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2881,
+      "name": "Growl",
+      "baseline_status": "CERTIFIED",
+      "legendary_roots": [
+        99634
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2882,
+      "name": "Maul",
+      "baseline_status": "CERTIFIED",
+      "legendary_roots": [
+        99634
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2911,
+      "name": "Moonfire",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        965282
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2968,
+      "name": "Consecration",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        84508
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2978,
+      "name": "Ice Lance",
+      "baseline_status": "Needs Investigation",
+      "legendary_roots": [
+        81258,
+        965504
+      ],
+      "batch_result": "VERIFIED_STAGED",
+      "follow_up": null
+    },
+    {
+      "entry": 3054,
+      "name": "Pyroblast",
+      "baseline_status": "Needs Investigation",
+      "legendary_roots": [
+        414080
+      ],
+      "batch_result": "VERIFIED_STAGED",
+      "follow_up": null
+    },
+    {
+      "entry": 3255,
+      "name": "Insect Swarm",
+      "baseline_status": "Structurally Connected, Unverified",
+      "legendary_roots": [
+        965282
+      ],
+      "batch_result": "VERIFIED_STAGED",
+      "follow_up": null
+    },
+    {
+      "entry": 3259,
+      "name": "Moonkin Form",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        965282
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 3552,
+      "name": "Vampiric Touch",
+      "baseline_status": "Structurally Connected, Unverified",
+      "legendary_roots": [
+        965504
+      ],
+      "batch_result": "VERIFIED_STAGED",
+      "follow_up": null
+    },
+    {
+      "entry": 3568,
+      "name": "Mangle",
+      "baseline_status": "Needs Investigation",
+      "legendary_roots": [
+        99634
+      ],
+      "batch_result": "PENDING_REVIEW",
+      "follow_up": "Area 52 approved linked-grant table lacks upstream Wildcard Mangle -> Cat/Bear Mangle mapping; review child ranks and ownership before repair."
+    },
+    {
+      "entry": 3603,
+      "name": "Arcane Barrage",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        81258,
+        84510,
+        965503
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 3613,
+      "name": "Deep Freeze",
+      "baseline_status": "Needs Investigation",
+      "legendary_roots": [
+        965504
+      ],
+      "batch_result": "PENDING_REVIEW",
+      "follow_up": "Resolve stun helper and permanently stun-immune creature damage path; dummy root alone is insufficient."
+    },
+    {
+      "entry": 3622,
+      "name": "Titan's Grip",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        978217
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 3642,
+      "name": "Chaos Bolt",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        965315
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 3647,
+      "name": "Penance",
+      "baseline_status": "Structurally Connected, Unverified",
+      "legendary_roots": [
+        965473
+      ],
+      "batch_result": "VERIFIED_STAGED",
+      "follow_up": null
+    },
+    {
+      "entry": 3674,
+      "name": "Starfall",
+      "baseline_status": "Structurally Connected, Unverified",
+      "legendary_roots": [
+        965282
+      ],
+      "batch_result": "VERIFIED_STAGED",
+      "follow_up": null
+    },
+    {
+      "entry": 20000,
+      "name": "Strike",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        978217
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2778,
+      "name": "Sinister Strike",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        978217
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2965,
+      "name": "Shield Slam",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        978217
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    },
+    {
+      "entry": 2806,
+      "name": "Battle Stance",
+      "baseline_status": "VERIFIED",
+      "legendary_roots": [
+        978217
+      ],
+      "batch_result": "ALREADY_LABELLED",
+      "follow_up": null
+    }
+  ],
+  "verification": {
+    "status": "PASSED",
+    "stages": [
+      "harness"
+    ],
+    "ranks": 107,
+    "penance_helper_ranks": 32,
+    "checks": [
+      "native bindings/effects",
+      "primary-client rank parity",
+      "movement/channel interruption",
+      "source lifecycle and book-rank review",
+      "status-only archive diff"
+    ],
+    "not_claimed": [
+      "combat certification",
+      "reconnect persistence test",
+      "all Legendary interactions repaired"
+    ],
+    "corrected_test": "Compare exported SpellLevel with client SpellLevel, not max(BaseLevel, SpellLevel)."
+  },
+  "release": {
+    "client": "staged only",
+    "server": "unchanged",
+    "tester_channel": "unchanged"
+  },
+  "exclusions": {
+    "577": "Hoplite Flurry is its own helper, not the Shaman Flurry talent.",
+    "728": "Owlkin Frenzy describes a frenzy; it does not depend on the Hunter Frenzy talent.",
+    "807": "Amal'thazad's Malediction is a helper name, not the Warlock Malediction talent.",
+    "1301": "Mana-forged Barrier names its mana-restoration Power Surge; the similarly named talent is a separate damage/Invocation contract.",
+    "2958": "Distracting Shot is used as explanatory taunt text, not a prerequisite or grant."
+  },
+  "reproduction": {
+    "harness_source": "verify-local.py",
+    "install_as": "apps/coa-tests/area52_legendary_dependencies/run.py",
+    "command": "python -B tools/verify_all.py --stages harness --harness area52_legendary_dependencies --output <empty-output-directory>",
+    "requires": "Private Area52_Legendary_Dependencies native export, inventory, candidate ledger, staged archive and primary client. These are intentionally not redistributed in this source branch."
+  }
+}
