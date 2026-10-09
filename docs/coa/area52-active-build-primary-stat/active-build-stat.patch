@@ -1,0 +1,175 @@
+--- a/apps/coa-tests/freepick_advancement/harness.cpp
++++ b/apps/coa-tests/freepick_advancement/harness.cpp
+@@ -164,5 +164,30 @@
+     plans.Entries[3] = ability;
+     plans.Entries[3].Id = 3;
+     Check(!Area52Build::Select(plans, plan, 1, selected), "ambiguous spell mapping fails closed");
++    plans.Entries.erase(3);
++    for (auto id : {1149, 1150, 1151, 1152, 18149})
++        plans.Entries[id] = data.Entries.at(id);
++    for (auto const& [stat, id] : std::map<std::uint32_t, std::uint32_t>{
++        {1, 1149}, {2, 1150}, {3, 1151}, {4, 1152}, {6, 18149}})
++    {
++        plan.PrimaryStat = stat;
++        Check(bool(Area52Build::Select(plans, plan, 15, selected, {}, false, 80, false))
++            && SameSelection(selected, {{id, 1}}), "manual activation applies only the build primary stat");
++        Check(bool(Area52Build::Select(plans, plan, 15, selected, {{1150, 1}, {1, 1}}, true, 80, false))
++            && SameSelection(selected, {{id, 1}, {1, 1}}), "manual restore changes stat and preserves learned abilities");
++        Check(bool(Area52Build::Select(plans, plan, 15, selected, {{1150, 1}, {1, 1}}, true))
++            && SameSelection(selected, {{id, 1}, {1, 1}, {2, 3}}), "auto enable catches up all eligible plan ranks");
++        Check(bool(Area52Build::Select(plans, plan, 1, selected))
++            && SameSelection(selected, {{id, 1}, {1, 1}}), "auto activation excludes future plan ranks");
++    }
++    plan.PrimaryStat = 5;
++    auto const priorOutput = selected;
++    Check(!Area52Build::Select(plans, plan, 15, selected) && SameSelection(selected, priorOutput),
++        "unsupported Stamina primary stat fails without changing selection");
++    plan.PrimaryStat = 99;
++    Check(!Area52Build::Select(plans, plan, 15, selected), "invalid primary stat is refused");
++    plan.PrimaryStat = 1;
++    plans.Entries.erase(1149);
++    Check(!Area52Build::Select(plans, plan, 15, selected), "missing primary path fails closed");
+     return Failures ? 1 : 0;
+ }
+--- a/src/server/coa/Area52ActiveBuild.cpp
++++ b/src/server/coa/Area52ActiveBuild.cpp
+@@ -108,19 +108,19 @@
+     player->UpdatePlayerSetting(Setting, 3, state.Automatic ? 1 : 0);
+ }
+ 
+-bool Learn(Player* player, State& state, std::uint32_t maximumLevel)
++bool Learn(Player* player, State& state, std::uint32_t maximumLevel, bool learnSpells = true)
+ {
+     if (!Safe(player) || state.Plan.Id.empty())
+         return false;
+     std::vector<AscensionFreePick::KnownEntry> wanted;
+-    auto result = AscensionFreePick::PlanSelection(player, state.Plan, wanted, true, maximumLevel);
++    auto result = AscensionFreePick::PlanSelection(player, state.Plan, wanted, true, maximumLevel, learnSpells);
+     if (result && AscensionFreePick::SameSelection(wanted, AscensionFreePick::KnownEntries(player)))
+     {
+         state.LastFailure.clear();
+         return true;
+     }
+     if (result)
+-        result = AscensionFreePick::Apply(player, wanted);
++        result = AscensionFreePick::Apply(player, wanted, false);
+     if (!result)
+     {
+         std::string const failure = std::string(result.Status) + " " + result.Learn;
+@@ -183,7 +183,7 @@
+                 return;
+             }
+             std::vector<AscensionFreePick::KnownEntry> wanted;
+-            auto result = AscensionFreePick::PlanSelection(owner, plan, wanted);
++            auto result = AscensionFreePick::PlanSelection(owner, plan, wanted, false, 80, automatic);
+             if (!result && !restore)
+             {
+                 Reply(owner, true, *result.Learn ? result.Learn : result.Status);
+@@ -199,7 +199,7 @@
+             if (!restore)
+             {
+                 Store(owner, *current);
+-                result = AscensionFreePick::Apply(owner, automatic ? wanted : std::vector<AscensionFreePick::KnownEntry>{});
++                result = AscensionFreePick::Apply(owner, wanted);
+                 if (!result)
+                 {
+                     current->Plan = previousPlan;
+@@ -212,7 +212,7 @@
+                 owner->SaveToDB(false, false);
+                 SendArea52Advancement(owner);
+             }
+-            current->Pending = automatic;
++            current->Pending = true;
+             SendState(owner, *current);
+             if (!restore)
+                 Reply(owner, true, "ACTIVATE_BUILD_OK");
+@@ -313,7 +313,7 @@
+         if (state->Pending && state->Loaded && Safe(player))
+         {
+             state->Pending = false;
+-            if (Learn(player, *state, 80))
++            if (Learn(player, *state, 80, state->Automatic) && state->Automatic)
+                 AscensionFreePick::LearnAvailableRanks(player);
+         }
+         WorldPacket packet;
+@@ -341,7 +341,7 @@
+         if (id == state->Plan.Id)
+         {
+             state->Automatic = activate && automatic;
+-            state->Pending = state->Automatic;
++            state->Pending = activate;
+             if (!activate)
+             {
+                 state->Plan = {};
+--- a/src/server/coa/Area52BuildSelection.h
++++ b/src/server/coa/Area52BuildSelection.h
+@@ -12,11 +12,11 @@
+ inline AscensionFreePick::Result Select(AscensionFreePick::Catalog const& catalog,
+     Entry const& plan, std::uint32_t level, std::vector<AscensionFreePick::KnownEntry>& output,
+     std::vector<AscensionFreePick::KnownEntry> const& previous = {}, bool retainExisting = false,
+-    std::uint32_t maximumLevel = 80)
++    std::uint32_t maximumLevel = 80, bool learnSpells = true)
+ {
+     std::map<std::uint32_t, std::uint32_t> ranks;
+     std::set<std::uint32_t> seen;
+-    for (auto const& spell : plan.Spells)
++    for (auto const& spell : learnSpells ? std::span(plan.Spells) : std::span<Spell const>{})
+     {
+         if (!spell.Id || !spell.Level || spell.Level > 80 || !seen.insert(spell.Id).second)
+             return { "CA_UPDATE_ENTRIES_BAD_ENTRY", "CA_LEARN_BAD_ABILITY" };
+@@ -40,6 +40,17 @@
+     if (retainExisting)
+         for (auto const& known : previous)
+             ranks[known.EntryId] = std::max(ranks[known.EntryId], known.Rank);
++    if (plan.PrimaryStat)
++    {
++        constexpr std::array<std::uint32_t, 7> paths = { 0, 1149, 1150, 1151, 1152, 0, 18149 };
++        if (plan.PrimaryStat >= paths.size() || !paths[plan.PrimaryStat]
++            || !catalog.Entries.contains(paths[plan.PrimaryStat]))
++            return { "CA_UPDATE_ENTRIES_BAD_ENTRY", "CA_LEARN_BAD_ABILITY" };
++        for (auto path : paths)
++            if (path)
++                ranks.erase(path);
++        ranks[paths[plan.PrimaryStat]] = 1;
++    }
+     std::vector<AscensionFreePick::KnownEntry> wanted;
+     for (auto const& [id, rank] : ranks)
+         wanted.push_back({ id, rank, rank, false, std::uint32_t(wanted.size()) });
+--- a/src/server/coa/Area52BuildService.cpp
++++ b/src/server/coa/Area52BuildService.cpp
+@@ -268,7 +268,7 @@
+         return "PUBLISH_BUILD_NO_SPELLS";
+     if (entry.Category < 1 || entry.Category > 7)
+         return "PUBLISH_BUILD_BAD_CATEGORY";
+-    if (entry.Difficulty > 4 || entry.PrimaryStat > 5 || entry.Roles > 15)
++    if (entry.Difficulty > 4 || entry.PrimaryStat > 6 || entry.Roles > 15)
+         return "PUBLISH_BUILD_UNKNOWN";
+     for (auto const& spell : entry.Spells)
+         if (!sSpellMgr->GetSpellInfo(spell.Id) || spell.Level < 1 || spell.Level > 80)
+--- a/src/server/coa/AscensionFreePick.cpp
++++ b/src/server/coa/AscensionFreePick.cpp
+@@ -274,11 +274,11 @@
+ }
+ 
+ Result PlanSelection(Player const* player, Area52Build::Entry const& plan, std::vector<KnownEntry>& wanted,
+-    bool retainExisting, std::uint32_t maximumLevel)
++    bool retainExisting, std::uint32_t maximumLevel, bool learnSpells)
+ {
+     if (!Applies(player))
+         return { "CA_UPDATE_ENTRIES_UNKNOWN" };
+-    return Area52Build::Select(Data, plan, player->GetLevel(), wanted, KnownEntries(player), retainExisting, maximumLevel);
++    return Area52Build::Select(Data, plan, player->GetLevel(), wanted, KnownEntries(player), retainExisting, maximumLevel, learnSpells);
+ }
+ 
+ Result Apply(Player* player, std::vector<KnownEntry> const& wanted, bool chargeIndividualRemoval)
+--- a/src/server/coa/AscensionFreePick.h
++++ b/src/server/coa/AscensionFreePick.h
+@@ -101,7 +101,7 @@
+ Result Apply(Player* player, std::vector<KnownEntry> const& wanted, bool chargeIndividualRemoval = true);
+ Result Purge(Player* player, bool talents);
+ Result PlanSelection(Player const* player, Area52Build::Entry const& plan, std::vector<KnownEntry>& wanted,
+-    bool retainExisting = false, std::uint32_t maximumLevel = 80);
++    bool retainExisting = false, std::uint32_t maximumLevel = 80, bool learnSpells = true);
+ }
+ 
+ #endif
