@@ -1,0 +1,301 @@
+[
+  {
+    "kind": "mystic",
+    "id": 81116,
+    "name": "Eldritch Knight",
+    "spells": [
+      81116,
+      983702,
+      983703,
+      983704,
+      983705,
+      983706,
+      983707
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Candidate native startup binding export; five proc contracts and helper bindings validated; existing Eldritch Knight and Hoplite handlers reconciled."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Eldritch/Hoplite replacement synchronization and shared durable grant ownership passed; other five enchants grant no spellbook abilities."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Shared slot persistence; production grant function logout guard, durable spell state and independent ownership verified. No full reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native rank chains and book-driven original-rank learning feed existing replacement hooks; standalone triggered helpers have no learnable higher ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "mystic",
+    "id": 84508,
+    "name": "Purification By Light",
+    "spells": [
+      84508
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Candidate native startup binding export; five proc contracts and helper bindings validated; existing Eldritch Knight and Hoplite handlers reconciled."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "Eldritch/Hoplite replacement synchronization and shared durable grant ownership passed; other five enchants grant no spellbook abilities."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Shared slot persistence; production grant function logout guard, durable spell state and independent ownership verified. No full reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "Native rank chains and book-driven original-rank learning feed existing replacement hooks; standalone triggered helpers have no learnable higher ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "mystic",
+    "id": 84512,
+    "name": "Amal'thazad's Curse",
+    "spells": [
+      84512
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Candidate native startup binding export; five proc contracts and helper bindings validated; existing Eldritch Knight and Hoplite handlers reconciled."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "Eldritch/Hoplite replacement synchronization and shared durable grant ownership passed; other five enchants grant no spellbook abilities."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Shared slot persistence; production grant function logout guard, durable spell state and independent ownership verified. No full reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "Native rank chains and book-driven original-rank learning feed existing replacement hooks; standalone triggered helpers have no learnable higher ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "mystic",
+    "id": 965500,
+    "name": "Stormbringer",
+    "spells": [
+      965500
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Candidate native startup binding export; five proc contracts and helper bindings validated; existing Eldritch Knight and Hoplite handlers reconciled."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "Eldritch/Hoplite replacement synchronization and shared durable grant ownership passed; other five enchants grant no spellbook abilities."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Shared slot persistence; production grant function logout guard, durable spell state and independent ownership verified. No full reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "Native rank chains and book-driven original-rank learning feed existing replacement hooks; standalone triggered helpers have no learnable higher ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "mystic",
+    "id": 965501,
+    "name": "Deathbringer",
+    "spells": [
+      965501
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Candidate native startup binding export; five proc contracts and helper bindings validated; existing Eldritch Knight and Hoplite handlers reconciled."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "Eldritch/Hoplite replacement synchronization and shared durable grant ownership passed; other five enchants grant no spellbook abilities."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Shared slot persistence; production grant function logout guard, durable spell state and independent ownership verified. No full reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "Native rank chains and book-driven original-rank learning feed existing replacement hooks; standalone triggered helpers have no learnable higher ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "mystic",
+    "id": 965502,
+    "name": "Righteous Zealot",
+    "spells": [
+      965502
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Candidate native startup binding export; five proc contracts and helper bindings validated; existing Eldritch Knight and Hoplite handlers reconciled."
+        ]
+      },
+      "granted_abilities": {
+        "result": "not_applicable",
+        "evidence": [
+          "Eldritch/Hoplite replacement synchronization and shared durable grant ownership passed; other five enchants grant no spellbook abilities."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Shared slot persistence; production grant function logout guard, durable spell state and independent ownership verified. No full reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "not_applicable",
+        "evidence": [
+          "Native rank chains and book-driven original-rank learning feed existing replacement hooks; standalone triggered helpers have no learnable higher ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  },
+  {
+    "kind": "mystic",
+    "id": 978217,
+    "name": "Hoplite",
+    "spells": [
+      300804,
+      300805,
+      300806,
+      300807,
+      300808,
+      300809,
+      300810,
+      300811,
+      300812,
+      300813,
+      300814,
+      300815,
+      901200,
+      978217,
+      978533,
+      978569,
+      978901,
+      978902,
+      978903,
+      978904,
+      978905,
+      978906,
+      978907,
+      978908,
+      978909,
+      978910,
+      978911,
+      978912,
+      978913,
+      978914,
+      978915,
+      978916,
+      978917,
+      978918,
+      982250
+    ],
+    "checks": {
+      "connections": {
+        "result": "pass",
+        "evidence": [
+          "Candidate native startup binding export; five proc contracts and helper bindings validated; existing Eldritch Knight and Hoplite handlers reconciled."
+        ]
+      },
+      "granted_abilities": {
+        "result": "pass",
+        "evidence": [
+          "Eldritch/Hoplite replacement synchronization and shared durable grant ownership passed; other five enchants grant no spellbook abilities."
+        ]
+      },
+      "persistence": {
+        "result": "pass",
+        "evidence": [
+          "Shared slot persistence; production grant function logout guard, durable spell state and independent ownership verified. No full reconnect claim."
+        ]
+      },
+      "rank_upgrades": {
+        "result": "pass",
+        "evidence": [
+          "Native rank chains and book-driven original-rank learning feed existing replacement hooks; standalone triggered helpers have no learnable higher ranks."
+        ]
+      }
+    },
+    "status": "VERIFIED",
+    "defects": [],
+    "certified": false
+  }
+]

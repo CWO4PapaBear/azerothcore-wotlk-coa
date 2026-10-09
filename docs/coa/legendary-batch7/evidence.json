@@ -1,0 +1,7 @@
+{
+  "upstream": "fc359be9bf79ffb532c192d7afe754be21feba40",
+  "build_unit_focused": "passed",
+  "native_export": "one exploratory structural scenario passed; runner reports INCOMPLETE because combined gameplay verification was intentionally not run",
+  "catalog_checks": "passed",
+  "scope": "No combat simulation or full reconnect. Gameplay certification remains with testers. Staged, not active."
+}

@@ -1,0 +1,303 @@
+--- /dev/null
++++ b/src/server/coa/Area52LegendaryRules.h
+@@ -0,0 +1,28 @@
++/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
++#ifndef AREA52_LEGENDARY_RULES_H
++#define AREA52_LEGENDARY_RULES_H
++#include <cstdint>
++
++namespace Area52Legendary
++{
++enum Spells : std::uint32_t
++{
++    Purification = 84508, Exorcism = 84509, Consecration = 84759, Vulnerability = 984961,
++    Curse = 84512, MaledictionDamage = 84760, Stormbringer = 965500, Deathbringer = 965501,
++    Zealot = 965502, Smite = 965508
++};
++
++inline bool Accept(std::uint32_t enchant, bool area52, bool owner, bool damage, bool periodic, bool area)
++{
++    if (!area52 || !owner || !damage || periodic)
++        return false;
++    return enchant == Purification || enchant == Curse || enchant == Stormbringer || enchant == Zealot ||
++        (enchant == Deathbringer && !area);
++}
++
++inline std::int32_t ZealotAmount(std::int32_t amount, bool playerTarget)
++{
++    return playerTarget ? amount / 5 : amount;
++}
++}
++#endif
+--- /dev/null
++++ b/src/server/coa/Area52LegendaryProcs.inc
+@@ -0,0 +1,112 @@
++class spell_area52_legendary_proc : public AuraScript
++{
++    PrepareAuraScript(spell_area52_legendary_proc);
++
++    bool Load() override
++    {
++        Player* player = GetUnitOwner() ? GetUnitOwner()->ToPlayer() : nullptr;
++        return player && AscensionFreePick::Applies(player);
++    }
++
++    bool CheckProc(ProcEventInfo& event)
++    {
++        Player* player = GetTarget()->ToPlayer();
++        SpellInfo const* spell = event.GetSpellInfo();
++        return Area52Legendary::Accept(GetId(), player && AscensionFreePick::Applies(player),
++            event.GetActor() == player && event.GetActionTarget() && event.GetActionTarget() != player,
++            event.GetDamageInfo() && event.GetDamageInfo()->GetDamage() > 0,
++            (event.GetTypeMask() & PROC_FLAG_DONE_PERIODIC) != 0, spell && spell->IsAffectingArea());
++    }
++
++    void Register() override
++    {
++        DoCheckProc += AuraCheckProcFn(spell_area52_legendary_proc::CheckProc);
++    }
++};
++
++class area52_legendary_metadata : public GlobalScript
++{
++public:
++    area52_legendary_metadata() : GlobalScript("area52_legendary_metadata") { }
++
++    void OnLoadSpellCustomAttr(SpellInfo* info) override
++    {
++        if (info->Id != Area52Legendary::Exorcism && info->Id != Area52Legendary::Consecration)
++            return;
++        if (!sConfigMgr->GetOption<bool>("CoA.Enable", true) ||
++            sConfigMgr->GetOption<std::string>("CoA.ClassModel", "coa") != "hero" ||
++            sConfigMgr->GetOption<std::string>("CoA.RealmType", "live") != "live" ||
++            (sConfigMgr->GetOption<uint32>("CoA.GameModeMask", 0) & ~uint32(0x400)))
++            return;
++        if (info->Id == Area52Legendary::Exorcism)
++            info->SpellFamilyFlags[1] |= 2;
++        if (info->Id == Area52Legendary::Consecration)
++            info->SpellFamilyFlags[0] |= 32;
++    }
++};
++
++class spell_area52_purification_hit : public SpellScript
++{
++    PrepareSpellScript(spell_area52_purification_hit);
++
++    bool Validate(SpellInfo const*) override
++    {
++        return ValidateSpellInfo({Area52Legendary::Vulnerability});
++    }
++
++    void Hit()
++    {
++        Player* player = GetCaster()->ToPlayer();
++        if (player && AscensionFreePick::Applies(player) && player->HasAura(Area52Legendary::Purification) &&
++            GetHitUnit() && GetHitDamage() > 0)
++            player->CastSpell(GetHitUnit(), Area52Legendary::Vulnerability, true);
++    }
++
++    void Register() override
++    {
++        AfterHit += SpellHitFn(spell_area52_purification_hit::Hit);
++    }
++};
++
++class aura_area52_purification_ground : public AuraScript
++{
++    PrepareAuraScript(aura_area52_purification_ground);
++
++    bool Validate(SpellInfo const*) override
++    {
++        return ValidateSpellInfo({Area52Legendary::Vulnerability});
++    }
++
++    void Apply(AuraEffect const* effect, AuraEffectHandleModes)
++    {
++        Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr;
++        if (player && AscensionFreePick::Applies(player) && player->HasAura(Area52Legendary::Purification))
++            player->CastSpell(GetTarget(), Area52Legendary::Vulnerability, true, nullptr, effect);
++    }
++
++    void Register() override
++    {
++        AfterEffectApply += AuraEffectApplyFn(aura_area52_purification_ground::Apply,
++            EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE, AURA_EFFECT_HANDLE_REAL);
++    }
++};
++
++class spell_area52_zealot_hit : public SpellScript
++{
++    PrepareSpellScript(spell_area52_zealot_hit);
++
++    void Hit()
++    {
++        Player* player = GetCaster()->ToPlayer();
++        if (!player || !AscensionFreePick::Applies(player) || !GetHitUnit())
++            return;
++        bool const pvp = GetExplTargetUnit() && GetExplTargetUnit()->IsControlledByPlayer();
++        SetHitDamage(Area52Legendary::ZealotAmount(GetHitDamage(), pvp));
++        SetHitHeal(Area52Legendary::ZealotAmount(GetHitHeal(), pvp));
++    }
++
++    void Register() override
++    {
++        OnHit += SpellHitFn(spell_area52_zealot_hit::Hit);
++    }
++};
+--- /dev/null
++++ b/apps/coa-tests/area52_legendary_batch/run.py
+@@ -0,0 +1,44 @@
++from pathlib import Path
++import subprocess, tempfile, sqlite3, re
++root = Path(__file__).resolve().parents[3]
++source = r'''#include "Area52LegendaryRules.h"
++#include <cassert>
++#include <initializer_list>
++using namespace Area52Legendary;
++int main() {
++for (auto id : {Purification,Curse,Stormbringer,Deathbringer,Zealot}) {
++assert(Accept(id,true,true,true,false,false));
++assert(!Accept(id,false,true,true,false,false));
++assert(!Accept(id,true,false,true,false,false));
++assert(!Accept(id,true,true,false,false,false));
++assert(!Accept(id,true,true,true,true,false));
++}
++assert(!Accept(Deathbringer,true,true,true,false,true));
++assert(Accept(Stormbringer,true,true,true,false,true));
++assert(!Accept(123,true,true,true,false,false));
++assert(ZealotAmount(1000,true)==200 && ZealotAmount(1000,false)==1000);
++assert(ZealotAmount(0,true)==0);
++}'''
++with tempfile.TemporaryDirectory() as temp:
++    path = Path(temp)
++    (path/'test.cpp').write_text(source)
++    subprocess.run(['c++','-std=c++20','-Wall','-Wextra','-Werror','-I',str(root/'src/server/coa'),str(path/'test.cpp'),'-o',str(path/'test')],check=True)
++    subprocess.run([str(path/'test')],check=True)
++sql = (root/'data/sql/updates/pending_db_world/rev_20261009_02_area52_legendary_procs.sql').read_text().replace("\\'", "''")
++db = sqlite3.connect(':memory:')
++for table in ('spell_proc','spell_script_names','spell_bonus_data'):
++    columns = re.search(r'INSERT INTO `'+table+r'` \(([^)]+)\)',sql)[1]
++    db.execute('CREATE TABLE '+table+' ('+columns+')')
++db.execute("INSERT INTO spell_script_names VALUES (84508,'unrelated')")
++db.execute("INSERT INTO spell_bonus_data VALUES (879,0.15,0,0.15,0,'source')")
++db.execute("INSERT INTO spell_bonus_data VALUES (26573,0,0.04,0,0.04,'source')")
++for _ in range(2):
++    db.executescript(sql)
++    assert db.execute('SELECT COUNT(*) FROM spell_proc').fetchone()[0]==5
++    assert db.execute('SELECT COUNT(*) FROM spell_script_names').fetchone()[0]==9
++    assert db.execute('SELECT Cooldown FROM spell_proc WHERE SpellId=965501').fetchone()[0]==3000
++    assert db.execute('SELECT Cooldown FROM spell_proc WHERE SpellId=965502').fetchone()[0]==3000
++    assert db.execute('SELECT direct_bonus,ap_bonus FROM spell_bonus_data WHERE entry=84760').fetchone()==(0.2,0.135)
++    assert db.execute('SELECT direct_bonus,ap_bonus FROM spell_bonus_data WHERE entry=84509').fetchone()==(0.15,0.15)
++    assert db.execute('SELECT dot_bonus,ap_dot_bonus FROM spell_bonus_data WHERE entry=84759').fetchone()==(0.04,0.04)
++print('PASS: Legendary proc gating, PvP reduction, SQL replay and unrelated binding preservation.')
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261009_02_area52_legendary_procs.sql
+@@ -0,0 +1,31 @@
++DELETE FROM `spell_proc` WHERE `SpellId` IN (84508, 84512, 965500, 965501, 965502);
++INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `ProcFlags`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
++(84508, 0, 0, 0, 0, 0, 65808, 1, 2, 0, 0, 0, 0, 33, 0, 0),
++(84512, 0, 0, 0, 0, 0, 65808, 1, 2, 0, 0, 0, 0, 33, 0, 0),
++(965500, 0, 0, 0, 0, 0, 65808, 1, 2, 0, 0, 0, 0, 35, 0, 0),
++(965501, 0, 0, 0, 0, 0, 65808, 1, 2, 0, 0, 0, 0, 100, 3000, 0),
++(965502, 0, 0, 0, 0, 0, 65808, 1, 2, 0, 0, 0, 0, 40, 3000, 0);
++
++DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_area52_legendary_proc', 'spell_area52_purification_hit', 'aura_area52_purification_ground', 'spell_area52_zealot_hit');
++INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
++(84508, 'spell_area52_legendary_proc'),
++(84512, 'spell_area52_legendary_proc'),
++(965500, 'spell_area52_legendary_proc'),
++(965501, 'spell_area52_legendary_proc'),
++(965502, 'spell_area52_legendary_proc'),
++(84509, 'spell_area52_purification_hit'),
++(84759, 'aura_area52_purification_ground'),
++(965508, 'spell_area52_zealot_hit');
++
++DELETE FROM `spell_bonus_data` WHERE `entry` = 84760;
++INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, `comments`) VALUES
++(84760, 0.2, 0, 0.135, 0, 'Area 52 - Amal\'thazad\'s Curse');
++
++DELETE FROM `spell_bonus_data` WHERE `entry` = 84509;
++INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, `comments`)
++SELECT 84509, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, 'Area 52 - Purification Exorcism'
++FROM `spell_bonus_data` WHERE `entry` = 879;
++DELETE FROM `spell_bonus_data` WHERE `entry` = 84759;
++INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, `comments`)
++SELECT 84759, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, 'Area 52 - Purification Consecration'
++FROM `spell_bonus_data` WHERE `entry` = 26573;
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -49,6 +49,8 @@
+ #include "AllSpellScript.h"
+ #include "Creature.h"
+ #include "Area52FollowupProcs.inc"
++#include "Area52LegendaryRules.h"
++#include "Area52LegendaryProcs.inc"
+ 
+ namespace AscensionMysticEnchant
+ {
+@@ -820,6 +822,11 @@
+ 
+ void AddSC_AscensionMysticEnchant()
+ {
++    RegisterSpellScript(spell_area52_legendary_proc);
++    new area52_legendary_metadata();
++    RegisterSpellScript(spell_area52_purification_hit);
++    RegisterSpellScript(aura_area52_purification_ground);
++    RegisterSpellScript(spell_area52_zealot_hit);
+     RegisterSpellScript(spell_area52_advancement_proc);
+     RegisterSpellScript(spell_area52_followup_proc);
+     new area52_followup_casts();
+--- a/apps/coa-tests/area52_eldritch_knight/run.py
++++ b/apps/coa-tests/area52_eldritch_knight/run.py
+@@ -40,7 +40,9 @@
+  uint32 GetMaxPower(int){return Maximum;}uint32 GetPower(int){return Mana;}
+  void EnergizeBySpell(Unit* target,uint32,uint32 gain,int){target->Mana=std::min(target->Maximum,target->Mana+int(gain));}
+ };
++struct Session { bool Logout=false; bool PlayerLogout(){return Logout;} };
+ struct Player:Unit {
++ Session SessionState;Session* GetSession(){return &SessionState;} std::set<uint32> Owned;
+  bool Allowed=true,Alive=true,World=true; std::set<uint32> Known,Temporary;std::map<uint32,uint32> Replacements;
+  std::map<uint32,Aura> Auras;std::map<uint32,int> Casts;
+  Player* ToPlayer() override{return this;} bool IsAlive(){return Alive;} bool IsInWorld(){return World;}
+@@ -55,6 +57,13 @@
+  void RemoveAurasDueToSpell(uint32 id,int){Auras.erase(id);}
+ };
+ bool Applies(Player const* p){return p&&p->Allowed;}
++namespace AscensionMysticEnchant {
++bool GrantsActive(Player* p,uint32 id){return p->HasAura(id);}
++void SetGrantedSpell(Player* p,uint32,uint32 id,bool enabled){
++ if(enabled){if(!p->Known.contains(id))p->Owned.insert(id);p->Known.insert(id);}
++ else if(p->Owned.erase(id))p->Known.erase(id);
++}
++}
+ struct Spell {
+  bool Triggered=false;std::map<uint32,uint64> Values;
+  bool IsTriggered()const{return Triggered;} uint64 GetScriptValue(uint32 key)const{auto i=Values.find(key);return i==Values.end()?0:i->second;}
+@@ -101,11 +110,14 @@
+  for(int i=1;i<20;++i)wrathHandler.GrantWrathAnomaly();assert(!wrath.HasAura(Anomaly)&&wrath.Casts[Horror]==1);
+  Player p;Unit enemy; p.Auras[Enchant].Stack=1;p.Known.insert(2812);
+  Synchronize(&p);assert(p.HasSpell(Effusion)&&p.HasSpell(983703)&&p.Replacements[2812]==983703);
+- Synchronize(&p);assert(p.Temporary.size()==2);
++ Synchronize(&p);assert(p.Owned.size()==2 && p.Temporary.empty());
+  p.Known.erase(2812);Synchronize(&p);assert(!p.HasSpell(983703)&&!p.Replacements[2812]);
+- p.Known.insert(2812);Synchronize(&p);Synchronize(&p,true);
++ p.Known.insert(2812);Synchronize(&p);
++ p.SessionState.Logout=true;p.Auras.erase(Enchant);Synchronize(&p);
++ assert(p.HasSpell(Effusion)&&p.HasSpell(983703));
++ p.SessionState.Logout=false;Synchronize(&p);
+  assert(!p.HasSpell(Effusion)&&!p.HasSpell(983703)&&p.HasSpell(2812));
+- p.Known.insert(Effusion);Synchronize(&p,true);assert(p.HasSpell(Effusion));
++ p.Known.insert(Effusion);Synchronize(&p);assert(p.HasSpell(Effusion));
+  LoadHandler load{&p};assert(load.Load());load.Owner=nullptr;assert(!load.Load());load.Owner=&p;p.Allowed=false;assert(!load.Load());p.Allowed=true;Handler h{&p};Spell spell;ProcEventInfo e{&p,&enemy,&spell};
+  h.Proc(e);assert(p.Casts.empty());p.Auras[Weapon].Stack=1;
+  h.Proc(e);assert(p.Casts[983711]==1&&p.Casts[983712]==1&&p.Auras[Anomaly].Stack==1);
+@@ -174,7 +186,7 @@
+         (path / 'test.cpp').write_text(code)
+         subprocess.run([compiler, '-std=c++20', str(path / 'test.cpp'), '-o', str(path / 'test')], check=True)
+         subprocess.run([str(path / 'test')], check=True)
+-    print('PASS: temporary spell ownership, rank removal, proc isolation, multi-hit deduplication, 3s cooldown, 20-stack Horror')
++    print('PASS: durable grant synchronization and logout guard, rank removal, proc isolation, multi-hit deduplication, 3s cooldown, 20-stack Horror')
+ 
+ 
+ if __name__ == '__main__':

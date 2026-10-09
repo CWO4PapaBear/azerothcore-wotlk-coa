@@ -1,0 +1,14 @@
+{
+  "before_sha256": "038cae15bb7dc4c88a2781f5209f8060f611788da81420e740354fcb35d935ec",
+  "after_sha256": "c2874c688097ace0d393a1784164c4ef07c98a00131f6d8439b7fafde4aadca5",
+  "spells": [
+    81116,
+    84508,
+    84512,
+    965500,
+    965501,
+    965502,
+    978217
+  ],
+  "status": "staged_not_installed"
+}
