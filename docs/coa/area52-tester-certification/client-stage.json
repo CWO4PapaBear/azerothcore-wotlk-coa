@@ -1,0 +1,13 @@
+{
+  "status": "staged_not_installed",
+  "files": [
+    {
+      "path": "Interface/AddOns/Area52MysticRules/Area52MysticRules.toc",
+      "sha256": "70ebf95fba434547e17213feb5a7810c99dc8243f66348c9112f1a3408254cad"
+    },
+    {
+      "path": "Interface/AddOns/Area52MysticRules/TesterCertification.lua",
+      "sha256": "27d69a3aea6cc1bc2a5b19c35b4665fb911f77515768288c7cc3f07a67404cfe"
+    }
+  ]
+}

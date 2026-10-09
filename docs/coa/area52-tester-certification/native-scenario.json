@@ -1,0 +1,186 @@
+{
+  "schema": 1,
+  "name": "Area 52 authenticated tester certification",
+  "contract": "Native addon requests reject unverified/partial confirmations; committed certification is shared and idempotent.",
+  "timeout_ms": 45000,
+  "location": {
+    "map": 0,
+    "x": -9465.0,
+    "y": 64.0,
+    "z": 56.0,
+    "o": 0.0
+  },
+  "players": [
+    {
+      "id": "tester",
+      "name": "Certifier",
+      "race": 1,
+      "class": 10,
+      "level": 80
+    },
+    {
+      "id": "witness",
+      "name": "Witness",
+      "race": 1,
+      "class": 10,
+      "level": 80
+    }
+  ],
+  "steps": [
+    {
+      "action": "whisper",
+      "actor": "tester",
+      "to": "Certifier",
+      "language": 4294967295,
+      "text": "A52CERT\tSYNC"
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "whispers_received",
+      "from": "tester",
+      "text": "A52CERT\tBEGIN",
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "whispers_received",
+      "from": "tester",
+      "text": "A52CERT\tV|1300",
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "whispers_received",
+      "from": "tester",
+      "text": "A52CERT\tC|3",
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "whispers_received",
+      "from": "tester",
+      "text": "A52CERT\tEND",
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "wait",
+      "ms": 2200
+    },
+    {
+      "action": "whisper",
+      "actor": "tester",
+      "to": "Certifier",
+      "language": 4294967295,
+      "text": "A52CERT\tC|2|7"
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "whispers_received",
+      "from": "tester",
+      "text": "A52CERT\tERROR|Only VERIFIED advancement entries can be certified.",
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "wait",
+      "ms": 2200
+    },
+    {
+      "action": "whisper",
+      "actor": "tester",
+      "to": "Certifier",
+      "language": 4294967295,
+      "text": "A52CERT\tC|1300|3"
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "whispers_received",
+      "from": "tester",
+      "text": "A52CERT\tERROR|Only VERIFIED advancement entries can be certified.",
+      "equals": 2,
+      "within_ms": 1000
+    },
+    {
+      "action": "wait",
+      "ms": 2200
+    },
+    {
+      "action": "whisper",
+      "actor": "tester",
+      "to": "Certifier",
+      "language": 4294967295,
+      "text": "A52CERT\tC|1300|7"
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "whispers_received",
+      "from": "tester",
+      "text": "A52CERT\tOK|1300",
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "whisper",
+      "actor": "tester",
+      "to": "Certifier",
+      "language": 4294967295,
+      "text": "A52CERT\tC|1300|7"
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "whispers_received",
+      "from": "tester",
+      "text": "A52CERT\tERROR|Please wait a moment and try again.",
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "whisper",
+      "actor": "witness",
+      "to": "Witness",
+      "language": 4294967295,
+      "text": "A52CERT\tSYNC"
+    },
+    {
+      "action": "assert",
+      "actor": "witness",
+      "metric": "whispers_received",
+      "from": "witness",
+      "text": "A52CERT\tC|3|1300",
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "wait",
+      "ms": 2200
+    },
+    {
+      "action": "whisper",
+      "actor": "tester",
+      "to": "Certifier",
+      "language": 4294967295,
+      "text": "A52CERT\tC|1300|7"
+    },
+    {
+      "action": "assert",
+      "actor": "tester",
+      "metric": "whispers_received",
+      "from": "tester",
+      "text": "A52CERT\tOK|1300",
+      "equals": 2,
+      "within_ms": 1000
+    }
+  ]
+}

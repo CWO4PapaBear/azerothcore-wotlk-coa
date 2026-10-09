@@ -1,0 +1,1 @@
+{"schema": 1, "evidence_sha256": "test-ledger", "entries": [{"kind": "advancement", "id": 1300, "status": "VERIFIED"}, {"kind": "advancement", "id": 2, "status": "Needs Investigation"}, {"kind": "advancement", "id": 3, "status": "VERIFIED", "certified": true}]}

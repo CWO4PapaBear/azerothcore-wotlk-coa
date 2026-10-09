@@ -1,0 +1,34 @@
+{
+  "src/server/coa/CoAScriptLoader.cpp": {
+    "before_utf8_lf_sha256": "64e71813c1344e4e0ea6c3848bf521128ac88ea34bb3f41707a8da7d20348f9b",
+    "after_utf8_lf_sha256": "20f60709cf3528366794ff261f61fe23cf68f7874bdc2d7688fb84db48d2405b"
+  },
+  "src/server/database/Database/Implementation/CharacterDatabase.h": {
+    "before_utf8_lf_sha256": "1cd967855aba5fcb41e0ea23d5840c4396f9e9bdf3ae5c6d4e69b778fcb8ef10",
+    "after_utf8_lf_sha256": "07ec43de20aa41aceae29020fabe63baaa7c5a4631ef2308aa6bdc2b4d13c437"
+  },
+  "src/server/database/Database/Implementation/CharacterDatabase.cpp": {
+    "before_utf8_lf_sha256": "154e1890cfde19f83938f19b67f41c24041193f379813fb653c84c5b2570689e",
+    "after_utf8_lf_sha256": "08cf465e3ae5279ea5d6fb58bbf5061440456113e0502cec7c1673e94f2d2096"
+  },
+  "src/server/coa/conf/coa.conf.dist": {
+    "before_utf8_lf_sha256": "29ce23c4984f42a9b58d7f5f67cffea33eac4d5b68e23757a300aecfd6b271bb",
+    "after_utf8_lf_sha256": "5f589726f8f27d6f26578fe6ba7faf0e320ed1de82f88e5a24975403eb0ee334"
+  },
+  "src/server/coa/Area52Certification.cpp": {
+    "before_utf8_lf_sha256": null,
+    "after_utf8_lf_sha256": "6698f6a915aede8d72d860ca049f2cb63241581b57b7405475d7284b6dfcf43d"
+  },
+  "src/server/coa/Area52CertificationRules.h": {
+    "before_utf8_lf_sha256": null,
+    "after_utf8_lf_sha256": "ec485a93e12fa24c1095995f9c5878f29fb5828335320213e9b7958c9c494822"
+  },
+  "data/sql/updates/pending_db_characters/rev_20261009_06_area52_certification.sql": {
+    "before_utf8_lf_sha256": null,
+    "after_utf8_lf_sha256": "1db160b968d8e527f50a7f8f1cbbf88319a355e8883b28645d15728d32b74b64"
+  },
+  "apps/coa-tests/area52_certification/run.py": {
+    "before_utf8_lf_sha256": null,
+    "after_utf8_lf_sha256": "9ffda0585608176cddc066cda85b10d706489aca300d1a5cda2979626d37f494"
+  }
+}

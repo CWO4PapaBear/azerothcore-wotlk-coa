@@ -1,0 +1,23 @@
+{
+  "upstream_revision": "a7f6041f82178ab2085962653946d37f60df5d10",
+  "client_sources": {
+    "Interface/AddOns/Ascension_CharacterAdvancement/CharacterAdvancement.lua": {
+      "archive": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-B.MPQ",
+      "sha256": "af06ce4371d92035ef975c0d36023a1c2c5c996e6e0a0509ecbeab28911bae34"
+    },
+    "Interface/AddOns/Ascension_CharacterAdvancement/Templates/CASpellButton.lua": {
+      "archive": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-B.MPQ",
+      "sha256": "a7daa76f36f965085f961c4c252388305417fd68fdaec09c31a461186d5901d0"
+    },
+    "Interface/SharedXML/TypeExtensions/Tooltip.lua": {
+      "archive": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-B.MPQ",
+      "sha256": "948b12a12a92e103bda97e5e56f314c3248558165cff2b5f41c2a26023b3f61f"
+    },
+    "Interface/FrameXML/GameTooltip.lua": {
+      "archive": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-B.MPQ",
+      "sha256": "912a5647c286734967973364da54652f73133fd25c7675a3dcb03cf9e681cf42"
+    }
+  },
+  "scope": "Area 52 advancement abilities and talents; tester certification metadata only",
+  "activation": "not activated"
+}

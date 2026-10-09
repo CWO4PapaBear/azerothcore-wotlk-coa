@@ -1,0 +1,63 @@
+{
+  "build_and_rules": {
+    "result": "VERIFY ALL: PASSED",
+    "build_seconds": 1614.214,
+    "harness": "area52_certification"
+  },
+  "focused_patch": {
+    "result": "VERIFY ALL: PASSED",
+    "harness": "area52_certification_package"
+  },
+  "native_protocol": {
+    "case": "passed",
+    "wrapper": "VERIFY ALL: INCOMPLETE",
+    "clock": "real",
+    "reason": "Exploratory scenario, outside the catalog; native assertions passed.",
+    "checks": [
+      "server snapshot",
+      "existing certifications",
+      "unverified rejection",
+      "partial-confirmation rejection",
+      "database-backed acceptance",
+      "rate limit",
+      "second-account synchronization",
+      "idempotent confirmation"
+    ],
+    "cleanup": "passed",
+    "acceleration_sensitive": [],
+    "batch_sensitive": []
+  },
+  "client": {
+    "result": "passed",
+    "runtime": "Lua 5.1",
+    "checks": [
+      "native menu retained",
+      "confirmation-only submission",
+      "server acknowledgement",
+      "spoof rejection",
+      "timeout retry",
+      "exact SHIFT text preservation",
+      "realm scope"
+    ]
+  },
+  "linters": {
+    "new_cpp": "passed",
+    "sql": "passed",
+    "inherited_cpp": "pre-existing consecutive blank lines at CharacterDatabase.cpp:67-69; identical in the recorded before-source; preserved"
+  },
+  "corrections": [
+    "Added explicit Boost placeholders include required by the server PCH.",
+    "Refreshed CMake source registration for the new translation unit.",
+    "Ran patch application checks in WSL after Windows sandbox temporary-directory errors."
+  ],
+  "measurements": {
+    "full_investigation_elapsed": "unknown",
+    "new_product_test_failures_remaining": 0,
+    "observed_flaky_product_tests": 0,
+    "human_corrections_required": "none observed"
+  },
+  "server_binary_sha256": "965d4fe2208dc7d6b49e906d6c17969177786693e2c2cf82ae60efff266f1674",
+  "client_source_commit": "dd65619e189b50763cb6435385944028ebd8306a",
+  "deployment": "staged; not activated or installed; tester channel unchanged",
+  "remaining_acceptance": "In-game menu/tooltip visual acceptance and two real tester clients after activation."
+}

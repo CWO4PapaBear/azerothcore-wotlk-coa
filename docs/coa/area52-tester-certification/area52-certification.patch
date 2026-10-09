@@ -1,0 +1,351 @@
+--- a/src/server/coa/CoAScriptLoader.cpp
++++ b/src/server/coa/CoAScriptLoader.cpp
+@@ -310,6 +310,7 @@
+ void AddSC_Area52ArchetypeVanity();
+ void AddSC_AscensionClassBundleStore();
+ void AddSC_AscensionMysticEnchant();
++void AddSC_Area52Certification();
+ void AddSC_AscensionLfgObjective();
+ void AddSC_AscensionBushcraft();
+ 
+@@ -618,6 +619,7 @@
+     AddSC_AscensionLfgObjective();
+     AddSC_AscensionBushcraft();
+     AddSC_AscensionMysticEnchant();
++    AddSC_Area52Certification();
+     AddAscensionEldritchKnightScripts();
+     AddAscensionMysticKnightEpicScripts();
+     AddAscensionHopliteScripts();
+--- a/src/server/database/Database/Implementation/CharacterDatabase.h
++++ b/src/server/database/Database/Implementation/CharacterDatabase.h
+@@ -589,6 +589,10 @@
+     CHAR_INS_A52_BUILD,
+     CHAR_INS_A52_BUILD_REVISION,
+ 
++    CHAR_SEL_A52_CERTIFICATIONS,
++    CHAR_SEL_A52_CERTIFICATION,
++    CHAR_INS_A52_CERTIFICATION,
++
+     MAX_CHARACTERDATABASE_STATEMENTS
+ };
+ 
+--- a/src/server/database/Database/Implementation/CharacterDatabase.cpp
++++ b/src/server/database/Database/Implementation/CharacterDatabase.cpp
+@@ -750,6 +750,13 @@
+     PrepareStatement(CHAR_INS_FREEPICK_MYSTIC_COLLECTION,
+         "INSERT IGNORE INTO account_freepick_mystic_collection (account, spell) VALUES (?, ?)", CONNECTION_ASYNC);
+ 
++    PrepareStatement(CHAR_SEL_A52_CERTIFICATIONS,
++        "SELECT entry FROM area52_tester_certification WHERE checks_confirmed = 7", CONNECTION_SYNCH);
++    PrepareStatement(CHAR_SEL_A52_CERTIFICATION,
++        "SELECT entry FROM area52_tester_certification WHERE entry = ? AND checks_confirmed = 7", CONNECTION_SYNCH);
++    PrepareStatement(CHAR_INS_A52_CERTIFICATION,
++        "INSERT IGNORE INTO area52_tester_certification (entry, account, guid, character_name, evidence_sha256, checks_confirmed) VALUES (?, ?, ?, ?, ?, 7)", CONNECTION_SYNCH);
++
+     PrepareStatement(CHAR_INS_PLAYER_ANTICHEAT_ALERT, "INSERT INTO player_anticheat_alert (account, guid, name, reason, details, size) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+ }
+ 
+--- a/src/server/coa/conf/coa.conf.dist
++++ b/src/server/coa/conf/coa.conf.dist
+@@ -290,3 +290,6 @@
+ # Area 52 alpha tester crate: once per character on login, independent of the level-10 warchest.
+ # Disable future delivery without disabling redemption of crates already received.
+ Area52.TesterCache.Enabled = 0
++
++CoA.FreePick.TesterCertification = 0
++CoA.FreePick.CertificationFile = ""
+--- /dev/null
++++ b/src/server/coa/Area52Certification.cpp
+@@ -0,0 +1,175 @@
++#include "Area52CertificationRules.h"
++#include "AscensionFreePick.h"
++#include "Chat.h"
++#include "Config.h"
++#include "DatabaseEnv.h"
++#include "Log.h"
++#include "Player.h"
++#include "ScriptMgr.h"
++#include "WorldPacket.h"
++#include "WorldSession.h"
++#include "WorldSessionMgr.h"
++#include <boost/bind/placeholders.hpp>
++#include <boost/property_tree/json_parser.hpp>
++#include <chrono>
++#include <mutex>
++
++namespace Area52Certification
++{
++namespace
++{
++std::map<std::uint32_t, bool> Entries;
++std::map<std::uint32_t, std::chrono::steady_clock::time_point> Requests;
++std::mutex Mutex;
++bool Active = false;
++std::string Evidence;
++
++void Send(Player* player, std::string const& payload)
++{
++    WorldPacket packet;
++    ChatHandler::BuildChatPacket(packet, CHAT_MSG_WHISPER, LANG_ADDON, player, player,
++        std::string(Prefix) + payload);
++    player->SendDirectMessage(&packet);
++}
++
++void Snapshot(Player* player)
++{
++    Send(player, "BEGIN");
++    for (bool certified : {false, true})
++    {
++        std::string packet = certified ? "C" : "V";
++        for (auto const& [id, value] : Entries)
++        {
++            if (value != certified)
++                continue;
++            auto const token = "|" + std::to_string(id);
++            if (packet.size() + token.size() > 220)
++            {
++                Send(player, packet);
++                packet = certified ? "C" : "V";
++            }
++            packet += token;
++        }
++        if (packet.size() > 1)
++            Send(player, packet);
++    }
++    Send(player, "END");
++}
++
++class CertificationWorld final : public WorldScript
++{
++public:
++    CertificationWorld() : WorldScript("Area52CertificationWorld") { }
++
++    void OnStartup() override
++    {
++        if (!AscensionFreePick::Enabled() ||
++            !sConfigMgr->GetOption<bool>("CoA.FreePick.TesterCertification", false))
++            return;
++        try
++        {
++            boost::property_tree::ptree report;
++            boost::property_tree::read_json(sConfigMgr->GetOption<std::string>(
++                "CoA.FreePick.CertificationFile", ""), report);
++            Entries = ReadEligibility(report);
++            Evidence = report.get<std::string>("evidence_sha256", "");
++            auto* statement = CharacterDatabase.GetPreparedStatement(CHAR_SEL_A52_CERTIFICATIONS);
++            if (auto result = CharacterDatabase.Query(statement))
++                do
++                {
++                    auto found = Entries.find(result->Fetch()[0].Get<std::uint32_t>());
++                    if (found != Entries.end())
++                        found->second = true;
++                } while (result->NextRow());
++            Active = !Entries.empty();
++            LOG_INFO("coa", "Area 52 tester certification loaded: {} eligible entries", Entries.size());
++        }
++        catch (std::exception const& error)
++        {
++            Entries.clear();
++            LOG_ERROR("coa", "Area 52 tester certification disabled: {}", error.what());
++        }
++    }
++};
++
++class CertificationPlayer final : public PlayerScript
++{
++public:
++    CertificationPlayer() : PlayerScript("Area52CertificationPlayer",
++        {PLAYERHOOK_CAN_PLAYER_USE_PRIVATE_CHAT, PLAYERHOOK_ON_LOGOUT}) { }
++
++    bool OnPlayerCanUseChat(Player* player, uint32 type, uint32 language, std::string& message,
++        Player* receiver) override
++    {
++        if (type != CHAT_MSG_WHISPER || language != LANG_ADDON || !message.starts_with(Prefix))
++            return true;
++        if (receiver != player)
++            return false;
++        std::lock_guard lock(Mutex);
++        if (!Active || !AscensionFreePick::Applies(player))
++        {
++            Send(player, "ERROR|Certification is unavailable on this realm.");
++            return false;
++        }
++        auto const account = player->GetSession()->GetAccountId();
++        auto const now = std::chrono::steady_clock::now();
++        auto found = Requests.find(account);
++        if (found != Requests.end() && now - found->second < std::chrono::seconds(2))
++        {
++            Send(player, "ERROR|Please wait a moment and try again.");
++            return false;
++        }
++        Requests[account] = now;
++        std::string_view const payload(message.data() + Prefix.size(), message.size() - Prefix.size());
++        if (payload == "SYNC")
++        {
++            Snapshot(player);
++            return false;
++        }
++        auto const id = ParseConfirmation(payload);
++        auto entry = Entries.find(id);
++        if (!id || entry == Entries.end())
++        {
++            Send(player, "ERROR|Only VERIFIED advancement entries can be certified.");
++            return false;
++        }
++        if (!entry->second)
++        {
++            auto* insert = CharacterDatabase.GetPreparedStatement(CHAR_INS_A52_CERTIFICATION);
++            insert->SetData(0, id);
++            insert->SetData(1, account);
++            insert->SetData(2, player->GetGUID().GetCounter());
++            insert->SetData(3, player->GetName());
++            insert->SetData(4, Evidence);
++            CharacterDatabase.DirectExecute(insert);
++            auto* select = CharacterDatabase.GetPreparedStatement(CHAR_SEL_A52_CERTIFICATION);
++            select->SetData(0, id);
++            if (!CharacterDatabase.Query(select))
++            {
++                Send(player, "ERROR|Certification could not be saved. Please try again.");
++                return false;
++            }
++            entry->second = true;
++            for (auto const& [sessionId, session] : sWorldSessionMgr->GetAllSessions())
++                if (auto* online = session->GetPlayer(); online && online->IsInWorld() &&
++                    AscensionFreePick::Applies(online))
++                    Send(online, "C|" + std::to_string(id));
++        }
++        Send(player, "OK|" + std::to_string(id));
++        return false;
++    }
++
++    void OnPlayerLogout(Player* player) override
++    {
++        std::lock_guard lock(Mutex);
++        Requests.erase(player->GetSession()->GetAccountId());
++    }
++};
++}
++}
++
++void AddSC_Area52Certification()
++{
++    new Area52Certification::CertificationWorld();
++    new Area52Certification::CertificationPlayer();
++}
+--- /dev/null
++++ b/src/server/coa/Area52CertificationRules.h
+@@ -0,0 +1,49 @@
++#ifndef AREA52_CERTIFICATION_RULES_H
++#define AREA52_CERTIFICATION_RULES_H
++
++#include <boost/property_tree/ptree.hpp>
++#include <charconv>
++#include <cstdint>
++#include <map>
++#include <stdexcept>
++#include <string>
++#include <string_view>
++
++namespace Area52Certification
++{
++inline constexpr std::string_view Prefix = "A52CERT\t";
++
++inline std::map<std::uint32_t, bool> ReadEligibility(boost::property_tree::ptree const& report)
++{
++    if (report.get<unsigned>("schema") != 1)
++        throw std::runtime_error("Unsupported certification ledger schema");
++    std::map<std::uint32_t, bool> result;
++    std::map<std::uint32_t, bool> seen;
++    for (auto const& child : report.get_child("entries"))
++    {
++        auto const& row = child.second;
++        if (row.get<std::string>("kind") != "advancement")
++            continue;
++        auto const id = row.get<std::uint32_t>("id");
++        if (!id || !seen.emplace(id, true).second)
++            throw std::runtime_error("Invalid or duplicate advancement certification entry");
++        auto const status = row.get<std::string>("status");
++        if (status == "VERIFIED" || status == "CERTIFIED")
++            result.emplace(id, status == "CERTIFIED" || row.get<bool>("certified", false));
++    }
++    return result;
++}
++
++inline std::uint32_t ParseConfirmation(std::string_view payload)
++{
++    if (!payload.starts_with("C|") || !payload.ends_with("|7"))
++        return 0;
++    payload.remove_prefix(2);
++    payload.remove_suffix(2);
++    std::uint32_t id = 0;
++    auto const [end, error] = std::from_chars(payload.data(), payload.data() + payload.size(), id);
++    return error == std::errc{} && end == payload.data() + payload.size() ? id : 0;
++}
++}
++
++#endif
+--- /dev/null
++++ b/data/sql/updates/pending_db_characters/rev_20261009_06_area52_certification.sql
+@@ -0,0 +1,10 @@
++CREATE TABLE IF NOT EXISTS `area52_tester_certification` (
++  `entry` int unsigned NOT NULL,
++  `account` int unsigned NOT NULL,
++  `guid` int unsigned NOT NULL,
++  `character_name` varchar(64) NOT NULL,
++  `checks_confirmed` tinyint unsigned NOT NULL DEFAULT 7,
++  `evidence_sha256` varchar(64) NOT NULL,
++  `certified_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
++  PRIMARY KEY (`entry`)
++) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+--- /dev/null
++++ b/apps/coa-tests/area52_certification/run.py
+@@ -0,0 +1,49 @@
++from pathlib import Path
++import os
++import shutil
++import subprocess
++import tempfile
++
++root = Path(__file__).resolve().parents[3]
++compiler = shutil.which(os.environ.get('CXX', 'c++'))
++if not compiler:
++    raise SystemExit('C++20 compiler unavailable')
++source = r'''
++#include "Area52CertificationRules.h"
++#include <boost/property_tree/json_parser.hpp>
++#include <cassert>
++#include <sstream>
++int main()
++{
++    using namespace Area52Certification;
++    for (auto text : {"", "C|0|7", "C|12|3", "C|-1|7", "C|4294967296|7", "C|12x|7", "C|12|7|7", "C||7"})
++        assert(ParseConfirmation(text) == 0);
++    assert(ParseConfirmation("C|1234|7") == 1234);
++    std::istringstream input(R"({"schema":1,"entries":[
++        {"kind":"advancement","id":1,"status":"VERIFIED"},
++        {"kind":"advancement","id":2,"status":"VERIFIED","certified":true},
++        {"kind":"advancement","id":3,"status":"CERTIFIED"},
++        {"kind":"advancement","id":4,"status":"Needs Investigation","certified":true},
++        {"kind":"mystic","id":1,"status":"VERIFIED"}]})");
++    boost::property_tree::ptree report;
++    boost::property_tree::read_json(input, report);
++    auto result = ReadEligibility(report);
++    assert(result.size() == 3 && !result.at(1) && result.at(2) && result.at(3));
++    auto duplicate = report.get_child("entries").front();
++    report.get_child("entries").push_back(duplicate);
++    bool rejected = false;
++    try { ReadEligibility(report); } catch (std::runtime_error const&) { rejected = true; }
++    assert(rejected);
++    report.put("schema", 99);
++    rejected = false;
++    try { ReadEligibility(report); } catch (std::runtime_error const&) { rejected = true; }
++    assert(rejected);
++}
++'''
++with tempfile.TemporaryDirectory() as tmp:
++    p = Path(tmp)
++    (p / 'test.cpp').write_text(source)
++    subprocess.run([compiler, '-std=c++20', '-Wall', '-Wextra', '-Werror', '-I' + str(root / 'src/server/coa'),
++                    str(p / 'test.cpp'), '-o', str(p / 'test')], check=True)
++    subprocess.run([str(p / 'test')], check=True)
++print('Certification eligibility, prior certification, fail-closed ledger and confirmation parsing passed.')

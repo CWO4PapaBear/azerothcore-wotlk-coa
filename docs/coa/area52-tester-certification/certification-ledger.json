@@ -1,0 +1,8310 @@
+{
+  "schema": 1,
+  "evidence_sha256": "9f44b55d3e521ee564b1c70799cbf6aa9ec2ff9976c3a97e76a07365c8542f22",
+  "entries": [
+    {
+      "kind": "advancement",
+      "id": 102,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 306,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 312,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 351,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 353,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 354,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 357,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 395,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 396,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 397,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 398,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 399,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 400,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 402,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 403,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 405,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 406,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 407,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 409,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 410,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 411,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 412,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 413,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 414,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 415,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 416,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 417,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 418,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 420,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 423,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 424,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 425,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 426,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 427,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 428,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 429,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 430,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 431,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 432,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 435,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 436,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 437,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 438,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 439,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 440,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 441,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 442,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 443,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 444,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 445,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 446,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 448,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 450,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 451,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 452,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 453,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 454,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 455,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 456,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 457,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 458,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 460,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 461,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 462,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 465,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 466,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 467,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 468,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 469,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 470,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 472,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 474,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 476,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 477,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 478,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 479,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 480,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 481,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 482,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 483,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 485,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 486,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 487,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 489,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 490,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 491,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 492,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 493,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 494,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 495,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 496,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 497,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 498,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 499,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 500,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 501,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 502,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 503,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 504,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 505,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 506,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 507,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 508,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 510,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 511,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 515,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 517,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 518,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 519,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 520,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 521,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 522,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 524,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 525,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 526,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 527,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 529,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 530,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 531,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 532,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 533,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 534,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 535,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 536,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 537,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 538,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 539,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 541,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 542,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 543,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 544,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 545,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 546,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 547,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 548,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 553,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 554,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 555,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 556,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 557,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 558,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 559,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 561,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 562,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 563,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 565,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 566,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 567,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 568,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 569,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 572,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 573,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 574,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 575,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 576,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 577,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 578,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 579,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 580,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 581,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 582,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 583,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 584,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 585,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 586,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 587,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 588,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 589,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 590,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 592,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 593,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 594,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 595,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 596,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 597,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 598,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 599,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 600,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 601,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 603,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 604,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 605,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 607,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 608,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 609,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 610,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 611,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 612,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 613,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 614,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 615,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 617,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 618,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 619,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 621,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 622,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 623,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 624,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 625,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 626,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 627,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 628,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 629,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 630,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 632,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 633,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 634,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 636,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 638,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 639,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 640,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 641,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 643,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 644,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 645,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 646,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 648,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 649,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 650,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 651,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 652,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 653,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 654,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 655,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 656,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 657,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 658,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 659,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 660,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 662,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 663,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 664,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 666,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 667,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 668,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 669,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 670,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 672,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 673,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 674,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 675,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 676,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 677,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 678,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 679,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 681,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 682,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 683,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 684,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 685,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 686,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 687,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 688,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 690,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 691,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 692,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 693,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 694,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 695,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 696,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 697,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 698,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 700,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 703,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 704,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 705,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 706,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 708,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 709,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 710,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 711,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 712,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 715,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 716,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 717,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 718,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 719,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 722,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 723,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 724,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 725,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 726,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 727,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 728,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 729,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 730,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 731,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 732,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 733,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 734,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 735,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 736,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 737,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 738,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 739,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 740,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 743,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 747,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 748,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 749,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 750,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 751,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 752,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 753,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 754,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 755,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 756,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 758,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 760,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 761,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 762,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 763,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 764,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 766,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 767,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 768,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 769,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 770,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 771,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 772,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 773,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 774,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 775,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 776,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 777,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 778,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 779,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 780,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 782,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 783,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 784,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 785,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 786,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 787,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 788,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 789,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 790,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 791,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 792,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 793,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 794,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 795,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 796,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 797,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 798,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 799,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 801,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 802,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 803,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 804,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 805,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 807,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 808,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 809,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 811,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 813,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 815,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 816,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 817,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 818,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 819,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 820,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 821,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 823,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 824,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 825,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 826,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 828,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 829,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 830,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 832,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 833,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 834,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 835,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 836,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 837,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 838,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 839,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 840,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 841,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 842,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 843,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 845,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 846,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 848,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 849,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 850,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 851,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 852,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 853,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 854,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 855,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 857,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 858,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 859,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 860,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 861,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 863,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 864,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 865,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 866,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 868,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 869,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 870,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 871,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 872,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 874,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 875,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 876,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 877,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 879,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 880,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 881,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 882,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 883,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 884,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 885,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 886,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 887,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 888,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 889,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 890,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 891,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 892,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 893,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 894,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 895,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 897,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 898,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 900,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 901,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 902,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 903,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 904,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 905,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 907,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 908,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 909,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 911,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 912,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 913,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 914,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 916,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 917,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 918,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 919,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 920,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 921,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 922,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 923,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 924,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 925,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 927,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 928,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 929,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 930,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 931,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 934,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 935,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 936,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 937,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 938,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 939,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 940,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 942,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 943,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 944,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 945,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 946,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 947,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 948,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 949,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 951,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 952,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 953,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 954,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 956,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 957,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 958,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 959,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 961,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 962,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 963,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 964,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 966,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 967,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 968,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 972,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 973,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 975,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 976,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 977,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 978,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 980,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 981,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 982,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 983,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 985,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 986,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 987,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 988,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 990,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 991,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 992,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 993,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 995,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 996,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 997,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 998,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 999,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1000,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1001,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1002,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1004,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1007,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1008,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1009,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1010,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1011,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1013,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1014,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1015,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1016,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1017,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1019,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1020,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1023,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1024,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1025,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1026,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1028,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1029,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1030,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1031,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1032,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1034,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1035,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1036,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1037,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1039,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1040,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1041,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1042,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1044,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1045,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1046,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1047,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1048,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1050,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1051,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1052,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1053,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1055,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1056,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1057,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1058,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1060,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1062,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1063,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1064,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1065,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1066,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1067,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1069,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1070,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1071,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1073,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1074,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1075,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1076,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1077,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1079,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1080,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1081,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1083,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1084,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1085,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1086,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1087,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1089,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1090,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1091,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1093,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1094,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1095,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1096,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1097,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1098,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1099,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1101,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1102,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1103,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1104,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1105,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1106,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1107,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1108,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1109,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1110,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1111,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1112,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1113,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1114,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1115,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1116,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1117,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1118,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1119,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1120,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1121,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1123,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1124,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1125,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1126,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1127,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1128,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1129,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1130,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1131,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1132,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1134,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1135,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1136,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1137,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1138,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1141,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1142,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1143,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1144,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1145,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1146,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1147,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1148,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1149,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1150,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1151,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1152,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1153,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1154,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1155,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1156,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1157,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1158,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1159,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1160,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1161,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1162,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1163,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1164,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1165,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1166,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1167,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1168,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1169,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1170,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1171,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1172,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1173,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1174,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1175,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1176,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1177,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1178,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1179,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1180,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1181,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1182,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1183,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1184,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1185,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1186,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1187,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1188,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1189,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1190,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1191,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1193,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1194,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1195,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1196,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1197,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1198,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1199,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1200,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1201,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1202,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1203,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1204,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1205,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1206,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1207,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1208,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 1209,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1210,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1211,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1212,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1213,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1214,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1215,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1216,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1217,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1218,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1219,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1220,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1221,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1222,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1223,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1224,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1225,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1226,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1227,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1228,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1229,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1230,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1231,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1232,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1233,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1234,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1235,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1236,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1237,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1238,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1239,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1240,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1241,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1242,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1243,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1244,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1245,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1246,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1247,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1248,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1249,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1250,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1251,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1252,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1253,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1254,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1255,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1256,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1257,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1258,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1259,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1260,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1261,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1262,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1263,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1264,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1265,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1266,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1267,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1268,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1269,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1270,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1271,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1272,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1273,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1274,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1275,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1276,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1277,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1278,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1279,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1280,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1281,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1282,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1283,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1284,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1285,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1286,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1287,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1288,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1289,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1290,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1291,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1292,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1293,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1294,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1295,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1296,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1297,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1298,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1299,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1300,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1301,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1302,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1303,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1304,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1305,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1311,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1312,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1313,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1314,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1315,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1316,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1317,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1318,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1319,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1320,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1321,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1322,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1323,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1324,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1325,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1358,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1360,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1363,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1364,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1365,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1366,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1367,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1368,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1369,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1370,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1448,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1600,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1601,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1602,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1603,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1604,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1605,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1606,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1607,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1608,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1609,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1610,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1611,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1612,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1613,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1614,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 1615,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1616,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1617,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1618,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1619,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1621,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1622,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1623,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1624,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 1625,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1626,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1627,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1628,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1629,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1631,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1632,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1633,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1634,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1635,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1636,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1637,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1638,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1639,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1640,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1641,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1644,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1648,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1700,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1767,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1800,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1806,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 1807,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2425,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2655,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2656,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2657,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2658,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2659,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2660,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2661,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2662,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2663,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2664,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2665,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2666,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2667,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2668,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2669,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2670,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2671,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2672,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2673,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2674,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2675,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2676,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2677,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2678,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2679,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2680,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2682,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2683,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2684,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2685,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2686,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2687,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2688,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2689,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2690,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2691,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2692,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2693,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2694,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2695,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2696,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2697,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2698,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2699,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2700,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2701,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2702,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2703,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2704,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2705,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2706,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2708,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2709,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2710,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2711,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2712,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2713,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2714,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2715,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2716,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2717,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2718,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2719,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2720,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2721,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2722,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2723,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2724,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2725,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2726,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2727,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2728,
+      "status": "Needs Investigation",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2729,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2730,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2731,
+      "status": "Structurally Connected, Unverified",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2733,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2734,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2735,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2736,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2737,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2738,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2739,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2740,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2741,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2742,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2743,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2744,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2745,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2746,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2747,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2748,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2749,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2751,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2752,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2753,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2754,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2755,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2757,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2758,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2759,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2760,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2761,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2762,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2763,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2764,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2765,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2766,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2767,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2768,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2769,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2770,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2771,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2772,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2773,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2774,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2775,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2776,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2777,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2778,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2779,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2780,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2781,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2782,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2783,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2784,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2785,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2786,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2787,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2788,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2789,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2790,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2791,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2792,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2793,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2794,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2795,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2796,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2797,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2798,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2799,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2800,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2801,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2802,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2803,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2804,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2805,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2806,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2807,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2808,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2809,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2810,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2811,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2812,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2813,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2814,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2815,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2816,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2817,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2818,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2819,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2820,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2821,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2822,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2823,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2824,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2825,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2826,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2827,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2828,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2829,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2830,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2831,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2832,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2833,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2834,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2835,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2836,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2837,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2838,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2839,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2840,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2841,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2842,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2843,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2844,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2845,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2846,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2847,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2848,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2849,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2850,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2851,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2852,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2853,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2854,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2855,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2856,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2857,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2858,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2859,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2860,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2861,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2862,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2863,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2864,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2865,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2866,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2867,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2868,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2869,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2870,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2871,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2872,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2873,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2875,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2876,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2877,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2878,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2879,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2880,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2881,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2882,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2883,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2884,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2885,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2886,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2888,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2889,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2890,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2891,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2892,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2893,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2894,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2895,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2896,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2897,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2898,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2899,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2900,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2901,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2902,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2903,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2904,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2905,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2906,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2907,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2908,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2909,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2910,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2911,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2912,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2913,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2914,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2915,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2916,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2917,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2918,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2919,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2920,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2921,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2922,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2923,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2924,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2925,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2926,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2927,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2928,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2929,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2930,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2931,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2932,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2933,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2934,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2935,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2936,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2937,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2938,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2939,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2940,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2941,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2942,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2943,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2944,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2945,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2946,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2947,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2948,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2949,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2950,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2951,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2952,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2953,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2954,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2955,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2956,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2957,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2958,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2959,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2961,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2962,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2963,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2964,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2965,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2967,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2968,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2969,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2970,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2971,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2972,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2973,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2974,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2975,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2976,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2977,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2978,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2979,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2980,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2981,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2982,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2983,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2984,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2985,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2986,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2987,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2988,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2989,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2990,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 2991,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2992,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2993,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2994,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2995,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2996,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2997,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2998,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 2999,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3000,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3001,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3002,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3003,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3004,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3006,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3008,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3009,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3011,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3012,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3013,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3014,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3015,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3016,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3017,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3018,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3019,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3020,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3021,
+      "status": "Confirmed Defect",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3022,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3023,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3024,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3025,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3026,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3027,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3028,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3029,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3030,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3031,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3032,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 3035,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3036,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3037,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3038,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3039,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3040,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3041,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3042,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3043,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3044,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3045,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3046,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3047,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3054,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3057,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3061,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3072,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3074,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3075,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3086,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3087,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3100,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3102,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3112,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3116,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3117,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3124,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3126,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3128,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3137,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3141,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3162,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3165,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3166,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3167,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3169,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3176,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3181,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3193,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3202,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3203,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3204,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3205,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3213,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3217,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3223,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3224,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3244,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3255,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3259,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3269,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3273,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3284,
+      "status": "VERIFIED",
+      "certified": true
+    },
+    {
+      "kind": "advancement",
+      "id": 3288,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3290,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3295,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3300,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3314,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3318,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3324,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3333,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3342,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3352,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3354,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3355,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3360,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3366,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3367,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3373,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3374,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3394,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3395,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3397,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3398,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3399,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3410,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3412,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3434,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3453,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3459,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3463,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3465,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3467,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3475,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3480,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3484,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3497,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3500,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3509,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3515,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3520,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3526,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3531,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3549,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3552,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3559,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3563,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3568,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3579,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3585,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3586,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3594,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3603,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3608,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3613,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3618,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3622,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3623,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3624,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3627,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3632,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3637,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3642,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3647,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3656,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3658,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3659,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3665,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3671,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3674,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3675,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3680,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3686,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3691,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3696,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3702,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3707,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3712,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3714,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3721,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3725,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3731,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3735,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3741,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3745,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3753,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3775,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3786,
+      "status": "Structurally Connected, Unverified",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 3792,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 4101,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 4103,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 4939,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 4941,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 5950,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 5960,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 9204,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 10001,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 14143,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 18149,
+      "status": "Needs Investigation",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 20000,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 20001,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 20002,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 20003,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 28268,
+      "status": "VERIFIED",
+      "certified": false
+    },
+    {
+      "kind": "advancement",
+      "id": 28968,
+      "status": "VERIFIED",
+      "certified": false
+    }
+  ]
+}
