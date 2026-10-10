@@ -9,5 +9,9 @@
     "978217": true
   },
   "client_labels_corrected": 34,
-  "tester_release_assets": "not published by this source milestone"
+  "tester_release_assets": "not published by this source milestone",
+  "server_activation": "repair-only binary activated; startup ready",
+  "live_connected_catalog": 3159,
+  "live_temporary_access": 1691,
+  "client_installation": "34 corrected labels installed locally; tester release assets not published"
 }
