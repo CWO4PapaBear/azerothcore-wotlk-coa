@@ -1,0 +1,564 @@
+diff --git a/src/server/scripts/Spells/spell_warrior.cpp b/src/server/scripts/Spells/spell_warrior.cpp
+--- a/src/server/scripts/Spells/spell_warrior.cpp
++++ b/src/server/scripts/Spells/spell_warrior.cpp
+@@ -16,6 +16,8 @@
+  */
+ 
+ #include "Player.h"
++#include "../../coa/AscensionFreePick.h"
++#include "../../coa/Area52HopliteSupportRules.h"
+ #include "SpellAuraEffects.h"
+ #include "SpellInfo.h"
+ #include "SpellMgr.h"
+@@ -270,7 +272,8 @@
+             // include target dependant auras
+             damage = target->MeleeDamageBonusTaken(caster, damage, BASE_ATTACK, GetSpellInfo());
+             // apply percent damage mods
+-            ApplyPct(damage, 16.0f * GetSpellInfo()->GetRank() / 6.0f);
++            ApplyPct(damage, Area52HopliteSupport::DeepWoundsTickPercent(
++                AscensionFreePick::Applies(caster->ToPlayer()), GetSpellInfo()->GetRank()));
+             target->CastDelayedSpellWithPeriodicAmount(caster, SPELL_WARRIOR_DEEP_WOUNDS_RANK_PERIODIC, SPELL_AURA_PERIODIC_DAMAGE, damage, EFFECT_0);
+ 
+             //caster->CastCustomSpell(target, SPELL_WARRIOR_DEEP_WOUNDS_RANK_PERIODIC, &damage, nullptr, nullptr, true);
+@@ -407,7 +410,9 @@
+         if (Unit* target = GetHitUnit())
+         {
+             SpellInfo const* spellInfo = GetSpellInfo();
+-            int32 rageUsed = std::min<int32>(300 - spellInfo->CalcPowerCost(caster, SpellSchoolMask(spellInfo->SchoolMask)), caster->GetPower(POWER_RAGE));
++            bool const freePick = AscensionFreePick::Applies(caster->ToPlayer());
++            int32 rageUsed = Area52HopliteSupport::ExecuteExtraRage(freePick,
++                spellInfo->CalcPowerCost(caster, SpellSchoolMask(spellInfo->SchoolMask)), caster->GetPower(POWER_RAGE));
+             int32 newRage = std::max<int32>(0, caster->GetPower(POWER_RAGE) - rageUsed);
+ 
+             // Sudden Death rage save
+@@ -422,7 +427,8 @@
+             if (AuraEffect* aurEff = caster->GetAuraEffect(SPELL_WARRIOR_GLYPH_OF_EXECUTION, EFFECT_0))
+                 rageUsed += aurEff->GetAmount() * 10;
+ 
+-            int32 bp = GetEffectValue() + int32(rageUsed * spellInfo->Effects[effIndex].DamageMultiplier + caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.2f);
++            int32 bp = GetEffectValue() + int32(rageUsed * spellInfo->Effects[effIndex].DamageMultiplier +
++                Area52HopliteSupport::ExecuteAttackPower(freePick, caster->GetTotalAttackPowerValue(BASE_ATTACK)));
+             caster->CastCustomSpell(target, SPELL_WARRIOR_EXECUTE, &bp, nullptr, nullptr, true, nullptr, nullptr, GetOriginalCaster()->GetGUID());
+         }
+     }
+diff --git a/src/server/game/Spells/Auras/SpellAuraEffects.cpp b/src/server/game/Spells/Auras/SpellAuraEffects.cpp
+--- a/src/server/game/Spells/Auras/SpellAuraEffects.cpp
++++ b/src/server/game/Spells/Auras/SpellAuraEffects.cpp
+@@ -17,6 +17,7 @@
+ 
+ #include "SpellAuraEffects.h"
+ #include "../../../coa/AscensionFreePick.h"
++#include "Item.h"
+ #include "AreaDefines.h"
+ #include "BattlefieldMgr.h"
+ #include "Battleground.h"
+@@ -1175,6 +1176,16 @@
+ 
+ float AuraEffect::CalcPeriodicCritChance(Unit const* caster, Unit const* target) const
+ {
++    if (GetId() == 12721 && caster && AscensionFreePick::Applies(caster->ToPlayer()))
++    {
++        Player const* player = caster->ToPlayer();
++        Item* weapon = player->GetWeaponForAttack(BASE_ATTACK, true);
++        if (!target || !target->IsCreature() || target->GetCharmerOrOwnerPlayerOrPlayerItself() ||
++            !weapon || weapon->GetTemplate()->InventoryType != INVTYPE_2HWEAPON ||
++            player->GetWeaponForAttack(OFF_ATTACK, true))
++            return 0.0f;
++        return std::max(0.0f, caster->GetUnitCriticalChance(BASE_ATTACK, target));
++    }
+     float critChance = 0.0f;
+     if (caster)
+     {
+diff --git a/src/server/coa/AscensionMysticEnchant.cpp b/src/server/coa/AscensionMysticEnchant.cpp
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -61,6 +61,7 @@
+ #include "Area52CorruptedBear.inc"
+ #include "Area52CastMovement.inc"
+ #include "Area52Dependencies.inc"
++#include "Area52HopliteSupport.inc"
+ 
+ namespace AscensionMysticEnchant
+ {
+@@ -838,6 +839,11 @@
+ 
+ void AddSC_AscensionMysticEnchant()
+ {
++    RegisterSpellScript(spell_area52_hoplite_support_proc);
++    RegisterSpellScript(aura_area52_sweeping_swings);
++    RegisterSpellScript(spell_area52_sweeping_swings_damage);
++    new area52_relentless_finishers();
++    RegisterSpellScript(spell_area52_shattering_throw);
+     RegisterSpellScript(spell_area52_dependency_proc);
+     RegisterSpellScript(spell_area52_deep_freeze);
+     RegisterSpellScript(spell_area52_mana_barrier);
+diff --git a/src/server/coa/Area52HopliteSupportRules.h b/src/server/coa/Area52HopliteSupportRules.h
+new file mode 100644
+--- /dev/null
++++ b/src/server/coa/Area52HopliteSupportRules.h
+@@ -0,0 +1,41 @@
++#ifndef AREA52_HOPLITE_SUPPORT_RULES_H
++#define AREA52_HOPLITE_SUPPORT_RULES_H
++#include <cstdint>
++#include <algorithm>
++namespace Area52HopliteSupport
++{
++inline std::int32_t ExecuteExtraRage(bool freePick, std::int32_t cost, std::int32_t available)
++{
++    return std::min(std::max(0, (freePick ? 600 : 300) - cost), available);
++}
++inline float ExecuteAttackPower(bool freePick, float attackPower)
++{
++    return attackPower * (freePick ? 0.27f : 0.2f);
++}
++inline float RelentlessChance(float perPoint, std::uint32_t points)
++{
++    return std::clamp(perPoint * std::min(points, 5u), 0.0f, 100.0f);
++}
++inline float DeepWoundsTickPercent(bool freePick, std::uint32_t rank)
++{
++    return (freePick ? 11.0f : 16.0f) * rank / 6.0f;
++}
++inline bool Enrage(std::uint32_t aura, std::uint32_t root, bool ownerActor, bool damage,
++    bool belowHalf, bool periodic)
++{
++    if (periodic)
++        return false;
++    if (ownerActor)
++        return root == 2687 || root == 18499 || root == 1719;
++    return aura == 13048 && damage && belowHalf;
++}
++inline bool Honor(std::uint32_t aura, bool ownerActor, bool damage, bool periodic, bool hasSpell)
++{
++    return aura == 51701 && ownerActor && damage && !periodic && hasSpell;
++}
++inline bool Spartan(std::uint32_t root, bool ownerActor, bool playerTarget, bool stance)
++{
++    return root == 1766 && ownerActor && playerTarget && stance;
++}
++}
++#endif
+diff --git a/src/server/coa/Area52HopliteSupport.inc b/src/server/coa/Area52HopliteSupport.inc
+new file mode 100644
+--- /dev/null
++++ b/src/server/coa/Area52HopliteSupport.inc
+@@ -0,0 +1,183 @@
++#include "Area52HopliteSupportRules.h"
++
++class spell_area52_shattering_throw : public SpellScript
++{
++    PrepareSpellScript(spell_area52_shattering_throw);
++    bool Load() override { return AscensionFreePick::Applies(GetCaster()->ToPlayer()); }
++    bool Validate(SpellInfo const*) override { return ValidateSpellInfo({58567}); }
++    bool Removed = false;
++    bool Landed = false;
++    void Before(SpellMissInfo miss)
++    {
++        Unit* target = GetHitUnit();
++        if (!target || miss != SPELL_MISS_NONE)
++            return;
++        Landed = true;
++        uint64 const mask = uint64(1) << MECHANIC_IMMUNE_SHIELD;
++        for (auto const& pair : target->GetAppliedAuras())
++            if (pair.second->GetBase()->GetSpellInfo()->GetAllEffectsMechanicMask() & mask)
++            {
++                Removed = true;
++                break;
++            }
++        if (Removed)
++            target->RemoveAurasWithMechanic(mask, AURA_REMOVE_BY_ENEMY_SPELL);
++    }
++    void Hit()
++    {
++        if (!Landed || Removed || !GetHitUnit())
++            return;
++        GetCaster()->CastCustomSpell(58567, SPELLVALUE_AURA_STACK, 5, GetHitUnit(), true);
++        GetCaster()->ToPlayer()->ModifySpellCooldown(64382, -30000);
++    }
++    void Register() override
++    {
++        BeforeHit += BeforeSpellHitFn(spell_area52_shattering_throw::Before);
++        AfterHit += SpellHitFn(spell_area52_shattering_throw::Hit);
++    }
++};
++
++class area52_relentless_finishers : public AllSpellScript
++{
++public:
++    area52_relentless_finishers() : AllSpellScript("area52_relentless_finishers",
++        {ALLSPELLHOOK_ON_PREPARE, ALLSPELLHOOK_ON_HIT_RESULT}) { }
++
++    void OnSpellPrepare(Spell* spell, Unit* caster, SpellInfo const* info) override
++    {
++        if (!spell || spell->IsTriggered() ||
++            !AscensionFreePick::Applies(caster->ToPlayer()))
++            return;
++        if (info->GetFirstRankSpell()->Id == 20243)
++            if (Item* weapon = caster->ToPlayer()->GetWeaponForAttack(BASE_ATTACK, true))
++                if (weapon->GetTemplate()->InventoryType == INVTYPE_2HWEAPON)
++                    spell->SetScriptWeaponDamageMultiplier(0.8f);
++        if (!info->NeedsComboPoints())
++            return;
++        for (uint32 id : {58423, 58422, 14179})
++            if (Aura* aura = caster->GetAura(id))
++            {
++                spell->SetScriptValue(14179, uint32(Area52HopliteSupport::RelentlessChance(
++                    aura->GetSpellInfo()->Effects[EFFECT_0].PointsPerComboPoint, caster->GetComboPoints())));
++                spell->SetScriptValue(14180, id);
++                break;
++            }
++    }
++
++    void OnSpellHitResult(Spell* spell, Unit*, uint8 miss, uint32, uint32, bool) override
++    {
++        if (!spell || miss != SPELL_MISS_NONE || !AscensionFreePick::Applies(spell->GetCaster()->ToPlayer()))
++            return;
++        auto const chance = spell->GetScriptValue(14179);
++        spell->SetScriptValue(14179, 0);
++        AuraEffect const* source = spell->GetCaster()->GetAuraEffect(spell->GetScriptValue(14180), EFFECT_0);
++        if (source && chance && roll_chance_i(chance))
++        {
++            spell->GetCaster()->CastSpell(spell->GetCaster(), 14181, true, nullptr, source);
++            spell->GetCaster()->CastSpell(spell->GetCaster(), 14182, true, nullptr, source);
++        }
++    }
++};
++
++class spell_area52_hoplite_support_proc : public AuraScript
++{
++    PrepareAuraScript(spell_area52_hoplite_support_proc);
++
++    bool Load() override { return AscensionFreePick::Applies(GetUnitOwner()->ToPlayer()); }
++
++    bool Validate(SpellInfo const* info) override
++    {
++        auto const index = info->Id == 812297 ? EFFECT_2 : info->Id == 912326 ? EFFECT_1 : EFFECT_0;
++        return ValidateSpellInfo({info->Effects[index].TriggerSpell, 912328});
++    }
++
++    bool Check(ProcEventInfo& event)
++    {
++        Unit* owner = GetTarget();
++        Unit* target = event.GetActionTarget();
++        auto const* spell = event.GetSpellInfo();
++        uint32 const root = spell ? spell->GetFirstRankSpell()->Id : 0;
++        bool const actor = event.GetActor() == owner;
++        bool const damage = event.GetDamageInfo() && event.GetDamageInfo()->GetDamage();
++        bool const periodic = event.GetTypeMask() & (PROC_FLAG_DONE_PERIODIC | PROC_FLAG_TAKEN_PERIODIC);
++        switch (GetId())
++        {
++            case 812297:
++                return actor && root == 100;
++            case 912326:
++                return actor && damage && !periodic && spell && spell->DmgClass == SPELL_DAMAGE_CLASS_MELEE &&
++                    root != 26654 && root != 12723;
++            case 12317: case 13045: case 13046: case 13047: case 13048:
++                return Area52HopliteSupport::Enrage(GetId(), root, actor, damage,
++                    owner->HealthBelowPct(50), periodic);
++            case 51701:
++                return target && target != owner && owner->IsValidAttackTarget(target) &&
++                    Area52HopliteSupport::Honor(GetId(), actor, damage, periodic, spell != nullptr);
++            case 84445:
++                return Area52HopliteSupport::Spartan(root, actor, target && target->IsPlayer(),
++                    owner->HasAura(2457) || owner->HasAura(71) || owner->HasAura(997743));
++            default:
++                return false;
++        }
++    }
++
++    void Handle(AuraEffect const* effect, ProcEventInfo& event)
++    {
++        PreventDefaultAction();
++        if (GetId() == 912326)
++        {
++            GetTarget()->CastCustomSpell(912327, SPELLVALUE_BASE_POINT0, -1000, GetTarget(), true, nullptr, effect);
++            return;
++        }
++        Unit* target = GetId() == 51701 || GetId() == 84445 ? event.GetActionTarget() : GetTarget();
++        if (target)
++            GetTarget()->CastSpell(target, effect->GetSpellInfo()->Effects[effect->GetEffIndex()].TriggerSpell,
++                true, nullptr, effect);
++    }
++
++    void Register() override
++    {
++        DoCheckProc += AuraCheckProcFn(spell_area52_hoplite_support_proc::Check);
++        OnEffectProc += AuraEffectProcFn(spell_area52_hoplite_support_proc::Handle,
++            EFFECT_ALL, SPELL_AURA_PROC_TRIGGER_SPELL);
++    }
++};
++
++class aura_area52_sweeping_swings : public AuraScript
++{
++    PrepareAuraScript(aura_area52_sweeping_swings);
++    bool Load() override { return AscensionFreePick::Applies(GetUnitOwner()->ToPlayer()); }
++    bool Validate(SpellInfo const*) override { return ValidateSpellInfo({912328}); }
++    void Apply(AuraEffect const*, AuraEffectHandleModes)
++    {
++        if ((GetId() == 912326 && GetTarget()->HasAura(12328)) ||
++            (GetId() == 12328 && GetTarget()->HasAura(912326)))
++            GetTarget()->CastSpell(GetTarget(), 912328, true);
++    }
++    void Remove(AuraEffect const*, AuraEffectHandleModes)
++    {
++        GetTarget()->RemoveAurasDueToSpell(912328, GetTarget()->GetGUID());
++    }
++    void Register() override
++    {
++        AfterEffectApply += AuraEffectApplyFn(aura_area52_sweeping_swings::Apply,
++            EFFECT_0, SPELL_AURA_ANY, AURA_EFFECT_HANDLE_REAL);
++        AfterEffectRemove += AuraEffectRemoveFn(aura_area52_sweeping_swings::Remove,
++            EFFECT_0, SPELL_AURA_ANY, AURA_EFFECT_HANDLE_REAL);
++    }
++};
++
++class spell_area52_sweeping_swings_damage : public SpellScript
++{
++    PrepareSpellScript(spell_area52_sweeping_swings_damage);
++    bool Load() override { return AscensionFreePick::Applies(GetCaster()->ToPlayer()); }
++    void Hit()
++    {
++        if (GetHitUnit() && GetHitUnit()->IsCharmedOwnedByPlayerOrPlayer() && GetCaster()->HasAura(912326))
++            SetHitDamage(CalculatePct(GetHitDamage(), 75));
++    }
++    void Register() override
++    {
++        OnHit += SpellHitFn(spell_area52_sweeping_swings_damage::Hit);
++    }
++};
+diff --git a/data/sql/updates/pending_db_world/rev_20261010_00_area52_hoplite_support.sql b/data/sql/updates/pending_db_world/rev_20261010_00_area52_hoplite_support.sql
+new file mode 100644
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261010_00_area52_hoplite_support.sql
+@@ -0,0 +1,38 @@
++DELETE FROM `spell_script_names` WHERE `spell_id` IN (-12317, 12317, 13045, 13046, 13047, 13048) AND `ScriptName` = 'spell_gen_proc_from_direct_damage';
++DELETE FROM `spell_script_names` WHERE `spell_id` IN (-51698, 51698, 51700, 51701) AND `ScriptName` = 'spell_rog_honor_among_thieves';
++DELETE FROM `spell_script_names` WHERE `ScriptName` = 'spell_area52_hoplite_support_proc';
++DELETE FROM `spell_script_names` WHERE `ScriptName` = 'aura_area52_sweeping_swings';
++DELETE FROM `spell_script_names` WHERE `ScriptName` = 'spell_area52_shattering_throw';
++DELETE FROM `spell_script_names` WHERE `ScriptName` = 'spell_area52_sweeping_swings_damage';
++DELETE FROM `spell_script_names` WHERE `spell_id` = 64380 AND `ScriptName` = 'spell_warr_shattering_throw';
++INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
++(12317, 'spell_area52_hoplite_support_proc'),
++(13045, 'spell_area52_hoplite_support_proc'),
++(13046, 'spell_area52_hoplite_support_proc'),
++(13047, 'spell_area52_hoplite_support_proc'),
++(13048, 'spell_area52_hoplite_support_proc'),
++(51701, 'spell_area52_hoplite_support_proc'),
++(84445, 'spell_area52_hoplite_support_proc'),
++(812297, 'spell_area52_hoplite_support_proc'),
++(912326, 'spell_area52_hoplite_support_proc'),
++(912326, 'aura_area52_sweeping_swings'),
++(64380, 'spell_area52_shattering_throw'),
++(12328, 'aura_area52_sweeping_swings'),
++(997604, 'spell_area52_sweeping_swings_damage');
++DELETE FROM `spell_proc` WHERE `SpellId` IN (-12317, 12317, 13045, 13046, 13047, 13048, -51698, 51698, 51700, 51701, -84445, 84445);
++DELETE FROM `spell_proc` WHERE `SpellId` IN (-812297, 812297);
++DELETE FROM `spell_proc` WHERE `SpellId` IN (-912326, 912326);
++DELETE FROM `spell_proc` WHERE `SpellId` IN (-12834, 12834, 12849, 12867);
++INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `ProcFlags`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
++(12317, 0, 0, 0, 0, 0, 17408, 7, 2, 0, 0, 0, 0, 100, 5000, 0),
++(13045, 0, 0, 0, 0, 0, 17408, 7, 2, 0, 0, 0, 0, 100, 5000, 0),
++(13046, 0, 0, 0, 0, 0, 17408, 7, 2, 0, 0, 0, 0, 100, 5000, 0),
++(13047, 0, 0, 0, 0, 0, 17408, 7, 2, 0, 0, 0, 0, 100, 5000, 0),
++(13048, 0, 0, 0, 0, 0, 157352, 7, 2, 0, 0, 0, 0, 100, 5000, 0),
++(51701, 0, 0, 0, 0, 0, 69904, 1, 2, 0, 0, 6, 0, 100, 3000, 0),
++(84445, 0, 0, 0, 0, 0, 69648, 7, 2, 0, 0, 0, 0, 100, 20000, 0),
++(812297, 0, 0, 0, 0, 0, 69648, 7, 2, 0, 0, 3, 0, 100, 0, 0),
++(912326, 0, 0, 0, 0, 0, 16, 1, 2, 0, 0, 5, 0, 100, 1000, 0),
++(12834, 0, 0, 0, 0, 0, 20, 1, 2, 2, 0, 0, 0, 100, 0, 0),
++(12849, 0, 0, 0, 0, 0, 20, 1, 2, 2, 0, 0, 0, 100, 0, 0),
++(12867, 0, 0, 0, 0, 0, 20, 1, 2, 2, 0, 0, 0, 100, 0, 0);
+diff --git a/apps/coa-tests/area52_hoplite_support/run.py b/apps/coa-tests/area52_hoplite_support/run.py
+new file mode 100644
+--- /dev/null
++++ b/apps/coa-tests/area52_hoplite_support/run.py
+@@ -0,0 +1,59 @@
++from pathlib import Path
++import os
++import shutil
++import subprocess
++import tempfile
++
++root = Path(__file__).resolve().parents[3]
++compiler = shutil.which(os.environ.get('CXX', 'c++'))
++if not compiler:
++    raise SystemExit('C++20 compiler unavailable')
++source = r'''
++#include "Area52HopliteSupportRules.h"
++#include <cassert>
++int main()
++{
++    using namespace Area52HopliteSupport;
++    assert(ExecuteExtraRage(true, 150, 850) == 450);
++    assert(ExecuteExtraRage(false, 150, 850) == 150);
++    assert(ExecuteExtraRage(true, 150, 80) == 80);
++    assert(ExecuteExtraRage(true, 700, 800) == 0);
++    assert(int(ExecuteAttackPower(true, 1000)) == 270);
++    assert(int(ExecuteAttackPower(false, 1000)) == 200);
++    assert(RelentlessChance(7, 1) == 7);
++    assert(RelentlessChance(7, 5) == 35);
++    assert(RelentlessChance(14, 5) == 70);
++    assert(RelentlessChance(20, 5) == 100);
++    assert(RelentlessChance(20, 0) == 0);
++    assert(RelentlessChance(20, 10) == 100);
++    assert(DeepWoundsTickPercent(true, 3) == 5.5f);
++    assert(DeepWoundsTickPercent(false, 3) == 8.0f);
++    for (auto aura : {12317, 13045, 13046, 13047, 13048})
++        for (auto root : {2687, 18499, 1719})
++            assert(Enrage(aura, root, true, false, false, false));
++    assert(!Enrage(12317, 78, true, true, false, false));
++    assert(!Enrage(12317, 0, false, true, true, false));
++    assert(Enrage(13048, 0, false, true, true, false));
++    assert(!Enrage(13048, 0, false, true, false, false));
++    assert(!Enrage(13048, 0, false, true, true, true));
++    assert(Honor(51701, true, true, false, true));
++    assert(!Honor(51700, true, true, false, true));
++    assert(!Honor(51701, false, true, false, true));
++    assert(!Honor(51701, true, false, false, true));
++    assert(!Honor(51701, true, true, true, true));
++    assert(!Honor(51701, true, true, false, false));
++    assert(Spartan(1766, true, true, true));
++    assert(!Spartan(1752, true, true, true));
++    assert(!Spartan(1766, false, true, true));
++    assert(!Spartan(1766, true, false, true));
++    assert(!Spartan(1766, true, true, false));
++}
++'''
++source = '#include <initializer_list>\n' + source
++with tempfile.TemporaryDirectory() as tmp:
++    p = Path(tmp)
++    (p / 'test.cpp').write_text(source)
++    subprocess.run([compiler, '-std=c++20', '-Wall', '-Wextra', '-Werror',
++                    '-I' + str(root / 'src/server/coa'), str(p / 'test.cpp'), '-o', str(p / 'test')], check=True)
++    subprocess.run([str(p / 'test')], check=True)
++print('Enrage sources/capstone, Honor direct-damage boundary and Spartan player/stance filters passed.')
+diff --git a/apps/coa-tests/area52_hoplite_sql/run.py b/apps/coa-tests/area52_hoplite_sql/run.py
+new file mode 100644
+--- /dev/null
++++ b/apps/coa-tests/area52_hoplite_sql/run.py
+@@ -0,0 +1,19 @@
++from pathlib import Path
++import os,subprocess
++root=Path(__file__).resolve().parents[3]
++migration=(root/'data/sql/updates/pending_db_world/rev_20261010_00_area52_hoplite_support.sql').read_text()
++prefix=[]
++for table in ('spell_proc','spell_script_names'):
++    prefix.extend((f'CREATE TEMPORARY TABLE `{table}_copy` AS SELECT * FROM `{table}`;',
++                   f'CREATE TEMPORARY TABLE `{table}` LIKE `{table}_copy`;',
++                   f'INSERT INTO `{table}` SELECT * FROM `{table}_copy`;'))
++query='SELECT SpellId,ProcFlags,Chance,Cooldown FROM spell_proc WHERE SpellId IN (12834,12849,12867,51701,84445,912326) ORDER BY SpellId;'
++sql='\n'.join(prefix)+'\n'+migration+'\n'+query+'\n'+migration+'\n'+query
++command=(['wsl','-d','dml-arch','-u','root','--'] if os.name=='nt' else [])+['docker','exec','-i','ascension-freepick-database','mysql','--defaults-extra-file=/run/secrets/mysql-root.cnf','-BN','acore_world']
++lines=subprocess.check_output(command,input=sql.encode()).decode().splitlines()
++assert len(lines)==12,lines
++assert lines[:6]==lines[6:],lines
++assert '51701\t69904\t100\t3000' in lines,lines
++assert '84445\t69648\t100\t20000' in lines,lines
++print('Migration applied twice to connection-local temporary copies; no live table writes; proc values stable.')
++
+diff --git a/apps/coa-tests/area52_hoplite_build_review/run.py b/apps/coa-tests/area52_hoplite_build_review/run.py
+new file mode 100644
+--- /dev/null
++++ b/apps/coa-tests/area52_hoplite_build_review/run.py
+@@ -0,0 +1,61 @@
++from pathlib import Path
++import json,struct,sys
++
++root=Path(__file__).resolve().parents[3]
++p=root.parent/'Area52_Hoplite_Build_Audit'
++data=json.loads((p/'full-catalog-activation/effective.json').read_text())
++spells={int(s['id']):s for s in data['spells']}
++decisions=json.loads((p/'decisions.json').read_text())
++for entry in decisions['entries']:
++    assert not entry['missing'],(entry['name'],entry['missing'])
++    assert not entry['binding_errors'],(entry['name'],entry['binding_errors'])
++    for spell in entry['movement']:
++        if spell['id']=='901200':
++            assert spell['channel']=='true'
++            assert any(e['aura']=='33' and int(e['base_points'])==-26 for e in spells[901200]['effects'])
++            continue
++        if spell['channel']=='true':
++            assert int(spell['channel_interrupt']) & 8,spell
++        elif int(spell['cast_ms'])>0:
++            assert int(spell['interrupt']) & 8,spell
++for sid in (12317,13045,13046,13047,13048,51701,84445,812297,912326):
++    assert 'spell_area52_hoplite_support_proc' in spells[sid]['scripts'],sid
++assert 'spell_area52_shattering_throw' in spells[64380]['scripts']
++assert 'spell_warr_shattering_throw' not in spells[64380]['scripts']
++assert 'aura_area52_sweeping_swings' in spells[12328]['scripts']
++assert 'spell_area52_sweeping_swings_damage' in spells[997604]['scripts']
++for sid,cooldown in ((12317,5000),(13048,5000),(51701,3000),(84445,20000),(912326,1000)):
++    assert int(spells[sid]['proc']['Cooldown'])==cooldown
++assert int(spells[51701]['proc']['HitMask'])==0
++for sid in (12834,12849,12867):
++    assert int(spells[sid]['proc']['ProcFlags'])==20
++    assert int(spells[sid]['proc']['HitMask'])==2
++sys.path.insert(0,str(root.parents[1]/'work/github-upload/tools'))
++from lib.mpq import MPQArchive
++client=Path('D:/DML WOTLK Client Side/Ascension A52 Free Pick/ascension-live/ascension-live/Data/area-52/patch-D.MPQ')
++with MPQArchive(client) as archive:raw=archive.read_file('DBFilesClient\\SpellRank.dbc')
++_,count,fields,size,_=struct.unpack_from('<4s4I',raw)
++groups={}
++for i in range(count):
++    row=struct.unpack_from('<4I',raw,20+i*size)
++    groups.setdefault(row[1],[]).append((row[3],row[2]))
++covered={sid for entry in decisions['entries'] for sid in entry['closure']}
++checked=[];mismatches=[];stacked=[]
++mystics={e["id"] for e in decisions["entries"] if e["kind"]=="mystic"}
++for group,values in groups.items():
++    chain=[sid for _,sid in sorted(values)]
++    if len(chain)<2 or not set(chain)&covered:continue
++    if chain[0] in mystics:
++        source=spells[chain[0]]
++        assert source["passive"]=="true" and int(source["stack_amount"])==3
++        stacked.append(group)
++        continue
++    actual=[];sid=chain[0];seen=set()
++    while sid and sid not in seen:
++        seen.add(sid);actual.append(sid)
++        sid=next((int(e['target']) for e in spells.get(sid,{}).get('edges',[]) or [] if e['kind']=='next_rank'),0)
++    if actual!=chain:mismatches.append({'group':group,'client':chain,'server':actual})
++    else:checked.append(group)
++(p/'rank-parity.json').write_text(json.dumps({'matched_groups':checked,'stackable_enchant_groups_not_book_ranks':stacked,'mismatches':mismatches},indent=2))
++assert not mismatches,mismatches
++print('Hoplite closure, native bindings, proc filters, movement flags and client/server rank groups passed.')
+diff --git a/apps/coa-tests/area52_hoplite_client/run.py b/apps/coa-tests/area52_hoplite_client/run.py
+new file mode 100644
+--- /dev/null
++++ b/apps/coa-tests/area52_hoplite_client/run.py
+@@ -0,0 +1,34 @@
++from pathlib import Path
++import json,struct,sys,hashlib
++root=Path(__file__).resolve().parents[3]
++p=root.parent/'Area52_Hoplite_Build_Audit'
++sys.path.insert(0,str(root.parents[1]/'work/github-upload/tools'))
++from lib.mpq import MPQArchive
++stage=json.loads((p/'client-stage.json').read_text())
++client=Path('D:/DML WOTLK Client Side/Ascension A52 Free Pick/ascension-live/ascension-live/Data/area-52/patch-D.MPQ')
++assert hashlib.sha256(client.read_bytes()).hexdigest()==stage['baseline_sha256']
++def files(path):
++    with MPQArchive(path) as archive:
++        return {n:archive.read_file(n) for n in archive.read_file('(listfile)').decode().splitlines() if n and n.lower() not in ('(listfile)','(attributes)','(signature)')}
++a,b=files(client),files(p/'patch-D.MPQ')
++assert a.keys()==b.keys()
++key='DBFilesClient\\Spell.dbc'
++for name in a:
++    if name!=key:assert a[name]==b[name],name
++old,new=a[key],b[key]
++_,count,fields,size,_=struct.unpack_from('<4s4I',old)
++assert old[:16]==new[:16]
++seen=[]
++def text(raw,row):
++    offset=struct.unpack_from('<I',row,680)[0]+20+count*size
++    return raw[offset:raw.find(b'\0',offset)]
++for i in range(count):
++    start=20+i*size;x=old[start:start+size];y=new[start:start+size]
++    assert x[:680]==y[:680] and x[684:]==y[684:]
++    before,after=text(old,x),text(new,y)
++    if before!=after:
++        sid=struct.unpack_from('<I',x)[0];seen.append(sid)
++        assert after==before.replace(b'|cffff0000NOT VERIFIED|r',b'|cffffff00VERIFIED|r'),sid
++assert sorted(seen)==sorted(stage['changed_tooltips'])
++assert seen
++print(f'{len(seen)} labels verified; original tooltip/SHIFT content and all other archive files unchanged.')

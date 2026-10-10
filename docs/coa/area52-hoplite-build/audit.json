@@ -1,0 +1,545 @@
+{
+  "state": "staged_not_activated",
+  "catalog_counts": {
+    "VERIFIED": 67,
+    "NOT VERIFIED": 4
+  },
+  "newly_verified": 26,
+  "references": {
+    "upstream": "0facf53ae0a68369bfaac845a51a0b369c71777b",
+    "ptr": "826c9ee207313c0dafcc7b4b9ad37d655b4723d2",
+    "fallback_cache_reviewed": "3b42472af59df17c6bf05e4d2a4c4f5f2b089fe0",
+    "fallback_cache_remote": "2aa98857e45b03865120eaf1390744ee27b178b0"
+  },
+  "entries": [
+    {
+      "kind": "advancement",
+      "id": 2778,
+      "name": "Sinister Strike",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 1363,
+      "name": "Stance Mastery",
+      "result": "VERIFIED",
+      "reason": "Stance Mastery uses connected Advancement selections, native one-point costs and mastery rarity exemption."
+    },
+    {
+      "kind": "advancement",
+      "id": 2806,
+      "name": "Battle Stance",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 3459,
+      "name": "Devastate",
+      "result": "VERIFIED",
+      "reason": "Native Sunder/rank chain retained; two-handed weapon component scaled to 80% without scaling the flat Sunder bonus."
+    },
+    {
+      "kind": "advancement",
+      "id": 1369,
+      "name": "Blessing Mastery",
+      "result": "VERIFIED",
+      "reason": "Blessing Mastery uses connected Advancement selections, native one-point costs and mastery rarity exemption."
+    },
+    {
+      "kind": "advancement",
+      "id": 2937,
+      "name": "Blessing of Might",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 1118,
+      "name": "Relentless Strikes",
+      "result": "VERIFIED",
+      "reason": "Finisher combo points captured before consumption; one rank-dependent 7/14/20% roll per point on successful resolution; energy and five-second armor helper retain source ownership."
+    },
+    {
+      "kind": "advancement",
+      "id": 2661,
+      "name": "Heroic Strike",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 481,
+      "name": "Improved Sinister Strike",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 3044,
+      "name": "Tame Beast Abilities",
+      "result": "VERIFIED",
+      "reason": "Six linked pet abilities are durably granted by selection; Revive/Dismiss cast interruption and Tame channel interruption checked."
+    },
+    {
+      "kind": "advancement",
+      "id": 1123,
+      "name": "Armored to the Teeth",
+      "result": "VERIFIED",
+      "reason": "Native armor-to-attack-power aura divides armor by 150/75/50 for the three ranks and updates with armor changes."
+    },
+    {
+      "kind": "advancement",
+      "id": 2813,
+      "name": "Bloodrage",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 2996,
+      "name": "Victory Rush",
+      "result": "VERIFIED",
+      "reason": "Existing Area 52 kill eligibility, attack/spell-power damage and 10% PvE/8% PvP maximum-health heal handlers retained."
+    },
+    {
+      "kind": "advancement",
+      "id": 436,
+      "name": "Deep Wounds",
+      "result": "VERIFIED",
+      "reason": "Melee critical proc filter; 11/22/33% average weapon damage across six ticks; periodic criticals restricted to monsters while a single two-handed weapon is equipped."
+    },
+    {
+      "kind": "advancement",
+      "id": 2952,
+      "name": "Blessing of Kings",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 590,
+      "name": "Impale",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 2779,
+      "name": "Kick",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 451,
+      "name": "Anger Management",
+      "result": "VERIFIED",
+      "reason": "Native percentage rage ticks and Charge modifier retained; final-rank Charge damage-reduction helper connected."
+    },
+    {
+      "kind": "advancement",
+      "id": 450,
+      "name": "Two-Handed Weapon Specialization",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 466,
+      "name": "Enrage",
+      "result": "VERIFIED",
+      "reason": "Bloodrage/Berserker Rage/Recklessness sources connected for all ranks; final-rank incoming direct damage below 50% health; five-second cooldown."
+    },
+    {
+      "kind": "advancement",
+      "id": 2907,
+      "name": "Windfury Weapon",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 1315,
+      "name": "Weapon Enhancement Mastery",
+      "result": "VERIFIED",
+      "reason": "Weapon Enhancement Mastery uses connected Advancement selections and native cost rules."
+    },
+    {
+      "kind": "advancement",
+      "id": 2954,
+      "name": "Intercept",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 3100,
+      "name": "Sweeping Strikes",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 1317,
+      "name": "Air Totem Mastery",
+      "result": "VERIFIED",
+      "reason": "Air Totem Mastery uses connected Advancement selections and native cost rules."
+    },
+    {
+      "kind": "advancement",
+      "id": 2908,
+      "name": "Windfury Totem",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 3126,
+      "name": "Death Wish",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 1137,
+      "name": "Dance of Death",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 1186,
+      "name": "Heroic Leap",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 1187,
+      "name": "Colossus Smash",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 446,
+      "name": "Poleaxe Specialization",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 733,
+      "name": "Two-Handed Weapon Specialization",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 2875,
+      "name": "Pummel",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 1616,
+      "name": "Siegebreaker",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 1105,
+      "name": "Hunter vs. Wild",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 2965,
+      "name": "Shield Slam",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 3367,
+      "name": "Trueshot Aura",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 582,
+      "name": "Elemental Weapons",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 1313,
+      "name": "Hunter Aspect Mastery",
+      "result": "VERIFIED",
+      "reason": "Hunter Aspect Mastery uses connected Advancement selections and native cost rules."
+    },
+    {
+      "kind": "advancement",
+      "id": 2921,
+      "name": "Aspect of the Beast",
+      "result": "VERIFIED",
+      "reason": "Native untrackable/attack-power aura and pet application/removal handler retained."
+    },
+    {
+      "kind": "advancement",
+      "id": 838,
+      "name": "Blade Twisting",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 3453,
+      "name": "Rampage",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 1056,
+      "name": "Honor Among Thieves",
+      "result": "VERIFIED",
+      "reason": "Final-rank direct spell/ability damage awards one combo point; normal hits allowed, periodic and auto attacks excluded; three-second helper cooldown."
+    },
+    {
+      "kind": "advancement",
+      "id": 3549,
+      "name": "Pain Suppression",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 467,
+      "name": "Shredding Blows",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 2696,
+      "name": "Water Walking",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 2866,
+      "name": "Far Sight",
+      "result": "VERIFIED",
+      "reason": "Native far-sight viewpoint creation and aura; both cast and channel movement interruption present."
+    },
+    {
+      "kind": "advancement",
+      "id": 835,
+      "name": "Deadliness",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 3618,
+      "name": "Bladestorm",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 3036,
+      "name": "Shattering Throw",
+      "result": "VERIFIED",
+      "reason": "Existing linked invulnerability helper retained as entry point; removed immunity suppresses fallback, otherwise five Sunder stacks and thirty-second cooldown reduction."
+    },
+    {
+      "kind": "advancement",
+      "id": 3702,
+      "name": "Hunger For Blood",
+      "result": "NOT VERIFIED",
+      "reason": "Hunger for Blood: stock helper does not implement own-bleed duration, five-second speed scaling or the full 10% PvE/5% PvP damage contract. Upstream Reborn handler has a different fixed-duration contract; no safe direct port."
+    },
+    {
+      "kind": "advancement",
+      "id": 1110,
+      "name": "Unending Fury",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 2834,
+      "name": "Wrath of Air Totem",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 460,
+      "name": "Gag Order",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 2670,
+      "name": "Water Breathing",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 2851,
+      "name": "Execute",
+      "result": "VERIFIED",
+      "reason": "All Execute ranks retain the native damage helper and rage handling; Area 52 uses sixty-rage total cap and 27% attack power."
+    },
+    {
+      "kind": "advancement",
+      "id": 1368,
+      "name": "Shout Mastery",
+      "result": "VERIFIED",
+      "reason": "Shout Mastery uses connected Advancement selections and native cost rules."
+    },
+    {
+      "kind": "advancement",
+      "id": 2757,
+      "name": "Demoralizing Shout",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 511,
+      "name": "Seal Fate",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 2689,
+      "name": "Commanding Shout",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    },
+    {
+      "kind": "advancement",
+      "id": 2998,
+      "name": "Misdirection",
+      "result": "VERIFIED",
+      "reason": "Native threat redirect, first-event proc helper, removal cleanup and target fatigue spell retained."
+    },
+    {
+      "kind": "advancement",
+      "id": 2816,
+      "name": "Bloodlust",
+      "result": "VERIFIED",
+      "reason": "Native melee/ranged/casting haste, raid targets, Sated exclusion and application script retained."
+    },
+    {
+      "kind": "mystic",
+      "id": 947294,
+      "name": "Critical Block",
+      "result": "NOT VERIFIED",
+      "reason": "Critical Block: Shield Slam modifier exists, but the Critical Block talent damage-reduction interaction needs its underlying handler traced and repaired before promotion."
+    },
+    {
+      "kind": "mystic",
+      "id": 782246,
+      "name": "Draconic Sinister Strike",
+      "result": "NOT VERIFIED",
+      "reason": "Draconic Sinister Strike: recovered source is modifier-only; Draconic Power helper/shared Worldforged cooldown are present, but no corroborated proc probability/trigger implementation was found."
+    },
+    {
+      "kind": "mystic",
+      "id": 946908,
+      "name": "Intensify Rage",
+      "result": "VERIFIED",
+      "reason": "Native stacking ten-percent cooldown modifier with Bloodrage/Recklessness/Death Wish family mask."
+    },
+    {
+      "kind": "mystic",
+      "id": 912700,
+      "name": "Poleaxe Specialization",
+      "result": "VERIFIED",
+      "reason": "Native axe/polearm equipment mask, weapon critical chance and physical critical damage auras; three stacks supported."
+    },
+    {
+      "kind": "mystic",
+      "id": 918427,
+      "name": "Aggression",
+      "result": "VERIFIED",
+      "reason": "Native stacking critical-chance spell modifier and named Rogue source masks; instant/passive, no granted spellbook rank."
+    },
+    {
+      "kind": "mystic",
+      "id": 912326,
+      "name": "Sweeping Swings",
+      "result": "VERIFIED",
+      "reason": "Uses Area 52 five-target Sweeping Strike including primary target; one-second melee-hit cooldown reduction, paired critical aura and player damage modifier wired."
+    },
+    {
+      "kind": "mystic",
+      "id": 979187,
+      "name": "Wind Slam",
+      "result": "NOT VERIFIED",
+      "reason": "Wind Slam: source/buff/helpers exist, but consumption filters, shield-only slow, Windfury chance modifier lifetime and replacement-ability interactions remain unresolved."
+    },
+    {
+      "kind": "mystic",
+      "id": 84445,
+      "name": "Spartan Kick",
+      "result": "VERIFIED",
+      "reason": "Kick ranks trigger native player knockback only in Battle/Defensive/Phalanx stance, with twenty-second cooldown."
+    },
+    {
+      "kind": "mystic",
+      "id": 978217,
+      "name": "Hoplite",
+      "result": "VERIFIED",
+      "reason": "Previously reviewed entry; effective dependency closure rechecked for missing spells, bindings and movement flags."
+    }
+  ],
+  "movement_exception": {
+    "spell": 901200,
+    "reason": "Recovered Flurry of Spears tooltip explicitly slows movement during its three-second channel. Native effect 2 is a 25% movement slow; channel remains mobile."
+  },
+  "rank_parity": {
+    "matched_groups": [
+      78,
+      469,
+      1160,
+      1752,
+      5308,
+      8232,
+      12162,
+      12966,
+      19740,
+      20217,
+      20243,
+      20253,
+      23922,
+      86361,
+      954876,
+      978533,
+      978569,
+      982250
+    ],
+    "stackable_enchant_groups_not_book_ranks": [
+      918427,
+      946908,
+      947294
+    ],
+    "mismatches": []
+  }
+}

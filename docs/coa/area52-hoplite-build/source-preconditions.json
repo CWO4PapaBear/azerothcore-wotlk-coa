@@ -1,0 +1,42 @@
+{
+  "src/server/scripts/Spells/spell_warrior.cpp": {
+    "before_sha256": "349a311e961b22b0f621a44c84407f35c35b694ac60fa4c0a40ddcaee53ee36d",
+    "after_sha256": "2a80eba2c04d346b0d2a64f416c1131ee082267ed8f3a1e1a1ec5d973ff0484a"
+  },
+  "src/server/game/Spells/Auras/SpellAuraEffects.cpp": {
+    "before_sha256": "6f74d8a0f122d31768aa6e08749492a367eee5360579e925e16081acf921b4f4",
+    "after_sha256": "5f1999cbc79578fe6758b8c3dac4a71fe41991c75ce291f5e2abee49258732c1"
+  },
+  "src/server/coa/AscensionMysticEnchant.cpp": {
+    "before_sha256": "69f53517ac731e3b8f5452f01d33a2d5739d6977dfd75bbdb1e1c1f6337e0d01",
+    "after_sha256": "bdc736ae710b9795eb0f264e843b5332dbe202ca95a4009721c8961cceeaa380"
+  },
+  "src/server/coa/Area52HopliteSupportRules.h": {
+    "before_sha256": null,
+    "after_sha256": "ab7825e00dbcc8e051c7b67f4f1ee8fe268fc01141df3f54fec34a52c24a2642"
+  },
+  "src/server/coa/Area52HopliteSupport.inc": {
+    "before_sha256": null,
+    "after_sha256": "a6bb189cfed94ca35b1f3767515abb7d299852d98b6d2665327488a0d6755363"
+  },
+  "data/sql/updates/pending_db_world/rev_20261010_00_area52_hoplite_support.sql": {
+    "before_sha256": null,
+    "after_sha256": "a314cbbe76e542ecdd966a2c47eaa7c2053562751591eb34bb563bacbca59bae"
+  },
+  "apps/coa-tests/area52_hoplite_support/run.py": {
+    "before_sha256": null,
+    "after_sha256": "ce20e1370e54e144754f52f3465ab9296ad77a8252a023e03814e77585aed63c"
+  },
+  "apps/coa-tests/area52_hoplite_sql/run.py": {
+    "before_sha256": null,
+    "after_sha256": "32ebefe909abeb52b4bbf39cffcf38e226d8ac70c9264e837de573a378504d91"
+  },
+  "apps/coa-tests/area52_hoplite_build_review/run.py": {
+    "before_sha256": null,
+    "after_sha256": "74cf4f98675ea2a8eb97a598485b4c42d19acf281adfae26b233b9343fb9f17f"
+  },
+  "apps/coa-tests/area52_hoplite_client/run.py": {
+    "before_sha256": null,
+    "after_sha256": "e3a353ec6ce1d460df8569906354dc807a841b122f7cc0a5424f5f55986b2517"
+  }
+}
