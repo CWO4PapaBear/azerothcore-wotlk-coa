@@ -1,0 +1,22 @@
+{
+  "src/server/coa/Area52Certification.cpp": {
+    "before": "b1d066faf7780753f97440e1f85fde6233ab3240e8712de0c25af5b0075e3cd4",
+    "after": "c0c6fa77b27bef23e0cf15001a2c2eaa14b3352f91702a140594cbd0955dc4d1"
+  },
+  "src/server/coa/Area52CertificationRules.h": {
+    "before": "4a8db9bad6089c2e948b63fd358499ea0e6a4c7220f2e4e6a5ac69e0a8e828aa",
+    "after": "b782ec20c8c9f9d494c90eaaaab6502ad4c4d1f21ae8520a26103e2366cfdf77"
+  },
+  "src/server/database/Database/Implementation/CharacterDatabase.cpp": {
+    "before": "43e78569ac3845d2418f0453de6dbe0891ecc196a42a6431bd74d40fb2d0c777",
+    "after": "e89837defaf26a65ab3f2e25f14cf9672769dec3c262ec6fab42836b5f783531"
+  },
+  "apps/coa-tests/area52_certification/run.py": {
+    "before": "2c2c6e5c00f1544be86cc7b892cee70a72eb3d08d750ca79262d3351edd72701",
+    "after": "a6cff6733f3efb3f2f3e9d652492a6045b025d5fe4677e99256d553b1a8cce9d"
+  },
+  "apps/coa-tests/area52_certification_leaderboard/run.py": {
+    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "after": "636a4408d58d87b7c78a4daeb494a92597afe8c95a7265bb2eb68f2ff9bcf57b"
+  }
+}

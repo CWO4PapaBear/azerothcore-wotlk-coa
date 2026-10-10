@@ -1,0 +1,236 @@
+--- a/src/server/coa/Area52Certification.cpp
++++ b/src/server/coa/Area52Certification.cpp
+@@ -21,6 +21,7 @@
+ namespace
+ {
+ std::map<std::uint32_t, bool> Entries;
++std::map<std::uint32_t, TesterScore> Scores;
+ std::map<std::uint32_t, std::chrono::steady_clock::time_point> Requests;
+ std::mutex Mutex;
+ bool Active = false;
+@@ -63,6 +64,21 @@
+         LOG_ERROR("coa", "Area 52 certification reward transaction failed for account {}", account);
+ }
+ 
++void SendLeaderboard(Player* player, std::uint32_t requestedPage)
++{
++    auto const rows = Leaderboard(Scores);
++    auto const pages = std::max<std::size_t>(1, (rows.size() + 9) / 10);
++    auto const page = std::min<std::size_t>(requestedPage, pages);
++    Send(player, "LB|" + std::to_string(page) + "|" + std::to_string(pages) + "|" + std::to_string(rows.size()));
++    for (auto i = (page - 1) * 10; i < std::min(page * 10, rows.size()); ++i)
++    {
++        auto const& row = rows[i];
++        Send(player, "LR|" + std::to_string(row.Rank) + "|" + row.Name + "|" + std::to_string(row.Total) +
++            "|" + (row.Account == player->GetSession()->GetAccountId() ? "1" : "0"));
++    }
++    Send(player, "LE");
++}
++
+ void Snapshot(Player* player)
+ {
+     Send(player, "BEGIN");
+@@ -108,7 +124,9 @@
+             if (auto result = CharacterDatabase.Query(statement))
+                 do
+                 {
+-                    auto found = Entries.find(result->Fetch()[0].Get<std::uint32_t>());
++                    auto const fields = result->Fetch();
++                    Credit(Scores, fields[1].Get<std::uint32_t>(), fields[2].Get<std::string>());
++                    auto found = Entries.find(fields[0].Get<std::uint32_t>());
+                     if (found != Entries.end())
+                         found->second = true;
+                 } while (result->NextRow());
+@@ -161,6 +179,11 @@
+         if (payload == "SYNC")
+         {
+             Snapshot(player);
++            return false;
++        }
++        if (auto const page = ParseLeaderboardPage(payload))
++        {
++            SendLeaderboard(player, page);
+             return false;
+         }
+         auto const id = ParseConfirmation(payload);
+@@ -181,11 +204,13 @@
+             CharacterDatabase.DirectExecute(insert);
+             auto* select = CharacterDatabase.GetPreparedStatement(CHAR_SEL_A52_CERTIFICATION);
+             select->SetData(0, id);
+-            if (!CharacterDatabase.Query(select))
++            auto saved = CharacterDatabase.Query(select);
++            if (!saved)
+             {
+                 Send(player, "ERROR|Certification could not be saved. Please try again.");
+                 return false;
+             }
++            Credit(Scores, saved->Fetch()[1].Get<std::uint32_t>(), saved->Fetch()[2].Get<std::string>());
+             entry->second = true;
+             for (auto const& [sessionId, session] : sWorldSessionMgr->GetAllSessions())
+                 if (auto* online = session->GetPlayer(); online && online->IsInWorld() &&
+--- a/src/server/coa/Area52CertificationRules.h
++++ b/src/server/coa/Area52CertificationRules.h
+@@ -8,11 +8,53 @@
+ #include <stdexcept>
+ #include <string>
+ #include <string_view>
++#include <algorithm>
++#include <vector>
+ 
+ namespace Area52Certification
+ {
+ inline constexpr std::uint32_t MysticEntryMask = 0x80000000u;
+ inline constexpr std::string_view Prefix = "A52CERT\t";
++
++struct TesterScore
++{
++    std::uint32_t Account = 0;
++    std::string Name;
++    std::uint32_t Total = 0;
++    std::uint32_t Rank = 0;
++};
++
++inline void Credit(std::map<std::uint32_t, TesterScore>& scores, std::uint32_t account, std::string name)
++{
++    auto& score = scores[account];
++    score.Account = account;
++    score.Name = std::move(name);
++    ++score.Total;
++}
++
++inline std::vector<TesterScore> Leaderboard(std::map<std::uint32_t, TesterScore> const& scores)
++{
++    std::vector<TesterScore> result;
++    for (auto const& [account, score] : scores)
++        result.push_back(score);
++    std::sort(result.begin(), result.end(), [](auto const& left, auto const& right)
++    {
++        return left.Total != right.Total ? left.Total > right.Total : left.Account < right.Account;
++    });
++    for (std::size_t i = 0; i < result.size(); ++i)
++        result[i].Rank = i && result[i].Total == result[i - 1].Total ? result[i - 1].Rank : i + 1;
++    return result;
++}
++
++inline std::uint32_t ParseLeaderboardPage(std::string_view payload)
++{
++    if (!payload.starts_with("L|"))
++        return 0;
++    payload.remove_prefix(2);
++    std::uint32_t page = 0;
++    auto const [end, error] = std::from_chars(payload.data(), payload.data() + payload.size(), page);
++    return error == std::errc{} && end == payload.data() + payload.size() ? page : 0;
++}
+ 
+ inline std::map<std::uint32_t, bool> ReadEligibility(boost::property_tree::ptree const& report)
+ {
+--- a/src/server/database/Database/Implementation/CharacterDatabase.cpp
++++ b/src/server/database/Database/Implementation/CharacterDatabase.cpp
+@@ -751,9 +751,10 @@
+         "INSERT IGNORE INTO account_freepick_mystic_collection (account, spell) VALUES (?, ?)", CONNECTION_ASYNC);
+ 
+     PrepareStatement(CHAR_SEL_A52_CERTIFICATIONS,
+-        "SELECT entry FROM area52_tester_certification WHERE checks_confirmed = 7", CONNECTION_SYNCH);
++        "SELECT entry, account, character_name FROM area52_tester_certification WHERE checks_confirmed = 7 "
++        "ORDER BY certified_at, entry", CONNECTION_SYNCH);
+     PrepareStatement(CHAR_SEL_A52_CERTIFICATION,
+-        "SELECT entry FROM area52_tester_certification WHERE entry = ? AND checks_confirmed = 7", CONNECTION_SYNCH);
++        "SELECT entry, account, character_name FROM area52_tester_certification WHERE entry = ? AND checks_confirmed = 7", CONNECTION_SYNCH);
+     PrepareStatement(CHAR_INS_A52_CERTIFICATION,
+         "INSERT IGNORE INTO area52_tester_certification (entry, account, guid, character_name, evidence_sha256, checks_confirmed) VALUES (?, ?, ?, ?, ?, 7)", CONNECTION_SYNCH);
+ 
+--- a/apps/coa-tests/area52_certification/run.py
++++ b/apps/coa-tests/area52_certification/run.py
+@@ -16,6 +16,20 @@
+ int main()
+ {
+     using namespace Area52Certification;
++    std::map<std::uint32_t, TesterScore> scores;
++    assert(Leaderboard(scores).empty());
++    Credit(scores, 18, "Firstalt");
++    Credit(scores, 18, "Secondalt");
++    Credit(scores, 20, "Other");
++    Credit(scores, 20, "Other");
++    Credit(scores, 25, "Third");
++    auto board = Leaderboard(scores);
++    assert(board.size() == 3 && board[0].Total == 2 && board[0].Name == "Secondalt");
++    assert(board[0].Account == 18 && board[1].Account == 20);
++    assert(board[0].Rank == 1 && board[1].Rank == 1 && board[2].Rank == 3);
++    for (auto text : {"L|0", "L|-1", "L|1x", "L|4294967296", "C|1|7", "L|"})
++        assert(ParseLeaderboardPage(text) == 0);
++    assert(ParseLeaderboardPage("L|2") == 2);
+     for (auto text : {"", "C|0|7", "C|12|3", "C|-1|7", "C|4294967296|7", "C|12x|7", "C|12|7|7", "C||7"})
+         assert(ParseConfirmation(text) == 0);
+     assert(ParseConfirmation("C|1234|7") == 1234);
+--- /dev/null
++++ b/apps/coa-tests/area52_certification_leaderboard/run.py
+@@ -0,0 +1,69 @@
++from pathlib import Path
++import os
++from lupa.lua51 import LuaRuntime
++
++lua = LuaRuntime(unpack_returned_tuples=True)
++lua.execute('''
++StaticPopupDialogs={}; SlashCmdList={}; UISpecialFrames={}; CANCEL="Cancel"
++tinsert=table.insert; UIParent={}; timers={}; frames={}
++C_Player={IsHero=function() return true end}
++DEFAULT_CHAT_FRAME={AddMessage=function() end}
++C_Timer={After=function(delay, callback) timers[#timers+1]=callback end}
++function GetRealmName() return "Area 52 - Free-Pick" end
++function UnitName() return "Tester" end
++function SendAddonMessage(prefix,message) sent=message end
++function CreateFrame(kind,name)
++    local f={scripts={}}
++    local methods={"RegisterEvent","SetSize","SetPoint","SetFrameStrata","SetBackdrop",
++        "EnableMouse","SetMovable","RegisterForDrag","StartMoving","StopMovingOrSizing"}
++    for _,method in ipairs(methods) do f[method]=function() end end
++    function f:SetScript(event,fn) self.scripts[event]=fn end
++    function f:SetText(text) self.text=text end
++    function f:Show() self.visible=true end
++    function f:Enable() self.enabled=true end
++    function f:Disable() self.enabled=false end
++    function f:CreateFontString() return CreateFrame() end
++    frames[#frames+1]=f
++    if name then _G[name]=f end
++    return f
++end
++''')
++lua.execute(Path(os.environ['AREA52_CERTIFICATION_LUA']).read_text(encoding='utf-8-sig'))
++lua.execute('''
++local event=frames[1].scripts.OnEvent
++local function Receive(message,sender)
++    event(frames[1],"CHAT_MSG_ADDON","A52CERT",message,"WHISPER",sender or "Tester")
++end
++SlashCmdList.AREA52CERTLEADERBOARD()
++assert(sent=="L|1")
++local board=Area52CertificationLeaderboard
++Receive("LB|1|2|11","Imposter")
++Receive("LR|1|Wrong|999|0","Imposter")
++Receive("LE","Imposter")
++assert(board.page==nil)
++Receive("LB|1|2|11")
++Receive("LR|1|Secondalt|30|1")
++Receive("LE")
++assert(board.rows[1].name.text=="1.     Secondalt (you)")
++assert(board.rows[1].count.text=="30")
++assert(board.next.enabled and not board.previous.enabled)
++board.next.scripts.OnClick()
++assert(sent=="L|2")
++Receive("LB|2|2|11")
++Receive("LR|11|Lasttester|1|0")
++Receive("LE")
++assert(board.rows[1].count.text=="1" and board.rows[2].name.text=="")
++assert(board.previous.enabled and not board.next.enabled)
++board.previous.scripts.OnClick()
++Receive("ERROR|Please wait a moment and try again.")
++assert(board.info.text=="Please wait a moment and try again.")
++SlashCmdList.AREA52CERTLEADERBOARD()
++Receive("LB|1|1|0")
++Receive("LE")
++assert(board.info.text=="No tester certifications recorded yet.")
++assert(board.rows[1].name.text=="")
++SlashCmdList.AREA52CERTLEADERBOARD()
++timers[#timers]()
++assert(board.info.text=="No response. Click Refresh to try again.")
++''')
++print('Leaderboard pagination, attribution, empty state, timeout and sender validation passed in Lua 5.1.')
