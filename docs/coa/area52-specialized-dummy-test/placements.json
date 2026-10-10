@@ -1,0 +1,51 @@
+{
+  "status": "activated_for_player_testing",
+  "positions": [
+    {
+      "guid": 9780140,
+      "entry": 967182,
+      "role": "Tank",
+      "map": 0,
+      "x": -8921.004368672558,
+      "y": 486.3422386316024,
+      "z": 93.8757,
+      "orientation": 2.21801,
+      "anchor": 9780128,
+      "nearest_saved_spawn_yards": {
+        "creature": 7.0,
+        "gameobject": 47.45
+      }
+    },
+    {
+      "guid": 9780141,
+      "entry": 666935,
+      "role": "Healing",
+      "map": 0,
+      "x": -8980.895392564616,
+      "y": 559.9682460097458,
+      "z": 93.8835,
+      "orientation": 5.53632,
+      "anchor": 9780129,
+      "nearest_saved_spawn_yards": {
+        "creature": 6.76,
+        "gameobject": 7.47
+      }
+    },
+    {
+      "guid": 9780142,
+      "entry": 666925,
+      "role": "Execute",
+      "map": 0,
+      "x": -8909.835631327442,
+      "y": 494.78376136839756,
+      "z": 93.8757,
+      "orientation": 2.21801,
+      "anchor": 9780128,
+      "nearest_saved_spawn_yards": {
+        "creature": 5.67,
+        "gameobject": 49.83
+      }
+    }
+  ],
+  "limitation": "Existing spawn clearance checked. Static lamp/wall geometry and exact floor heights require in-game acceptance; heights inherit nearby user-placed dummy anchors."
+}
