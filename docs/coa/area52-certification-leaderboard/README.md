@@ -3,7 +3,8 @@
 This extension depends on the tester-certification and certification-rewards packages in the sibling
 directories. Apply `leaderboard.patch` to the matching Area 52 runtime source and deploy
 `TesterCertification.lua` at `Interface/AddOns/Area52MysticRules/TesterCertification.lua`.
-Install `BearCaveIcon.tga` in that same addon directory. It is a 128px RGBA TGA conversion of the existing
+Install `BearCaveIcon.tga` as `Interface/Glues/BearCave/CertificationIcon.tga`, within the launcher's
+existing managed graphics paths. It is a 128px RGBA TGA conversion of the existing
 Bear Cave launcher app icon, with source and output hashes in `icon-source.json`.
 The panel uses the launcher's navy, gold and pale-blue palette with its paw emblem in the top left.
 The patch is a deployment-source extension, not a standalone upstream-main implementation.
@@ -38,5 +39,7 @@ The focused package reconstruction and publication source checks also passed. Th
 reported pre-existing repeated blank lines at lines 67–68 of the shared `CharacterDatabase.cpp`;
 the unchanged preimage contains the same whitespace. Other selected style checks passed.
 
-This package is not activated or distributed to testers by its source publication. No restart is
-performed. The existing server and launcher release continue to run the prior certification package.
+The package was activated on Area 52 after the announced three-minute shutdown. The migration hash,
+server readiness and unchanged protected services were verified. Matching client assets were installed
+locally with backup and released through the existing launcher channel after validation. Source
+publication alone does not activate other deployments. In-game visual acceptance remains pending.
