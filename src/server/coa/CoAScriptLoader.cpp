@@ -68,6 +68,7 @@ void AddSC_AscensionWildcardPhysical();
 void AddSC_AscensionWildcardBloodbath();
 void AddSC_AscensionWildcardSolarStrike();
 void AddSC_AscensionWildcardCremation();
+void AddSC_AscensionWildcardSealOfFervor();
 void AddSC_AscensionWildcardElementalBlast();
 void AddAscensionFreepickScripts();
 void AddAscensionHeroBloomingShotScripts();
@@ -640,6 +641,7 @@ void AddCoAScripts()
     AddSC_AscensionWildcardBloodbath();
     AddSC_AscensionWildcardSolarStrike();
     AddSC_AscensionWildcardCremation();
+    AddSC_AscensionWildcardSealOfFervor();
     AddSC_AscensionWildcardElementalBlast();
     AddAscensionFreepickScripts();
     AddAscensionHeroBloomingShotScripts();
