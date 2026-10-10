@@ -43,3 +43,5 @@ The package was activated on Area 52 after the announced three-minute shutdown. 
 server readiness and unchanged protected services were verified. Matching client assets were installed
 locally with backup and released through the existing launcher channel after validation. Source
 publication alone does not activate other deployments. In-game visual acceptance remains pending.
+
+Leaderboard background uses 25% opacity normally and 100% on hover, including its navigation buttons. Text, icon and border retain their existing opacity. This client-only adjustment is staged for a future client release.
