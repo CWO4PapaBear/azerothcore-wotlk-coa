@@ -7,6 +7,7 @@ local pending
 local leaderboard
 local boardRequest
 local boardRows
+local boardRefreshScheduled
 local frame = CreateFrame("Frame")
 
 local function Active()
@@ -43,53 +44,79 @@ local function OpenLeaderboard()
     if not Active() then return end
     if not leaderboard then
         leaderboard = CreateFrame("Frame", "Area52CertificationLeaderboard", UIParent)
-        leaderboard:SetSize(440, 405)
-        leaderboard:SetPoint("CENTER")
-        leaderboard:SetFrameStrata("DIALOG")
-        leaderboard:SetBackdrop({bgFile="Interface\\DialogFrame\\UI-DialogBox-Background",
-            edgeFile="Interface\\DialogFrame\\UI-DialogBox-Border", tile=true, tileSize=32, edgeSize=32,
-            insets={left=11,right=12,top=12,bottom=11}})
+        leaderboard:SetSize(245, 365)
+        leaderboard:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 8, -170)
+        leaderboard:SetFrameStrata("BACKGROUND")
+        leaderboard:SetFrameLevel(1)
+        leaderboard:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",
+            edgeFile="Interface\\Tooltips\\UI-Tooltip-Border", tile=true, tileSize=8, edgeSize=12,
+            insets={left=3,right=3,top=3,bottom=3}})
+        leaderboard:SetBackdropColor(7/255, 20/255, 34/255, 0.96)
+        leaderboard:SetBackdropBorderColor(213/255, 165/255, 70/255, 1)
         leaderboard:EnableMouse(true)
         leaderboard:SetMovable(true)
         leaderboard:RegisterForDrag("LeftButton")
         leaderboard:SetScript("OnDragStart", function(self) self:StartMoving() end)
         leaderboard:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
-        tinsert(UISpecialFrames, "Area52CertificationLeaderboard")
-        local close = CreateFrame("Button", nil, leaderboard, "UIPanelCloseButton")
-        close:SetPoint("TOPRIGHT", -5, -5)
-        local title = leaderboard:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-        title:SetPoint("TOP", 0, -22)
-        title:SetText("Certification Leaderboard")
+        local icon = leaderboard:CreateTexture(nil, "ARTWORK")
+        icon:SetSize(32, 32)
+        icon:SetPoint("TOPLEFT", 12, -12)
+        icon:SetTexture("Interface\\AddOns\\Area52MysticRules\\BearCaveIcon")
+        local title = leaderboard:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        title:SetPoint("TOPLEFT", 52, -14)
+        title:SetText("THE BEAR CAVE")
+        title:SetTextColor(1, 226/255, 160/255)
         local help = leaderboard:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        help:SetPoint("TOP", 0, -48)
-        help:SetText("Account totals across all characters; shown by a tester's character name.")
+        help:SetPoint("TOPLEFT", 52, -32)
+        help:SetText("Certification Leaderboard")
+        help:SetTextColor(169/255, 187/255, 204/255)
+        local line = leaderboard:CreateTexture(nil, "ARTWORK")
+        line:SetPoint("TOPLEFT", 12, -56)
+        line:SetSize(221, 1)
+        line:SetTexture(213/255, 165/255, 70/255, 0.7)
         local heading = leaderboard:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        heading:SetPoint("TOPLEFT", 25, -78)
+        heading:SetPoint("TOPLEFT", 18, -70)
         heading:SetText("Rank     Tester")
+        heading:SetTextColor(213/255, 165/255, 70/255)
         local total = leaderboard:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        total:SetPoint("TOPRIGHT", -30, -78)
+        total:SetPoint("TOPRIGHT", -18, -70)
         total:SetText("Certified")
+        total:SetTextColor(213/255, 165/255, 70/255)
         leaderboard.rows = {}
         for i = 1, 10 do
             local name = leaderboard:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-            name:SetPoint("TOPLEFT", 25, -80 - i * 22)
+            name:SetPoint("TOPLEFT", 18, -74 - i * 19)
+            name:SetWidth(160)
+            name:SetHeight(17)
+            name:SetJustifyH("LEFT")
             local count = leaderboard:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-            count:SetPoint("TOPRIGHT", -30, -80 - i * 22)
+            count:SetPoint("TOPRIGHT", -18, -74 - i * 19)
+            name:SetTextColor(231/255, 222/255, 208/255)
+            count:SetTextColor(1, 226/255, 160/255)
             leaderboard.rows[i] = {name=name,count=count}
         end
         leaderboard.info = leaderboard:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         leaderboard.info:SetPoint("BOTTOM", 0, 60)
+        leaderboard.info:SetTextColor(169/255, 187/255, 204/255)
         local function Button(text, x, action)
-            local button = CreateFrame("Button", nil, leaderboard, "UIPanelButtonTemplate")
-            button:SetSize(110, 24)
+            local button = CreateFrame("Button", nil, leaderboard)
+            button:SetSize(65, 24)
             button:SetPoint("BOTTOM", x, 24)
+            button:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",
+                edgeFile="Interface\\Tooltips\\UI-Tooltip-Border", edgeSize=8,
+                insets={left=2,right=2,top=2,bottom=2}})
+            button:SetBackdropColor(18/255, 60/255, 98/255, 1)
+            button:SetBackdropBorderColor(213/255, 165/255, 70/255, 1)
+            button:SetNormalFontObject("GameFontNormalSmall")
+            button:SetHighlightFontObject("GameFontHighlightSmall")
+            button:SetDisabledFontObject("GameFontDisableSmall")
             button:SetText(text)
             button:SetScript("OnClick", action)
             return button
         end
-        leaderboard.previous = Button("Previous", -125, function() RequestLeaderboard(math.max(1, (leaderboard.page or 1)-1)) end)
+        leaderboard.previous = Button("Prev", -70, function() RequestLeaderboard(math.max(1, (leaderboard.page or 1)-1)) end)
         Button("Refresh", 0, function() RequestLeaderboard(leaderboard.page or 1) end)
-        leaderboard.next = Button("Next", 125, function() RequestLeaderboard((leaderboard.page or 1)+1) end)
+        leaderboard.next = Button("Next", 70, function() RequestLeaderboard((leaderboard.page or 1)+1) end)
     end
     leaderboard:Show()
     RequestLeaderboard(1)
@@ -192,8 +219,8 @@ frame:SetScript("OnEvent", function(self, event, incomingPrefix, message, channe
                 row.name:SetText(data and (data.rank..".     "..data.name..(data.own and " (you)" or "")) or "")
                 row.count:SetText(data and data.total or "")
             end
-            leaderboard.info:SetText(boardRows.accounts == 0 and "No tester certifications recorded yet." or
-                ("Page "..boardRows.page.." / "..boardRows.pages.."  -  "..boardRows.accounts.." testers"))
+            leaderboard.info:SetText(boardRows.accounts == 0 and "No accounts found." or
+                ("Page "..boardRows.page.." / "..boardRows.pages.."  -  "..boardRows.accounts.." accounts"))
             if boardRows.page > 1 then leaderboard.previous:Enable() else leaderboard.previous:Disable() end
             if boardRows.page < boardRows.pages then leaderboard.next:Enable() else leaderboard.next:Disable() end
             boardRows = nil
@@ -205,10 +232,18 @@ frame:SetScript("OnEvent", function(self, event, incomingPrefix, message, channe
             status = receiving
             receiving = nil
             ready = true
+            if not leaderboard then C_Timer.After(3, OpenLeaderboard) end
         elseif message:match("^[VC]|") then
             local target = receiving or status
             local value = message:sub(1, 1)
             for id in message:gmatch("|(%d+)") do target[tonumber(id)] = value end
+            if ready and not receiving and leaderboard and not boardRefreshScheduled then
+                boardRefreshScheduled = true
+                C_Timer.After(3, function()
+                    boardRefreshScheduled = nil
+                    RequestLeaderboard(leaderboard.page or 1)
+                end)
+            end
         elseif message:match("^OK|") then
             local id = tonumber(message:sub(4))
             status[id] = "C"

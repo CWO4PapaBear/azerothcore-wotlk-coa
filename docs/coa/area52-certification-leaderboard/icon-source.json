@@ -1,0 +1,6 @@
+{
+  "source": "Bear-Cave-Launcher/ui/assets/bear-cave-app-icon.png",
+  "source_sha256": "bf5f0fd822582eb8e4bc1afa58e28e0bb3e137eabcef53c49c23d9ffb42d7477",
+  "output_sha256": "ed41faf1f10a14728c170f697f2d0d86bc15544655fea3b11cee1f4d05dcbf61",
+  "conversion": "128x128 RGBA uncompressed TGA for the existing client texture loader"
+}

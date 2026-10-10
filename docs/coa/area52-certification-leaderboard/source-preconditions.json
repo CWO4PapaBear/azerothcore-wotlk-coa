@@ -1,7 +1,7 @@
 {
   "src/server/coa/Area52Certification.cpp": {
     "before": "b1d066faf7780753f97440e1f85fde6233ab3240e8712de0c25af5b0075e3cd4",
-    "after": "c0c6fa77b27bef23e0cf15001a2c2eaa14b3352f91702a140594cbd0955dc4d1"
+    "after": "1bb924b8eb803a687cf135b8eec0791f0bb9b746ace97e431d56a69706b8d1c8"
   },
   "src/server/coa/Area52CertificationRules.h": {
     "before": "4a8db9bad6089c2e948b63fd358499ea0e6a4c7220f2e4e6a5ac69e0a8e828aa",
@@ -9,14 +9,30 @@
   },
   "src/server/database/Database/Implementation/CharacterDatabase.cpp": {
     "before": "43e78569ac3845d2418f0453de6dbe0891ecc196a42a6431bd74d40fb2d0c777",
-    "after": "e89837defaf26a65ab3f2e25f14cf9672769dec3c262ec6fab42836b5f783531"
+    "after": "21abfe532f3db303c8970046eb548971106ddb0232c560e5c15853b3d6593c8c"
+  },
+  "src/server/database/Database/Implementation/CharacterDatabase.h": {
+    "before": "21ac37fade0cfecf423f9993aae3126ad15e98684427149cf741d74b828438f4",
+    "after": "f13b3a47f507ebb2b061668667e6be2eb0f0b3ad0da3158a7677e8971d0001da"
+  },
+  "data/sql/updates/pending_db_characters/rev_20261009_15_area52_certification_last_character.sql": {
+    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "after": "37e5a141e0893d0cd12f52c4ef1c1516532d015f1cf00203a0a07ceec06bdcfe"
+  },
+  "src/server/database/Database/Implementation/LoginDatabase.cpp": {
+    "before": "49ade9e7df5854c3ccf88d99eb8d3a8c700cf90c01daf8127c0b94af9d184b20",
+    "after": "36ea4eeea468cfa0386a02be2ec5203ce0f23498039a4392a292dea03e7d4ddb"
+  },
+  "src/server/database/Database/Implementation/LoginDatabase.h": {
+    "before": "1ec225a62866994d9893d9009cf17cddb4148a30f7dd345b0bf987bd6a8ac0d6",
+    "after": "5e58e576cd077e78aeb55355d313f58623aab0db21c1394d381033f4d3e36019"
   },
   "apps/coa-tests/area52_certification/run.py": {
     "before": "2c2c6e5c00f1544be86cc7b892cee70a72eb3d08d750ca79262d3351edd72701",
-    "after": "a6cff6733f3efb3f2f3e9d652492a6045b025d5fe4677e99256d553b1a8cce9d"
+    "after": "ec02acad3ad10570341ed6abe549e53646cb7d4f7f3cc046bda433554af52657"
   },
   "apps/coa-tests/area52_certification_leaderboard/run.py": {
     "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "after": "636a4408d58d87b7c78a4daeb494a92597afe8c95a7265bb2eb68f2ff9bcf57b"
+    "after": "32f278d9cf26cc14e0098baff9bc06fc0cf3274377df544d442928299a87aa5b"
   }
 }
