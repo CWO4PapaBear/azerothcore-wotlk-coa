@@ -92,6 +92,7 @@
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Opcodes.h"
+#include "Pet.h"
 #include "Player.h"
 #include "QuestDef.h"
 #include "Random.h"
@@ -379,6 +380,9 @@ constexpr std::array<std::pair<uint32, uint32>, 1> REAPER_ONE_SOUL_CONSUMERS =
 constexpr std::size_t APPEARANCE_CATEGORY_COUNT = 69;
 constexpr uint32 APPEARANCE_CATEGORY_AMMUNITION = 32;
 constexpr uint32 APPEARANCE_CATEGORY_SHADOWHOUND = 68;
+constexpr uint32 APPEARANCE_CATEGORY_TAMED_BEAST = 33;
+constexpr uint32 TAME_BEAST_SPELL = 1515;
+constexpr std::array<uint32, 3> CALL_PET_SPELLS = { 883, 574302, 1100883 };
 
 AscensionCollectionModels::Entry const* FindCollectionModel(uint32 creatureId);
 constexpr std::size_t MAX_APPEARANCE_SNAPSHOT_ENTRIES = 65536;
@@ -498,6 +502,7 @@ struct AppearanceInfo {
   uint32 EnchantId = 0;
   uint32 CosmeticSpell = 0;
   uint32 CreatureDisplay = 0;
+  uint32 CreatureEntry = 0;
 };
 
 struct VanityInfo {
@@ -3942,7 +3947,10 @@ private:
   static constexpr std::size_t SPELL_WIRE_TOOLTIP = 3;
   static constexpr uint32 SPELL_CASTER_AURA_SPELL_FIELD = 24;
   static constexpr uint32 SPELL_EXCLUDE_CASTER_AURA_SPELL_FIELD = 26;
+  static constexpr uint32 SPELL_CAST_TIME_INDEX_FIELD = 28;
   static constexpr uint32 SPELL_FAMILY_NAME_FIELD = 208;
+  static constexpr std::array<uint32, 10> RANGED_PREPARATION_CLIENT_SPELLS = {
+      504582, 572343, 572344, 572345, 572383, 680902, 680903, 680904, 680905, 806288};
   static constexpr uint32 SPELL_LEVEL_FIELD = 39;
   struct ClientSpellText {
     std::string Description;
@@ -4661,6 +4669,19 @@ private:
     return rows;
   }
 
+  static uint32 RangedPreparationCastTimeIndex(int32 base) {
+    static std::unordered_map<int32, uint32> const rows = [] {
+      std::unordered_map<int32, uint32> found;
+      for (uint32 id = 0; id < 4096; ++id)
+        if (SpellCastTimesEntry const *entry = sSpellCastTimesStore.LookupEntry(id))
+          if (entry->CastTime > 0)
+            found.emplace(entry->CastTime, id);
+      return found;
+    }();
+    auto const row = rows.find(base + 500);
+    return row == rows.end() ? 0 : row->second;
+  }
+
   static void ApplyServerSpellSelectors(SpellPatchRow &row) {
     SpellInfo const *info = sSpellMgr->GetSpellInfo(row.Values[0]);
     if (!info)
@@ -4673,6 +4694,11 @@ private:
     }
     if (info->Id == AscensionSunCleric::Dawn)
       row.Values[4] = info->Attributes;
+
+    if ((info->Attributes & SPELL_ATTR0_USES_RANGED_SLOT) && !info->IsAutoRepeatRangedSpell() &&
+        info->CastTimeEntry && (info->CastTimeEntry->CastTime > 0 || !info->IsChanneled()))
+      if (uint32 const prepared = RangedPreparationCastTimeIndex(info->CastTimeEntry->CastTime))
+        row.Values[SPELL_CAST_TIME_INDEX_FIELD] = prepared;
 
     row.Values[144] = info->SpellFamilyName;
     row.Values[12] = info->Stances;
@@ -4736,6 +4762,8 @@ private:
     std::unordered_map<uint32, ClientSpellText> descriptions =
         LoadClientSpellDescriptions();
     std::unordered_set<uint32> descriptionIds;
+    for (uint32 const spellId : RANGED_PREPARATION_CLIENT_SPELLS)
+      Ascension::ClientSpellPatches::Instance().Register(spellId);
     std::unordered_set<uint32> requested = Ascension::ClientSpellPatches::Instance().GetIds(true);
     for (auto const& [id, description] : descriptions)
     {
@@ -5075,6 +5103,8 @@ public:
             displayId, record.GetUInt32(8));
       if (appearance.PrimaryCategory == APPEARANCE_CATEGORY_SHADOWHOUND)
         appearance.CreatureDisplay = ResolveShadowhoundDisplay(displayId);
+      if (appearance.PrimaryCategory == APPEARANCE_CATEGORY_TAMED_BEAST)
+        appearance.CreatureEntry = record.GetUInt32(8);
       _allAppearanceIds.push_back(appearanceId);
     }
 
@@ -6406,11 +6436,67 @@ private:
       return;
     }
 
+    uint32 const whistle = requested[APPEARANCE_CATEGORY_TAMED_BEAST];
+    if (whistle && whistle != state->ActiveAppearances[APPEARANCE_CATEGORY_TAMED_BEAST])
+    {
+      if (char const* refused = ReplaceTamedBeast(player, _appearances.at(whistle).CreatureEntry))
+      {
+        SendApplyResult(player, refused);
+        return;
+      }
+    }
+
     state->ActiveAppearances = requested;
     SaveActiveAppearances(player, *state);
     RefreshCosmetics(player, *state);
     RefreshVisibleItems(player);
     SendApplyResult(player, "APPLY_APPEARANCES_OK");
+  }
+
+  static char const* ReplaceTamedBeast(Player* player, uint32 entry) {
+    CreatureTemplate const* creature = sObjectMgr->GetCreatureTemplate(entry);
+    if (!creature || !creature->family)
+      return "APPLY_APPEARANCES_BAD_CREATURE_ENTRY";
+    if (player->IsInCombat())
+      return "APPLY_APPEARANCES_COSMETIC_PET_IN_COMBAT";
+    if (std::none_of(CALL_PET_SPELLS.begin(), CALL_PET_SPELLS.end(),
+          [player](uint32 spell) { return player->HasSpell(spell); }))
+      return "APPLY_APPEARANCES_PET_SUMMON_SPELL_NOT_LEARNED";
+
+    Pet* current = player->GetPet();
+    if (current && current->getPetType() != HUNTER_PET)
+      return "APPLY_APPEARANCES_PET_TYPE_NOT_FOUND";
+    if (current && !current->IsAlive() && !player->HasPlayerFlag(PLAYER_FLAGS_RESTING))
+      return "APPLY_APPEARANCES_PET_DEAD_NON_SAFE_ZONE";
+
+    if (current)
+      player->RemovePet(current, PET_SAVE_AS_DELETED);
+    else if (PetStable* stable = player->GetPetStable())
+    {
+      if (stable->CurrentPet)
+      {
+        Pet::DeleteFromDB(stable->CurrentPet->PetNumber);
+        stable->CurrentPet.reset();
+      }
+      else if (PetStable::PetInfo const* dismissed = stable->GetUnslottedHunterPet())
+      {
+        Pet::DeleteFromDB(dismissed->PetNumber);
+        stable->UnslottedPets.clear();
+      }
+    }
+
+    Pet* pet = player->CreateTamedPetFrom(entry, TAME_BEAST_SPELL);
+    if (!pet)
+      return "APPLY_APPEARANCES_BAD_CREATURE_ENTRY";
+    uint8 const level = player->GetLevel();
+    pet->SetUInt32Value(UNIT_FIELD_LEVEL, level > 1 ? level - 1 : level);
+    pet->GetMap()->AddToMap(pet->ToCreature(), true);
+    pet->SetUInt32Value(UNIT_FIELD_LEVEL, level);
+    player->SetMinion(pet, true);
+    pet->InitTalentForLevel();
+    pet->SavePetToDB(PET_SAVE_AS_CURRENT);
+    player->PetSpellInitialize();
+    return nullptr;
   }
 
   void HandleSetAppearanceVisibility(Player *player, WorldPacket &packet) {
