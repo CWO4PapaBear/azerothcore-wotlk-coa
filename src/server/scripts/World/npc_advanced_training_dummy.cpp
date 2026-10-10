@@ -1,0 +1,274 @@
+#include "ScriptedCreature.h"
+#include "CreatureScript.h"
+#include "ObjectAccessor.h"
+#include "ObjectMgr.h"
+#include "Player.h"
+#include "Timer.h"
+#include "TrainingDummyDefines.h"
+#include <unordered_map>
+#include <vector>
+
+namespace
+{
+enum DummyEvents
+{
+    EVENT_MAINTENANCE = 1
+};
+
+enum DummyEntries
+{
+    DYNAMIC_CONFIGURABLE = 967171,
+    DYNAMIC_TANK = 967182,
+    DYNAMIC_TARGET = 967254
+};
+}
+
+struct npc_advanced_training_dummy : ScriptedAI
+{
+    explicit npc_advanced_training_dummy(Creature* creature) : ScriptedAI(creature)
+    {
+        me->SetCombatMovement(false);
+        me->SetReactState(REACT_PASSIVE);
+    }
+
+    bool IsDynamic() const
+    {
+        return me->GetEntry() == DYNAMIC_CONFIGURABLE || me->GetEntry() == DYNAMIC_TANK
+            || me->GetEntry() == DYNAMIC_TARGET;
+    }
+
+    bool IsTank() const { return me->GetEntry() == DYNAMIC_TANK || me->GetEntry() % 100000 == 66928; }
+    bool IsHealing() const { return me->GetEntry() % 100000 == 66935; }
+    bool IsExecute() const { return me->GetEntry() % 100000 == 66925; }
+
+    uint32 GetData(uint32 id) const override
+    {
+        return id == DATA_HEALING_PRACTICE_ACTIVE && IsHealing() && _healingEnabled;
+    }
+
+    void SetCrowdControlImmunity(bool enabled)
+    {
+        for (uint32 mechanic : {MECHANIC_CHARM, MECHANIC_DISORIENTED, MECHANIC_FEAR, MECHANIC_ROOT,
+            MECHANIC_SLEEP, MECHANIC_STUN, MECHANIC_POLYMORPH, MECHANIC_HORROR, MECHANIC_SAPPED})
+            me->ApplySpellImmune(DYNAMIC_CONFIGURABLE, IMMUNITY_MECHANIC, mechanic, enabled);
+        _ccImmune = enabled;
+    }
+
+    void SetTrainingLevel(uint8 level)
+    {
+        me->SetLevel(level);
+        CreatureTemplate resolved = *me->GetCreatureTemplate();
+        if (IsDynamic())
+            resolved.expansion = level > 70 ? 2 : (level > 60 ? 1 : 0);
+        auto const* info = &resolved;
+        auto const* stats = sObjectMgr->GetCreatureBaseStats(level, info->unit_class);
+        me->SetCreateHealth(std::max<uint32>(100, stats->GenerateHealth(info)));
+        me->SetStatFlatModifier(UNIT_MOD_HEALTH, BASE_VALUE, float(me->GetCreateHealth()));
+        me->SetStatFlatModifier(UNIT_MOD_ARMOR, BASE_VALUE, stats->GenerateArmor(info));
+        me->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(stats->AttackPower));
+        me->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, stats->GenerateBaseDamage(info));
+        me->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, stats->GenerateBaseDamage(info) * 1.5f);
+        me->UpdateAllStats();
+        me->SetFullHealth();
+    }
+
+    void Reset() override
+    {
+        events.Reset();
+        events.ScheduleEvent(EVENT_MAINTENANCE, 1s);
+        _activity.clear();
+        _owner.Clear();
+        _healingEnabled = false;
+        _vulnerable = true;
+        if (me->GetEntry() == DYNAMIC_CONFIGURABLE)
+            SetCrowdControlImmunity(true);
+        me->SetImmuneToPC(false);
+        me->SetRegeneratingHealth(!IsExecute());
+        SetTrainingLevel(IsDynamic() ? 1 : me->GetCreatureTemplate()->minlevel);
+    }
+
+    void MoveInLineOfSight(Unit*) override { }
+
+    bool Engage(Unit* unit)
+    {
+        Player* player = unit ? unit->GetCharmerOrOwnerPlayerOrPlayerItself() : nullptr;
+        if (!player || !player->IsAlive() || !me->IsWithinDistInMap(player, 60.0f))
+            return false;
+
+        if (IsDynamic() || IsTank())
+        {
+            if (!_owner.IsEmpty() && _owner != player->GetGUID())
+                return false;
+            if (_owner.IsEmpty())
+            {
+                _owner = player->GetGUID();
+                if (IsDynamic())
+                    SetTrainingLevel(player->GetLevel());
+            }
+        }
+
+        _activity[player->GetGUID()] = getMSTime();
+        if (unit != player)
+            _activity[unit->GetGUID()] = getMSTime();
+        me->SetInCombatWith(player);
+        if (IsTank())
+            me->Attack(player, true);
+        return true;
+    }
+
+    void AttackStart(Unit* unit) override
+    {
+        if (!IsHealing() && _vulnerable)
+            Engage(unit);
+    }
+
+    void JustEnteredCombat(Unit* unit) override
+    {
+        if (!IsHealing() && _vulnerable)
+            Engage(unit);
+    }
+
+    void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType, SpellSchoolMask) override
+    {
+        damage = 0;
+        if (IsHealing() || !_vulnerable || !Engage(attacker))
+            return;
+        if (IsExecute())
+            me->SetHealth(std::max<uint32>(1, me->CountPctFromMaxHealth(18)));
+    }
+
+    void HealReceived(Unit* healer, uint32& amount) override
+    {
+        if (!IsHealing())
+            return;
+        if (!_healingEnabled || !Engage(healer))
+        {
+            amount = 0;
+            return;
+        }
+        me->SetHealth(std::max<uint32>(1, me->CountPctFromMaxHealth(50)));
+    }
+
+    void DamageDealt(Unit* victim, uint32& damage, DamageEffectType, SpellSchoolMask) override
+    {
+        if (!IsTank() || !victim || victim->GetGUID() != _owner)
+        {
+            damage = 0;
+            return;
+        }
+        if (damage >= victim->GetHealth())
+        {
+            damage = victim->GetHealth() > 1 ? victim->GetHealth() - 1 : 0;
+            me->AttackStop();
+            _activity.clear();
+        }
+    }
+
+    void ReceiveEmote(Player* player, uint32 emote) override
+    {
+        if (!me->IsWithinDistInMap(player, 10.0f) || !me->IsWithinLOSInMap(player))
+            return;
+        if (IsTank() && emote == TEXT_EMOTE_POKE && _owner == player->GetGUID())
+        {
+            me->CombatStop(true);
+            me->RemoveAllAuras();
+            Reset();
+            return;
+        }
+        if (IsHealing() && emote == TEXT_EMOTE_POKE)
+        {
+            _healingEnabled = !_healingEnabled;
+            if (!_healingEnabled)
+            {
+                me->CombatStop(true);
+                me->RemoveAllAuras();
+                _activity.clear();
+            }
+            me->SetHealth(_healingEnabled ? me->CountPctFromMaxHealth(50) : me->GetMaxHealth());
+            me->Whisper(_healingEnabled ? "Healing practice enabled." : "Healing practice stopped.", LANG_UNIVERSAL, player);
+            return;
+        }
+        if (me->GetEntry() != DYNAMIC_CONFIGURABLE)
+            return;
+        if (emote == TEXT_EMOTE_CURIOUS || emote == TEXT_EMOTE_WAVE)
+        {
+            me->Whisper("/poke: vulnerability. In combat: /agree or /no: level; /clap: crowd control immunity.",
+                LANG_UNIVERSAL, player);
+        }
+        else if (emote == TEXT_EMOTE_POKE && !me->IsInCombat())
+        {
+            _vulnerable = !_vulnerable;
+            me->SetImmuneToPC(!_vulnerable);
+        }
+        else if (_owner == player->GetGUID() && me->IsInCombat())
+        {
+            if (emote == TEXT_EMOTE_AGREE && me->GetLevel() < 83)
+                SetTrainingLevel(me->GetLevel() + 1);
+            else if (emote == TEXT_EMOTE_NO && me->GetLevel() > 1)
+                SetTrainingLevel(me->GetLevel() - 1);
+            else if (emote == TEXT_EMOTE_CLAP)
+            {
+                SetCrowdControlImmunity(!_ccImmune);
+            }
+        }
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        events.Update(diff);
+        if (events.ExecuteEvent() == EVENT_MAINTENANCE)
+        {
+            std::vector<ObjectGuid> untracked;
+            for (auto const& [guid, reference] : me->GetCombatManager().GetPvECombatRefs())
+                if (_activity.find(guid) == _activity.end())
+                    untracked.push_back(guid);
+            for (ObjectGuid const& guid : untracked)
+            {
+                auto const& refs = me->GetCombatManager().GetPvECombatRefs();
+                if (auto ref = refs.find(guid); ref != refs.end())
+                    ref->second->EndCombat();
+            }
+            for (auto itr = _activity.begin(); itr != _activity.end();)
+            {
+                Unit* unit = ObjectAccessor::GetUnit(*me, itr->first);
+                if (!unit || !unit->IsAlive() || !me->IsWithinDistInMap(unit, 60.0f)
+                    || (!(IsTank() && itr->first == _owner)
+                        && getMSTimeDiff(itr->second, getMSTime()) >= 5000))
+                {
+                    auto const& refs = me->GetCombatManager().GetPvECombatRefs();
+                    if (auto ref = refs.find(itr->first); ref != refs.end())
+                        ref->second->EndCombat();
+                    itr = _activity.erase(itr);
+                }
+                else
+                    ++itr;
+            }
+            if (_activity.empty() && (me->IsInCombat() || !_owner.IsEmpty() || me->GetHealth() != me->GetMaxHealth()))
+            {
+                me->CombatStop(true);
+                me->RemoveAllAuras();
+                _owner.Clear();
+                if (me->GetEntry() == DYNAMIC_CONFIGURABLE)
+                    SetCrowdControlImmunity(true);
+                SetTrainingLevel(IsDynamic() ? 1 : me->GetCreatureTemplate()->minlevel);
+                if (IsHealing() && _healingEnabled)
+                    me->SetHealth(me->CountPctFromMaxHealth(50));
+            }
+            events.ScheduleEvent(EVENT_MAINTENANCE, 1s);
+        }
+        if (IsTank() && !_owner.IsEmpty() && !_activity.empty())
+            DoMeleeAttackIfReady();
+    }
+
+private:
+    std::unordered_map<ObjectGuid, uint32> _activity;
+    ObjectGuid _owner;
+    bool _healingEnabled = false;
+    bool _vulnerable = true;
+    bool _ccImmune = true;
+};
+
+void AddSC_advanced_training_dummy()
+{
+    RegisterCreatureAI(npc_advanced_training_dummy);
+}
