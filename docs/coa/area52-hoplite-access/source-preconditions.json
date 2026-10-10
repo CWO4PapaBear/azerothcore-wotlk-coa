@@ -1,0 +1,6 @@
+{
+  "apps/coa-tests/mystic_enchant_catalog/harness.cpp": "53e740cf9d799bff7f05940e16ad0ebafdda11d0d04977aa46e9362aa79cfe1b",
+  "src/server/coa/AscensionMysticEnchant.cpp": "6164872dc3929823422801510b338d774e09623f42a26c06cf997b1aa61eaea1",
+  "src/server/coa/AscensionMysticEnchantCatalog.cpp": "2402842a8837b3e6e2af24399ff45a01013087d804d3eb8a59bf577a328d75da",
+  "src/server/coa/AscensionMysticEnchantCatalog.h": "d305c640f06e3502beccc09181e81e064c90804b3faaeecd6e8e5a8a21fecc16"
+}

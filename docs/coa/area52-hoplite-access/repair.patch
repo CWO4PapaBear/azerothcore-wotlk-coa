@@ -1,0 +1,164 @@
+--- a/apps/coa-tests/mystic_enchant_catalog/harness.cpp
++++ b/apps/coa-tests/mystic_enchant_catalog/harness.cpp
+@@ -74,5 +74,18 @@
+     check(ValidateSlots(synthetic, slots, 1, owned, limits), "one Legendary with three Epics is accepted");
+     synthetic.BySpell.at(2).Quality = 5;
+     check(!ValidateSlots(synthetic, slots, 1, owned, limits), "two Legendaries are rejected");
++    Slots saved{978217, 782246, 782246, 782246};
++    auto removed = saved;
++    removed[1] = 0;
++    check(IsRemovalOnly(saved, removed), "remove one rejected copy without accepting new enchants");
++    check(!IsRemovalOnly(saved, saved), "unchanged setup is not a removal");
++    removed[4] = 84445;
++    check(!IsRemovalOnly(saved, removed), "removal cannot bypass validation for an addition");
++    removed = saved;
++    removed[4] = removed[1];
++    removed[1] = 0;
++    check(!IsRemovalOnly(saved, removed), "moving a rejected enchant is not a removal");
++    removed.fill(0);
++    check(IsRemovalOnly(saved, removed), "all rejected slots can be cleared");
+     return failed ? 1 : 0;
+ }
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -260,35 +260,38 @@
+         return reject("RE_COLLECTION_REFORGE_NOT_WHILE_CASTING");
+     if (!CanChange(player, state))
+         return reject("RE_COLLECTION_REFORGE_DISABLED");
+-    for (auto spell : wanted)
+-        if (spell && !state->Known.contains(spell))
+-            return reject("RE_COLLECTION_REFORGE_NOT_KNOWN_ENCHANTMENT");
+-    if (!ValidateSlots(Data, wanted, player->GetLevel(), state->Known, Connected))
+-        return reject("RE_COLLECTION_REFORGE_BAD_ENCHANTMENT");
+-    if (!administrator && !NearAltar(player))
+-        return reject("RE_COLLECTION_REFORGE_NO_MYSTIC_ALTAR");
+-    std::uint32_t worldforged = 0;
+-    for (auto spell : wanted)
+-        if (spell)
+-        {
+-            auto const& entry = Data.BySpell.at(spell);
+-            if (!InvestmentMet(player, entry, false))
+-                return reject("RE_COLLECTION_REFORGE_REQUIRED_AE_INVESTMENT");
+-            if (!InvestmentMet(player, entry, true))
+-                return reject("RE_COLLECTION_REFORGE_REQUIRED_TE_INVESTMENT");
+-            worldforged += entry.Worldforged && entry.Quality == 3;
+-        }
+-    if (worldforged > 3)
+-        return false;
+-    for (std::size_t i = 0; i < wanted.size(); ++i)
+-        for (std::size_t j = i + 1; j < wanted.size(); ++j)
+-            if (wanted[i] && wanted[j] && wanted[i] != wanted[j] &&
+-                sSpellMgr->CheckSpellGroupStackRules(sSpellMgr->GetSpellInfo(wanted[i]),
+-                    sSpellMgr->GetSpellInfo(wanted[j])) != SPELL_GROUP_STACK_RULE_DEFAULT)
+-                return false;
+     auto const before = ReadSlots(player);
+     if (before == wanted)
+         return true;
++    if (!administrator && !NearAltar(player))
++        return reject("RE_COLLECTION_REFORGE_NO_MYSTIC_ALTAR");
++    if (!IsRemovalOnly(before, wanted))
++    {
++        for (auto spell : wanted)
++            if (spell && !state->Known.contains(spell))
++                return reject("RE_COLLECTION_REFORGE_NOT_KNOWN_ENCHANTMENT");
++        if (!ValidateSlots(Data, wanted, player->GetLevel(), state->Known, Connected))
++            return reject("RE_COLLECTION_REFORGE_BAD_ENCHANTMENT");
++        std::uint32_t worldforged = 0;
++        for (auto spell : wanted)
++            if (spell)
++            {
++                auto const& entry = Data.BySpell.at(spell);
++                if (!InvestmentMet(player, entry, false))
++                    return reject("RE_COLLECTION_REFORGE_REQUIRED_AE_INVESTMENT");
++                if (!InvestmentMet(player, entry, true))
++                    return reject("RE_COLLECTION_REFORGE_REQUIRED_TE_INVESTMENT");
++                worldforged += entry.Worldforged && entry.Quality == 3;
++            }
++        if (worldforged > 3)
++            return false;
++        for (std::size_t i = 0; i < wanted.size(); ++i)
++            for (std::size_t j = i + 1; j < wanted.size(); ++j)
++                if (wanted[i] && wanted[j] && wanted[i] != wanted[j] &&
++                    sSpellMgr->CheckSpellGroupStackRules(sSpellMgr->GetSpellInfo(wanted[i]),
++                        sSpellMgr->GetSpellInfo(wanted[j])) != SPELL_GROUP_STACK_RULE_DEFAULT)
++                    return false;
++    }
+     std::uint64_t money = 0;
+     std::uint32_t marks = 0;
+     if (!administrator)
+@@ -421,6 +424,31 @@
+         delete script;
+     }
+     return found;
++}
++
++bool HasHopliteSupportHandlers(uint32 spell)
++{
++    if (spell != 782246 && spell != 912326)
++        return false;
++    std::vector<uint32> dependencies = spell == 782246 ?
++        std::vector<uint32>{782247, 782200, 782201, 780999} :
++        std::vector<uint32>{912327, 912328, 12328, 997604};
++    for (uint32 id : dependencies)
++        if (!sSpellMgr->GetSpellInfo(id))
++            return false;
++    if (!sSpellMgr->GetSpellProcEntry(spell))
++        return false;
++    std::set<std::string> expected = spell == 782246 ?
++        std::set<std::string>{"aura_area52_draconic_sinister"} :
++        std::set<std::string>{"spell_area52_hoplite_support_proc", "aura_area52_sweeping_swings"};
++    std::list<AuraScript*> scripts;
++    sScriptMgr->CreateAuraScripts(spell, scripts);
++    for (auto* script : scripts)
++    {
++        expected.erase(*script->_GetScriptName());
++        delete script;
++    }
++    return expected.empty();
+ }
+ 
+ void LoadConnections()
+@@ -498,6 +526,12 @@
+         {
+             if (HasArea52LegendaryBatchHandlers(spell))
+                 Connected.emplace(spell, 1);
++            continue;
++        }
++        if (spell == 782246 || spell == 912326)
++        {
++            if (HasHopliteSupportHandlers(spell))
++                Connected.emplace(spell, std::max<std::uint32_t>(1, info->StackAmount));
+             continue;
+         }
+         if (HasEldritchEquipmentHandlers(spell) || HasArea52EpicEquipmentHandlers(spell) ||
+--- a/src/server/coa/AscensionMysticEnchantCatalog.cpp
++++ b/src/server/coa/AscensionMysticEnchantCatalog.cpp
+@@ -66,6 +66,18 @@
+     return true;
+ }
+ 
++bool IsRemovalOnly(Slots const& before, Slots const& wanted)
++{
++    bool removed = false;
++    for (std::size_t i = 0; i < wanted.size(); ++i)
++    {
++        if (wanted[i] && wanted[i] != before[i])
++            return false;
++        removed |= before[i] && !wanted[i];
++    }
++    return removed;
++}
++
+ bool ValidateSlots(Catalog const& catalog, Slots const& slots, std::uint32_t level,
+     std::set<std::uint32_t> const& owned, std::map<std::uint32_t, std::uint32_t> const& stackLimits)
+ {
+--- a/src/server/coa/AscensionMysticEnchantCatalog.h
++++ b/src/server/coa/AscensionMysticEnchantCatalog.h
+@@ -41,6 +41,7 @@
+ bool GrantsActive(Player const* player, std::uint32_t enchant);
+ void SetGrantedSpell(Player* player, std::uint32_t enchant, std::uint32_t spell, bool enabled);
+ using Slots = std::array<std::uint32_t, 17>;
++bool IsRemovalOnly(Slots const& before, Slots const& wanted);
+ bool ValidateSlots(Catalog const& catalog, Slots const& slots, std::uint32_t level,
+     std::set<std::uint32_t> const& owned, std::map<std::uint32_t, std::uint32_t> const& stackLimits);
+ }

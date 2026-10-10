@@ -1,0 +1,13 @@
+{
+  "build_and_harnesses": "PASSED",
+  "removal_regressions": "PASSED",
+  "tooltip_preservation": "PASSED",
+  "native_driver": "INCOMPLETE: exploratory scenario passed; not combined gameplay verification",
+  "native_connected": {
+    "782246": true,
+    "912326": true,
+    "978217": true
+  },
+  "client_labels_corrected": 34,
+  "tester_release_assets": "not published by this source milestone"
+}
