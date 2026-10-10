@@ -1,5 +1,6 @@
 #include "ScriptedCreature.h"
 #include "CreatureScript.h"
+#include "CreatureGroups.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Player.h"
@@ -17,6 +18,8 @@ enum DummyEvents
 
 enum DummyEntries
 {
+    DYNAMIC_EXECUTE = 666925,
+    DYNAMIC_HEALING = 666935,
     DYNAMIC_CONFIGURABLE = 967171,
     DYNAMIC_TANK = 967182,
     DYNAMIC_TARGET = 967254
@@ -33,13 +36,12 @@ struct npc_advanced_training_dummy : ScriptedAI
 
     bool IsDynamic() const
     {
-        return me->GetEntry() == DYNAMIC_CONFIGURABLE || me->GetEntry() == DYNAMIC_TANK
-            || me->GetEntry() == DYNAMIC_TARGET;
+        return true;
     }
 
-    bool IsTank() const { return me->GetEntry() == DYNAMIC_TANK || me->GetEntry() % 100000 == 66928; }
-    bool IsHealing() const { return me->GetEntry() % 100000 == 66935; }
-    bool IsExecute() const { return me->GetEntry() % 100000 == 66925; }
+    bool IsTank() const { return me->GetEntry() == DYNAMIC_TANK; }
+    bool IsHealing() const { return me->GetEntry() == DYNAMIC_HEALING; }
+    bool IsExecute() const { return me->GetEntry() == DYNAMIC_EXECUTE; }
 
     uint32 GetData(uint32 id) const override
     {
@@ -95,19 +97,25 @@ struct npc_advanced_training_dummy : ScriptedAI
         if (!player || !player->IsAlive() || !me->IsWithinDistInMap(player, 60.0f))
             return false;
 
-        if (IsDynamic() || IsTank())
-        {
-            if (!_owner.IsEmpty() && _owner != player->GetGUID())
-                return false;
-            if (_owner.IsEmpty())
-            {
-                _owner = player->GetGUID();
-                if (IsDynamic())
-                    SetTrainingLevel(player->GetLevel());
-            }
-        }
+        std::vector<npc_advanced_training_dummy*> targets{this};
+        if (me->GetEntry() == DYNAMIC_TARGET && me->GetFormation())
+            for (auto const& [member, info] : me->GetFormation()->GetMembers())
+                if (member != me && member->GetEntry() == DYNAMIC_TARGET && member->IsAIEnabled
+                    && member->GetScriptName() == me->GetScriptName())
+                    targets.push_back(static_cast<npc_advanced_training_dummy*>(member->AI()));
 
-        _activity[player->GetGUID()] = getMSTime();
+        for (auto* target : targets)
+            if (!target->_owner.IsEmpty() && target->_owner != player->GetGUID())
+                return false;
+        for (auto* target : targets)
+        {
+            if (target->_owner.IsEmpty())
+            {
+                target->_owner = player->GetGUID();
+                target->SetTrainingLevel(player->GetLevel());
+            }
+            target->_activity[player->GetGUID()] = getMSTime();
+        }
         if (unit != player)
             _activity[unit->GetGUID()] = getMSTime();
         me->SetInCombatWith(player);
@@ -130,11 +138,13 @@ struct npc_advanced_training_dummy : ScriptedAI
 
     void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType, SpellSchoolMask) override
     {
-        damage = 0;
         if (IsHealing() || !_vulnerable || !Engage(attacker))
+        {
+            damage = 0;
             return;
-        if (IsExecute())
-            me->SetHealth(std::max<uint32>(1, me->CountPctFromMaxHealth(18)));
+        }
+        me->SetHealth(IsExecute() ? std::max<uint32>(2, me->CountPctFromMaxHealth(18)) : me->GetMaxHealth());
+        damage = std::min(damage, me->GetHealth() - 1);
     }
 
     void HealReceived(Unit* healer, uint32& amount) override
@@ -177,12 +187,18 @@ struct npc_advanced_training_dummy : ScriptedAI
         }
         if (IsHealing() && emote == TEXT_EMOTE_POKE)
         {
+            if (!_owner.IsEmpty() && _owner != player->GetGUID())
+                return;
             _healingEnabled = !_healingEnabled;
+            if (_healingEnabled)
+                SetTrainingLevel(player->GetLevel());
             if (!_healingEnabled)
             {
                 me->CombatStop(true);
                 me->RemoveAllAuras();
                 _activity.clear();
+                _owner.Clear();
+                SetTrainingLevel(1);
             }
             me->SetHealth(_healingEnabled ? me->CountPctFromMaxHealth(50) : me->GetMaxHealth());
             me->Whisper(_healingEnabled ? "Healing practice enabled." : "Healing practice stopped.", LANG_UNIVERSAL, player);

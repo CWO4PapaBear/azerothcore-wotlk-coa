@@ -14,10 +14,13 @@ No city spawns or existing training dummy bindings are replaced by this package.
 
 ## Implemented test behavior
 
-- Nonlethal incoming damage, stationary combat, and per-attacker idle cleanup.
+- Nonlethal incoming damage, stationary combat, and per-attacker idle cleanup. Accepted damage is
+  retained for combat reporting, capped below lethal damage rather than discarded.
 - Execute targets stay at 18% health after being attacked, then restore on disengage.
-- Dynamic targets acquire the first player's level and creature-base stats; pet attacks resolve to their owner.
+- All five roles acquire the first player's level and creature-base stats; pet attacks resolve to their owner.
   A dynamic target is reserved to that player until release and resets to level 1 afterward.
+- Standard targets in an explicit creature formation share ownership, level acquisition, and activity timeout.
+  Cleave and AoE stations reuse the standard template; proximity alone does not join unrelated stations.
 - Model #001 supports information, idle vulnerability toggle, owner-only level adjustment and crowd-control
   immunity toggle. Combat end restores default crowd-control immunity.
 - Healing targets accept effective healing after `/poke`, enter combat for meters, and refresh their health
@@ -31,8 +34,8 @@ No city spawns or existing training dummy bindings are replaced by this package.
 - Tank simulated-death/overkill and on-death procs are **not implemented**. Calling the normal death path
   would kill players and can trigger resurrection, durability, achievement and encounter side effects.
   The safety cap must not be presented as equivalent to the historical simulated-death behavior.
-- Fixed Azeroth/Outland/Northrend variants use 63/73/83 templates. Automatic realm-expansion switching
-  is not yet wired; deployment must choose the appropriate tier.
+- Only five templates are installed. Their expansion stat tier follows the acquired level; no fixed
+  Azeroth/Outland/Northrend copies are installed. Default level matches the player, without a boss offset.
 - Stat magnitudes use the reconstruction's creature base-stat tables, not a recovered original damage
   formula. Tank intensity, armor, healing behavior and simultaneous-user behavior require owner acceptance.
 - Healing dummies remain targetable for `/poke`; disabled healing is rejected. This is not a full client
@@ -44,8 +47,8 @@ No city spawns or existing training dummy bindings are replaced by this package.
 
 ## Owner test checklist before city placement
 
-Use temporary GM spawns in an isolated area. Test 666953 (single), 666925 (execute), 666928 (tank),
-666935 (healing), 967254 (dynamic), 967182 (dynamic tank), and 967171 (configurable).
+Use temporary GM spawns in an isolated area. Test 967254 (single/cleave/AoE), 666925 (execute),
+666935 (healing), 967182 (tank), and 967171 (configurable).
 Repeat dynamic tests at different levels and with pets. Check independent users, loss of combat after
 stopping, aura cleanup, level reset, tank rage/slows/nonlethal stop, and healing activation/meters.
 No permanent placement SQL is included. Do not enable automated city replacement until behavior and

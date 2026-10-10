@@ -67,8 +67,7 @@
         {
             Creature const* creature = dummy->ToCreature();
             return creature && participant->GetCharmerOrOwnerPlayerOrPlayerItself()
-                && (creature->GetEntry() == 666935 || creature->GetEntry() == 766935
-                    || creature->GetEntry() == 866935)
+                && creature->GetEntry() == 666935
                 && creature->GetScriptName() == "npc_advanced_training_dummy" && creature->IsAIEnabled
                 && creature->AI()->GetData(DATA_HEALING_PRACTICE_ACTIVE);
         };
