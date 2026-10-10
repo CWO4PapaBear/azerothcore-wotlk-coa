@@ -1,4 +1,8 @@
 {
+  "src/server/game/Entities/Unit/Unit.cpp": {
+    "before_sha256": "fd039e0688f6b50e979dc7e9ffdc9042b0b23b9ae13ead7c667c400a7b076379",
+    "after_sha256": "c0b0ef6934e6c586302b93c673d93e5a832404d196f6fc6f2763720d17e033b9"
+  },
   "src/server/scripts/Spells/spell_warrior.cpp": {
     "before_sha256": "349a311e961b22b0f621a44c84407f35c35b694ac60fa4c0a40ddcaee53ee36d",
     "after_sha256": "2a80eba2c04d346b0d2a64f416c1131ee082267ed8f3a1e1a1ec5d973ff0484a"
@@ -9,7 +13,19 @@
   },
   "src/server/coa/AscensionMysticEnchant.cpp": {
     "before_sha256": "69f53517ac731e3b8f5452f01d33a2d5739d6977dfd75bbdb1e1c1f6337e0d01",
-    "after_sha256": "bdc736ae710b9795eb0f264e843b5332dbe202ca95a4009721c8961cceeaa380"
+    "after_sha256": "6164872dc3929823422801510b338d774e09623f42a26c06cf997b1aa61eaea1"
+  },
+  "src/server/coa/Area52HopliteRemaining.inc": {
+    "before_sha256": null,
+    "after_sha256": "0e30eeacd8d9fabf05d420c961af3742ffc07abd05e4e80831617aff3280dfda"
+  },
+  "src/server/coa/Area52HopliteRemainingRules.h": {
+    "before_sha256": null,
+    "after_sha256": "da2aacce4b895facc87fda8a9f69d48ab63caf9dd0d589b7e922ab39f00b393b"
+  },
+  "data/sql/updates/pending_db_world/rev_20261010_01_area52_hoplite_remaining.sql": {
+    "before_sha256": null,
+    "after_sha256": "37b05fc4ef32465039b0aef2e8058d6a76212935047900c6292d33cb39329adc"
   },
   "src/server/coa/Area52HopliteSupportRules.h": {
     "before_sha256": null,
@@ -25,18 +41,18 @@
   },
   "apps/coa-tests/area52_hoplite_support/run.py": {
     "before_sha256": null,
-    "after_sha256": "ce20e1370e54e144754f52f3465ab9296ad77a8252a023e03814e77585aed63c"
+    "after_sha256": "94d42bee574d625841be10257ee3a3164dd306ee732aea860d254fd4489191ba"
   },
   "apps/coa-tests/area52_hoplite_sql/run.py": {
     "before_sha256": null,
-    "after_sha256": "32ebefe909abeb52b4bbf39cffcf38e226d8ac70c9264e837de573a378504d91"
+    "after_sha256": "6b6d99cd8482c3d4b9598fb9d21e03f0c64eb6fd187e812759823e421456c505"
   },
   "apps/coa-tests/area52_hoplite_build_review/run.py": {
     "before_sha256": null,
-    "after_sha256": "74cf4f98675ea2a8eb97a598485b4c42d19acf281adfae26b233b9343fb9f17f"
+    "after_sha256": "f497465f550f314921eaf34b4e11fd77dcc8dd055f4af1827ff5fc9c1aed7062"
   },
   "apps/coa-tests/area52_hoplite_client/run.py": {
     "before_sha256": null,
-    "after_sha256": "e3a353ec6ce1d460df8569906354dc807a841b122f7cc0a5424f5f55986b2517"
+    "after_sha256": "5c6848eedc7b7dec4e44c64e641fc39487e77725e0b4cc76dad37b26f554f53b"
   }
 }
