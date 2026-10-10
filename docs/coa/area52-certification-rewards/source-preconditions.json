@@ -1,0 +1,30 @@
+{
+  "src/server/coa/Area52Certification.cpp": {
+    "before": "6698f6a915aede8d72d860ca049f2cb63241581b57b7405475d7284b6dfcf43d",
+    "after": "b1d066faf7780753f97440e1f85fde6233ab3240e8712de0c25af5b0075e3cd4"
+  },
+  "src/server/coa/Area52CertificationRules.h": {
+    "before": "ec485a93e12fa24c1095995f9c5878f29fb5828335320213e9b7958c9c494822",
+    "after": "4a8db9bad6089c2e948b63fd358499ea0e6a4c7220f2e4e6a5ac69e0a8e828aa"
+  },
+  "apps/coa-tests/area52_certification/run.py": {
+    "before": "9ffda0585608176cddc066cda85b10d706489aca300d1a5cda2979626d37f494",
+    "after": "2c2c6e5c00f1544be86cc7b892cee70a72eb3d08d750ca79262d3351edd72701"
+  },
+  "apps/coa-tests/area52_certification_mystic_client/run.py": {
+    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "after": "371f1aab3ec7afcceb14e541b43a91876f79a5baa192fcddffc72bfe73819cc3"
+  },
+  "src/server/database/Database/Implementation/CharacterDatabase.cpp": {
+    "before": "08cf465e3ae5279ea5d6fb58bbf5061440456113e0502cec7c1673e94f2d2096",
+    "after": "43e78569ac3845d2418f0453de6dbe0891ecc196a42a6431bd74d40fb2d0c777"
+  },
+  "src/server/database/Database/Implementation/CharacterDatabase.h": {
+    "before": "07ec43de20aa41aceae29020fabe63baaa7c5a4631ef2308aa6bdc2b4d13c437",
+    "after": "21ac37fade0cfecf423f9993aae3126ad15e98684427149cf741d74b828438f4"
+  },
+  "data/sql/updates/pending_db_characters/rev_20261009_13_area52_certification_rewards.sql": {
+    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "after": "6dd91632145482003b5f0900bfe6f8ccb4cd1985474b1800810f193a5d25e7bf"
+  }
+}

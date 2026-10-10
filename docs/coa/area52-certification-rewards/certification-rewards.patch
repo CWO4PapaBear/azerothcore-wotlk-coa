@@ -1,0 +1,252 @@
+--- a/src/server/coa/Area52Certification.cpp
++++ b/src/server/coa/Area52Certification.cpp
+@@ -4,6 +4,8 @@
+ #include "Config.h"
+ #include "DatabaseEnv.h"
+ #include "Log.h"
++#include "Item.h"
++#include "Mail.h"
+ #include "Player.h"
+ #include "ScriptMgr.h"
+ #include "WorldPacket.h"
+@@ -30,6 +32,35 @@
+     ChatHandler::BuildChatPacket(packet, CHAT_MSG_WHISPER, LANG_ADDON, player, player,
+         std::string(Prefix) + payload);
+     player->SendDirectMessage(&packet);
++}
++
++void Reward(Player* player)
++{
++    if (!Active || !AscensionFreePick::Applies(player) || player->GetSession()->IsBot())
++        return;
++    auto const account = player->GetSession()->GetAccountId();
++    auto* query = CharacterDatabase.GetPreparedStatement(CHAR_SEL_A52_CERTIFICATION_REWARD);
++    query->SetData(0, account);
++    auto result = CharacterDatabase.Query(query);
++    if (!result)
++        return;
++    auto const itemId = result->Fetch()[0].Get<uint32>();
++    Item* item = Item::CreateItem(itemId, 1);
++    if (!item)
++        return;
++    auto transaction = CharacterDatabase.BeginTransaction();
++    auto* claim = CharacterDatabase.GetPreparedStatement(CHAR_INS_A52_CERTIFICATION_REWARD);
++    claim->SetData(0, account);
++    claim->SetData(1, player->GetGUID().GetCounter());
++    claim->SetData(2, itemId);
++    transaction->Append(claim);
++    item->SaveToDB(transaction);
++    MailDraft("Area 52 Certification Milestone",
++        "Thank you for testing and certifying Area 52 abilities, talents, and Mystic Enchants. "
++        "Your account has reached its certification milestone. Enjoy your Hoplite Vanity Bundle!")
++        .AddItem(item).SendMailTo(transaction, MailReceiver(player), MailSender(player));
++    if (!CharacterDatabase.AsyncCommitTransaction(transaction).m_future.get())
++        LOG_ERROR("coa", "Area 52 certification reward transaction failed for account {}", account);
+ }
+ 
+ void Snapshot(Player* player)
+@@ -96,7 +127,13 @@
+ {
+ public:
+     CertificationPlayer() : PlayerScript("Area52CertificationPlayer",
+-        {PLAYERHOOK_CAN_PLAYER_USE_PRIVATE_CHAT, PLAYERHOOK_ON_LOGOUT}) { }
++        {PLAYERHOOK_CAN_PLAYER_USE_PRIVATE_CHAT, PLAYERHOOK_ON_LOGOUT, PLAYERHOOK_ON_LOGIN}) { }
++
++    void OnPlayerLogin(Player* player) override
++    {
++        std::lock_guard lock(Mutex);
++        Reward(player);
++    }
+ 
+     bool OnPlayerCanUseChat(Player* player, uint32 type, uint32 language, std::string& message,
+         Player* receiver) override
+@@ -130,7 +167,7 @@
+         auto entry = Entries.find(id);
+         if (!id || entry == Entries.end())
+         {
+-            Send(player, "ERROR|Only VERIFIED advancement entries can be certified.");
++            Send(player, "ERROR|Only VERIFIED abilities, talents, or Mystic Enchants can be certified.");
+             return false;
+         }
+         if (!entry->second)
+@@ -155,6 +192,7 @@
+                     AscensionFreePick::Applies(online))
+                     Send(online, "C|" + std::to_string(id));
+         }
++        Reward(player);
+         Send(player, "OK|" + std::to_string(id));
+         return false;
+     }
+--- a/src/server/coa/Area52CertificationRules.h
++++ b/src/server/coa/Area52CertificationRules.h
+@@ -11,6 +11,7 @@
+ 
+ namespace Area52Certification
+ {
++inline constexpr std::uint32_t MysticEntryMask = 0x80000000u;
+ inline constexpr std::string_view Prefix = "A52CERT\t";
+ 
+ inline std::map<std::uint32_t, bool> ReadEligibility(boost::property_tree::ptree const& report)
+@@ -22,11 +23,16 @@
+     for (auto const& child : report.get_child("entries"))
+     {
+         auto const& row = child.second;
+-        if (row.get<std::string>("kind") != "advancement")
++        auto const kind = row.get<std::string>("kind");
++        if (kind != "advancement" && kind != "mystic")
+             continue;
+-        auto const id = row.get<std::uint32_t>("id");
+-        if (!id || !seen.emplace(id, true).second)
+-            throw std::runtime_error("Invalid or duplicate advancement certification entry");
++        auto id = row.get<std::uint32_t>("id");
++        if (!id || id >= MysticEntryMask)
++            throw std::runtime_error("Invalid certification identifier");
++        if (kind == "mystic")
++            id |= MysticEntryMask;
++        if (!seen.emplace(id, true).second)
++            throw std::runtime_error("Duplicate certification entry");
+         auto const status = row.get<std::string>("status");
+         if (status == "VERIFIED" || status == "CERTIFIED")
+             result.emplace(id, status == "CERTIFIED" || row.get<bool>("certified", false));
+--- a/apps/coa-tests/area52_certification/run.py
++++ b/apps/coa-tests/area52_certification/run.py
+@@ -28,7 +28,9 @@
+     boost::property_tree::ptree report;
+     boost::property_tree::read_json(input, report);
+     auto result = ReadEligibility(report);
+-    assert(result.size() == 3 && !result.at(1) && result.at(2) && result.at(3));
++    assert(result.size() == 4 && !result.at(1) && result.at(2) && result.at(3));
++    assert(!result.at(MysticEntryMask | 1));
++    assert(ParseConfirmation("C|2147483649|7") == (MysticEntryMask | 1));
+     auto duplicate = report.get_child("entries").front();
+     report.get_child("entries").push_back(duplicate);
+     bool rejected = false;
+@@ -47,3 +49,26 @@
+                     str(p / 'test.cpp'), '-o', str(p / 'test')], check=True)
+     subprocess.run([str(p / 'test')], check=True)
+ print('Certification eligibility, prior certification, fail-closed ledger and confirmation parsing passed.')
++
++import re
++import sqlite3
++database_source = (root / 'src/server/database/Database/Implementation/CharacterDatabase.cpp').read_text()
++block = database_source.split('PrepareStatement(CHAR_SEL_A52_CERTIFICATION_REWARD,', 1)[1].split('CONNECTION_SYNCH);', 1)[0]
++query = ''.join(re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', block))
++db = sqlite3.connect(':memory:')
++db.executescript("""
++CREATE TABLE area52_certification_reward_rule (account INTEGER PRIMARY KEY, required_count INTEGER, item INTEGER);
++CREATE TABLE area52_certification_reward_delivery (account INTEGER PRIMARY KEY, guid INTEGER, item INTEGER);
++CREATE TABLE area52_tester_certification (entry INTEGER PRIMARY KEY, account INTEGER, checks_confirmed INTEGER);
++INSERT INTO area52_certification_reward_rule VALUES (18,30,9901073);
++""")
++db.executemany('INSERT INTO area52_tester_certification VALUES (?,18,7)', [(x,) for x in range(1,30)])
++assert db.execute(query, (18,)).fetchone() is None
++db.execute('INSERT INTO area52_tester_certification VALUES (2147564739,18,3)')
++assert db.execute(query, (18,)).fetchone() is None
++db.execute('UPDATE area52_tester_certification SET checks_confirmed=7 WHERE entry=2147564739')
++assert db.execute(query, (18,)).fetchone() == (9901073,)
++assert db.execute(query, (19,)).fetchone() is None
++db.execute('INSERT INTO area52_certification_reward_delivery VALUES (18,123,9901073)')
++assert db.execute(query, (18,)).fetchone() is None
++print('Reward query: threshold, mixed categories, incomplete checks, account isolation and delivered exclusion passed.')
+--- /dev/null
++++ b/apps/coa-tests/area52_certification_mystic_client/run.py
+@@ -0,0 +1,52 @@
++from pathlib import Path
++import os
++from lupa.lua51 import LuaRuntime
++
++lua = LuaRuntime(unpack_returned_tuples=True)
++lua.execute('''
++StaticPopupDialogs = {}; SlashCmdList = {}; CANCEL = "Cancel"
++C_Player = {IsHero=function() return true end}
++C_CharacterAdvancement = {GetEntryBySpellID=function() return nil end}
++ModTooltipSetSpell = {}
++DEFAULT_CHAT_FRAME = {AddMessage=function() end}
++C_Timer = {After=function() end}
++function GetRealmName() return "Area 52 - Free-Pick" end
++function UnitName() return "Tester" end
++function GetTime() return 1 end
++function GetSpellInfo(id) return "Mystic "..id end
++function SendAddonMessage(prefix,message,channel,target) sent=message end
++function StaticPopup_Show(key,name,unused,data) popup={key=key,data=data} end
++function CreateFrame()
++  testFrame={RegisterEvent=function() end,SetScript=function(self,event,fn) self.event=fn end}
++  return testFrame
++end
++''')
++lua.execute(Path(os.environ['AREA52_CERTIFICATION_LUA']).read_text(encoding='utf-8-sig'))
++lua.execute('''
++local event=testFrame.event
++event(testFrame,"PLAYER_LOGIN")
++assert(sent=="SYNC")
++SlashCmdList.AREA52CERTIFYMYSTIC("81091")
++assert(popup==nil)
++event(testFrame,"CHAT_MSG_ADDON","A52CERT","BEGIN","WHISPER","Tester")
++event(testFrame,"CHAT_MSG_ADDON","A52CERT","V|2147564739","WHISPER","Tester")
++event(testFrame,"CHAT_MSG_ADDON","A52CERT","END","WHISPER","Tester")
++SlashCmdList.AREA52CERTIFYMYSTIC("81091")
++assert(popup.key=="AREA52_CERTIFY_MYSTIC" and popup.data.id==2147564739)
++assert(sent=="SYNC")
++StaticPopupDialogs[popup.key].OnAccept(nil,popup.data)
++assert(sent=="C|2147564739|7")
++event(testFrame,"CHAT_MSG_ADDON","A52CERT","OK|2147564739","WHISPER","Imposter")
++local left={text="|cffffff00VERIFIED|r",GetText=function(self) return self.text end,SetText=function(self,t) self.text=t end}
++ModTooltipSetSpell.Area52Certification(nil,left,nil,81091)
++assert(left.text=="|cffffff00VERIFIED|r")
++event(testFrame,"CHAT_MSG_ADDON","A52CERT","OK|2147564739","WHISPER","Tester")
++ModTooltipSetSpell.Area52Certification(nil,left,nil,81091)
++assert(left.text=="|cff00ff00CERTIFIED|r")
++popup=nil
++SlashCmdList.AREA52CERTIFYMYSTIC("81091")
++assert(popup==nil)
++SlashCmdList.AREA52CERTIFYMYSTIC("999999")
++assert(popup==nil)
++''')
++print('Lua 5.1 ME confirmation, submission, response attribution, tooltip and duplicate rejection passed.')
+--- a/src/server/database/Database/Implementation/CharacterDatabase.cpp
++++ b/src/server/database/Database/Implementation/CharacterDatabase.cpp
+@@ -757,6 +757,16 @@
+     PrepareStatement(CHAR_INS_A52_CERTIFICATION,
+         "INSERT IGNORE INTO area52_tester_certification (entry, account, guid, character_name, evidence_sha256, checks_confirmed) VALUES (?, ?, ?, ?, ?, 7)", CONNECTION_SYNCH);
+ 
++    PrepareStatement(CHAR_SEL_A52_CERTIFICATION_REWARD,
++        "SELECT r.item FROM area52_certification_reward_rule r WHERE r.account = ? "
++        "AND NOT EXISTS (SELECT 1 FROM area52_certification_reward_delivery d WHERE d.account = r.account) "
++        "AND (SELECT COUNT(*) FROM area52_tester_certification c WHERE c.account = r.account AND c.checks_confirmed = 7) "
++        ">= r.required_count",
++        CONNECTION_SYNCH);
++    PrepareStatement(CHAR_INS_A52_CERTIFICATION_REWARD,
++        "INSERT INTO area52_certification_reward_delivery (account, guid, item) VALUES (?, ?, ?)",
++        CONNECTION_ASYNC);
++
+     PrepareStatement(CHAR_INS_PLAYER_ANTICHEAT_ALERT, "INSERT INTO player_anticheat_alert (account, guid, name, reason, details, size) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+ }
+ 
+--- a/src/server/database/Database/Implementation/CharacterDatabase.h
++++ b/src/server/database/Database/Implementation/CharacterDatabase.h
+@@ -592,6 +592,8 @@
+     CHAR_SEL_A52_CERTIFICATIONS,
+     CHAR_SEL_A52_CERTIFICATION,
+     CHAR_INS_A52_CERTIFICATION,
++    CHAR_SEL_A52_CERTIFICATION_REWARD,
++    CHAR_INS_A52_CERTIFICATION_REWARD,
+ 
+     MAX_CHARACTERDATABASE_STATEMENTS
+ };
+--- /dev/null
++++ b/data/sql/updates/pending_db_characters/rev_20261009_13_area52_certification_rewards.sql
+@@ -0,0 +1,14 @@
++CREATE TABLE IF NOT EXISTS `area52_certification_reward_rule` (
++  `account` int unsigned NOT NULL,
++  `required_count` int unsigned NOT NULL DEFAULT 30,
++  `item` int unsigned NOT NULL,
++  PRIMARY KEY (`account`)
++) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
++
++CREATE TABLE IF NOT EXISTS `area52_certification_reward_delivery` (
++  `account` int unsigned NOT NULL,
++  `guid` int unsigned NOT NULL,
++  `item` int unsigned NOT NULL,
++  `delivered_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
++  PRIMARY KEY (`account`)
++) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
