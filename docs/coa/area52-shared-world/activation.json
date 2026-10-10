@@ -1,0 +1,30 @@
+{
+  "status": "activated",
+  "started_at": "2026-10-10T14:05:35.367254098Z",
+  "binary_sha256": "14599f92a5e3e6fb5340f3c5427b077502029f3ebfca8ddf40215cd79aeb5416",
+  "migrations": {
+    "rev_20261008_10_stratholme_barthilas.sql": "49748e76c2667a4f3c6e5d40264471d659833cc7",
+    "rev_20261008_20_stratholme_dathrohan.sql": "fdd9299167c5fa7763009c11e6e2cdc437fbbc0a",
+    "rev_20261008_30_stratholme_bastion_undead.sql": "95cb8248eae8c954b4f442f18f9708ae290fdaad",
+    "rev_20261009_00_coa_quest_6977_goldshire_objective_markers.sql": "b82774d3cbbb9cb3960fffd427645aec99564d81",
+    "rev_20261009_10_stratholme_timmy_hearthsinger_stonespine.sql": "23926ff2ca12a7ab07aaf38ca1d3251171e3b626",
+    "rev_20261009_30_coa_quest_poi_restore.sql": "b68b9561656e7ee14f85adcad8146f72e30f6f81",
+    "rev_20261009_40_sm_whitemane_fake_death.sql": "a50929328a9e43f692df99ec3e1cf5d0746c7580",
+    "rev_20261009_50_coa_goldshire_npc_portraits.sql": "c2ff5aa3415b80b31e160de939a03d14240cc259",
+    "rev_20261009_50_elixir_quest_prerequisites.sql": "7339e4cfccb1d0655923b81b02b56e0154dcd638",
+    "rev_20261009_50_runaway_tunic_cave.sql": "80ffda284cba8eab73fa406beb362794e0268735",
+    "rev_20261009_51_moonstalker_runt_owner_death.sql": "998e9cb6a1b8f3e070fc1ea918ad0cc3b5cfd8f3",
+    "rev_20261009_53_warsong_peon_low_health_flee.sql": "9e873cd731ee1824c82e6b70d85f3416458f1df9",
+    "rev_20261009_80_lfg_classic_target_levels.sql": "c00c4fbf8bc53d45b15b25486d72cf1c6f6aab94",
+    "rev_20261009_80_shadowfang_ashcrombe_unattackable.sql": "e74b9a5582e1976eef06f0b21a1b25a42aa856a1",
+    "rev_20261009_81_brd_prison_ring_of_law_final.sql": "ec30edbabaef01abf81ac1699d1b58de499a2253",
+    "rev_20261009_82_landslide_stun_cooldown.sql": "ea14f9420062e119f2de500d286457e3b95170d0",
+    "rev_20261010_30_coa_shadewell_graveyard_zone.sql": "3f2065ce955b071acbb285a4379c5d4aef4d1975",
+    "rev_20261009_16_area52_temporary_specialized_dummies.sql": "a51946babd1543e9fa6c02bdd39248219ec9bf89"
+  },
+  "existing_test_dummies_preserved": 14,
+  "specialized_test_dummies_added": 3,
+  "client_release": "no client files changed by Part 1",
+  "build_verification": "PASSED",
+  "temporary_database_verification": "PASSED; 18 migrations twice, idempotence and target assertions"
+}

@@ -1,0 +1,43 @@
+fix(Scripts/Stratholme): gates, Barthilas, Dathrohan, Anastari, Timmy, Hearthsinger and Stonespine (#7012)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7012
+fix(Core/Instance): send the instance welcome after the client's bind query (#7015)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7015
+fix(CoA/Quests): restore missing quest objective POIs and turn-in markers (#7024)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7024
+fix(CoA/Quests): fix Goldshire NPC target portraits (#7040)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7040
+fix(DB/Quests): restore Lydon's elixir prerequisites (#360) (#7042)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/360
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7042
+fix(CoA/Quests): mark the Goldshire quests' objectives on the map (#6977, #6982) (#7054)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/6977
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/6982
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7054
+fix(Scripts/ScarletMonastery): Whitemane plays dead until Mograine falls (#7046)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7046
+fix(DB/World): place Runaway's Tunic beside Hermit Ortell (#3238) (#7034)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/3238
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7034
+fix(CoA/Dungeons): keep Sorcerer Ashcrombe from being killed by the Horde (#7088)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7088
+fix(CoA/LFG): queue Classic dungeons from their target level; Ring of Law ends the BRD Prison (#7112)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7112
+fix(DB/Creature): despawn Moonstalker runts with their matriarch (#4347) (#7049)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/4347
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7049
+fix(DB/Creature): make Warsong Peons flee only at low health (#4364) (#7051)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/4364
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7051
+fix(Scripts/Azuremyst): credit a Hero's Gift of the Naaru on Draenei Survivors (#6235) (#7093)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/6235
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7093
+fix(Maraudon): Landslide's AoE stun every 45 s (#7126)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7126
+fix(Core/Movement): inherit NPC spline walking mode (#5431) (#7122)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/5431
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7122
+fix(TeleportActionBar): allow both factions to use Stockade retreat (#5284) (#7138)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/5284
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7138
+fix(CoA/World): keep Elwynn ghosts off the healer-less Shadewell graveyard (#7179)
+https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7179

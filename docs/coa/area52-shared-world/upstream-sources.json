@@ -1,0 +1,147 @@
+[
+  {
+    "sha": "5564105110e7fe0e2c9ea6d3648012ca32c5d2b9",
+    "title": "fix(Scripts/Stratholme): gates, Barthilas, Dathrohan, Anastari, Timmy, Hearthsinger and Stonespine (#7012)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/5564105110e7fe0e2c9ea6d3648012ca32c5d2b9",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7012"
+    ]
+  },
+  {
+    "sha": "80e04d5aacb0ca4bfd889b2a6a15a6e363c63c3e",
+    "title": "fix(Core/Instance): send the instance welcome after the client's bind query (#7015)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/80e04d5aacb0ca4bfd889b2a6a15a6e363c63c3e",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7015"
+    ]
+  },
+  {
+    "sha": "8efc6a1636ebfafafabb1a8af606be2277d3d669",
+    "title": "fix(CoA/Quests): restore missing quest objective POIs and turn-in markers (#7024)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/8efc6a1636ebfafafabb1a8af606be2277d3d669",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7024"
+    ]
+  },
+  {
+    "sha": "e3659d2d44f24de5e00a497e6e3ddcd767dac00b",
+    "title": "fix(CoA/Quests): fix Goldshire NPC target portraits (#7040)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/e3659d2d44f24de5e00a497e6e3ddcd767dac00b",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7040"
+    ]
+  },
+  {
+    "sha": "d66eff9bce632bb0bdb6827d6c7a5d31bd34378c",
+    "title": "fix(DB/Quests): restore Lydon's elixir prerequisites (#360) (#7042)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/d66eff9bce632bb0bdb6827d6c7a5d31bd34378c",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/360",
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7042"
+    ]
+  },
+  {
+    "sha": "0448aa8380ee5d93254b98b66bde89eee9fcc29c",
+    "title": "fix(CoA/Quests): mark the Goldshire quests' objectives on the map (#6977, #6982) (#7054)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/0448aa8380ee5d93254b98b66bde89eee9fcc29c",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/6977",
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/6982",
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7054"
+    ]
+  },
+  {
+    "sha": "b4a26a73147360f870724eb02fa7f3547a52b511",
+    "title": "fix(Scripts/ScarletMonastery): Whitemane plays dead until Mograine falls (#7046)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/b4a26a73147360f870724eb02fa7f3547a52b511",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7046"
+    ]
+  },
+  {
+    "sha": "4947fc7f2f18688d12b1e1c31b0ff678ff214f3f",
+    "title": "fix(DB/World): place Runaway's Tunic beside Hermit Ortell (#3238) (#7034)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/4947fc7f2f18688d12b1e1c31b0ff678ff214f3f",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/3238",
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7034"
+    ]
+  },
+  {
+    "sha": "b51960405b49c47b431a2df9318b5fbadadd83a5",
+    "title": "fix(CoA/Dungeons): keep Sorcerer Ashcrombe from being killed by the Horde (#7088)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/b51960405b49c47b431a2df9318b5fbadadd83a5",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7088"
+    ]
+  },
+  {
+    "sha": "ac0d330b00f48b732dad55632053ca131a00589f",
+    "title": "fix(CoA/LFG): queue Classic dungeons from their target level; Ring of Law ends the BRD Prison (#7112)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/ac0d330b00f48b732dad55632053ca131a00589f",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7112"
+    ]
+  },
+  {
+    "sha": "135ccf849d3c225ef573a03cbd70a1d13ac7d6f2",
+    "title": "fix(DB/Creature): despawn Moonstalker runts with their matriarch (#4347) (#7049)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/135ccf849d3c225ef573a03cbd70a1d13ac7d6f2",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/4347",
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7049"
+    ]
+  },
+  {
+    "sha": "a357823207618dac74dfaafbee23ada6a42f68ae",
+    "title": "fix(DB/Creature): make Warsong Peons flee only at low health (#4364) (#7051)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/a357823207618dac74dfaafbee23ada6a42f68ae",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/4364",
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7051"
+    ]
+  },
+  {
+    "sha": "0ae5081dc8c3eefec3a216bd2324422c6a3d4cd1",
+    "title": "fix(Scripts/Azuremyst): credit a Hero's Gift of the Naaru on Draenei Survivors (#6235) (#7093)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/0ae5081dc8c3eefec3a216bd2324422c6a3d4cd1",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/6235",
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7093"
+    ]
+  },
+  {
+    "sha": "24b8fd30e3a6c7e1233e09640186b5af58ad3eba",
+    "title": "fix(Maraudon): Landslide's AoE stun every 45 s (#7126)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/24b8fd30e3a6c7e1233e09640186b5af58ad3eba",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7126"
+    ]
+  },
+  {
+    "sha": "0d21f80e208617dd95a4e461242742dd6433999a",
+    "title": "fix(Core/Movement): inherit NPC spline walking mode (#5431) (#7122)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/0d21f80e208617dd95a4e461242742dd6433999a",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/5431",
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7122"
+    ]
+  },
+  {
+    "sha": "d5da50765d9e9f0558c935af69ff948e27f13d80",
+    "title": "fix(TeleportActionBar): allow both factions to use Stockade retreat (#5284) (#7138)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/d5da50765d9e9f0558c935af69ff948e27f13d80",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/5284",
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7138"
+    ]
+  },
+  {
+    "sha": "312a527c49e4e3d97cd550161874ce1f46b82a96",
+    "title": "fix(CoA/World): keep Elwynn ghosts off the healer-less Shadewell graveyard (#7179)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/312a527c49e4e3d97cd550161874ce1f46b82a96",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7179"
+    ]
+  }
+]
