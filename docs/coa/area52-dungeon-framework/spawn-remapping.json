@@ -1,0 +1,10 @@
+{
+  "target": "Area 52 training dummies; upstream dungeon GUIDs unchanged",
+  "mapping": {
+    "9780122": 15980122,
+    "9780124": 15980124,
+    "9780128": 15980128,
+    "9780131": 15980131,
+    "9780132": 15980132
+  }
+}

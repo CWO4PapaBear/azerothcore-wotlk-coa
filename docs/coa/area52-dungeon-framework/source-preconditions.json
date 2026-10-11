@@ -1,0 +1,330 @@
+{
+  "apps/coa-gameplay-test/README.md": {
+    "before_sha256_lf": "35407a89e091a3f7eb8aa18ee2b13a37421e03965551079aa304f355a829168e",
+    "after_sha256_lf": "da5513f9b3d8f146dace4500ea721dcc0c0d5c4f1fd5e92a5354654e61b85680"
+  },
+  "apps/coa-gameplay-test/clock_policy.json": {
+    "before_sha256_lf": "08cc81f2bf39a7318ea8571a7145ca24b088804ec30914ee9a4f26cb6591ef37",
+    "after_sha256_lf": "009f8d7564628513b0d7d408c3676d06303857683666b7ae246fd77a2c471026"
+  },
+  "apps/coa-gameplay-test/run.py": {
+    "before_sha256_lf": "02b9b3920beb44746fdaf64e13ada720d8719440acc057ee1d6b62a20f579d9f",
+    "after_sha256_lf": "06762c824e7ed8552823b49d0c8be95e8ecf04f501595d0e02e26ff33acc299f"
+  },
+  "apps/coa-gameplay-test/scenarios/lfg-random-classic-heroic-queue.json": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "3539bb347a845a8d6a5c6901f151c0fe1b4ff5fdfd70164db58ecc52d631a7dd"
+  },
+  "apps/coa-gameplay-test/scenarios/lfg-random-classic-mythic-queue.json": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "3a3ad73df0dfe85673760accb4873d6be5d812c1930fd5e65d8b737835f68125"
+  },
+  "apps/coa-gameplay-test/scenarios/vanilla-dungeons-health.json": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "6674ba576b8305eb9ed9dfc58ca0005c969c676d31a23d7e1b3660122feb7841"
+  },
+  "apps/coa-gameplay-test/scenarios/vanilla-dungeons-heroic.json": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "7bddfb59e4f623534f143fd3763d902ac71aab3c0c48418c05d2d4df58288415"
+  },
+  "apps/coa-gameplay-test/scenarios/vanilla-dungeons-mythic.json": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "93c9c171d41bcf07709f71e1af379c1a5728fd9cbd109d6d8ecabdcaeabb6514"
+  },
+  "apps/coa-gameplay-test/scenarios/vanilla-dungeons-normal.json": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "f536b6811372a252e852f8e5a2a4fc6bff0ce25c5cf0507a673ff9ab82d9c667"
+  },
+  "apps/coa-gameplay-test/test_batch.py": {
+    "before_sha256_lf": "b79b1652312b676da97ccf2b1e05ceb3a230369b39bbbb2115338817ab8579b7",
+    "after_sha256_lf": "ad0c660315a10e5d224dad309e19804f60572e3fba8bee7d842e098c0ed08b09"
+  },
+  "apps/coa-tests/dungeon_difficulty_protocol/harness.cpp": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "f37afbf005ab5211e3871d77577579ade931bc6de06d27c80f93b0bfeb131b82"
+  },
+  "apps/coa-tests/dungeon_difficulty_protocol/run.py": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "cbff06f9895e12c5fc205dcefdb66d9f93256d0005385f2b03e130a5b3ee8ed9"
+  },
+  "apps/coa-tests/dungeon_health/harness.cpp": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "78b25806164f4b6adab66693aa8e43553747f01c5c3349e67a390c8414e538cd"
+  },
+  "apps/coa-tests/dungeon_health/run.py": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "1a15b3cace57a2e18fe86079bcaf9929d7cc34d085f7cf13a49fb23d3c7be759"
+  },
+  "apps/coa-tests/dungeon_levels/run.py": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "e33f40a2651e3c12641c2d72ccbf748e0ea9403a49eb958acf12e2c9f62baf90"
+  },
+  "apps/coa-tests/dungeon_loot/harness.cpp": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "c45079e519c1aab8de1000dae59e2350386321e8e98cecdd354ed8583e6824f5"
+  },
+  "apps/coa-tests/dungeon_loot/run.py": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "16113302e2fb4cf89b517d52fdd277e3b0830a634bcf692ef53b8ae987ab1d93"
+  },
+  "apps/coa-tests/extension_packets/harness.cpp": {
+    "before_sha256_lf": "cf4e4c539e8e412b5bb654780fb8b0126a304c8f2286689bab114214d501a432",
+    "after_sha256_lf": "d3635dc1133453a1220f8bfad08809f65f3202920afb582bf9db24cad69c4351"
+  },
+  "data/sql/updates/pending_db_world/rev_20260926_00_vanilla_dungeon_difficulties.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "ee7e48c6c7d4194c83b7c0e32d274c2d9e8fcf3a99776c7095f4103db318cfef"
+  },
+  "data/sql/updates/pending_db_world/rev_20260926_01_vanilla_dungeon_levels.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "ba54a9b36541855fcdd38db36303e362b5d3fdad77e8bb6f51c9503728977b12"
+  },
+  "data/sql/updates/pending_db_world/rev_20260926_02_dungeon_health_reconstruction.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "adc00f0e8e96a207af8c8397601f8f5bca885f151650eb2bfced79ca6c511def"
+  },
+  "data/sql/updates/pending_db_world/rev_20260929_00_dungeon_health_export.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "289cdc43d8549975f76930497e2e7392d2ea3563d4200f35c0f9bf4e263f30c1"
+  },
+  "data/sql/updates/pending_db_world/rev_20260929_10_lfg_heroic_mythic_teleports.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "55341f48c2cb3eeed3bcf54fd96802696ae4f892d084c39eefbbc45f15084670"
+  },
+  "data/sql/updates/pending_db_world/rev_20260929_20_heroic_mythic_encounters.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "48737acfad4a1136b544dc3ed237e158bf152b164613f9001fd972c60dd30374"
+  },
+  "data/sql/updates/pending_db_world/rev_20260930_10_rfd_heroic_mythic_boss_spawns.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "305fcdda6d7a7a0c29480d5d748a378fbdec84bf5c048d4ba8016e26175765ea"
+  },
+  "data/sql/updates/pending_db_world/rev_20260930_20_heroic_mythic_spawn_removals.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "fdcc7e5880f39b02929977155c81e8e9524d12a3ebd48bc78265992e08951912"
+  },
+  "data/sql/updates/pending_db_world/rev_20260930_30_rfd_boss_tuning.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "189abdf7b09af4fa0132147e377ad0e6f3d7d0a57afca47e9f8ed241794642d7"
+  },
+  "data/sql/updates/pending_db_world/rev_20260930_40_dungeon_templates_damage.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "20c9463d7dde25eabb1714e4da2c0f87c226a2d2b2351351fd3b6d80ff939d60"
+  },
+  "data/sql/updates/pending_db_world/rev_20260930_50_dungeon_spell_damage.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "a9c7d251b7462774349adf38da84e18475c7a7d0e049e65402e232658f2170ae"
+  },
+  "data/sql/updates/pending_db_world/rev_20260930_60_bfd_bosses.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "ecb4c3efa9dd3058aa5d84fa6e022741e679ce9b865f962b1fed48b597b09ff3"
+  },
+  "data/sql/updates/pending_db_world/rev_20260930_70_deadmines_bosses.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "2027fb4d9b1dfa78f908f221a59174bc3586afcbe3382d425336f44c4410c85b"
+  },
+  "data/sql/updates/pending_db_world/rev_20260930_80_rfc_bosses.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "dac301360a1337937c5dca99102c4a23202d563cd27b7f13a791024a34856e9b"
+  },
+  "data/sql/updates/pending_db_world/rev_20261001_10_boss_kits_scripted.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "c7fb953cc6e11d864c375813296317f37a18aa65768db45aae27193671e973a6"
+  },
+  "data/sql/updates/pending_db_world/rev_20261001_20_boss_names.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "f66ba7dc4385d98d9e927fd8ca06d251eb41a5c68b48af7b493223105032d11b"
+  },
+  "data/sql/updates/pending_db_world/rev_20261001_30_brs_spells.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "f558a98dc45b472b8ca2f115c34735b0599ab0e5afa8180ea7225900e8e1636a"
+  },
+  "data/sql/updates/pending_db_world/rev_20261002_10_gnomeregan_bombs.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "6eb4f1b24e55e59fc331b514ef244c30a79a29546ff7fc86e2f28666b49291fa"
+  },
+  "data/sql/updates/pending_db_world/rev_20261002_20_sm_scholo.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "b6a3648c457d964932e2a6b1db904b87949d3b0229e622498cbf7adf0a3ff098"
+  },
+  "data/sql/updates/pending_db_world/rev_20261002_30_stockade.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "86a18227f3397c295efa5fb48aff03754e8b23fcac522533002ffefc0f68605f"
+  },
+  "data/sql/updates/pending_db_world/rev_20261002_40_wailing_caverns.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "0db8267e514afff0c4e6034bb38c9c438d96b2988212e9ae6fcbd556ee6bc05e"
+  },
+  "data/sql/updates/pending_db_world/rev_20261003_10_dm_maraudon.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "1bfa3a0ff8b9fbf1d69bc59dcf7f3828fb0a160226c03a56e8c62b77b4cec53c"
+  },
+  "data/sql/updates/pending_db_world/rev_20261003_20_spell_tier_conditions.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "4afabee0dae2ab1c18d6337340e30aca4fa35dd1fca5ea37859fcb8cd4b8a1c8"
+  },
+  "data/sql/updates/pending_db_world/rev_20261003_30_stratholme.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "40b9b66d1ae0d1afc7f33bd1a0258e6ea0922c6903d780cc5c0aff758247cee8"
+  },
+  "data/sql/updates/pending_db_world/rev_20261004_00_bosses_ulda_strat.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "d5310dc588d7af51909204a1e1e2793ca9204effdc2be09aa09cadc589ff7c98"
+  },
+  "data/sql/updates/pending_db_world/rev_20261004_80_dungeon_ingame_spawns.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "8193ac27f8fee6738a474a51d3637c72a467032714c7c6b5f93e9cfc350ab0f7"
+  },
+  "data/sql/updates/pending_db_world/rev_20261004_90_dungeon_boss_smart_scripts.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "9d991844145a9691f22402025dc2459dae4b2b5b62b3135febc98d5e831c5639"
+  },
+  "modules/mod-destiny-weaver/src/destiny_weaver_scaling.cpp": {
+    "before_sha256_lf": "d4802a743ccabc8ff48e104d9d9d4465e7e4a236f8bd2c20631b2da00f13686c",
+    "after_sha256_lf": "8df27bd0d43893dcc1211fb5d8563b6b31c4b6a3e40802f47dbcb5a800877edf"
+  },
+  "src/server/coa/AscensionCompat.cpp": {
+    "before_sha256_lf": "ded7f0f0478a1682478f17062b6a87a81243d007e92a396b686243f502a9e7d7",
+    "after_sha256_lf": "b59ebdaf71cb4fb9af7b544705df79a056b7fefd800641d0e442716b01c1e165"
+  },
+  "src/server/coa/CoABossProbe.cpp": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "6fff5cd9cab04c4cbe54d2871b5178747c1ad807f24dfe366a937f43027fd2e4"
+  },
+  "src/server/coa/CoABossProbe.h": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "aa683a1974b91db1f855a8fff963f206ec0f44a35b621348222d7553d635e103"
+  },
+  "src/server/coa/CoADungeonBossKit.cpp": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "1ba09095707dc9900ce18dcf0c481dfa0bc5318ea03a628777ec0658e7b02d73"
+  },
+  "src/server/coa/CoADungeonBossSpells.cpp": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "037bada76f077fc850fafde4fd03eb06b4e73326a93fc3dbc7d24a2f74ce9e00"
+  },
+  "src/server/coa/CoADungeonSpellDamage.cpp": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "0971154261a17decaef324ae689948df218cf3861f5ee5a879e2f35f7bcbfb49"
+  },
+  "src/server/coa/CoAGameplayTest.cpp": {
+    "before_sha256_lf": "cf8c92e51ac852f86eae5e537f3de4c0c8e5606a5cd27197ba7b398c6f6cc38e",
+    "after_sha256_lf": "69f82e6b2c76608373dd66cb9d860a3e479ad97c87990f32278f1a529b85d54d"
+  },
+  "src/server/coa/CoAScriptLoader.cpp": {
+    "before_sha256_lf": "7ba073df9ccff21eeee96d0a4d40eac9086cbc962be8dff305565699bb9f1fde",
+    "after_sha256_lf": "170ec397ff17e56b2db293278a188ff1c6fd9ad845d919731684b47856efc7ee"
+  },
+  "src/server/database/Database/Implementation/WorldDatabase.cpp": {
+    "before_sha256_lf": "2539ae5b086e2d1274a8b21883eb9c1d4c81a26a22ce2d5c4c02562fdb322f38",
+    "after_sha256_lf": "232fbf636bcd7b3aa1ca3c38c370b0a5c1a54f7dca4c215a8e4f4b2f75a95b47"
+  },
+  "src/server/database/Database/Implementation/WorldDatabase.h": {
+    "before_sha256_lf": "975ed74a6ac25e65d18b54497d7df91d034b87bebf287d559351202cb7ab2063",
+    "after_sha256_lf": "efd0e61a27b314c4d0c96d5a564d306f606a0f746e6a0473fc789d234451b3d3"
+  },
+  "src/server/game/AI/SmartScripts/SmartScript.cpp": {
+    "before_sha256_lf": "fcda06d0f97ac26ef9ef33f965871fe2db97a6e0a031cc1a665f39b92a05c203",
+    "after_sha256_lf": "f3bfe36f702e820a64f8916121e2aab9d8ba4f844097f42e7c1f5aebdaa23002"
+  },
+  "src/server/game/Entities/Creature/Creature.cpp": {
+    "before_sha256_lf": "de1ca7db1fbb7c933f5c71510951196e1a79bb6eaa26e16bbd0b17160d16fa4a",
+    "after_sha256_lf": "9cb845b97fff65d9ea1f3656938a0575f6ee150d0da0eaf0ba662b85d6183a3e"
+  },
+  "src/server/game/Entities/Creature/Creature.h": {
+    "before_sha256_lf": "d02d6d77ff7102058fa1797aee8234093c6dfc8d5499b914a4994ac5b1c22aaf",
+    "after_sha256_lf": "e961c3a8325053336a8689214ec85c40d1c56eef139efa4d7c9889432900fe03"
+  },
+  "src/server/game/Entities/Creature/DungeonHealth.h": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "0c3716a1822c7e0d1b128b6aa11f9e4f27e4ad08066484252b9e5fb35d70222f"
+  },
+  "src/server/game/Entities/Player/PlayerMisc.cpp": {
+    "before_sha256_lf": "6a8b53bf00b498bc66128117ac45040a916fd02bc4ca7f54638a9becd6ce27cf",
+    "after_sha256_lf": "cd822a7b75b4caf5bc5f106b1e971e31b295b51362333b79f81eaf6a0ae20b75"
+  },
+  "src/server/game/Groups/Group.cpp": {
+    "before_sha256_lf": "b97a59dffb3380944af2fd7624c4bfffc68df69e96c8c5d3cefd704a34c83a63",
+    "after_sha256_lf": "c38f92090d8d651487244864492288bb109641d459350f8511ea1c3f76f9b9fd"
+  },
+  "src/server/game/Handlers/MiscHandler.cpp": {
+    "before_sha256_lf": "cabcfddac237ed5b84a8a06db393366cedff156c1c4030e625b8bf871a05baa7",
+    "after_sha256_lf": "7e8eef640c0e32f893ab04c731cdac84075bb7bd3e97e96e670729ff5c70a260"
+  },
+  "src/server/game/Loot/DungeonLoot.h": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "72c95b7e1be3dc7539bcbe8764fa3ef741e2233c34bb89d5ced1faedb02a08a8"
+  },
+  "src/server/game/Loot/LootMgr.cpp": {
+    "before_sha256_lf": "6e221adb8ee6aef550e5e2f6b621556fead90faf1dc79a31522bb1841521b5ad",
+    "after_sha256_lf": "1ac9587c66f726bff892c38e3e9968e510336e5f776df885c3c6918eb5b7f143"
+  },
+  "src/server/game/Loot/LootMgr.h": {
+    "before_sha256_lf": "f452c6bcad6505b0a7808e7fff8a8f8c2b799e74ac84500c17331b89a4f751f4",
+    "after_sha256_lf": "a2856e684b896e4e86b4a3c96503e1fed675cd682b08448ee48d7e5595b0f094"
+  },
+  "src/server/game/Server/Protocol/Opcodes.h": {
+    "before_sha256_lf": "30fe1519bd28e74d21c79a580bdb4a080f2f990f14fc4042ac27dfa64a1e29e2",
+    "after_sha256_lf": "1536be428a2199979435fdc5217dcd15ec04c13092e40c5c8e1a9670356ad195"
+  },
+  "src/server/game/Server/WorldSession.cpp": {
+    "before_sha256_lf": "fdb51d03b9abc86739be896e3597dde1ce0e4d956534e9e35d187fd7358f9d23",
+    "after_sha256_lf": "7e9888d40c489e98514abad7ee1f1ea3d5e31e916db4657b596e8fde8f18e488"
+  },
+  "src/server/game/Spells/Spell.cpp": {
+    "before_sha256_lf": "3b44e24c9e849dc19331f894f977216b8855c15e5e3ea25467ebcf548de0eae4",
+    "after_sha256_lf": "ea7238763f19112308a45deafe1981f62f6ca65048b4902576eba6bf632a0c7d"
+  },
+  "src/server/game/Spells/Spell.h": {
+    "before_sha256_lf": "1a276aa28fee4836f071159b369e913639ced5f69579da6ee0ca0df4a804db50",
+    "after_sha256_lf": "fcf4e526b7a2efab3f31c87f79feb89f41bafad986f2705884b1ee18b4e7246a"
+  },
+  "src/server/game/Spells/SpellEffects.cpp": {
+    "before_sha256_lf": "c56a316305bcbe16d7abbe03949774502334a5a29df4492eeea0e163b449ee19",
+    "after_sha256_lf": "bf9be4ff7c79b565c8aa10520aaaa20341383846bd5d636621908203bc1ac318"
+  },
+  "src/server/game/Spells/SpellInfoCorrections.cpp": {
+    "before_sha256_lf": "07777a656b7017d19f105030f9f750a7b3537a5497d6b07173d855061f0bac8b",
+    "after_sha256_lf": "dde348e1358434e9fb15275666d555585cd58a78c966b9c0bbad1a762c3dc0fd"
+  },
+  "src/server/game/World/World.cpp": {
+    "before_sha256_lf": "4d4287a0d90ab6565e59d5986bf374741ba5e69ebfb0e4649f1a3c32026541b3",
+    "after_sha256_lf": "3be82714c6eba413dbcb97d8583ce7dcf98e43a71d4e94e337a6bbb9be876e38"
+  },
+  "src/server/scripts/EasternKingdoms/BlackrockMountain/BlackrockDepths/instance_blackrock_depths.cpp": {
+    "before_sha256_lf": "1e087eede00eab5332d569a3a22fca9a8285f2040d38ba4324e5e0ca2367d162",
+    "after_sha256_lf": "f64dc953dee72e9b380d485cc79a51a1d049c29ea94058f07f6badb0287e7b23"
+  },
+  "data/sql/updates/pending_db_world/rev_20261009_20_dungeon_fixes.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "df67acbc6697ad93dc3999f507f8a2166159d0e1e8483f910a171a34ac43b75f"
+  },
+  "data/sql/updates/pending_db_world/rev_20261009_30_sfk_springvale_divine_shield.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "912a888306b8da0941d6d32eb22c38b3ffabbc4dffa72913cca319a7613120a9"
+  },
+  "data/sql/updates/pending_db_world/rev_20261009_35_zumrah_healing_wave.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "3f4cbe63730a3885140190f57e6ff6255ef2fb8a27acc9e59a095a9953d2bcb7"
+  },
+  "data/sql/updates/pending_db_world/rev_20261009_83_dire_maul_west_fixes.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "f8f4cb946a3bc0eb64aa5b1483835b4947f84d09a213a521b3f3f0edb2626b7b"
+  },
+  "src/server/scripts/EasternKingdoms/Stratholme/boss_baroness_anastari.cpp": {
+    "before_sha256_lf": "a26af9690be691ab5712330d4b463ffa7921815eb86a758dbe2921e337d4c072",
+    "after_sha256_lf": "39fbab99becec7fbfbdda1345bdde36f940c679863eac4ee257182c5d98140a8"
+  },
+  "apps/coa-tests/area52_dungeon_percent_damage/run.py": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "02b6f7cd89d487d05835b6a197350a21e666f9702ad1d6d186c37b6062e10720"
+  },
+  "apps/coa-tests/area52_dungeon_percent_damage/harness.cpp": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "d67f55625fe9bdf6b96983eca6bad109986890134b30bd30306f758941df524e"
+  },
+  "data/sql/updates/pending_db_world/rev_20260925_98_area52_training_dummy_guid_relocation.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "79e0c3bbc2b69ac64c633a418f9c0fea8b9df085d967791873069df27edf55ed"
+  }
+}

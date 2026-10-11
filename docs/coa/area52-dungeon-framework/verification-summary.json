@@ -1,0 +1,116 @@
+{
+  "activation": "Not activated; matching binaries and 32 migrations staged together.",
+  "build": {
+    "status": "passed",
+    "seconds": 1457.257,
+    "summary": {
+      "steps": [
+        "build"
+      ],
+      "build_directory": "/workspace/build-freepick",
+      "configuration": null,
+      "path_prefix": "/usr/bin"
+    }
+  },
+  "unit": {
+    "status": "passed",
+    "seconds": 1.393,
+    "summary": {
+      "returncode": 0,
+      "counts": {
+        "tests": 1,
+        "failed": 0
+      }
+    }
+  },
+  "harness": {
+    "status": "passed",
+    "seconds": 1.841,
+    "summary": {
+      "counts": {
+        "passed": 5,
+        "failed": 0,
+        "unavailable": 0
+      },
+      "scripts": {
+        "apps/coa-tests/area52_dungeon_percent_damage/run.py": {
+          "name": "area52_dungeon_percent_damage",
+          "status": "passed",
+          "seconds": 0.609,
+          "returncode": 0
+        },
+        "apps/coa-tests/dungeon_difficulty_protocol/run.py": {
+          "name": "dungeon_difficulty_protocol",
+          "status": "passed",
+          "seconds": 0.646,
+          "returncode": 0
+        },
+        "apps/coa-tests/dungeon_health/run.py": {
+          "name": "dungeon_health",
+          "status": "passed",
+          "seconds": 0.702,
+          "returncode": 0
+        },
+        "apps/coa-tests/dungeon_levels/run.py": {
+          "name": "dungeon_levels",
+          "status": "passed",
+          "seconds": 0.15,
+          "returncode": 0
+        },
+        "apps/coa-tests/dungeon_loot/run.py": {
+          "name": "dungeon_loot",
+          "status": "passed",
+          "seconds": 1.025,
+          "returncode": 0
+        }
+      }
+    }
+  },
+  "gameplay": {
+    "status": "passed",
+    "counts": {
+      "passed": 6,
+      "failed": 0,
+      "not_run": 0,
+      "passed_on_isolated_rerun": 0
+    },
+    "clock": "real",
+    "binary_sha256": "e87fabcef177cf76548c2f1991ea176d37c37766f7d923ed02bc1895a1820492",
+    "selected": [
+      "lfg-random-classic-heroic-queue",
+      "lfg-random-classic-mythic-queue",
+      "vanilla-dungeons-health",
+      "vanilla-dungeons-heroic",
+      "vanilla-dungeons-mythic",
+      "vanilla-dungeons-normal"
+    ],
+    "batch_sensitive": [],
+    "acceleration_sensitive": []
+  },
+  "migration_hash_check": {
+    "expected": 32,
+    "recorded": 32,
+    "mismatches": []
+  },
+  "binary_hashes": {
+    "worldserver": "e87fabcef177cf76548c2f1991ea176d37c37766f7d923ed02bc1895a1820492",
+    "authserver": "0982a9bb33ce464c1017280231d4d034912147f6070d821570accb86e6731815"
+  },
+  "full_source_check": {
+    "status": "failed",
+    "passed_suites": 14,
+    "failed_suites": 4,
+    "issues": [
+      "test_runner.py: eight other catalog fixtures require unsupported actions or fields in this integration baseline; the dungeon scenarios validate and execute.",
+      "test_verification.py: exceeds its 120-second timeout; unresolved tooling limitation.",
+      "catalog.py --check: an unrelated fixture contains an unsupported action.",
+      "check_registrations.py: rejects the existing non-flat Area 52 script loader structure."
+    ]
+  },
+  "limits": [
+    "No client UI or full multiplayer dungeon-clear certification.",
+    "No live server, client, or launcher-channel promotion.",
+    "Current upstream Discord/client release availability remains a tracking gap.",
+    "End-to-end investigation timing is unknown. The initial build-cache timestamp failure was repaired; the final build and unit run passed."
+  ]
+}
