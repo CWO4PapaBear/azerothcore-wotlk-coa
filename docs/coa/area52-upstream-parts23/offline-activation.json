@@ -1,0 +1,105 @@
+{
+  "status": "installed_offline",
+  "migrations": {
+    "rev_20261010_27_wildcard_seal_of_fervor.sql": "708d77729dfa33e0b2766e348f67d2e51103f1e4",
+    "rev_20261010_10_coa_tree_of_life_form.sql": "86967081cda4df253fe68913d6defa64c3048101",
+    "rev_20261010_25_wildcard_tools_of_war_martial_crescendo.sql": "ae35e2efb1f3ff17f265490e014c602d7539507c",
+    "rev_20261010_51_area52_upstream_proc_categories.sql": "f2c5aabd21d4c65f5939134cbc3d7614f57bd08e"
+  },
+  "source_commit": "f0124c6c9ce5e59ffab0a83ca67b92fb238f242e",
+  "worldserver_sha256": "f1dd435334fae4c05f4d0cf283a017a0692c13ea6ee59444514986dec6376878",
+  "authserver_sha256": "409865e4d6a18c46a43a416ea20ad064287f65dd088c7f8ebc34a22514eaa7cf",
+  "dbimport_sha256": "cf84e2c65193faeeb237f1dfb7cf117e59d1801cdf9e769fd3cf77ba92d601d4",
+  "database_checks": [
+    "8",
+    "9",
+    "6",
+    "2"
+  ],
+  "components": {
+    "ascension-freepick-worldserver": {
+      "running": false,
+      "restart": "no",
+      "state": "created",
+      "exit_code": 0
+    },
+    "ascension-freepick-mystic-isolated-db": {
+      "running": false,
+      "restart": "no",
+      "state": "exited",
+      "exit_code": 0
+    },
+    "ascension-freepick-authserver": {
+      "running": false,
+      "restart": "no",
+      "state": "created",
+      "exit_code": 0
+    },
+    "ascension-freepick-database": {
+      "running": false,
+      "restart": "no",
+      "state": "exited",
+      "exit_code": 0
+    },
+    "classless-test-worldserver": {
+      "running": false,
+      "restart": "no",
+      "state": "exited",
+      "exit_code": 0
+    },
+    "bear-verify-20260921-091925-ac-worldserver": {
+      "running": false,
+      "restart": "no",
+      "state": "exited",
+      "exit_code": 0
+    },
+    "bear-verify-20260921-091925-ac-authserver": {
+      "running": false,
+      "restart": "no",
+      "state": "exited",
+      "exit_code": 0
+    },
+    "bear-verify-20260921-091925-ac-database": {
+      "running": false,
+      "restart": "no",
+      "state": "exited",
+      "exit_code": 0
+    },
+    "ac-authserver": {
+      "running": false,
+      "restart": "no",
+      "state": "created",
+      "exit_code": 128
+    },
+    "ac-worldserver": {
+      "running": false,
+      "restart": "no",
+      "state": "created",
+      "exit_code": 128
+    },
+    "ac-database": {
+      "running": false,
+      "restart": "no",
+      "state": "exited",
+      "exit_code": 0
+    },
+    "classless-test-authserver": {
+      "running": false,
+      "restart": "no",
+      "state": "exited",
+      "exit_code": 0
+    },
+    "classless-test-database": {
+      "running": false,
+      "restart": "no",
+      "state": "exited",
+      "exit_code": 0
+    }
+  },
+  "finished_at": "2026-10-11T01:09:33Z",
+  "running_containers": [],
+  "server_processes_remaining": [],
+  "backup": "Previous launch configuration, restart policies, and affected world tables retained privately.",
+  "runtime_verification": "Not started, per owner request. Candidate build/unit/structural and isolated proc checks were completed before installation.",
+  "windows_forwarding": "Existing Windows portproxy rules remain configured; removal requires administrator elevation unavailable in this session. All backend server processes are stopped. Rules were backed up locally."
+}
