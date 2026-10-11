@@ -12,6 +12,7 @@ check = source[source.index('    bool Check('):source.index('    void Handle(')]
 code = r'''
 #include <cassert>
 #include <set>
+constexpr unsigned SpartanKick = 9901766;
 struct SpellInfo { unsigned Id; SpellInfo const* GetFirstRankSpell() const { return this; } };
 struct Unit {
     bool hostile = false;
@@ -35,7 +36,7 @@ struct Fixture {
 int main() {
     Unit owner, hostile, friendly;
     hostile.hostile = true;
-    SpellInfo kick{1766}, other{1752};
+    SpellInfo kick{1766}, empowered{9901766}, other{1752};
     Fixture f{&owner};
     ProcEventInfo event{&owner, &hostile, &kick};
     assert(!f.Check(event));
@@ -43,6 +44,9 @@ int main() {
         owner.auras = {stance};
         assert(f.Check(event));
     }
+    event.spell = &empowered;
+    assert(f.Check(event));
+    event.spell = &kick;
     event.target = &friendly;
     assert(!f.Check(event));
     event.target = nullptr;
@@ -80,13 +84,30 @@ patcher = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(patcher)
 original = 'Your Kick ability now knocks players back. Requires Battle, Defensive or Phalanx Stance. This effect cannot occur more than once every 20 seconds.\n\n@ext:|cffffff00VERIFIED|r:ext@'
 pool = b'\0' + original.encode() + b'\0'
+kick = [0] * 234
+kick[0] = 1766
+kick[1] = 88
+kick[30] = 12000
 row = [0] * 234
 row[0] = 84445
 row[170] = 1
-raw = struct.pack('<4s4I', b'WDBC', 1, 234, 936, len(pool)) + struct.pack('<234I', *row) + pool
+raw = struct.pack('<4s4I', b'WDBC', 2, 234, 936, len(pool)) + struct.pack('<234I', *row) + struct.pack('<234I', *kick) + pool
 result = patcher.patch(raw)
 assert patcher.patch(result) == result
 pointer = struct.unpack_from('<I', result, 20 + 170 * 4)[0]
-strings = result[956:]
-assert strings[pointer:strings.index(0, pointer)].decode() == original.replace('knocks players back', 'knocks enemies back')
+strings = result[20 + 3 * 936:]
+text = strings[pointer:strings.index(0, pointer)].decode()
+assert 'own 20-second cooldown' in text and text.endswith('\n\n@ext:|cffffff00VERIFIED|r:ext@')
+replacement = struct.unpack_from('<234I', result, 20 + 2 * 936)
+assert (replacement[0], replacement[1], replacement[24], replacement[29], replacement[30]) == (9901766, 0, 84445, 20000, 0)
+assert struct.unpack_from('<234I', result, 20 + 936) == tuple(kick)
 print('PASS: production eligibility, all stances, non-Kick/friendly rejection, single binding, cooldown and tooltip preservation')
+
+import re
+sql = (root / 'data/sql/updates/pending_db_world/rev_20261010_92_area52_spartan_cooldown.sql').read_text()
+columns = re.search(r'INSERT INTO `spell_dbc` \((.*?)\) VALUES', sql).group(1)
+db.execute('CREATE TABLE spell_dbc (' + columns.replace('`, `', '` NUMERIC, `') + ' NUMERIC)')
+for _ in range(2):
+    db.executescript(sql)
+    assert db.execute('SELECT ID,Category,RecoveryTime,CategoryRecoveryTime,CasterAuraSpell FROM spell_dbc').fetchall() == [(9901766,0,20000,0,84445)]
+print('PASS: separate Kick cooldown record is idempotent and requires the enchant')

@@ -1,0 +1,331 @@
+{
+  "schema": 1,
+  "name": "Area52 Spartan Kick independent cooldown and ownership",
+  "contract": "Equipped Spartan Kick replaces only learned Kick with category-free 20-second Kick. Kick and Shield Bash do not start or extend each other cooldown. Equip/unequip preserves remaining time and restores original Kick without leaving a granted spell.",
+  "location": {
+    "map": 0,
+    "x": -9465,
+    "y": 64,
+    "z": 56,
+    "o": 0
+  },
+  "timeout_ms": 90000,
+  "players": [
+    {
+      "id": "hero",
+      "race": 1,
+      "class": 10,
+      "level": 80,
+      "allow_regeneration": false,
+      "melee_hit_rating": 10000,
+      "spell_hit_rating": 10000,
+      "expertise_rating": 10000
+    }
+  ],
+  "creatures": [
+    {
+      "id": "victim",
+      "owner": "hero",
+      "entry": 36,
+      "health": 1000000,
+      "distance": 2,
+      "faction": 7
+    },
+    {
+      "id": "second",
+      "owner": "hero",
+      "entry": 36,
+      "health": 1000000,
+      "distance": 2,
+      "faction": 7
+    },
+    {
+      "id": "third",
+      "owner": "hero",
+      "entry": 36,
+      "health": 1000000,
+      "distance": 2,
+      "faction": 7
+    }
+  ],
+  "steps": [
+    {
+      "action": "wait",
+      "ms": 3000
+    },
+    {
+      "action": "client_packet",
+      "actor": "hero",
+      "opcode": 1831,
+      "fields": [
+        {
+          "u32": 2
+        },
+        {
+          "u32": 2779
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 2660
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        }
+      ]
+    },
+    {
+      "action": "add_item",
+      "actor": "hero",
+      "item": 2362
+    },
+    {
+      "action": "equip",
+      "actor": "hero",
+      "item": 2362,
+      "slot": 16
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 2457,
+      "stacks": 1
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 84445,
+      "stacks": 1
+    },
+    {
+      "action": "wait",
+      "ms": 100
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "temporary_spell_replacement",
+      "spell": 1766,
+      "equals": 9901766
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 9901766,
+      "equals": 1
+    },
+    {
+      "action": "set_power",
+      "actor": "hero",
+      "power": 3,
+      "value": 100
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "target": "victim",
+      "spell": 9901766
+    },
+    {
+      "action": "wait",
+      "ms": 100
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "cooldown_ms",
+      "spell": 9901766,
+      "min": 19000,
+      "max": 20000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "cooldown_ms",
+      "spell": 72,
+      "equals": 0
+    },
+    {
+      "action": "wait",
+      "ms": 1600
+    },
+    {
+      "action": "set_power",
+      "actor": "hero",
+      "power": 1,
+      "value": 1000
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "target": "second",
+      "spell": 72
+    },
+    {
+      "action": "wait",
+      "ms": 100
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "cooldown_ms",
+      "spell": 72,
+      "min": 11000,
+      "max": 12000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "cooldown_ms",
+      "spell": 9901766,
+      "min": 17000,
+      "max": 19000
+    },
+    {
+      "action": "wait",
+      "ms": 21000
+    },
+    {
+      "action": "set_power",
+      "actor": "hero",
+      "power": 1,
+      "value": 1000
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "target": "second",
+      "spell": 72
+    },
+    {
+      "action": "wait",
+      "ms": 100
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "cooldown_ms",
+      "spell": 9901766,
+      "equals": 0
+    },
+    {
+      "action": "wait",
+      "ms": 1600
+    },
+    {
+      "action": "set_power",
+      "actor": "hero",
+      "power": 3,
+      "value": 100
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "target": "third",
+      "spell": 9901766
+    },
+    {
+      "action": "wait",
+      "ms": 100
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "cooldown_ms",
+      "spell": 9901766,
+      "min": 19000,
+      "max": 20000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "cooldown_ms",
+      "spell": 72,
+      "min": 9000,
+      "max": 11000
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 84445,
+      "stacks": 0
+    },
+    {
+      "action": "wait",
+      "ms": 100
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "temporary_spell_replacement",
+      "spell": 1766,
+      "equals": 1766
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 9901766,
+      "equals": 0
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "cooldown_ms",
+      "spell": 1766,
+      "min": 18500,
+      "max": 20000
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 84445,
+      "stacks": 1
+    },
+    {
+      "action": "wait",
+      "ms": 100
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "temporary_spell_replacement",
+      "spell": 1766,
+      "equals": 9901766
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "cooldown_ms",
+      "spell": 9901766,
+      "min": 18000,
+      "max": 20000
+    }
+  ]
+}

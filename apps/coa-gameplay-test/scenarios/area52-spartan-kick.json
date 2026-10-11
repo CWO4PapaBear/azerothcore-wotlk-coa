@@ -97,7 +97,7 @@
     {
       "action": "reset_cooldown",
       "actor": "hero",
-      "spell": 1766
+      "spell": 9901766
     },
     {
       "action": "set_power",
@@ -109,7 +109,7 @@
       "action": "cast",
       "actor": "hero",
       "target": "victim",
-      "spell": 1766
+      "spell": 9901766
     },
     {
       "action": "wait",
@@ -135,7 +135,7 @@
     {
       "action": "reset_cooldown",
       "actor": "hero",
-      "spell": 1766
+      "spell": 9901766
     },
     {
       "action": "set_power",
@@ -147,7 +147,7 @@
       "action": "cast",
       "actor": "hero",
       "target": "victim",
-      "spell": 1766
+      "spell": 9901766
     },
     {
       "action": "wait",
@@ -178,7 +178,7 @@
     {
       "action": "reset_cooldown",
       "actor": "hero",
-      "spell": 1766
+      "spell": 9901766
     },
     {
       "action": "set_power",
@@ -190,7 +190,7 @@
       "action": "cast",
       "actor": "hero",
       "target": "second",
-      "spell": 1766
+      "spell": 9901766
     },
     {
       "action": "wait",
