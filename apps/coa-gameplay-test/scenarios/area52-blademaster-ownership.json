@@ -1,0 +1,253 @@
+{
+  "schema": 1,
+  "location": {
+    "map": 0,
+    "x": -9465,
+    "y": 64,
+    "z": 56,
+    "o": 0
+  },
+  "timeout_ms": 60000,
+  "players": [
+    {
+      "id": "hero",
+      "race": 1,
+      "class": 10,
+      "level": 80,
+      "allow_regeneration": false,
+      "melee_hit_rating": 10000,
+      "spell_hit_rating": 10000,
+      "expertise_rating": 10000,
+      "melee_crit_rating": 100000
+    }
+  ],
+  "creatures": [
+    {
+      "id": "victim",
+      "owner": "hero",
+      "entry": 36,
+      "health": 1000000,
+      "distance": 2,
+      "faction": 7
+    }
+  ],
+  "name": "Area52 Blademaster Tactical Mastery ownership",
+  "contract": "Tactical Mastery applies each selected-rank helper, adds Stagger only at capstone and removes derived buffs when its rank is removed. Fixture auras isolate the execution path; no reconnect certification claim.",
+  "steps": [
+    {
+      "action": "wait",
+      "ms": 3000
+    },
+    {
+      "action": "add_item",
+      "actor": "hero",
+      "item": 3142943
+    },
+    {
+      "action": "equip",
+      "actor": "hero",
+      "item": 3142943,
+      "slot": 15
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 12295,
+      "stacks": 1
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 812295,
+      "equals": 1,
+      "within_ms": 1500
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 20231,
+      "equals": 0,
+      "within_ms": 1500
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 12295,
+      "stacks": 0
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 812295,
+      "equals": 0,
+      "within_ms": 1500
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 20231,
+      "equals": 0,
+      "within_ms": 1500
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 12676,
+      "stacks": 1
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 812676,
+      "equals": 1,
+      "within_ms": 1500
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 20231,
+      "equals": 0,
+      "within_ms": 1500
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 12676,
+      "stacks": 0
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 812676,
+      "equals": 0,
+      "within_ms": 1500
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 20231,
+      "equals": 0,
+      "within_ms": 1500
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 12677,
+      "stacks": 1
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 812677,
+      "equals": 1,
+      "within_ms": 1500
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 20231,
+      "equals": 1,
+      "within_ms": 1500
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 12677,
+      "stacks": 0
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 812677,
+      "equals": 0,
+      "within_ms": 1500
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 20231,
+      "equals": 0,
+      "within_ms": 1500
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 965862,
+      "stacks": 1
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 965863,
+      "stacks": 1
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 990042,
+      "stacks": 2
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 965867,
+      "stacks": 1
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 965869,
+      "stacks": 1
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 965862,
+      "stacks": 0
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 965863,
+      "equals": 0,
+      "within_ms": 1500
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 990042,
+      "equals": 0,
+      "within_ms": 1500
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 965867,
+      "equals": 0,
+      "within_ms": 1500
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 965869,
+      "equals": 0,
+      "within_ms": 1500
+    }
+  ]
+}

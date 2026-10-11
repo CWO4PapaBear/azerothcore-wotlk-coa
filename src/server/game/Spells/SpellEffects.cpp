@@ -3795,7 +3795,7 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
         case SPELLFAMILY_WARRIOR:
             {
                 // Devastate (player ones)
-                if (m_spellInfo->SpellFamilyFlags[1] & 0x40)
+                if ((m_spellInfo->SpellFamilyFlags[1] & 0x40) && m_spellInfo->Id != 965865)
                 {
                     m_caster->CastSpell(unitTarget, 58567, true);
 
@@ -3861,6 +3861,12 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
                         spell_bonus += int32(0.08f * m_caster->GetTotalAttackPowerValue(BASE_ATTACK));
                         spell_bonus += int32(0.13f * m_caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()));
                         break;
+                    case 54762:
+                    case 54763:
+                    case 54764:
+                    case 54765:
+                    case 54766:
+                    case 54767:
                     case 53385:  // Divine Storm deals normalized damage
                         normalized = true;
                         break;

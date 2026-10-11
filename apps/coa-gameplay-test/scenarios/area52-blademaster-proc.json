@@ -1,0 +1,326 @@
+{
+  "schema": 1,
+  "location": {
+    "map": 0,
+    "x": -9465,
+    "y": 64,
+    "z": 56,
+    "o": 0
+  },
+  "timeout_ms": 90000,
+  "players": [
+    {
+      "id": "hero",
+      "race": 1,
+      "class": 10,
+      "level": 80,
+      "allow_regeneration": false,
+      "melee_hit_rating": 10000,
+      "spell_hit_rating": 10000,
+      "expertise_rating": 10000,
+      "melee_crit_rating": 100000
+    }
+  ],
+  "creatures": [
+    {
+      "id": "victim",
+      "owner": "hero",
+      "entry": 36,
+      "health": 1000000,
+      "distance": 2,
+      "faction": 7
+    }
+  ],
+  "name": "Area52 Blademaster critical stack and empowered rank connections",
+  "contract": "A direct melee critical grants the third Study stack and Blademaster. A second critical inside eight seconds cannot add a stack. Highest-rank Divine Storm invokes native healing and Divine Force while empowered. Abilities are selected through Advancement, and the companion book trains Divine Storm and Devastate to their highest eligible ranks.",
+  "steps": [
+    {
+      "action": "wait",
+      "ms": 3000
+    },
+    {
+      "action": "add_item",
+      "actor": "hero",
+      "item": 3142943
+    },
+    {
+      "action": "equip",
+      "actor": "hero",
+      "item": 3142943,
+      "slot": 15
+    },
+    {
+      "action": "client_packet",
+      "actor": "hero",
+      "opcode": 1831,
+      "fields": [
+        {
+          "u32": 3
+        },
+        {
+          "u32": 2778
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 3735
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 3459
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        }
+      ]
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 1752,
+      "equals": 1
+    },
+    {
+      "action": "learn",
+      "actor": "hero",
+      "spell": 97930
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 97930
+    },
+    {
+      "action": "wait",
+      "ms": 6000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 54767,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 47498,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "knows_spell",
+      "spell": 48638,
+      "equals": 1
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 965862,
+      "stacks": 1
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 990042,
+      "stacks": 2
+    },
+    {
+      "action": "set_power",
+      "actor": "hero",
+      "power": 3,
+      "value": 100
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 48638,
+      "target": "victim"
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 965863,
+      "equals": 1,
+      "within_ms": 1500
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 990042,
+      "equals": 0,
+      "within_ms": 1500
+    },
+    {
+      "action": "wait",
+      "ms": 1600
+    },
+    {
+      "action": "reset_cooldown",
+      "actor": "hero",
+      "spell": 48638
+    },
+    {
+      "action": "set_power",
+      "actor": "hero",
+      "power": 3,
+      "value": 100
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 48638,
+      "target": "victim"
+    },
+    {
+      "action": "wait",
+      "ms": 300
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 990042,
+      "equals": 0,
+      "within_ms": 1500
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 965863,
+      "stacks": 1
+    },
+    {
+      "action": "set_health",
+      "actor": "hero",
+      "maximum": 10000,
+      "value": 1000
+    },
+    {
+      "action": "wait",
+      "ms": 1600
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 54767,
+      "target": "victim"
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "aura",
+      "spell": 965867,
+      "equals": 1,
+      "within_ms": 1500
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "spell_cast_count",
+      "spell": 54171,
+      "min": 1,
+      "within_ms": 2000
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "spell_heal_count",
+      "spell": 54172,
+      "min": 1,
+      "within_ms": 2000
+    },
+    {
+      "action": "wait",
+      "ms": 1600
+    },
+    {
+      "action": "set_aura",
+      "actor": "hero",
+      "spell": 965863,
+      "stacks": 1
+    },
+    {
+      "action": "set_power",
+      "actor": "hero",
+      "power": 1,
+      "value": 1000
+    },
+    {
+      "action": "cast",
+      "actor": "hero",
+      "spell": 47498,
+      "target": "victim"
+    },
+    {
+      "action": "assert",
+      "actor": "victim",
+      "metric": "aura",
+      "spell": 965865,
+      "equals": 1,
+      "within_ms": 1500
+    },
+    {
+      "action": "assert",
+      "actor": "victim",
+      "metric": "aura_stacks",
+      "spell": 58567,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "hero",
+      "metric": "spell_cast_count",
+      "spell": 965865,
+      "min": 1
+    },
+    {
+      "action": "console",
+      "command": "mystic audit /results/effective.json"
+    }
+  ]
+}

@@ -354,6 +354,8 @@ void AddSC_AscensionClassBundleStore();
 void AddSC_AscensionLfgObjective();
 void AddSC_AscensionBushcraft();
 
+void AddAscensionBlademasterScripts();
+
 void AddCoAScripts()
 {
     AddAscensionStockCoefficientScripts();
@@ -705,4 +707,5 @@ void AddCoAScripts()
     AddSC_AscensionClassBundleStore();
     AddSC_AscensionLfgObjective();
     AddSC_AscensionBushcraft();
+    AddAscensionBlademasterScripts();
 }
