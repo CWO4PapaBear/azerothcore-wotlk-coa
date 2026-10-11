@@ -1,0 +1,34 @@
+{
+  "status": "online",
+  "checked_at": "2026-10-11T01:43:17Z",
+  "services": {
+    "database": {
+      "running": true,
+      "started_at": "2026-10-11T01:38:30.197368643Z",
+      "restart_policy": "unless-stopped"
+    },
+    "authserver": {
+      "running": true,
+      "started_at": "2026-10-11T01:38:54.106715979Z",
+      "restart_policy": "no"
+    },
+    "worldserver": {
+      "running": true,
+      "started_at": "2026-10-11T01:38:56.88052766Z",
+      "restart_policy": "no"
+    }
+  },
+  "world_ready": true,
+  "worldserver_sha256": "f1dd435334fae4c05f4d0cf283a017a0692c13ea6ee59444514986dec6376878",
+  "authserver_sha256": "409865e4d6a18c46a43a416ea20ad064287f65dd088c7f8ebc34a22514eaa7cf",
+  "migration_hashes": {
+    "rev_20261010_27_wildcard_seal_of_fervor.sql": "708d77729dfa33e0b2766e348f67d2e51103f1e4",
+    "rev_20261010_10_coa_tree_of_life_form.sql": "86967081cda4df253fe68913d6defa64c3048101",
+    "rev_20261010_25_wildcard_tools_of_war_martial_crescendo.sql": "ae35e2efb1f3ff17f265490e014c602d7539507c",
+    "rev_20261010_51_area52_upstream_proc_categories.sql": "f2c5aabd21d4c65f5939134cbc3d7614f57bd08e"
+  },
+  "migration_verification": "All four matched before startup.",
+  "connectivity": "Windows host TCP probes reached LAN login port 3725 and realm port 8086 after administrator-approved IP Helper restart. External internet reachability not independently tested.",
+  "other_realms": "Left stopped.",
+  "client_release": "No new client files required or published by this server package."
+}
