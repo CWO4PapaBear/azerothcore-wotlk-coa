@@ -93,6 +93,6 @@ for i,sid in enumerate(ids):
  row=struct.unpack_from('<'+'I'*fields,result,20+i*fields*4)
  text=strings[row[170]:strings.index(0,row[170])].decode()
  assert text==(original.replace('|cffff0000NOT VERIFIED|r','|cffffff00VERIFIED|r') if sid in patcher.VERIFIED_SPELLS else original)
- if sid==990042:assert row[46]==3 and row[95]==4
- if sid in {965865,965867,965869}:assert row[46]==1
+ if sid==990042:assert row[49]==3 and row[95]==4 and row[46]==0
+ if sid in {965865,965867,965869}:assert row[49]==1
 print('PASS: Client patch preserves SHIFT prose and spacing, is idempotent and changes only selected statuses.')
