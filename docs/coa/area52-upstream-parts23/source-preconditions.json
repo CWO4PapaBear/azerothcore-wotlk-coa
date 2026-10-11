@@ -1,0 +1,70 @@
+{
+  "apps/coa-tests/talent_spell_positions/harness.cpp": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "2d1ea7ea8ef97c64b55b84be9b7207a10235429f2c6c236932a83cd150a983a5"
+  },
+  "apps/coa-tests/talent_spell_positions/run.py": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "deddeb0a18e0e00605c7fa4ea1d2ffc0c461f7f3a445c2caa59f0c3dfb7f892a"
+  },
+  "src/server/shared/DataStores/DBCStructure.h": {
+    "before_sha256_lf": "16183a804b1e1b1fbba1120f1fd47199e78839fd183c66cd7c1664e3321b6392",
+    "after_sha256_lf": "e6b433d31d27af159b8cd54810ae56af31810d61491a2505582457a2ae01aa17"
+  },
+  "apps/coa-tests/blood_presence_heal/run.py": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "df7acb64c7906a48a0d6edb9f7fefc812a72d270f71dcc14cc406a278baeb8e8"
+  },
+  "src/server/scripts/Spells/spell_dk.cpp": {
+    "before_sha256_lf": "ee773f783f0ac6640423ab0f4c5fb4f65211bd56d27fede56288857dc771d4be",
+    "after_sha256_lf": "c367776f838eda11c6e72453d310618e093cda22d2a12a8f5dca9e5da4b485e3"
+  },
+  "data/sql/updates/pending_db_world/rev_20261010_27_wildcard_seal_of_fervor.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "a84e9facc3b13edaf93e47a8f4c5b415abe5eec6dfaf431a77d26e24de8069b2"
+  },
+  "src/server/coa/AscensionWildcardSealOfFervor.cpp": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "0d3deb798e0c26f578549307e894a0a47fdefd9d68b4c05300bc9f4195404449"
+  },
+  "apps/coa-tests/tree_of_life_form/run.py": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "1cc995255fe1a7f5b6c77b0aa1ce1b824d1a1405ce8bde12a348c97ac126633d"
+  },
+  "data/sql/updates/pending_db_world/rev_20261010_10_coa_tree_of_life_form.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "8878dd9d2a3aab716e012805f89dc21cd59507ae09e654c7ac46828b97de13bd"
+  },
+  "src/server/coa/AscensionTreeOfLife.cpp": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "810c5d81f02d81134922216eb1dd2dbf79a4a881f91a35d053ed799efbea94e5"
+  },
+  "data/sql/updates/pending_db_world/rev_20261010_25_wildcard_tools_of_war_martial_crescendo.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "0fd002deb011ee36885d9bf444e97cd2008a1c5a75301905a01a85cf79010820"
+  },
+  "src/server/coa/AscensionWildcardPhysical.cpp": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "317b75acbab3394f28caf12ab90ddb523e9df4d082f75e55314ab798aa834eff"
+  },
+  "src/server/coa/CoAScriptLoader.cpp": {
+    "before_sha256_lf": "20f60709cf3528366794ff261f61fe23cf68f7874bdc2d7688fb84db48d2405b",
+    "after_sha256_lf": "7ba073df9ccff21eeee96d0a4d40eac9086cbc962be8dff305565699bb9f1fde"
+  },
+  "src/server/game/Spells/Auras/SpellAuraEffects.cpp": {
+    "before_sha256_lf": "5f1999cbc79578fe6758b8c3dac4a71fe41991c75ce291f5e2abee49258732c1",
+    "after_sha256_lf": "067566d31eee6ba1e8265bb2294c3d40a5a8a1fd7745b80fb78998e0f1d8eed4"
+  },
+  "src/server/coa/AscensionFreePick.cpp": {
+    "before_sha256_lf": "611e1c42a75543681c9e06193f7f99f15d84af87171be1f30cf5ab2c80ce876f",
+    "after_sha256_lf": "5b85cee3ef442575b50c79aa63605dee3e704b2a6f3ddd5508c91c7f14cbf34b"
+  },
+  "src/server/coa/AscensionSummonAvoidance.cpp": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "72572b7fb71136c20048d9795d78254ec83ba1c8ba05e3d20d02ed5e58bad480"
+  },
+  "data/sql/updates/pending_db_world/rev_20261010_51_area52_upstream_proc_categories.sql": {
+    "before_sha256_lf": null,
+    "after_sha256_lf": "f42303002985e6fcf89fab9081b402e17f5ab2127b65a17e8b8f185487efab4d"
+  }
+}

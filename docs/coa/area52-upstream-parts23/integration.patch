@@ -1,0 +1,829 @@
+diff --git a/apps/coa-tests/talent_spell_positions/harness.cpp b/apps/coa-tests/talent_spell_positions/harness.cpp
+new file mode 100644
+--- /dev/null
++++ b/apps/coa-tests/talent_spell_positions/harness.cpp
+@@ -0,0 +1,81 @@
++#include <cstdint>
++#include <cstring>
++#include <fstream>
++#include <iostream>
++#include <iterator>
++#include <map>
++#include <vector>
++
++using uint8 = std::uint8_t;
++using uint16 = std::uint16_t;
++using uint32 = std::uint32_t;
++
++constexpr uint32 MAX_TALENT_RANK = 5;
++constexpr uint32 FIRST_RANK_FIELD = 4;
++
++// ACTUAL_TALENT_SPELL_POS
++
++int main(int argc, char** argv)
++{
++    if (argc != 2)
++        return 2;
++
++    std::ifstream file(argv[1], std::ios::binary);
++    std::vector<char> raw((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
++    if (raw.size() < 20 || std::memcmp(raw.data(), "WDBC", 4) != 0)
++    {
++        std::cerr << "FAIL: Talent.dbc unreadable\n";
++        return 1;
++    }
++
++    uint32 header[4];
++    std::memcpy(header, raw.data() + 4, sizeof(header));
++    uint32 const records = header[0];
++    uint32 const recordSize = header[2];
++
++    std::map<uint32, TalentSpellPos> positions;
++    std::map<uint32, uint32> owners;
++    uint32 wideTalents = 0;
++    for (uint32 record = 0; record < records; ++record)
++    {
++        char const* row = raw.data() + 20 + std::size_t(record) * recordSize;
++        uint32 talentId;
++        std::memcpy(&talentId, row, sizeof(talentId));
++        if (talentId > 0xFFFF)
++            ++wideTalents;
++        for (uint32 rank = 0; rank < MAX_TALENT_RANK; ++rank)
++        {
++            uint32 spellId;
++            std::memcpy(&spellId, row + (FIRST_RANK_FIELD + rank) * 4, sizeof(spellId));
++            if (!spellId)
++                continue;
++            positions[spellId] = TalentSpellPos(talentId, uint8(rank));
++            owners[spellId] = talentId;
++        }
++    }
++
++    uint32 failures = 0;
++    for (auto const& [spellId, talentId] : owners)
++    {
++        if (positions[spellId].talent_id != talentId)
++        {
++            if (++failures <= 5)
++                std::cerr << "FAIL: rank spell " << spellId << " maps to talent " << positions[spellId].talent_id
++                          << ", not " << talentId << "\n";
++        }
++    }
++
++    if (!wideTalents)
++    {
++        std::cerr << "FAIL: Talent.dbc has no talent id above 65535\n";
++        return 1;
++    }
++    if (failures)
++    {
++        std::cerr << "FAIL: " << failures << " of " << owners.size() << " talent rank spells lose their talent\n";
++        return 1;
++    }
++    std::cout << "PASS: " << owners.size() << " talent rank spells keep their talent, " << wideTalents
++              << " talents above 65535\n";
++    return 0;
++}
+diff --git a/apps/coa-tests/talent_spell_positions/run.py b/apps/coa-tests/talent_spell_positions/run.py
+new file mode 100644
+--- /dev/null
++++ b/apps/coa-tests/talent_spell_positions/run.py
+@@ -0,0 +1,40 @@
++import os
++from pathlib import Path
++import re
++import shutil
++import subprocess
++import sys
++import tempfile
++
++HERE = Path(__file__).resolve().parent
++ROOT = HERE.parents[2]
++sys.path.insert(0, str(HERE.parent))
++from client_data import dbc_dir  # noqa: E402
++
++
++def main():
++    structures = (ROOT / 'src/server/shared/DataStores/DBCStructure.h').read_text(encoding='utf-8')
++    found = re.search(r'struct TalentSpellPos\n\{.*?\n\};', structures, re.S)
++    assert found, 'DBCStructure.h defines TalentSpellPos'
++
++    stores = (ROOT / 'src/server/game/DataStores/DBCStores.cpp').read_text(encoding='utf-8')
++    assert 'sTalentSpellPosMap[talentInfo->RankID[j]] = TalentSpellPos(talentInfo->TalentID, j);' in stores, \
++        'LoadDBCStores indexes each talent rank spell by its talent id'
++
++    code = (HERE / 'harness.cpp').read_text(encoding='utf-8').replace('// ACTUAL_TALENT_SPELL_POS', found.group(0))
++
++    compiler = shutil.which(os.environ.get('CXX', 'cl.exe' if os.name == 'nt' else 'c++'))
++    assert compiler
++    with tempfile.TemporaryDirectory(prefix='coa-talent-spell-positions-') as directory:
++        out = Path(directory)
++        cpp = out / 'harness.cpp'
++        exe = out / ('harness.exe' if os.name == 'nt' else 'harness')
++        cpp.write_text(code, encoding='utf-8')
++        flags = (['/nologo', '/std:c++20', '/EHsc', str(cpp), '/Fe' + str(exe)]
++                 if Path(compiler).stem.lower() == 'cl' else ['-std=c++20', str(cpp), '-o', str(exe)])
++        subprocess.run([compiler, *flags], cwd=out, check=True, timeout=120)
++        subprocess.run([str(exe), str(dbc_dir() / 'Talent.dbc')], cwd=out, check=True, timeout=30)
++
++
++if __name__ == '__main__':
++    main()
+diff --git a/src/server/shared/DataStores/DBCStructure.h b/src/server/shared/DataStores/DBCStructure.h
+--- a/src/server/shared/DataStores/DBCStructure.h
++++ b/src/server/shared/DataStores/DBCStructure.h
+@@ -2275,9 +2275,9 @@
+ struct TalentSpellPos
+ {
+     TalentSpellPos()  = default;
+-    TalentSpellPos(uint16 _talent_id, uint8 _rank) : talent_id(_talent_id), rank(_rank) {}
+-
+-    uint16 talent_id{0};
++    TalentSpellPos(uint32 _talent_id, uint8 _rank) : talent_id(_talent_id), rank(_rank) {}
++
++    uint32 talent_id{0};
+     uint8  rank{0};
+ };
+ 
+diff --git a/apps/coa-tests/blood_presence_heal/run.py b/apps/coa-tests/blood_presence_heal/run.py
+new file mode 100644
+--- /dev/null
++++ b/apps/coa-tests/blood_presence_heal/run.py
+@@ -0,0 +1,69 @@
++CLI_DESCRIPTION = """Check that Blood Presence heals for its percent of damage dealt on Ascension's Spell.dbc, without a server.
++
++63611 Improved Blood Presence Triggered uses different effect positions across client revisions. This checks its
++unique proc aura in Spell.dbc (--dbc-dir), the local healing tooltip, and that spell_dk.cpp binds the handler to the effect
++that carries the aura and passes the talent's retained amount to that effect.
++No database, server build or game client is needed.
++"""
++
++import argparse
++from pathlib import Path
++import re
++import struct
++import sys
++
++HERE = Path(__file__).resolve().parent
++ROOT = HERE.parents[2]
++sys.path.insert(0, str(HERE.parent))
++from client_data import dbc_dir  # noqa: E402
++
++SOURCE = ROOT / "src/server/scripts/Spells/spell_dk.cpp"
++
++EFFECT, BASE, AURA, DESCRIPTION = 71, 80, 95, 170
++APPLY_AURA, PROC_TRIGGER_SPELL = 6, 42
++BLOOD_PRESENCE, BLOOD_PRESENCE_TRIGGERED = 48266, 63611
++
++failures = 0
++
++
++def check(value, name):
++    global failures
++    failures += not value
++    print(("PASS" if value else "FAIL") + ": " + name)
++
++
++def load_spells(directory):
++    raw = (directory / "Spell.dbc").read_bytes()
++    count, fields, size, _ = struct.unpack_from("<IIII", raw, 4)
++    strings = raw[20 + count * size:]
++    rows = {row[0]: row for row in struct.iter_unpack(f"<{fields}i", raw[20:20 + count * size])}
++    return rows, lambda offset: strings[offset:strings.index(b"\0", offset)].decode("utf-8", "replace")
++
++
++def main():
++    parser = argparse.ArgumentParser(description=CLI_DESCRIPTION)
++    parser.add_argument("--dbc-dir", type=Path)
++    args = parser.parse_args()
++    spells, text = load_spells(args.dbc_dir or dbc_dir())
++
++    triggered = spells[BLOOD_PRESENCE_TRIGGERED]
++    indices = [i for i in range(3) if triggered[EFFECT + i] == APPLY_AURA and
++               triggered[AURA + i] == PROC_TRIGGER_SPELL]
++    check(len(indices) == 1, f"63611 has exactly one proc aura, at effect indices {indices}")
++    tooltip = text(spells[BLOOD_PRESENCE][DESCRIPTION])
++    check("damage dealt" in tooltip, "Area 52 Blood Presence describes damage-based healing")
++
++    source = SOURCE.read_text(encoding="utf-8")
++    script = source.split("class spell_dk_improved_blood_presence_triggered", 1)[-1].split("\n};", 1)[0]
++    check("HandleProc, EFFECT_FIRST_FOUND, SPELL_AURA_PROC_TRIGGER_SPELL" in script,
++          "the heal handler binds to whichever effect carries the proc aura")
++    check("CalculatePct(static_cast<int32>(dmgInfo->GetDamage()), aurEff->GetAmount())" in script,
++          "the repair preserves Area 52 damage-based healing amount")
++    casts = re.findall(r"CastCustomSpell\(SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED, (\w+)\(?\)?,", source)
++    check(len(casts) == 2 and all(mod == "ImprovedBloodPresenceAmountMod" for mod in casts),
++          "the talent's retained healing goes to the effect that carries the proc aura")
++    raise SystemExit(1 if failures else 0)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/src/server/scripts/Spells/spell_dk.cpp b/src/server/scripts/Spells/spell_dk.cpp
+--- a/src/server/scripts/Spells/spell_dk.cpp
++++ b/src/server/scripts/Spells/spell_dk.cpp
+@@ -492,6 +492,15 @@
+     }
+ };
+ 
++SpellValueMod ImprovedBloodPresenceAmountMod()
++{
++    SpellInfo const* info = sSpellMgr->GetSpellInfo(SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED);
++    for (uint8 i = 0; info && i < MAX_SPELL_EFFECTS; ++i)
++        if (info->Effects[i].ApplyAuraName == SPELL_AURA_PROC_TRIGGER_SPELL)
++            return SpellValueMod(SPELLVALUE_BASE_POINT0 + i);
++    return SPELLVALUE_BASE_POINT1;
++}
++
+ // 63611 - Improved Blood Presence Triggered
+ class spell_dk_improved_blood_presence_triggered : public AuraScript
+ {
+@@ -512,15 +521,16 @@
+         PreventDefaultAction();
+         if (DamageInfo* dmgInfo = eventInfo.GetDamageInfo())
+         {
++            Unit* actor = eventInfo.GetActor();
+             int32 bp0 = CalculatePct(static_cast<int32>(dmgInfo->GetDamage()), aurEff->GetAmount());
+-            eventInfo.GetActor()->CastCustomSpell(SPELL_DK_IMPROVED_BLOOD_PRESENCE_HEAL, SPELLVALUE_BASE_POINT0, bp0, eventInfo.GetActor(), true, nullptr, aurEff);
++            actor->CastCustomSpell(SPELL_DK_IMPROVED_BLOOD_PRESENCE_HEAL, SPELLVALUE_BASE_POINT0, bp0, actor, true, nullptr, aurEff);
+         }
+     }
+ 
+     void Register() override
+     {
+         DoCheckProc += AuraCheckProcFn(spell_dk_improved_blood_presence_triggered::CheckProc);
+-        OnEffectProc += AuraEffectProcFn(spell_dk_improved_blood_presence_triggered::HandleProc, EFFECT_1, SPELL_AURA_PROC_TRIGGER_SPELL);
++        OnEffectProc += AuraEffectProcFn(spell_dk_improved_blood_presence_triggered::HandleProc, EFFECT_FIRST_FOUND, SPELL_AURA_PROC_TRIGGER_SPELL);
+     }
+ };
+ 
+@@ -1798,7 +1808,7 @@
+     {
+         Unit* target = GetTarget();
+         if (target->HasAnyAuras(SPELL_DK_FROST_PRESENCE, SPELL_DK_UNHOLY_PRESENCE) && !target->HasAura(SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED))
+-            target->CastCustomSpell(SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED, SPELLVALUE_BASE_POINT1, aurEff->GetAmount(), target, true, nullptr, aurEff);
++            target->CastCustomSpell(SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED, ImprovedBloodPresenceAmountMod(), aurEff->GetAmount(), target, true, nullptr, aurEff);
+     }
+ 
+     void HandleEffectRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+@@ -1995,7 +2005,7 @@
+             target->CastSpell(target, SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED, true);
+         else if (AuraEffect const* impAurEff = target->GetAuraEffectOfRankedSpell(SPELL_DK_IMPROVED_BLOOD_PRESENCE_R1, EFFECT_0))
+             if (!target->HasAura(SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED))
+-                target->CastCustomSpell(SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED, SPELLVALUE_BASE_POINT1, impAurEff->GetAmount(), target, true, nullptr, aurEff);
++                target->CastCustomSpell(SPELL_DK_IMPROVED_BLOOD_PRESENCE_TRIGGERED, ImprovedBloodPresenceAmountMod(), impAurEff->GetAmount(), target, true, nullptr, aurEff);
+     }
+ 
+     void HandleImprovedFrostPresence(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+diff --git a/data/sql/updates/pending_db_world/rev_20261010_27_wildcard_seal_of_fervor.sql b/data/sql/updates/pending_db_world/rev_20261010_27_wildcard_seal_of_fervor.sql
+new file mode 100644
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261010_27_wildcard_seal_of_fervor.sql
+@@ -0,0 +1,12 @@
++-- Seal of Fervor 272087 copies Seal of Righteousness 21084 (DBC ProcFlags 0x14, judgement in its effect 2 dummy) but
++-- had neither its spell_proc row nor a script, so main hand auto attacks and Paladin melee abilities dealt no Fire
++-- damage. Each now deals Seal of Fervor 272085 for the tooltip's 1 + MWS * (0.0085 * AP + 0.072 * SP).
++DELETE FROM `spell_proc` WHERE `SpellId` = 272087;
++INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`,
++    `SpellFamilyMask2`, `ProcFlags`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`,
++    `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
++(272087, 0, 0, 0, 0, 0, 0, 0x1, 0x2, 0, 0x2, 0, 0, 0, 0, 0);
++
++DELETE FROM `spell_script_names` WHERE `ScriptName` = 'aura_wildcard_seal_of_fervor';
++INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
++(272087, 'aura_wildcard_seal_of_fervor');
+diff --git a/src/server/coa/AscensionWildcardSealOfFervor.cpp b/src/server/coa/AscensionWildcardSealOfFervor.cpp
+new file mode 100644
+--- /dev/null
++++ b/src/server/coa/AscensionWildcardSealOfFervor.cpp
+@@ -0,0 +1,60 @@
++/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
++
++#include "ScriptMgr.h"
++#include "SpellAuraEffects.h"
++#include "SpellInfo.h"
++#include "SpellMgr.h"
++#include "SpellScript.h"
++#include "Unit.h"
++#include <algorithm>
++
++namespace
++{
++constexpr uint32 SEAL_OF_FERVOR_DAMAGE = 272085;
++
++class aura_wildcard_seal_of_fervor : public AuraScript
++{
++    PrepareAuraScript(aura_wildcard_seal_of_fervor);
++
++    bool Validate(SpellInfo const*) override
++    {
++        return ValidateSpellInfo({SEAL_OF_FERVOR_DAMAGE});
++    }
++
++    bool CheckProc(ProcEventInfo& eventInfo)
++    {
++        Unit* target = eventInfo.GetProcTarget();
++        DamageInfo const* damage = eventInfo.GetDamageInfo();
++        if (!target || !target->IsAlive() || !damage || !damage->GetDamage() || eventInfo.GetTriggerAuraSpell())
++            return false;
++
++        SpellInfo const* spell = eventInfo.GetSpellInfo();
++        if (!spell)
++            return damage->GetAttackType() == BASE_ATTACK;
++        return spell->SpellFamilyName == SPELLFAMILY_PALADIN && spell->Id != SEAL_OF_FERVOR_DAMAGE;
++    }
++
++    void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
++    {
++        PreventDefaultAction();
++        Unit* caster = GetTarget();
++        float const attackPower = caster->GetTotalAttackPowerValue(BASE_ATTACK);
++        int32 const spellPower = caster->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FIRE);
++        float const weaponSpeed = caster->GetAttackTime(BASE_ATTACK) / 1000.0f;
++        int32 const amount = std::max<int32>(1, int32(1 + weaponSpeed * (0.0085f * attackPower + 0.072f * spellPower)));
++        caster->CastCustomSpell(SEAL_OF_FERVOR_DAMAGE, SPELLVALUE_BASE_POINT0, amount, eventInfo.GetProcTarget(), true,
++            nullptr, aurEff);
++    }
++
++    void Register() override
++    {
++        DoCheckProc += AuraCheckProcFn(aura_wildcard_seal_of_fervor::CheckProc);
++        OnEffectProc += AuraEffectProcFn(aura_wildcard_seal_of_fervor::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
++    }
++};
++}
++
++void AddSC_AscensionWildcardSealOfFervor()
++{
++    RegisterSpellScript(aura_wildcard_seal_of_fervor);
++}
+diff --git a/apps/coa-tests/tree_of_life_form/run.py b/apps/coa-tests/tree_of_life_form/run.py
+new file mode 100644
+--- /dev/null
++++ b/apps/coa-tests/tree_of_life_form/run.py
+@@ -0,0 +1,89 @@
++CLI_DESCRIPTION = """Check that Tree of Life stays up, and that casting outside its tooltip's list leaves the form, without a server.
++
++Tree of Life 33891's third effect procs Remove Tree of Life 44975 whenever the druid takes any spell, including the
++form's own application, so the form never stayed up. This checks that shape in Spell.dbc (--dbc-dir), that the
++tooltip still names the allowed spells, and that the script turns the proc off, takes the druid out of the form for any
++other cast, and is registered and bound.
++No database, server build or game client is needed.
++"""
++
++import argparse
++from pathlib import Path
++import re
++import struct
++import sys
++
++HERE = Path(__file__).resolve().parent
++ROOT = HERE.parents[2]
++sys.path.insert(0, str(HERE.parent))
++from client_data import dbc_dir  # noqa: E402
++
++SOURCE = ROOT / "src/server/coa/AscensionTreeOfLife.cpp"
++LOADER = ROOT / "src/server/coa/CoAScriptLoader.cpp"
++SQL = ROOT / "data/sql/updates/pending_db_world/rev_20261010_10_coa_tree_of_life_form.sql"
++
++TAKEN_SPELL_FLAGS = 0x20 | 0x200 | 0x800 | 0x2000 | 0x8000 | 0x20000
++PROC_FLAGS, PROC_CHANCE, EFFECT, AURA, TRIGGER, CLASS_MASK, DESCRIPTION = 34, 35, 71, 95, 116, 122, 170
++FAMILY, FAMILY_FLAGS = 208, 209
++APPLY_AURA, PROC_TRIGGER_SPELL, REMOVE_AURA = 6, 42, 164
++TREE_OF_LIFE, REMOVE_TREE_OF_LIFE, TREE_OF_LIFE_ENTRY_SPELL = 33891, 44975, 65139
++DRUID = 7
++NAMED = {"Thorns": (467, 0, 0x100), "Nature's Grasp": (16689, 0, 0x100000), "Innervate": (29166, 1, 0x1000),
++         "Barkskin": (22812, 1, 0x40000)}
++
++failures = 0
++
++
++def check(value, name):
++    global failures
++    failures += not value
++    print(("PASS" if value else "FAIL") + ": " + name)
++
++
++def load_spells(directory):
++    raw = (directory / "Spell.dbc").read_bytes()
++    count, fields, size, _ = struct.unpack_from("<IIII", raw, 4)
++    strings = raw[20 + count * size:]
++    rows = {row[0]: row for row in struct.iter_unpack(f"<{fields}i", raw[20:20 + count * size])}
++    return rows, lambda offset: strings[offset:strings.index(b"\0", offset)].decode("utf-8", "replace")
++
++
++def main():
++    parser = argparse.ArgumentParser(description=CLI_DESCRIPTION)
++    parser.add_argument("--dbc-dir", type=Path)
++    args = parser.parse_args()
++    spells, text = load_spells(args.dbc_dir or dbc_dir())
++
++    tree = spells[TREE_OF_LIFE]
++    check(tree[EFFECT + 2] == APPLY_AURA and tree[AURA + 2] == PROC_TRIGGER_SPELL and
++          tree[TRIGGER + 2] == REMOVE_TREE_OF_LIFE and tree[PROC_CHANCE] == 100,
++          "Tree of Life procs Remove Tree of Life at 100%")
++    check(tree[PROC_FLAGS] == TAKEN_SPELL_FLAGS, "the proc fires on every spell the druid takes, not on casts")
++    check(not any(tree[CLASS_MASK + 2 + 3 * index] for index in range(3)),
++          "the proc's class mask is empty, so nothing in the data limits which spells remove the form")
++    remove = spells[REMOVE_TREE_OF_LIFE]
++    check(remove[EFFECT] == REMOVE_AURA and remove[TRIGGER] == TREE_OF_LIFE, "Remove Tree of Life removes the form")
++    tooltip = text(spells[TREE_OF_LIFE_ENTRY_SPELL][DESCRIPTION])
++    check(all(name in tooltip for name in NAMED) and "healing spells" in tooltip and
++          "spells usable while shapeshifted" in tooltip, "the tooltip names the spells the form allows")
++    check(all(spells[spell][FAMILY] == DRUID and spells[spell][FAMILY_FLAGS + word] & flag
++              for spell, word, flag in NAMED.values()), "the named spells carry the druid family flags the script reads")
++
++    source = SOURCE.read_text(encoding="utf-8") if SOURCE.exists() else ""
++    proc = source.split("bool CheckProc(ProcEventInfo&)", 1)[-1].split("}", 1)[0]
++    check("DoCheckProc += AuraCheckProcFn(aura_ascension_tree_of_life::CheckProc)" in source and
++          proc.strip().startswith("{") and "return false;" in proc, "the script turns the removal proc off")
++    check("ALLSPELLHOOK_ON_SPELL_CHECK_CAST" in source and "GetShapeshiftForm() != FORM_TREE" in source and
++          "RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT)" in source and "spell->IsTriggered()" in source and
++          "!strict" in source and
++          "CheckShapeshift(FORM_TREE)" in source and "IsPositive()" in source and
++          all(f"DRUID_{name.upper().replace(' ', '_').replace('NATURE' + chr(39) + 'S', 'NATURES')}" in source
++              for name in NAMED), "a cast outside the tooltip's list takes the druid out of the form")
++    check("AddSC_AscensionTreeOfLife();" in LOADER.read_text(encoding="utf-8"), "the loader registers the script")
++    sql = SQL.read_text(encoding="utf-8") if SQL.exists() else ""
++    check(re.search(r"\(33891,\s*'aura_ascension_tree_of_life'\)", sql) is not None, "the SQL binds the script to 33891")
++    raise SystemExit(1 if failures else 0)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/data/sql/updates/pending_db_world/rev_20261010_10_coa_tree_of_life_form.sql b/data/sql/updates/pending_db_world/rev_20261010_10_coa_tree_of_life_form.sql
+new file mode 100644
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261010_10_coa_tree_of_life_form.sql
+@@ -0,0 +1,6 @@
++-- Tree of Life's proc casts Remove Tree of Life whenever the druid takes any spell, including the form's own
++-- application, so the form never stayed up. Its tooltip restricts what can be cast in the form instead; the script
++-- turns the proc off and the cast check enforces that list.
++DELETE FROM `spell_script_names` WHERE `spell_id` = 33891 AND `ScriptName` = 'aura_ascension_tree_of_life';
++INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
++(33891, 'aura_ascension_tree_of_life');
+diff --git a/src/server/coa/AscensionTreeOfLife.cpp b/src/server/coa/AscensionTreeOfLife.cpp
+new file mode 100644
+--- /dev/null
++++ b/src/server/coa/AscensionTreeOfLife.cpp
+@@ -0,0 +1,75 @@
++/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
++
++#include "Player.h"
++#include "ScriptMgr.h"
++#include "Spell.h"
++#include "SpellInfo.h"
++#include "SpellScript.h"
++#include "UnitDefines.h"
++
++namespace
++{
++constexpr uint32 TREE_OF_LIFE = 33891;
++constexpr uint32 DRUID_THORNS = 0x100;
++constexpr uint32 DRUID_NATURES_GRASP = 0x100000;
++constexpr uint32 DRUID_INNERVATE = 0x1000;
++constexpr uint32 DRUID_BARKSKIN = 0x40000;
++
++bool IsHealingSpell(SpellInfo const* spell)
++{
++    return spell->HasEffect(SPELL_EFFECT_HEAL) || spell->HasEffect(SPELL_EFFECT_HEAL_PCT) ||
++        spell->HasEffect(SPELL_EFFECT_HEAL_MAX_HEALTH) || spell->HasAura(SPELL_AURA_PERIODIC_HEAL) ||
++        spell->HasAura(SPELL_AURA_OBS_MOD_HEALTH);
++}
++
++bool IsNamedTreeSpell(SpellInfo const* spell)
++{
++    if (spell->SpellFamilyName != SPELLFAMILY_DRUID)
++        return false;
++    flag96 const& flags = spell->SpellFamilyFlags;
++    return (flags[0] & (DRUID_THORNS | DRUID_NATURES_GRASP)) || (flags[1] & (DRUID_INNERVATE | DRUID_BARKSKIN));
++}
++
++bool AllowedInTreeOfLife(SpellInfo const* spell)
++{
++    return spell->Id == TREE_OF_LIFE || IsHealingSpell(spell) || IsNamedTreeSpell(spell) ||
++        (spell->IsPositive() && spell->CheckShapeshift(FORM_TREE) == SPELL_CAST_OK);
++}
++
++class aura_ascension_tree_of_life : public AuraScript
++{
++    PrepareAuraScript(aura_ascension_tree_of_life);
++
++    bool CheckProc(ProcEventInfo&)
++    {
++        return false;
++    }
++
++    void Register() override
++    {
++        DoCheckProc += AuraCheckProcFn(aura_ascension_tree_of_life::CheckProc);
++    }
++};
++
++class AscensionTreeOfLifeCasts : public AllSpellScript
++{
++public:
++    AscensionTreeOfLifeCasts() : AllSpellScript("AscensionTreeOfLifeCasts", { ALLSPELLHOOK_ON_SPELL_CHECK_CAST }) { }
++
++    void OnSpellCheckCast(Spell* spell, bool strict, SpellCastResult& result) override
++    {
++        Player* player = spell->GetCaster()->ToPlayer();
++        if (!strict || result != SPELL_CAST_OK || !player || spell->IsTriggered() ||
++            player->GetShapeshiftForm() != FORM_TREE || !player->HasAura(TREE_OF_LIFE))
++            return;
++        if (!AllowedInTreeOfLife(spell->GetSpellInfo()))
++            player->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT);
++    }
++};
++}
++
++void AddSC_AscensionTreeOfLife()
++{
++    RegisterSpellScript(aura_ascension_tree_of_life);
++    new AscensionTreeOfLifeCasts();
++}
+diff --git a/data/sql/updates/pending_db_world/rev_20261010_25_wildcard_tools_of_war_martial_crescendo.sql b/data/sql/updates/pending_db_world/rev_20261010_25_wildcard_tools_of_war_martial_crescendo.sql
+new file mode 100644
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261010_25_wildcard_tools_of_war_martial_crescendo.sql
+@@ -0,0 +1,14 @@
++-- Tools of War 271020 and Martial Crescendo 271051 have no ProcFlags in Spell.dbc, so they never granted their buffs.
++-- Each unique direct damage Physical ability grants a stack that does not refresh at maximum stacks, and dealing magic
++-- damage resets the stacks: melee and ranged abilities and harmful magic spells, direct or periodic, on a hit.
++DELETE FROM `spell_proc` WHERE `SpellId` IN (271020, 271051);
++INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`,
++    `SpellFamilyMask2`, `ProcFlags`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`,
++    `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
++(271020, 0, 0, 0, 0, 0, 0x50110, 0x1, 0x2, 0, 0, 0, 0, 100, 0, 0),
++(271051, 0, 0, 0, 0, 0, 0x50110, 0x1, 0x2, 0, 0, 0, 0, 100, 0, 0);
++
++DELETE FROM `spell_script_names` WHERE `ScriptName` = 'aura_wildcard_unique_physical_ability';
++INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
++(271020, 'aura_wildcard_unique_physical_ability'),
++(271051, 'aura_wildcard_unique_physical_ability');
+diff --git a/src/server/coa/AscensionWildcardPhysical.cpp b/src/server/coa/AscensionWildcardPhysical.cpp
+new file mode 100644
+--- /dev/null
++++ b/src/server/coa/AscensionWildcardPhysical.cpp
+@@ -0,0 +1,99 @@
++/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
++
++#include "ScriptMgr.h"
++#include "SpellAuraEffects.h"
++#include "SpellInfo.h"
++#include "SpellMgr.h"
++#include "SpellScript.h"
++#include "Unit.h"
++#include <unordered_set>
++
++namespace
++{
++enum WildcardPhysicalSpells : uint32
++{
++    ToolsOfWar = 271020,
++    ToolsOfWarBuff = 271021,
++    MartialCrescendo = 271051,
++    MartialCrescendoBuff = 271052
++};
++
++class aura_wildcard_unique_physical_ability : public AuraScript
++{
++    PrepareAuraScript(aura_wildcard_unique_physical_ability);
++
++    bool Validate(SpellInfo const*) override
++    {
++        return ValidateSpellInfo({ToolsOfWarBuff, MartialCrescendoBuff, 84751, 84753});
++    }
++
++    uint32 Buff() const
++    {
++        return GetSpellInfo()->Effects[EFFECT_0].TriggerSpell;
++    }
++
++    bool CheckProc(ProcEventInfo& eventInfo)
++    {
++        DamageInfo const* damage = eventInfo.GetDamageInfo();
++        return eventInfo.GetSpellInfo() && damage && damage->GetDamage();
++    }
++
++    void HandleProc(AuraEffect const*, ProcEventInfo& eventInfo)
++    {
++        PreventDefaultAction();
++        Unit* target = GetTarget();
++        Aura* buff = target->GetAura(Buff(), target->GetGUID());
++        if (!buff)
++            _used.clear();
++
++        if (eventInfo.GetDamageInfo()->GetSchoolMask() & ~SPELL_SCHOOL_MASK_NORMAL)
++        {
++            target->RemoveAurasDueToSpell(Buff(), target->GetGUID());
++            _used.clear();
++            return;
++        }
++
++        if (eventInfo.GetTypeMask() & PROC_FLAG_DONE_PERIODIC)
++            return;
++        if ((GetId() == 84750 || GetId() == 84752) &&
++            eventInfo.GetSpellInfo()->HasAttribute(SPELL_ATTR0_ON_NEXT_SWING_NO_DAMAGE))
++            return;
++
++        if (!_used.insert(sSpellMgr->GetFirstSpellInChain(eventInfo.GetSpellInfo()->Id)).second)
++            return;
++
++        if (!buff)
++        {
++            target->CastSpell(target, Buff(), true);
++            return;
++        }
++
++        int32 const duration = buff->GetDuration();
++        bool const atMaximum = buff->GetStackAmount() >= buff->GetSpellInfo()->StackAmount;
++        buff->ModStackAmount(1);
++        if (atMaximum)
++            buff->SetDuration(duration);
++    }
++
++    void Remove(AuraEffect const*, AuraEffectHandleModes)
++    {
++        GetTarget()->RemoveAurasDueToSpell(Buff(), GetTarget()->GetGUID());
++    }
++
++    void Register() override
++    {
++        AfterEffectRemove += AuraEffectRemoveFn(aura_wildcard_unique_physical_ability::Remove,
++            EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL);
++        DoCheckProc += AuraCheckProcFn(aura_wildcard_unique_physical_ability::CheckProc);
++        OnEffectProc += AuraEffectProcFn(aura_wildcard_unique_physical_ability::HandleProc, EFFECT_0,
++            SPELL_AURA_PROC_TRIGGER_SPELL);
++    }
++
++    std::unordered_set<uint32> _used;
++};
++}
++
++void AddSC_AscensionWildcardPhysical()
++{
++    RegisterSpellScript(aura_wildcard_unique_physical_ability);
++}
+diff --git a/src/server/coa/CoAScriptLoader.cpp b/src/server/coa/CoAScriptLoader.cpp
+--- a/src/server/coa/CoAScriptLoader.cpp
++++ b/src/server/coa/CoAScriptLoader.cpp
+@@ -19,6 +19,10 @@
+ #include "AscensionVenomancerVenomPayloads.h"
+ #include "AscensionTinkerCombatSymbiosis.h"
+ 
++void AddSC_AscensionSummonAvoidance();
++void AddSC_AscensionWildcardPhysical();
++void AddSC_AscensionTreeOfLife();
++void AddSC_AscensionWildcardSealOfFervor();
+ void AddAscensionEldritchKnightScripts();
+ void AddAscensionMysticKnightEpicScripts();
+ void AddAscensionHopliteScripts();
+@@ -316,6 +320,10 @@
+ 
+ void AddCoAScripts()
+ {
++    AddSC_AscensionSummonAvoidance();
++    AddSC_AscensionWildcardPhysical();
++    AddSC_AscensionTreeOfLife();
++    AddSC_AscensionWildcardSealOfFervor();
+     AddAscensionStockCoefficientScripts();
+     AddAscensionScalingBaseScripts();
+     AddAscensionManastormScripts();
+diff --git a/src/server/game/Spells/Auras/SpellAuraEffects.cpp b/src/server/game/Spells/Auras/SpellAuraEffects.cpp
+--- a/src/server/game/Spells/Auras/SpellAuraEffects.cpp
++++ b/src/server/game/Spells/Auras/SpellAuraEffects.cpp
+@@ -2212,9 +2212,15 @@
+         if (PowerType != POWER_MANA)
+         {
+             uint32 oldPower = target->GetPower(PowerType);
++            bool const powerAlreadyActive = target->IsPlayer() &&
++                target->ToPlayer()->HasActivePowerType(PowerType);
+             // reset power to default values only at power change
+             if (target->getPowerType() != PowerType)
++            {
+                 target->setPowerType(PowerType);
++                if (powerAlreadyActive)
++                    target->SetPower(PowerType, oldPower);
++            }
+ 
+             switch (form)
+             {
+@@ -2231,6 +2237,8 @@
+                         {
+                             case FORM_CAT:
+                                 {
++                                    if (powerAlreadyActive)
++                                        break;
+                                     int32 basePoints = int32(std::min(oldPower, FurorChance));
+                                     target->SetPower(POWER_ENERGY, 0);
+                                     target->CastCustomSpell(target, 17099, &basePoints, nullptr, nullptr, true, nullptr, this);
+diff --git a/src/server/coa/AscensionFreePick.cpp b/src/server/coa/AscensionFreePick.cpp
+--- a/src/server/coa/AscensionFreePick.cpp
++++ b/src/server/coa/AscensionFreePick.cpp
+@@ -441,7 +441,12 @@
+         for (auto rank = sSpellMgr->GetNextSpellInChain(previous); rank && visited.insert(rank).second;
+             previous = rank, rank = sSpellMgr->GetNextSpellInChain(rank))
+             if (auto const* info = sSpellMgr->GetSpellInfo(rank); info && offered.insert(rank).second)
+-                upgrades.push_back({rank, previous, std::max(info->BaseLevel, info->SpellLevel)});
++            {
++                SpellEntry const* client = sSpellStore.LookupEntry(rank);
++                uint32 const level = client ? std::max(client->BaseLevel, client->SpellLevel) :
++                    std::max(info->BaseLevel, info->SpellLevel);
++                upgrades.push_back({rank, previous, level});
++            }
+     }
+     return upgrades;
+ }
+diff --git a/src/server/coa/AscensionSummonAvoidance.cpp b/src/server/coa/AscensionSummonAvoidance.cpp
+new file mode 100644
+--- /dev/null
++++ b/src/server/coa/AscensionSummonAvoidance.cpp
+@@ -0,0 +1,55 @@
++/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
++
++#include "PetDefines.h"
++#include "Player.h"
++#include "ScriptMgr.h"
++#include "TemporarySummon.h"
++#include <algorithm>
++#include <array>
++
++namespace
++{
++enum AvoidingSummonEntry : uint32
++{
++    NPC_EMERALD_DRAGON_WHELP = 8776,
++    NPC_CRIMSON_CANNON       = 11199,
++    NPC_TIMBERMAW_ANCESTOR   = 15720,
++    NPC_FUNGARIAN            = 45896,
++    NPC_HONORED_ANCESTOR     = 51265,
++    NPC_ANIMATED_ZOMBIE      = 503031,
++};
++
++constexpr std::array<uint32, 6> AvoidingSummonEntries =
++{
++    NPC_EMERALD_DRAGON_WHELP,
++    NPC_CRIMSON_CANNON,
++    NPC_TIMBERMAW_ANCESTOR,
++    NPC_FUNGARIAN,
++    NPC_HONORED_ANCESTOR,
++    NPC_ANIMATED_ZOMBIE,
++};
++
++bool HasSummonAvoidance(uint32 entry)
++{
++    return std::find(AvoidingSummonEntries.begin(), AvoidingSummonEntries.end(), entry)
++        != AvoidingSummonEntries.end();
++}
++}
++
++class ascension_summon_avoidance : public PlayerScript
++{
++public:
++    ascension_summon_avoidance() : PlayerScript("ascension_summon_avoidance",
++        {PLAYERHOOK_ON_AFTER_GUARDIAN_INIT_STATS_FOR_LEVEL}) { }
++
++    void OnPlayerAfterGuardianInitStatsForLevel(Player*, Guardian* guardian) override
++    {
++        if (guardian && HasSummonAvoidance(guardian->GetEntry()))
++            guardian->AddAura(SPELL_PET_AVOIDANCE, guardian);
++    }
++};
++
++void AddSC_AscensionSummonAvoidance()
++{
++    new ascension_summon_avoidance();
++}
+diff --git a/data/sql/updates/pending_db_world/rev_20261010_51_area52_upstream_proc_categories.sql b/data/sql/updates/pending_db_world/rev_20261010_51_area52_upstream_proc_categories.sql
+new file mode 100644
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261010_51_area52_upstream_proc_categories.sql
+@@ -0,0 +1,27 @@
++DELETE FROM `spell_proc` WHERE `SpellId` IN (275235, 272057, 978742, 84750, 84752);
++INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`,
++    `SpellFamilyMask2`, `ProcFlags`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`,
++    `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
++(978742, 0, 8, 0x2, 0, 0, 0x10, 0x1, 0x2, 0, 0, 6, 0, 100, 0, 0),
++(84750, 0, 0, 0, 0, 0, 0x50110, 0x1, 0x2, 0, 0, 0, 0, 100, 0, 0),
++(84752, 0, 0, 0, 0, 0, 0x50110, 0x1, 0x2, 0, 0, 0, 0, 100, 0, 0),
++(275235, 0, 8, 0x2, 0, 0, 0x10, 0x1, 0x2, 0, 0, 0, 0, 100, 0, 0),
++(272057, 0, 3, 0x60, 0, 0, 0x10000, 0x1, 0x2, 0, 0, 0, 0, 100, 0, 0);
++DELETE FROM `spell_group` WHERE `id` = 2106089;
++INSERT INTO `spell_group` (`id`, `spell_id`) VALUES
++(2106089, 11207),
++(2106089, 14889),
++(2106089, 16089),
++(2106089, 16909),
++(2106089, 17959),
++(2106089, 33221),
++(2106089, 35578),
++(2106089, 44449),
++(2106089, 61758);
++DELETE FROM `spell_group_stack_rules` WHERE `group_id` = 2106089;
++INSERT INTO `spell_group_stack_rules` (`group_id`, `stack_rule`, `description`) VALUES
++(2106089, 3, 'Area 52 spell critical damage talents: highest bonus only');
++DELETE FROM `spell_script_names` WHERE `spell_id` IN (84750, 84752) AND `ScriptName` = 'aura_wildcard_unique_physical_ability';
++INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
++(84750, 'aura_wildcard_unique_physical_ability'),
++(84752, 'aura_wildcard_unique_physical_ability');

@@ -1,0 +1,7 @@
+{
+  "upstream": "0a0a21d3830e24dec61f16aeb013a16c748d5615",
+  "sha256": "1ae680a4935ab5c46c90e65d83a1ee3a15abee6b009bce9659c0679530af7c64",
+  "dll_sha256": "96d960cb3410c24cc48a6835483334cf0f670bde816b2fec686fdddc284ebc67",
+  "client_asset": "Area 52 overlay patch-D.MPQ; primary local client, not a claim of latest upstream release.",
+  "client_distribution": "No client binaries or archives changed. Upstream Discord/launcher package tracking remains a separate gap."
+}

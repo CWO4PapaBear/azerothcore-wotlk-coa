@@ -1,0 +1,206 @@
+{
+  "schema": 1,
+  "name": "Area 52 upstream integration seal",
+  "contract": "Native handler comparison against primary Area 52 definitions; synthetic aura application isolates proc behavior; not acquisition or client certification.",
+  "timeout_ms": 60000,
+  "players": [
+    {
+      "id": "wild",
+      "name": "Partstest",
+      "race": 1,
+      "class": 10,
+      "level": 80,
+      "melee_hit_rating": 10000,
+      "expertise_rating": 10000
+    }
+  ],
+  "creatures": [
+    {
+      "id": "e",
+      "owner": "wild",
+      "entry": 1601,
+      "level": 80,
+      "health": 10000000,
+      "distance": 3
+    }
+  ],
+  "steps": [
+    {
+      "action": "wait",
+      "ms": 5000
+    },
+    {
+      "action": "set_aura",
+      "actor": "wild",
+      "spell": 812295,
+      "stacks": 1
+    },
+    {
+      "action": "client_packet",
+      "actor": "wild",
+      "opcode": 1831,
+      "fields": [
+        {
+          "u32": 3
+        },
+        {
+          "u32": 2778
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 3244
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 2664
+        },
+        {
+          "u32": 1
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u8": 0
+        },
+        {
+          "u32": 0
+        },
+        {
+          "u32": 0
+        }
+      ]
+    },
+    {
+      "action": "add_item",
+      "actor": "wild",
+      "item": 506
+    },
+    {
+      "action": "equip",
+      "actor": "wild",
+      "item": 506,
+      "slot": 15
+    },
+    {
+      "action": "set_aura",
+      "actor": "wild",
+      "spell": 272087,
+      "stacks": 1
+    },
+    {
+      "action": "wait",
+      "ms": 300
+    },
+    {
+      "action": "assert",
+      "label": "Seal of Fervor is accepted",
+      "actor": "wild",
+      "metric": "cast_failure",
+      "spell": 272087,
+      "equals": 0
+    },
+    {
+      "action": "assert",
+      "label": "Seal of Fervor is up",
+      "actor": "wild",
+      "metric": "aura",
+      "spell": 272087,
+      "equals": 1,
+      "within_ms": 1000
+    },
+    {
+      "action": "attack",
+      "actor": "wild",
+      "target": "e"
+    },
+    {
+      "action": "assert",
+      "label": "Three swings land",
+      "actor": "wild",
+      "metric": "melee_damage_count",
+      "target": "e",
+      "min": 3,
+      "within_ms": 15000
+    },
+    {
+      "action": "assert",
+      "label": "Each adds Seal of Fervor Fire damage",
+      "actor": "wild",
+      "metric": "spell_damage_count",
+      "spell": 272085,
+      "target": "e",
+      "min": 3
+    },
+    {
+      "action": "cancel_aura",
+      "actor": "wild",
+      "spell": 272087
+    },
+    {
+      "action": "snapshot",
+      "label": "Seal hits when the seal is cancelled",
+      "actor": "wild",
+      "metric": "spell_damage_count",
+      "spell": 272085,
+      "target": "e",
+      "save_as": "seal"
+    },
+    {
+      "action": "snapshot",
+      "label": "Swings when the seal is cancelled",
+      "actor": "wild",
+      "metric": "melee_damage_count",
+      "target": "e",
+      "save_as": "swings"
+    },
+    {
+      "action": "assert",
+      "label": "Two more swings land",
+      "actor": "wild",
+      "metric": "melee_damage_count",
+      "target": "e",
+      "relative_to": "swings",
+      "min": 2,
+      "within_ms": 10000
+    },
+    {
+      "action": "assert",
+      "label": "without the seal they add no Fire damage",
+      "actor": "wild",
+      "metric": "spell_damage_count",
+      "spell": 272085,
+      "target": "e",
+      "relative_to": "seal",
+      "equals": 0
+    }
+  ]
+}

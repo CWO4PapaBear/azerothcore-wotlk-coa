@@ -1,0 +1,116 @@
+{
+  "build": {
+    "status": "passed",
+    "summary": {
+      "steps": [
+        "build"
+      ],
+      "build_directory": "/workspace/build-freepick",
+      "configuration": null,
+      "path_prefix": "/usr/bin"
+    }
+  },
+  "unit": {
+    "status": "passed",
+    "summary": {
+      "returncode": 0,
+      "counts": {
+        "tests": 1,
+        "failed": 0
+      }
+    }
+  },
+  "harness": {
+    "status": "passed",
+    "summary": {
+      "counts": {
+        "passed": 3,
+        "failed": 0,
+        "unavailable": 0
+      },
+      "scripts": {
+        "apps/coa-tests/blood_presence_heal/run.py": {
+          "name": "blood_presence_heal",
+          "status": "passed",
+          "seconds": 1.525,
+          "returncode": 0
+        },
+        "apps/coa-tests/talent_spell_positions/run.py": {
+          "name": "talent_spell_positions",
+          "status": "passed",
+          "seconds": 0.782,
+          "returncode": 0
+        },
+        "apps/coa-tests/tree_of_life_form/run.py": {
+          "name": "tree_of_life_form",
+          "status": "passed",
+          "seconds": 1.315,
+          "returncode": 0
+        }
+      }
+    }
+  },
+  "gameplay": {
+    "status": "unavailable",
+    "summary": {
+      "returncode": 3,
+      "report": "/results/verification-gameplay/gameplay/gameplay.json",
+      "selection": [
+        "/results/physical.json",
+        "/results/seal.json"
+      ],
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "not_run": 0,
+        "passed_on_isolated_rerun": 0
+      },
+      "verification": "skipped",
+      "clock": "real",
+      "lanes": 1,
+      "db_workers": 1,
+      "acceleration_sensitive": [],
+      "batch_sensitive": [],
+      "isolated_only": [],
+      "exploratory": [
+        "physical",
+        "seal"
+      ],
+      "batch_failures": [],
+      "failed_cases": [],
+      "reason": "only exploratory scenarios ran; they passed natively, without combined verification"
+    }
+  },
+  "cpp_lint": "passed",
+  "sql_lint": "passed",
+  "patch_reverse_check": "passed against exact integration candidate",
+  "source": "Broad source stage not claimed: integration baseline contains unrelated unpublished changes.",
+  "deployment": "not activated; no live database changes, restart, launcher release, or tooltip promotion",
+  "limits": [
+    "Two exploratory native proc scenarios passed; combined gameplay verification remains incomplete by runner policy.",
+    "No live client, multiplayer, reconnect, or player certification claimed.",
+    "Current Blood Presence effect position is already supported by the prior handler; the change accommodates differing revisions."
+  ],
+  "initial_failures_resolved": [
+    "Regenerated CMake to discover four new source files after initial link failure.",
+    "Adapted Blood Presence fixture to the observed single proc effect rather than requiring upstream effect 0.",
+    "Removed unsupported stationary fixture option from scenarios for the local runner."
+  ],
+  "source_hashes": {
+    "src/server/shared/DataStores/DBCStructure.h": "e6b433d31d27af159b8cd54810ae56af31810d61491a2505582457a2ae01aa17",
+    "src/server/scripts/Spells/spell_dk.cpp": "c367776f838eda11c6e72453d310618e093cda22d2a12a8f5dca9e5da4b485e3",
+    "src/server/coa/AscensionWildcardSealOfFervor.cpp": "0d3deb798e0c26f578549307e894a0a47fdefd9d68b4c05300bc9f4195404449",
+    "src/server/coa/AscensionTreeOfLife.cpp": "810c5d81f02d81134922216eb1dd2dbf79a4a881f91a35d053ed799efbea94e5",
+    "src/server/coa/AscensionWildcardPhysical.cpp": "317b75acbab3394f28caf12ab90ddb523e9df4d082f75e55314ab798aa834eff",
+    "src/server/coa/CoAScriptLoader.cpp": "7ba073df9ccff21eeee96d0a4d40eac9086cbc962be8dff305565699bb9f1fde",
+    "src/server/game/Spells/Auras/SpellAuraEffects.cpp": "067566d31eee6ba1e8265bb2294c3d40a5a8a1fd7745b80fb78998e0f1d8eed4",
+    "src/server/coa/AscensionFreePick.cpp": "5b85cee3ef442575b50c79aa63605dee3e704b2a6f3ddd5508c91c7f14cbf34b",
+    "src/server/coa/AscensionSummonAvoidance.cpp": "72572b7fb71136c20048d9795d78254ec83ba1c8ba05e3d20d02ed5e58bad480"
+  },
+  "migration_hashes": {
+    "rev_20261010_27_wildcard_seal_of_fervor.sql": "a84e9facc3b13edaf93e47a8f4c5b415abe5eec6dfaf431a77d26e24de8069b2",
+    "rev_20261010_10_coa_tree_of_life_form.sql": "8878dd9d2a3aab716e012805f89dc21cd59507ae09e654c7ac46828b97de13bd",
+    "rev_20261010_25_wildcard_tools_of_war_martial_crescendo.sql": "0fd002deb011ee36885d9bf444e97cd2008a1c5a75301905a01a85cf79010820",
+    "rev_20261010_51_area52_upstream_proc_categories.sql": "f42303002985e6fcf89fab9081b402e17f5ab2127b65a17e8b8f185487efab4d"
+  }
+}

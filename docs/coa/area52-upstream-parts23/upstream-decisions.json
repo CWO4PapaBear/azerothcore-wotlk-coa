@@ -1,0 +1,242 @@
+[
+  {
+    "sha": "fc359be9bf79ffb532c192d7afe754be21feba40",
+    "title": "fix(CoA/Wildcard): restore Hurricane strikes and Corrupted Blade spread (#6790)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/fc359be9bf79ffb532c192d7afe754be21feba40",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/6790"
+    ],
+    "decision": "deferred",
+    "reason": "The upstream Runic Hurricane and Corrupted Blade handlers explicitly require Wildcard Hero. No matching selected Area 52 catalog root was found. Do not enable Wildcard progression or change realm gates to manufacture a connection."
+  },
+  {
+    "sha": "e3552670179028143dc88b62f2ed54e96631a6e5",
+    "title": "fix(CoA): Warcraft Reborn class spells take their stock spell's scripts and data (#6997)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/e3552670179028143dc88b62f2ed54e96631a6e5",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/6997"
+    ],
+    "decision": "not_applicable",
+    "reason": "Spell-twin discovery is gated to Warcraft Reborn and maps its offset spell copies. No Area 52 spell mapping is provided by this commit. Keep current Area 52 explicit grant/rank ownership."
+  },
+  {
+    "sha": "984678cb6965686f54bc4b55a8dc0211668350a0",
+    "title": "fix(CoA): give reborn guardians and class summons Pet Avoidance (#7037)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/984678cb6965686f54bc4b55a8dc0211668350a0",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7037"
+    ],
+    "decision": "adapted",
+    "reason": "Import the six named guardian Avoidance grants. Leave the Reborn GetStockPetEntry switch change out because it requires the separate Reborn pet translation infrastructure."
+  },
+  {
+    "sha": "a77004812ba0942b982570a65000e06a32f83d95",
+    "title": "fix(Core/DBC): keep talent ids above 65535 in the talent spell index (#7062)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/a77004812ba0942b982570a65000e06a32f83d95",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7062"
+    ],
+    "decision": "imported",
+    "reason": "Widen TalentSpellPos talent ID to uint32; retain rank width. Shared DBC correctness fix."
+  },
+  {
+    "sha": "20138e3d67f1a9c5014719f1bbaf914346f95040",
+    "title": "fix(CoA): Warcraft Reborn rank ladders and spell corrections reach the spell twins (#7063)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/20138e3d67f1a9c5014719f1bbaf914346f95040",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7063"
+    ],
+    "decision": "not_applicable",
+    "reason": "Reborn-only namesakes and rank-twin callback data. The shared core helpers have no Area 52 mapping; introducing Reborn spell identity inheritance would not fix Area 52 ranks."
+  },
+  {
+    "sha": "84500f031ac8c5565ae4bb8c610299428a634e70",
+    "title": "fix(CoA): Warcraft Reborn Warrior spells that did nothing (#7072)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/84500f031ac8c5565ae4bb8c610299428a634e70",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7072"
+    ],
+    "decision": "not_applicable",
+    "reason": "Warrior/Paladin/Hunter handlers and proc rows target Reborn offset IDs; generic script edits use Reborn twin helpers. Area 52 uses original and explicit replacement chains, not these copies."
+  },
+  {
+    "sha": "1c32fda190bf9567cf8d0c2b1aeb94d530d2005c",
+    "title": "fix(CoA): Warcraft Reborn Rogue spells that did nothing (#7066)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/1c32fda190bf9567cf8d0c2b1aeb94d530d2005c",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7066"
+    ],
+    "decision": "not_applicable",
+    "reason": "Rogue/Priest copied-spell handlers target Reborn IDs and twin lookups. No equivalent Area 52 missing binding established by this patch."
+  },
+  {
+    "sha": "d5f5831f79ecc1c1cf64600e09f2e9a4d70b883e",
+    "title": "fix(CoA): Warcraft Reborn Shaman spells that did nothing (#7068)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/d5f5831f79ecc1c1cf64600e09f2e9a4d70b883e",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7068"
+    ],
+    "decision": "not_applicable",
+    "reason": "Shaman/Mage offset spells and twin recognition. Do not map behavior solely by display name or introduce Reborn class progression."
+  },
+  {
+    "sha": "f0c97c6fb1d18515074a76e50058a0fa4af67712",
+    "title": "fix(CoA): Warcraft Reborn Warlock spells that did nothing (#7070)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/f0c97c6fb1d18515074a76e50058a0fa4af67712",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7070"
+    ],
+    "decision": "not_applicable",
+    "reason": "Warlock/Druid fixes target Reborn copies and corresponding twin lookups; Area 52 original-rank handlers remain intact."
+  },
+  {
+    "sha": "f67861d0ae05b64d548c45c583dac0d07f38f4e8",
+    "title": "fix(CoA/Spells): make class buffs of one stat category exclusive (#7045)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/f67861d0ae05b64d548c45c583dac0d07f38f4e8",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7045"
+    ],
+    "decision": "excluded",
+    "reason": "SQL exclusively groups buffs of CoA custom classes, including Manari Intuition, Beetle Pheromones, Power Wuju and class shouts. It does not target Area 52 standard buffs."
+  },
+  {
+    "sha": "1e5519dc152776dc105b5a9b29ef234b0998d178",
+    "title": "fix(CoA): free-pick talents whose ranks only teach spells grant those spells (#7089)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/1e5519dc152776dc105b5a9b29ef234b0998d178",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7089"
+    ],
+    "decision": "already_covered",
+    "reason": "Area 52 SelectedSpells and ExpandGrantedSpells already recursively traverse LEARN_SPELL and explicit LinkedSpellGroups with a visited set. Preserve scoped learning authorization and removal ownership rather than replacing the local system."
+  },
+  {
+    "sha": "e89c25621d644e9b235e2399ca293016b492f246",
+    "title": "fix(CoA/Hero): Blood Presence heals for its percent of damage dealt (#7132)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/e89c25621d644e9b235e2399ca293016b492f246",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7132"
+    ],
+    "decision": "adapted",
+    "reason": "Bind Blood Presence to its actual proc effect and send retained talent amount to that effect. Preserve existing percent-of-damage formula: the primary Area 52 tooltip does not carry the upstream 5%-of-max-health cap. Current Area 52 client and server use effect 1 already; this is cross-revision compatibility hardening, not a demonstrated existing healing failure."
+  },
+  {
+    "sha": "cf41f3d366677f78bdf0025def2b723f009de62f",
+    "title": "fix(CoA/Hero): Cat Form keeps an already active energy pool (#7141)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/cf41f3d366677f78bdf0025def2b723f009de62f",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7141"
+    ],
+    "decision": "adapted",
+    "reason": "Preserve an already-active energy pool when entering Cat Form. Include the missing power-change preservation prerequisite while retaining Area 52 shapeshift cleanup rules."
+  },
+  {
+    "sha": "9117dbed26c2e436cba30dc6e0d16bd67a2066a8",
+    "title": "fix(CoA/Hero): Omen of Clarity, Double Down and Hydromancer proc (#7143)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/9117dbed26c2e436cba30dc6e0d16bd67a2066a8",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7143"
+    ],
+    "decision": "adapted",
+    "reason": "Keep existing Area 52 Omen 2%/2-second proc repair. Add missing Double Down proc at actual ME 978742 and shared 275235. Shared Hydromancer 272057 mask follows this client Frostbolt/Frost Nova wording; do not claim it fixes Area 52 ME 954359, which transforms Water Bolt/Water Nova."
+  },
+  {
+    "sha": "064984acb7a90638ee908fdb6e97285c4d81e398",
+    "title": "fix(CoA/Hero): rank trainer gates ranks at the client's Spell.dbc level (#7145)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/064984acb7a90638ee908fdb6e97285c4d81e398",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7145"
+    ],
+    "decision": "adapted",
+    "reason": "Apply raw client DBC level lookup to the actual Area 52 RankUpgrades path, preserving its max(BaseLevel,SpellLevel) policy, learned-only training, ownership, animations and auto-training."
+  },
+  {
+    "sha": "d6eb0abcff3ba36637497c442d7a1c1759c97b38",
+    "title": "fix(CoA/Hero): critical damage talents do not stack with each other (#7146)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/d6eb0abcff3ba36637497c442d7a1c1759c97b38",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7146"
+    ],
+    "decision": "adapted",
+    "reason": "Group the nine spell critical-damage talents whose local descriptions say 180% and non-stacking. Exclude Predatory Instincts 33859, whose local description instead specifies Cat Form critical damage and AoE avoidance."
+  },
+  {
+    "sha": "01d23409d9dd8c3398a31e80cbe4aae7031130f8",
+    "title": "fix(CoA/Hero): train the ranks of the spells a form brings with it (#7149)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/01d23409d9dd8c3398a31e80cbe4aae7031130f8",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7149"
+    ],
+    "decision": "already_covered",
+    "reason": "Area 52 RankUpgrades already expands form-granted spells through ExpandGrantedSpells and explicit linked groups, including talent-granted abilities. Retain the established active path."
+  },
+  {
+    "sha": "33da6b024d5fbb9b94839eba8f84149b87ee4e77",
+    "title": "fix(CoA/Wildcard): Power Overwhelming, Barrage Overload and Unstable Evocation work (#7155)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/33da6b024d5fbb9b94839eba8f84149b87ee4e77",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7155"
+    ],
+    "decision": "deferred",
+    "reason": "Wildcard Power Overwhelming 283578 allows all GCD abilities; Area 52 ME 965322 names only Arcane Missiles/Blast and different cooldown amounts. Unstable Evocation 284298 is a distinct channel; ME 979715 modifies normal Evocation. Direct import would not connect those mechanics. Barrage Overload has no selected Area 52 catalog counterpart."
+  },
+  {
+    "sha": "ef236c6c4441f4af9f0997c31ae42d1f1d9a2b2a",
+    "title": "fix(CoA/Wildcard): Tools of War and Martial Crescendo stack on unique Physical abilities (#7156)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/ef236c6c4441f4af9f0997c31ae42d1f1d9a2b2a",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7156"
+    ],
+    "decision": "adapted",
+    "reason": "Use upstream unique-ability proc handler for both shared and Area 52 Tools of War 84750/Martial Crescendo 84752. Resolve each native buff trigger, refresh below cap per local description, never at cap, exclude next-swing abilities for Area 52, and remove owned buff when its source aura is removed."
+  },
+  {
+    "sha": "11226c7381b1de4d50300ee9143c896538747498",
+    "title": "fix(CoA/Wildcard): Dark Intent adds its Shadow damage to the rogue abilities it names (#7157)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/11226c7381b1de4d50300ee9143c896538747498",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7157"
+    ],
+    "decision": "deferred",
+    "reason": "Local Dark Intent distinguishes Sinister Strike damage from other named attacks; upstream handler uses the same critical/noncritical trigger pair. Formula and child descriptions disagree. Do not publish that mismatch as a correct Area 52 port."
+  },
+  {
+    "sha": "a691dc4c493b77bbc1b083702df3a07db019c710",
+    "title": "fix(CoA/Wildcard): Seal of Fervor adds its Fire damage to melee attacks (#7158)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/a691dc4c493b77bbc1b083702df3a07db019c710",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7158"
+    ],
+    "decision": "imported",
+    "reason": "Shared Seal of Fervor 272087 has matching local main-hand/Paladin melee wording, missing effective proc row and no handler. Import exact handler/binding; no new character progression or collection grants."
+  },
+  {
+    "sha": "b738950e40bd61bda002d34f57e99a0531634400",
+    "title": "fix(CoA/Hero): Dark Apotheosis raises threat and cannot use a shield (#7161)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/b738950e40bd61bda002d34f57e99a0531634400",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7161"
+    ],
+    "decision": "deferred",
+    "reason": "Hero form 275585 differs from Area 52 legendary grant 990224, a dual-wield tanking Metamorphosis variant. Do not assign Reborn +260% threat or the Hero shield passive to the legendary by name."
+  },
+  {
+    "sha": "c99089718a0b080cf828abb940a455f306dd86d3",
+    "title": "fix(CoA/WarcraftReborn): Dark Apotheosis applies its health, threat and damage passives (#7162)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/c99089718a0b080cf828abb940a455f306dd86d3",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7162"
+    ],
+    "decision": "not_applicable",
+    "reason": "Reborn form 1154321 uses passives 1154322/1154323. Area 52 legendary form 990224 references 990225 and different health/damage/dual-wield behavior. These passives are not interchangeable."
+  },
+  {
+    "sha": "678b66ab673e6b859097b8c4a3659f54558014af",
+    "title": "fix(CoA/Freepick): Tree of Life stays up, and casting outside its list leaves the form (#7117)",
+    "commit_url": "https://github.com/jealous-sound/azerothcore-wotlk-coa/commit/678b66ab673e6b859097b8c4a3659f54558014af",
+    "pr_urls": [
+      "https://github.com/jealous-sound/azerothcore-wotlk-coa/pull/7117"
+    ],
+    "decision": "adapted",
+    "reason": "Suppress erroneous Tree of Life removal proc and apply tooltip allowed-cast list. Scope shared cast hook to actual aura 33891 so other tree forms are unaffected."
+  }
+]
