@@ -23,6 +23,12 @@ code += '\n'.join(line for line in header.splitlines() if not line.startswith('#
 code += '\n'.join(line for line in native.splitlines() if not line.startswith('#include')) + '\n'
 for signature in ('void PlayerSocial::SendSocialList(', 'bool PlayerSocial::HasFriend(', 'void SocialMgr::GetFriendInfo(', 'void SocialMgr::SendFriendStatus('):
     code += extract(source, signature) + '\n'
+session = (S / 'src/server/game/Server/WorldSession.cpp').read_text()
+for signature in ('bool MapSessionFilter::Process(', 'bool WorldSessionFilter::Process('):
+    code += extract(session, signature) + '\n'
+opcodes = (S / 'src/server/game/Server/Protocol/Opcodes.cpp').read_text()
+route = next(line for line in opcodes.splitlines() if 'DEFINE_HANDLER(CMSG_CONTACT_LIST,' in line)
+assert 'PROCESS_THREADUNSAFE' in route
 code += (H / 'cases.cpp').read_text()
 database = (S / 'src/server/database/Database/Implementation/CharacterDatabase.cpp').read_text()
 for statement in ('CHAR_INS_ACCOUNT_FRIEND', 'CHAR_INS_ACCOUNT_FRIEND_MIGRATION'):

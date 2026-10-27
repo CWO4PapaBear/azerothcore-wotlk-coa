@@ -32,6 +32,7 @@ struct WorldPacket
 {
     uint16 opcode; std::vector<uint8> bytes;
     WorldPacket(uint16 op, size_t):opcode(op) {}
+    uint16 GetOpcode() const { return opcode; }
     template<class T> WorldPacket& operator<<(T v)
     {
         if constexpr(std::is_same_v<T,ObjectGuid>) { *this << uint64_t(v.value); }
@@ -163,6 +164,12 @@ struct Player
 };
 struct Sessions { std::map<uint32,WorldSession*> values;WorldSession* FindSession(uint32 n){auto p=values.find(n);return p==values.end()?nullptr:p->second;} } sessions;
 auto* sWorldSessionMgr=&sessions;
+enum Processing { PROCESS_INPLACE, PROCESS_THREADSAFE, PROCESS_THREADUNSAFE };
+using OpcodeClient=uint16;
+struct ClientOpcodeHandler { Processing ProcessingPlace; } contactHandler{PROCESS_THREADUNSAFE};
+std::map<uint16, ClientOpcodeHandler*> opcodeTable{{0x66, &contactHandler}};
+struct MapSessionFilter { WorldSession* m_pSession; bool Process(WorldPacket*); };
+struct WorldSessionFilter { WorldSession* m_pSession; bool Process(WorldPacket*); };
 struct SocialMgr
 {
     std::map<ObjectGuid, PlayerSocial> m_socialMap;

@@ -16,6 +16,13 @@ int main()
     Player owner{};owner.guid={1};owner.session=&ownerSession;
     Player other{};other.guid={4};other.session=&friendSession;
     ownerSession.player=&owner;friendSession.player=&other;sessions.values={{10,&ownerSession},{20,&friendSession}};
+    WorldPacket contactRequest(0x66, 0);
+    MapSessionFilter mapFilter{&ownerSession};
+    WorldSessionFilter worldFilter{&ownerSession};
+    assert(!mapFilter.Process(&contactRequest) && worldFilter.Process(&contactRequest));
+    owner.inWorld=false;
+    assert(!mapFilter.Process(&contactRequest) && worldFilter.Process(&contactRequest));
+    owner.inWorld=true;
     PlayerSocial social{{1},{}},alt{{2},{}};
     owner.social=&social;
     world.enabled=false;
