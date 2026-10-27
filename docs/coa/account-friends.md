@@ -44,3 +44,8 @@ adapters. It covers shared identity, notes, visibility, login/logout projection,
 metadata bytes, limits, migration conflicts, failed commits and disabled behavior.
 It does not establish live client acceptance; compile and SQL qualification are
 separate checks.
+
+Contact-list requests run on the world-thread dispatcher. The shared cache and
+account-list packet construction are also synchronized because asynchronous
+Recruit-a-Friend callbacks can refresh lists from map threads. The regression
+includes concurrent account additions and concurrent list refreshes.

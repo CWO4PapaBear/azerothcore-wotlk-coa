@@ -126,6 +126,22 @@ int main()
     socialMgr.SendFriendStatus(&other, FRIEND_ONLINE, other.guid, true);
     assert(owner.sent.size()==2 && owner.sent.back().opcode==0x9c0);
     owner.social=&social;
+    for (uint32 i=1000;i<1008;++i)
+        cache.chars[{i}]={{i},i,"Concurrent owner"};
+    std::vector<std::thread> workers;
+    for (uint32 i=1000;i<1008;++i)
+        for (uint32 repeat=0;repeat<4;++repeat)
+            workers.emplace_back([i] { assert(AccountFriends::Add({i},{4})); });
+    for (auto& worker : workers)
+        worker.join();
+    for (uint32 i=1000;i<1008;++i)
+        assert(AccountFriends::Get(i)->size()==1 && CharacterDatabase.rows.count({i,20}));
+    workers.clear();owner.sent.clear();
+    for (uint32 i=0;i<16;++i)
+        workers.emplace_back([&] { social.SendSocialList(&owner, SOCIAL_FLAG_ALL); });
+    for (auto& worker : workers)
+        worker.join();
+    assert(owner.sent.size()==32);
     world.enabled=false;
     assert(!alt.HasFriend({4}));
     std::cout<<"Native account identity, cold mode readiness, lifecycle, projection, notes, ignores, wire metadata, limits and DB failure checks passed\n";

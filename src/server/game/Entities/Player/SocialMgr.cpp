@@ -143,8 +143,12 @@ void PlayerSocial::SendSocialList(Player* player, uint32 flags, ObjectGuid exclu
     if (!player)
         return;
 
+    std::unique_lock lock(AccountFriends::GetMutex(), std::defer_lock);
     if (UsesAccountFriends())
+    {
+        lock.lock();
         ProjectAccountFriends(player, excluded);
+    }
 
     uint32 friendsCount = 0;
     uint32 ignoredCount = 0;

@@ -37,6 +37,6 @@ for statement in ('CHAR_INS_ACCOUNT_FRIEND', 'CHAR_INS_ACCOUNT_FRIEND_MIGRATION'
 with tempfile.TemporaryDirectory() as directory:
     path = Path(directory)
     (path / 'check.cpp').write_text(code)
-    subprocess.run(['g++', '-std=c++20', '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined',
+    subprocess.run(['g++', '-std=c++20', '-pthread', '-Wall', '-Wextra', '-Werror', '-fsanitize=undefined',
                     str(path / 'check.cpp'), '-o', str(path / 'check')], check=True)
     subprocess.run([str(path / 'check')], check=True)

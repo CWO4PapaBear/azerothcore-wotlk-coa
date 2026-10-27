@@ -6,10 +6,25 @@
 #include "WorldPacket.h"
 #include "WorldSession.h"
 #include "WorldSessionMgr.h"
+#include <mutex>
 
 namespace AccountFriends
 {
+    struct Entry
+    {
+        ObjectGuid OriginalGuid;
+        std::string OriginalName;
+        std::string Note;
+    };
+
+    using Friends = std::map<uint32, Entry>;
+    std::recursive_mutex Mutex;
     std::map<uint32, Friends> Loaded;
+
+    std::recursive_mutex& GetMutex()
+    {
+        return Mutex;
+    }
 
     uint32 Account(ObjectGuid guid)
     {
@@ -71,6 +86,7 @@ namespace AccountFriends
 
     bool Reload(uint32 account)
     {
+        std::lock_guard lock(Mutex);
         if (!Loaded.count(account) && !EnsureMigrated(account))
             return false;
         auto* statement = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_FRIENDS);
@@ -98,6 +114,7 @@ namespace AccountFriends
 
     Friends const* Get(uint32 account)
     {
+        std::lock_guard lock(Mutex);
         if (!account || (!Loaded.count(account) && !Reload(account)))
             return nullptr;
         return &Loaded.at(account);
@@ -105,12 +122,14 @@ namespace AccountFriends
 
     bool Has(ObjectGuid owner, ObjectGuid target)
     {
+        std::lock_guard lock(Mutex);
         auto const* friends = Get(Account(owner));
         return friends && friends->count(Account(target));
     }
 
     bool Add(ObjectGuid owner, ObjectGuid target)
     {
+        std::lock_guard lock(Mutex);
         uint32 account = Account(owner);
         uint32 other = Account(target);
         auto const* friends = Get(account);
@@ -134,6 +153,7 @@ namespace AccountFriends
 
     void Remove(ObjectGuid owner, ObjectGuid target)
     {
+        std::lock_guard lock(Mutex);
         uint32 account = Account(owner);
         auto* statement = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ACCOUNT_FRIEND);
         statement->SetData(0, account);
@@ -144,6 +164,7 @@ namespace AccountFriends
 
     void SetNote(ObjectGuid owner, ObjectGuid target, std::string note)
     {
+        std::lock_guard lock(Mutex);
         utf8truncate(note, 48);
         uint32 account = Account(owner);
         auto* statement = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ACCOUNT_FRIEND_NOTE);
@@ -188,6 +209,7 @@ namespace AccountFriends
 
     void SendMetadata(Player* player, std::map<ObjectGuid, FriendInfo> const& contacts)
     {
+        std::lock_guard lock(Mutex);
         auto const* friends = Get(player->GetSession()->GetAccountId());
         if (!friends)
             return;
@@ -220,6 +242,7 @@ bool PlayerSocial::UsesAccountFriends() const
 
 void PlayerSocial::ProjectAccountFriends(Player* player, ObjectGuid excluded)
 {
+    std::lock_guard lock(AccountFriends::Mutex);
     auto const* friends = AccountFriends::Get(player->GetSession()->GetAccountId());
     if (!friends)
         return;
