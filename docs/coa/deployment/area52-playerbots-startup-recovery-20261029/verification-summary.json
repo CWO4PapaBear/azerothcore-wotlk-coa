@@ -1,0 +1,92 @@
+{
+  "package": "area52-playerbots-startup-recovery-20261029",
+  "module_repository": "https://github.com/Brytenwally/mod-playerbots",
+  "module_commit": "dee80f00f06205a9dcfa2b1d04357cdd469efbba",
+  "core_files": [
+    {
+      "path": "src/server/coa/CoAScriptLoader.cpp",
+      "before_sha256": "68d54e3398fb6a4870555b4ca9aba4544d4b0f84ee782537b846c7c668152e27",
+      "after_sha256": "842fb1e8cf9ca3ec86dafb740fe19ea91c1ecdd327e983f57d1e032ce083af0a"
+    },
+    {
+      "path": "src/server/shared/SharedDefines.h",
+      "before_sha256": "0522edcda32be6a234330c03539e25f24cc8034fd066b66b362a90c1ceaa1168",
+      "after_sha256": "8766e55017d5db97552e9f0d2ebc1de5e8f3cef83e811495563122040b46d0a8"
+    },
+    {
+      "path": "src/server/game/Battlegrounds/ArenaTeam.cpp",
+      "before_sha256": "e91864ad04b5dff4642682e2c87124a68ddf10be70b70496e85eab0e40f54fba",
+      "after_sha256": "da82921576e8f8259b713c4143a5cc36cd6800385a292851cab1cc7c13c72bc2"
+    },
+    {
+      "path": "src/server/game/Battlegrounds/Battleground.h",
+      "before_sha256": "4a3a76385e32adea6b4c8e825eace1649b181b91515cea3583d9a3cbf0da1742",
+      "after_sha256": "4b6b5e217a31196b7ef104b0c2865a1554dfd02f12bd63313ffcb144767ec3c1"
+    },
+    {
+      "path": "src/server/game/Battlegrounds/BattlegroundMgr.cpp",
+      "before_sha256": "1b5f52effe5aacbcb51708dff3b1f42e587a1fede55b412d718451032daa8c3c",
+      "after_sha256": "cdecce778b7229dc892eae5f9be866641c26c4e0f953def3291e02ca79676646"
+    },
+    {
+      "path": "src/server/game/Handlers/BattleGroundHandler.cpp",
+      "before_sha256": "141f5c314c07aebcc74c55f719418acfc2784ca52e6ddbe58f3860200e02bd17",
+      "after_sha256": "451e214cd39acd8f90af9701f37ccc71d66661c116ebd1729a3189a9c7295ad7"
+    },
+    {
+      "path": "src/server/game/Entities/Player/Player.cpp",
+      "before_sha256": "c26ffc6845a30280a3b92c2b75b3fefaf1e04773cf118ad958ac5a66a5e6c60e",
+      "after_sha256": "ac64a25715f4a777cb81506667ddaace2c418ffbf4b7c7854a4a0b8179f534f9"
+    },
+    {
+      "path": "src/server/coa/AscensionArenaQueue.cpp",
+      "before_sha256": null,
+      "after_sha256": "65ba2aea50755d64ca502c9fb26a66695e49d3da9abf20e90c811826aacc3dad"
+    }
+  ],
+  "module_changes": {
+    "src/Ai/Base/Actions/BattleGroundJoinAction.cpp": "e802864b05707aaee96ebb9fc4b0b7eb3d14618a5e2fef53159454f9fa1b5ad1",
+    "src/Ai/Base/Actions/LfgActions.cpp": "734fc2a3c595383a4bb97722b1584bc2522c2ebe37527d0c031fc56b5c076e7f",
+    "src/Ai/Coa/CoaLegendaryClasses.cpp": "13039cd4cb05f2a0f3c8858df482b26c8e8768c8af664cd44b7380a4b41350f7",
+    "src/Ai/Coa/CoaLegendaryClasses.h": "b847ad390787e5c4d81d030eb8748413708cd91553baf0fb4eb81888facea230",
+    "src/Bot/Factory/RandomPlayerbotFactory.cpp": "6ead2576d1429212b9ebde6edda9499040c39258b07d94fe5cc2ebaffac13e0b",
+    "src/Bot/Factory/RandomPlayerbotFactory.h": "b97a6e656bc724c1444f6ba34aaaee5be54a0c4585b1c58b9f7ac93191e8b205",
+    "src/Bot/RandomPlayerbotMgr.cpp": "f73984c1995fb771c4159a45dc5ffb5860cadf2e7a6f685f6cdf9855f9dfc7f3",
+    "src/PlayerbotAIConfig.cpp": "be509290f7aee4e02612123f373af3b236bfe17cd9c1155a598f666efd381c4e",
+    "src/PlayerbotAIConfig.h": "82ee010f9bab645cb3c431f72b393d0197d6db5e678970249a1c7efb55a8f750",
+    "src/Script/Playerbots.cpp": "be087fa1abad260ed8b89dd8de67ae4f9d31a9d48e88ebf9c214ed043711b9eb",
+    "data/sql/playerbots/custom/area52_pilot_ownership.sql": "6025748b4f798064f7b3a029081d4ce621ca37ad4ac83d87bbc844caa7595635",
+    "data/sql/playerbots/custom/zzzz_area52_library_pilot.sql": "777bf204e3000d42ea08d08bcc17af19ebd828a6b821707c0cba1b92ee86f8fe",
+    "docs/area52/classes/mystic-knight-library.json": "1645f7b81fc632082ea4cd071a53c60c238d8b8bf14d57549adf4867027aee44",
+    "src/Ai/Coa/Area52DungeonPool.h": "a4ceafd4cfb4eecf130b647b1359f648e623e57c277afaa0e510c2dbcd432063",
+    "src/Ai/Coa/Area52FixedPilot.h": "26ead47ef480bae36622b9bec4bd54353af26b933927c9a9f8e1ab8483351c4c",
+    "src/Ai/Coa/CoaArenaCompatibility.h": "c42bf4ffe1013f7cc537315436be8e9b4ea23a00aafda2c4e4f7e37e87984dab",
+    "src/Ai/Coa/CoaDungeonPool.cpp": "64f57ccac9e219d6124d4dfc49fe552503a75b43f1d0be600e2d8015720bd1e0",
+    "src/Ai/Coa/CoaDungeonPool.h": "d6fabac4fdb3466e530e5dfe9a2f0c82ae053cebba16ba896c23183f9a686a11"
+  },
+  "server_sha256": "212213138b7512c9e0e15cd1b2ad3db44380d5c6210aa9967604288534f0ea96",
+  "patch_format": "Normalize listed existing input files to LF before applying the corresponding patch. Verify original hashes first and resulting hashes afterward. Deployment installs exact hashed source artifacts.",
+  "checks": [
+    "arena-recovery-path-build-20261029",
+    "startup-config-r3-20261029",
+    "roster-recovery-r5-20261029",
+    "recovery-package-hooks-r2-20261029",
+    "module-config-guard-20261029",
+    "arena-library-pinned-20261028",
+    "arena-dispatch-20261028",
+    "arena-pool-prepare-r2-20261028",
+    "arena-account-atomic-20261028",
+    "arena-hero-personal-20261028",
+    "sql-bootstrap-package-data-20261028"
+  ],
+  "limits": "Offline engineering checks only; no server launched, live accounts created, gameplay certification, activation or publication.",
+  "rollback": "Restore previous binary, configuration and source. Retain new isolated owned bot data dormant for safe retry; never restore shared human databases.",
+  "build_configuration": {
+    "CMAKE_INSTALL_PREFIX": "/workspace/env/freepick",
+    "compiled_config_directory": "/workspace/env/freepick/etc",
+    "jobs": 2
+  },
+  "recovery": "Exact privately backed-up owned roster removal; fail closed on ownership/data drift or newer replacement rows. Original failed transaction immutable.",
+  "supersedes": "area52-reusable-playerbots-20261028 startup/package readiness; original transaction preserved",
+  "evidence_reuse": "Prior library, queue, role preparation, account helper, Arena admission and SQL-data checks cover unchanged code/data. New startup guard, compile path and recovery phases qualified separately."
+}
