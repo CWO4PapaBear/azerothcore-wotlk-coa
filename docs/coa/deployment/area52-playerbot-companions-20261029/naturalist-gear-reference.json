@@ -1,0 +1,117 @@
+{
+  "archetype": "Naturalist",
+  "equipment": [
+    {
+      "slot": 0,
+      "item_id": 1339122,
+      "name": "Preened Ironfeather Headguard",
+      "scaling_distribution": 609,
+      "scaling_mask": 65
+    },
+    {
+      "slot": 1,
+      "item_id": 1339077,
+      "name": "Pendant of the Sorcerer",
+      "scaling_distribution": 510,
+      "scaling_mask": 4
+    },
+    {
+      "slot": 2,
+      "item_id": 1642984,
+      "name": "Preened Ironfeather Shoulders",
+      "scaling_distribution": 610,
+      "scaling_mask": 65
+    },
+    {
+      "slot": 4,
+      "item_id": 1648687,
+      "name": "Preened Ironfeather Breastplate",
+      "scaling_distribution": 611,
+      "scaling_mask": 2097160
+    },
+    {
+      "slot": 5,
+      "item_id": 1339094,
+      "name": "Preened Ironfeather Belt",
+      "scaling_distribution": 612,
+      "scaling_mask": 68
+    },
+    {
+      "slot": 6,
+      "item_id": 1339115,
+      "name": "Preened Ironfeather Legguards",
+      "scaling_distribution": 613,
+      "scaling_mask": 2097160
+    },
+    {
+      "slot": 7,
+      "item_id": 1339101,
+      "name": "Preened Ironfeather Boots",
+      "scaling_distribution": 614,
+      "scaling_mask": 68
+    },
+    {
+      "slot": 8,
+      "item_id": 1339108,
+      "name": "Preened Ironfeather Bracers",
+      "scaling_distribution": 615,
+      "scaling_mask": 68
+    },
+    {
+      "slot": 9,
+      "item_id": 1339129,
+      "name": "Preened Ironfeather Gloves",
+      "scaling_distribution": 616,
+      "scaling_mask": 66
+    },
+    {
+      "slot": 10,
+      "item_id": 1339083,
+      "name": "Ring of the Seer",
+      "scaling_distribution": 524,
+      "scaling_mask": 4
+    },
+    {
+      "slot": 11,
+      "item_id": 1339083,
+      "name": "Ring of the Seer",
+      "scaling_distribution": 524,
+      "scaling_mask": 4
+    },
+    {
+      "slot": 12,
+      "item_id": 1642991,
+      "name": "Swift Hand of Justice",
+      "scaling_distribution": 251,
+      "scaling_mask": 2
+    },
+    {
+      "slot": 13,
+      "item_id": 339075,
+      "name": "Stick on a Carrot",
+      "scaling_distribution": 251,
+      "scaling_mask": 2
+    },
+    {
+      "slot": 14,
+      "item_id": 1339089,
+      "name": "Preened Ironfeather Cloak",
+      "scaling_distribution": 617,
+      "scaling_mask": 524292
+    },
+    {
+      "slot": 15,
+      "item_id": 1642947,
+      "name": "Dignified Headmaster's Charge",
+      "scaling_distribution": 5,
+      "scaling_mask": 36872
+    },
+    {
+      "slot": 17,
+      "item_id": 1642901,
+      "name": "Paladin Libram of Healing",
+      "scaling_distribution": 701,
+      "scaling_mask": 4
+    }
+  ]
+}
