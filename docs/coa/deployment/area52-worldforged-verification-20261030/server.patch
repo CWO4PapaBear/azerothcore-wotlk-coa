@@ -1,0 +1,1698 @@
+--- a/src/server/coa/Area52HopliteRemaining.inc
++++ b/src/server/coa/Area52HopliteRemaining.inc
+@@ -197,13 +197,7 @@
+     bool Validate(SpellInfo const*) override { return ValidateSpellInfo({HopliteRules::DraconicSpellCrit, HopliteRules::DraconicWeaponCrit, HopliteRules::DraconicProc, HopliteRules::WorldforgedCooldown}); }
+     bool Check(ProcEventInfo& event)
+     {
+-        auto const* spell = event.GetSpellInfo();
+-        return spell && event.GetActor() == GetTarget() && event.GetDamageInfo() &&
+-            event.GetDamageInfo()->GetDamage() && !(event.GetTypeMask() & PROC_FLAG_DONE_PERIODIC) &&
+-            HopliteInteractionMatches(GetTarget()->ToPlayer(), spell, [](SpellInfo const* info)
+-                { return Area52HopliteRemaining::DraconicConsumer(info->GetFirstRankSpell()->Id); }) &&
+-            !GetTarget()->HasAura(HopliteRules::WorldforgedCooldown) &&
+-            roll_chance_i(sSpellMgr->GetSpellInfo(HopliteRules::DraconicProc)->ProcChance);
++        return false;
+     }
+     void Handle(AuraEffect const* effect, ProcEventInfo&)
+     {
+--- a/src/server/coa/Area52WizardFrostbolt.inc
++++ b/src/server/coa/Area52WizardFrostbolt.inc
+@@ -49,13 +49,12 @@
+         Player* player = spell->GetCaster()->ToPlayer();
+         if (!player || !Eligible(Applies(player), AscensionMysticEnchant::GrantsActive(player, Enchant),
+             player->IsAlive(), spell->IsTriggered(), player->MatchesSpellInteraction(spell->GetSpellInfo()->Id, 116),
+-            damage != 0, miss != SPELL_MISS_NONE, player->HasAura(Cooldown), spell->GetScriptValue(Enchant) != 0))
++            damage != 0, miss != SPELL_MISS_NONE, player->HasAura(Cooldown), false))
+             return;
+         Aura* enchant = player->GetAura(Enchant, player->GetGUID());
+         SpellInfo const* companion = sSpellMgr->GetSpellInfo(Companion);
+         if (!enchant || !companion)
+             return;
+-        spell->SetScriptValue(Enchant, 1);
+         if (!roll_chance_i(companion->ProcChance))
+             return;
+         uint32 const copies = enchant->GetStackAmount();
+--- /dev/null
++++ b/src/server/coa/Area52Worldforged.h
+@@ -0,0 +1,18 @@
++/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
++#ifndef AREA52_WORLDFORGED_H
++#define AREA52_WORLDFORGED_H
++#include <cstdint>
++class Unit;
++class Player;
++class Aura;
++class SpellInfo;
++namespace Area52Worldforged
++{
++void RefreshAccess();
++bool OwnerReady(Player* player);
++void Damage(Unit* attacker, Unit* target, SpellInfo const* spell, std::uint32_t damage,
++    std::uint32_t healthBefore, std::uint32_t maxHealth, bool periodic, bool killingBlow);
++std::uint32_t Bonus(Unit* attacker, Unit* target, SpellInfo const* spell, std::uint32_t damage);
++std::int32_t PrimaryStat(Aura* aura, std::int32_t fallback);
++}
++#endif
+--- /dev/null
++++ b/src/server/coa/Area52Worldforged.inc
+@@ -0,0 +1,175 @@
++/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
++bool WorldforgedRegistered = false;
++constexpr std::array<uint32, 11> WorldforgedBuffs = {
++    781000, 781300, 781600, 781900, 782200, 782201, 782500, 782501, 782800, 783100, 783101};
++
++uint32 WorldforgedSelectedStat(Player* player)
++{
++    for (auto const& [spell, stat] : std::array<std::pair<uint32, uint32>, 4>{{
++        {84864, STAT_STRENGTH}, {84865, STAT_AGILITY}, {84866, STAT_INTELLECT}, {84867, STAT_SPIRIT}}})
++        if (player->HasAura(spell))
++            return stat;
++    return MAX_STATS;
++}
++
++bool WorldforgedTriggerMatches(uint32 spell, uint32 parent, std::set<uint32>& visited)
++{
++    if (!parent || !visited.insert(parent).second || visited.size() > 128)
++        return false;
++    if (sSpellMgr->GetFirstSpellInChain(spell) == sSpellMgr->GetFirstSpellInChain(parent))
++        return true;
++    for (uint32 rank = sSpellMgr->GetFirstSpellInChain(parent); rank; rank = sSpellMgr->GetNextSpellInChain(rank))
++        if (auto info = sSpellMgr->GetSpellInfo(rank))
++            for (auto const& effect : info->Effects)
++                if (effect.TriggerSpell && WorldforgedTriggerMatches(spell, effect.TriggerSpell, visited))
++                    return true;
++    return false;
++}
++
++bool WorldforgedMatches(Player* player, SpellInfo const* spell, Area52Worldforged::Definition const& entry)
++{
++    for (uint32 root : entry.roots)
++    {
++        if (!root)
++            continue;
++        if (player->MatchesSpellInteraction(spell->Id, root))
++            return true;
++        std::set<uint32> visited;
++        if (WorldforgedTriggerMatches(spell->Id, root, visited))
++            return true;
++        for (uint32 ancestor : player->GetSpellInteractionOrigins(spell->Id))
++        {
++            visited.clear();
++            if (WorldforgedTriggerMatches(ancestor, root, visited))
++                return true;
++        }
++    }
++    return false;
++}
++
++int32 WorldforgedAmount(uint32 buff, uint32 level, uint32 copies)
++{
++    using Area52Worldforged::Scaled;
++    switch (buff)
++    {
++        case 781000: return level * copies;
++        case 781300: return Scaled(level, copies, 2, 5);
++        case 781600: return Scaled(level, copies, 3, 10);
++        case 782200: case 782201: case 782500: case 782501: return 3 * copies;
++        case 783101: return -3 * int32(copies);
++        default: return 2 * copies;
++    }
++}
++
++void ConfigureWorldforged(SpellInfo* info)
++{
++    if (Area52Worldforged::Find(info->Id))
++    {
++        info->ProcFlags = 0;
++        for (auto& effect : info->Effects)
++            if (effect.Effect == SPELL_EFFECT_APPLY_AURA)
++            {
++                effect.ApplyAuraName = SPELL_AURA_DUMMY;
++                effect.SpellClassMask = flag96(0, 0, 0);
++                effect.TriggerSpell = 0;
++            }
++        return;
++    }
++    if (info->Id != 780999 && std::find(WorldforgedBuffs.begin(), WorldforgedBuffs.end(), info->Id) == WorldforgedBuffs.end())
++        return;
++    info->AttributesEx4 |= SPELL_ATTR4_AURA_EXPIRES_OFFLINE;
++    info->AttributesCu |= SPELL_ATTR0_CU_FORCE_AURA_SAVING;
++    if (info->Id == 780999)
++        return;
++    info->Effects[EFFECT_2].Effect = 0;
++    if (info->Id == 781000 || info->Id == 781300)
++        info->Effects[EFFECT_1].Effect = 0;
++    if (info->Id == 781600)
++    {
++        info->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_STAT;
++        info->Effects[EFFECT_0].MiscValue = -1;
++    }
++}
++
++void RefreshWorldforged(Player* player)
++{
++    if (!player || !Enabled || player->getClass() != CLASS_HERO || !Area52Worldforged::OwnerReady(player))
++        return;
++    for (uint32 id : WorldforgedBuffs)
++    {
++        Aura* buff = player->GetAura(id, player->GetGUID());
++        if (!buff)
++            continue;
++        auto const* source = buff->GetTriggeredByAuraSpellInfo();
++        Aura* enchant = source ? player->GetAura(source->Id, player->GetGUID()) : nullptr;
++        if (!Applies(player) || !source || !Area52Worldforged::OwnsBuff(source->Id, id) || !enchant ||
++            !AscensionMysticEnchant::GrantsActive(player, source->Id))
++        {
++            buff->Remove();
++            continue;
++        }
++        if (AuraEffect* effect = buff->GetEffect(EFFECT_0))
++        {
++            if (id == 781600 && buff->GetScriptValue(781600) != WorldforgedSelectedStat(player) + 1)
++            {
++                effect->ChangeAmount(0);
++                buff->SetScriptValue(781600, WorldforgedSelectedStat(player) + 1);
++            }
++            effect->ChangeAmount(WorldforgedAmount(id, player->GetLevel(), enchant->GetStackAmount()));
++        }
++    }
++}
++
++void ProcWorldforged(Player* player, Area52Worldforged::Definition const& entry)
++{
++    Aura* enchant = player->GetAura(entry.enchant, player->GetGUID());
++    if (!enchant || player->HasAura(780999))
++        return;
++    uint32 const copies = enchant->GetStackAmount();
++    player->CastSpell(player, 780999, true);
++    if (!player->HasAura(780999))
++        return;
++    for (uint32 id : WorldforgedBuffs)
++        if (Area52Worldforged::OwnsBuff(entry.enchant, id))
++        {
++            int32 amount = WorldforgedAmount(id, player->GetLevel(), copies);
++            player->CastCustomSpell(player, id, &amount, nullptr, nullptr, true, nullptr, enchant->GetEffect(EFFECT_0));
++        }
++    using Area52Worldforged::Family;
++    if (entry.family == Family::Fighter)
++    {
++        player->EnergizeBySpell(player, 781001, 10 * copies, POWER_ENERGY);
++        player->EnergizeBySpell(player, 781002, 100 * copies, POWER_RAGE);
++    }
++    if (entry.family == Family::Wizard)
++        player->EnergizeBySpell(player, 781301, Area52Worldforged::Scaled(player->GetCreateMana(), copies, 4, 100), POWER_MANA);
++    if (entry.family == Family::Primal)
++    {
++        int32 heal = Area52Worldforged::Scaled(player->GetLevel(), copies, 17, 10);
++        player->CastCustomSpell(player, 781601, &heal, nullptr, nullptr, true, nullptr, enchant->GetEffect(EFFECT_0));
++    }
++}
++
++class WorldforgedAuras final : public UnitScript
++{
++public:
++    WorldforgedAuras() : UnitScript("Area52WorldforgedAuras", true, {UNITHOOK_ON_AURA_APPLY, UNITHOOK_ON_AURA_REMOVE}) { }
++    void OnAuraApply(Unit* unit, Aura* aura) override
++    {
++        Player* player = unit ? unit->ToPlayer() : nullptr;
++        if (player && aura && aura->GetId() >= 84864 && aura->GetId() <= 84867)
++            RefreshWorldforged(player);
++    }
++    void OnAuraRemove(Unit* unit, AuraApplication* application, AuraRemoveMode) override
++    {
++        Player* player = unit ? unit->ToPlayer() : nullptr;
++        if (!Enabled || !player || player->getClass() != CLASS_HERO || !Area52Worldforged::OwnerReady(player) || !application ||
++            application->GetBase()->GetCasterGUID() != player->GetGUID() ||
++            !Area52Worldforged::Find(application->GetBase()->GetId()))
++            return;
++        for (uint32 id : WorldforgedBuffs)
++            if (Aura* buff = player->GetAura(id, player->GetGUID()))
++                if (auto source = buff->GetTriggeredByAuraSpellInfo(); source && source->Id == application->GetBase()->GetId())
++                    buff->Remove();
++    }
++};
+--- /dev/null
++++ b/src/server/coa/Area52WorldforgedCatalog.h
+@@ -0,0 +1,1034 @@
++/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
++#ifndef AREA52_WORLDFORGED_CATALOG_H
++#define AREA52_WORLDFORGED_CATALOG_H
++#include "Area52WorldforgedRules.h"
++#include <array>
++namespace Area52Worldforged
++{
++struct Definition
++{
++    std::uint32_t enchant;
++    std::uint32_t companion;
++    Family family;
++    EventKind event;
++    std::uint32_t chance;
++    std::array<std::uint32_t, 8> roots;
++};
++inline constexpr std::array<Definition, 990> Catalog = {{
++    {781010, 781011, Family::Fighter, EventKind::Damage, 50, {1495}},
++    {781012, 781013, Family::Fighter, EventKind::Damage, 50, {2974}},
++    {781014, 781015, Family::Fighter, EventKind::Damage, 50, {19306}},
++    {781016, 781017, Family::Fighter, EventKind::Damage, 50, {1464, 50783}},
++    {781018, 781019, Family::Fighter, EventKind::Damage, 50, {1680}},
++    {781020, 781021, Family::Fighter, EventKind::Damage, 50, {5308, 20647}},
++    {781022, 781023, Family::Fighter, EventKind::Damage, 50, {34428}},
++    {781024, 781025, Family::Fighter, EventKind::Damage, 50, {23881}},
++    {781026, 781027, Family::Fighter, EventKind::Damage, 50, {954876}},
++    {781028, 781029, Family::Fighter, EventKind::Damage, 50, {954836}},
++    {781030, 781031, Family::Fighter, EventKind::Damage, 50, {1715}},
++    {781032, 781033, Family::Fighter, EventKind::Damage, 50, {7384}},
++    {781034, 781035, Family::Fighter, EventKind::Damage, 50, {12294}},
++    {781036, 781037, Family::Fighter, EventKind::Damage, 50, {86361}},
++    {781038, 781039, Family::Fighter, EventKind::Damage, 50, {6572}},
++    {781040, 781041, Family::Fighter, EventKind::Damage, 50, {23922}},
++    {781042, 781043, Family::Fighter, EventKind::Damage, 50, {20243}},
++    {781044, 781045, Family::Fighter, EventKind::Damage, 50, {53}},
++    {781046, 781047, Family::Fighter, EventKind::Damage, 50, {1752}},
++    {781048, 781049, Family::Fighter, EventKind::Damage, 50, {5938, 5940}},
++    {781050, 781051, Family::Fighter, EventKind::Damage, 50, {14251}},
++    {781052, 781053, Family::Fighter, EventKind::Damage, 50, {14278}},
++    {781054, 781055, Family::Fighter, EventKind::Damage, 50, {16511}},
++    {781056, 781057, Family::Fighter, EventKind::Damage, 50, {2098}},
++    {781058, 781059, Family::Fighter, EventKind::Damage, 50, {8676}},
++    {781060, 781061, Family::Fighter, EventKind::Damage, 50, {1329}},
++    {781062, 781063, Family::Fighter, EventKind::Damage, 50, {954553}},
++    {781064, 781065, Family::Fighter, EventKind::Direct, 25, {954809}},
++    {781066, 781067, Family::Fighter, EventKind::Damage, 25, {779}},
++    {781068, 781069, Family::Fighter, EventKind::Damage, 50, {1082}},
++    {781070, 781071, Family::Fighter, EventKind::Damage, 25, {1822}},
++    {781072, 781073, Family::Fighter, EventKind::Damage, 50, {5221}},
++    {781074, 781075, Family::Fighter, EventKind::Damage, 50, {6807}},
++    {781076, 781077, Family::Fighter, EventKind::Damage, 50, {22568}},
++    {781078, 781079, Family::Fighter, EventKind::Damage, 25, {62078}},
++    {781080, 781081, Family::Fighter, EventKind::Damage, 50, {17364}},
++    {781082, 781083, Family::Fighter, EventKind::Damage, 50, {35395}},
++    {781084, 781085, Family::Fighter, EventKind::Damage, 50, {53385}},
++    {781086, 781087, Family::Fighter, EventKind::Damage, 50, {53600}},
++    {781088, 781089, Family::Fighter, EventKind::Damage, 50, {53595}},
++    {781090, 781091, Family::Fighter, EventKind::Damage, 50, {60103}},
++    {781092, 781093, Family::Fighter, EventKind::Damage, 50, {32645}},
++    {781094, 781095, Family::Fighter, EventKind::Damage, 50, {954821}},
++    {781096, 781097, Family::Fighter, EventKind::Damage, 50, {2643}},
++    {781098, 781099, Family::Fighter, EventKind::Damage, 50, {5116}},
++    {781100, 781101, Family::Fighter, EventKind::Damage, 50, {56641}},
++    {781102, 781103, Family::Fighter, EventKind::Damage, 50, {19434}},
++    {781104, 781105, Family::Fighter, EventKind::Damage, 50, {53351}},
++    {781106, 781107, Family::Fighter, EventKind::Damage, 50, {53209}},
++    {781108, 781109, Family::Fighter, EventKind::Damage, 50, {6343}},
++    {781110, 781111, Family::Fighter, EventKind::Damage, 50, {954835}},
++    {781112, 781113, Family::Fighter, EventKind::Damage, 50, {26679}},
++    {781114, 781115, Family::Fighter, EventKind::Damage, 50, {24275}},
++    {781116, 781117, Family::Fighter, EventKind::Damage, 50, {20187, 20271, 20467, 31804, 53407, 53408, 53733, 54158}},
++    {781118, 781119, Family::Fighter, EventKind::Damage, 50, {53301, 53352}},
++    {781120, 781121, Family::Fighter, EventKind::Damage, 50, {3044}},
++    {781122, 781123, Family::Fighter, EventKind::Damage, 50, {585}},
++    {781124, 781125, Family::Fighter, EventKind::Direct, 50, {14914}},
++    {781126, 781127, Family::Fighter, EventKind::Damage, 25, {15237}},
++    {781128, 781129, Family::Fighter, EventKind::Damage, 50, {31935}},
++    {781130, 781131, Family::Fighter, EventKind::Damage, 50, {879}},
++    {781132, 781133, Family::Fighter, EventKind::Damage, 50, {2812}},
++    {781134, 781135, Family::Fighter, EventKind::Periodic, 15, {26573}},
++    {781136, 781137, Family::Fighter, EventKind::Direct, 50, {133}},
++    {781138, 781139, Family::Fighter, EventKind::Direct, 25, {2120}},
++    {781140, 781141, Family::Fighter, EventKind::Damage, 50, {2136}},
++    {781142, 781143, Family::Fighter, EventKind::Damage, 50, {2948}},
++    {781144, 781145, Family::Fighter, EventKind::Direct, 50, {11366}},
++    {781146, 781147, Family::Fighter, EventKind::Damage, 50, {31661}},
++    {781148, 781149, Family::Fighter, EventKind::Damage, 15, {1949}},
++    {781150, 781151, Family::Fighter, EventKind::Damage, 50, {5676}},
++    {781152, 781153, Family::Fighter, EventKind::Damage, 50, {6353}},
++    {781154, 781155, Family::Fighter, EventKind::Damage, 50, {29722}},
++    {781156, 781157, Family::Fighter, EventKind::Direct, 50, {17962}},
++    {781158, 781159, Family::Fighter, EventKind::Damage, 50, {50796}},
++    {781160, 781161, Family::Fighter, EventKind::Periodic, 25, {8050}},
++    {781162, 781163, Family::Fighter, EventKind::Damage, 50, {51505}},
++    {781164, 781165, Family::Fighter, EventKind::Periodic, 25, {339}},
++    {781166, 781167, Family::Fighter, EventKind::Damage, 50, {5176}},
++    {781168, 781169, Family::Fighter, EventKind::Damage, 50, {403}},
++    {781170, 781171, Family::Fighter, EventKind::Damage, 30, {421}},
++    {781172, 781173, Family::Fighter, EventKind::Damage, 50, {8042}},
++    {781174, 781175, Family::Fighter, EventKind::Damage, 50, {116}},
++    {781176, 781177, Family::Fighter, EventKind::Damage, 50, {120}},
++    {781178, 781179, Family::Fighter, EventKind::Damage, 50, {122}},
++    {781180, 781181, Family::Fighter, EventKind::Damage, 50, {30455}},
++    {781182, 781183, Family::Fighter, EventKind::Damage, 100, {44572, 71757}},
++    {781184, 781185, Family::Fighter, EventKind::Damage, 50, {8056}},
++    {781186, 781187, Family::Fighter, EventKind::Damage, 50, {954807}},
++    {781188, 781189, Family::Fighter, EventKind::Damage, 50, {8092}},
++    {781190, 781191, Family::Fighter, EventKind::Damage, 50, {32379}},
++    {781192, 781193, Family::Fighter, EventKind::Damage, 25, {15407}},
++    {781194, 781195, Family::Fighter, EventKind::Periodic, 25, {34914}},
++    {781196, 781197, Family::Fighter, EventKind::Periodic, 25, {2944}},
++    {781198, 781199, Family::Fighter, EventKind::Damage, 25, {689}},
++    {781200, 781201, Family::Fighter, EventKind::Damage, 25, {1120}},
++    {781202, 781203, Family::Fighter, EventKind::Damage, 50, {48181}},
++    {781204, 781205, Family::Fighter, EventKind::Damage, 50, {686}},
++    {781206, 781207, Family::Fighter, EventKind::Damage, 50, {17877}},
++    {781208, 781209, Family::Fighter, EventKind::Damage, 50, {30283}},
++    {781210, 781211, Family::Fighter, EventKind::Direct, 50, {47897}},
++    {781212, 781213, Family::Fighter, EventKind::Damage, 50, {954611}},
++    {781214, 781215, Family::Fighter, EventKind::Damage, 15, {1449}},
++    {781216, 781217, Family::Fighter, EventKind::Damage, 50, {30451}},
++    {781218, 781219, Family::Fighter, EventKind::Damage, 50, {44425}},
++    {781220, 781221, Family::Fighter, EventKind::Damage, 50, {2912}},
++    {781222, 781223, Family::Fighter, EventKind::Damage, 50, {954800}},
++    {781224, 781225, Family::Fighter, EventKind::Damage, 25, {5143}},
++    {781226, 781227, Family::Fighter, EventKind::Periodic, 25, {772}},
++    {781228, 781229, Family::Fighter, EventKind::Periodic, 25, {703}},
++    {781230, 781231, Family::Fighter, EventKind::Periodic, 25, {1943}},
++    {781232, 781233, Family::Fighter, EventKind::Periodic, 25, {1079}},
++    {781234, 781235, Family::Fighter, EventKind::Periodic, 25, {33745}},
++    {781236, 781237, Family::Fighter, EventKind::Periodic, 25, {44457}},
++    {781238, 781239, Family::Fighter, EventKind::Periodic, 25, {348}},
++    {781240, 781241, Family::Fighter, EventKind::Periodic, 25, {5570}},
++    {781242, 781243, Family::Fighter, EventKind::Periodic, 25, {1978}},
++    {781244, 781245, Family::Fighter, EventKind::Periodic, 25, {589}},
++    {781246, 781247, Family::Fighter, EventKind::Periodic, 25, {172}},
++    {781248, 781249, Family::Fighter, EventKind::Periodic, 25, {980}},
++    {781250, 781251, Family::Fighter, EventKind::Periodic, 25, {30108}},
++    {781252, 781253, Family::Fighter, EventKind::Periodic, 25, {8921}},
++    {781310, 781311, Family::Wizard, EventKind::Damage, 50, {1495}},
++    {781312, 781313, Family::Wizard, EventKind::Damage, 50, {2974}},
++    {781314, 781315, Family::Wizard, EventKind::Damage, 50, {19306}},
++    {781316, 781317, Family::Wizard, EventKind::Damage, 50, {1464, 50783}},
++    {781318, 781319, Family::Wizard, EventKind::Damage, 50, {1680}},
++    {781320, 781321, Family::Wizard, EventKind::Damage, 50, {5308, 20647}},
++    {781322, 781323, Family::Wizard, EventKind::Damage, 50, {34428}},
++    {781324, 781325, Family::Wizard, EventKind::Damage, 50, {23881}},
++    {781326, 781327, Family::Wizard, EventKind::Damage, 50, {954876}},
++    {781328, 781329, Family::Wizard, EventKind::Damage, 50, {954836}},
++    {781330, 781331, Family::Wizard, EventKind::Damage, 50, {1715}},
++    {781332, 781333, Family::Wizard, EventKind::Damage, 50, {7384}},
++    {781334, 781335, Family::Wizard, EventKind::Damage, 50, {12294}},
++    {781336, 781337, Family::Wizard, EventKind::Damage, 50, {86361}},
++    {781338, 781339, Family::Wizard, EventKind::Damage, 50, {6572}},
++    {781340, 781341, Family::Wizard, EventKind::Damage, 50, {23922}},
++    {781342, 781343, Family::Wizard, EventKind::Damage, 50, {20243}},
++    {781344, 781345, Family::Wizard, EventKind::Damage, 50, {53}},
++    {781346, 781347, Family::Wizard, EventKind::Damage, 50, {1752}},
++    {781348, 781349, Family::Wizard, EventKind::Damage, 50, {5938, 5940}},
++    {781350, 781351, Family::Wizard, EventKind::Damage, 50, {14251}},
++    {781352, 781353, Family::Wizard, EventKind::Damage, 50, {14278}},
++    {781354, 781355, Family::Wizard, EventKind::Damage, 50, {16511}},
++    {781356, 781357, Family::Wizard, EventKind::Damage, 50, {2098}},
++    {781358, 781359, Family::Wizard, EventKind::Damage, 50, {8676}},
++    {781360, 781361, Family::Wizard, EventKind::Damage, 50, {1329}},
++    {781362, 781363, Family::Wizard, EventKind::Damage, 50, {954553}},
++    {781364, 781365, Family::Wizard, EventKind::Direct, 25, {954809}},
++    {781366, 781367, Family::Wizard, EventKind::Damage, 25, {779}},
++    {781368, 781369, Family::Wizard, EventKind::Damage, 50, {1082}},
++    {781370, 781371, Family::Wizard, EventKind::Damage, 25, {1822}},
++    {781372, 781373, Family::Wizard, EventKind::Damage, 50, {5221}},
++    {781374, 781375, Family::Wizard, EventKind::Damage, 50, {6807}},
++    {781376, 781377, Family::Wizard, EventKind::Damage, 50, {22568}},
++    {781378, 781379, Family::Wizard, EventKind::Damage, 25, {62078}},
++    {781380, 781381, Family::Wizard, EventKind::Damage, 50, {17364}},
++    {781382, 781383, Family::Wizard, EventKind::Damage, 50, {35395}},
++    {781384, 781385, Family::Wizard, EventKind::Damage, 50, {53385}},
++    {781386, 781387, Family::Wizard, EventKind::Damage, 50, {53600}},
++    {781388, 781389, Family::Wizard, EventKind::Damage, 50, {53595}},
++    {781390, 781391, Family::Wizard, EventKind::Damage, 50, {60103}},
++    {781392, 781393, Family::Wizard, EventKind::Damage, 50, {32645}},
++    {781394, 781395, Family::Wizard, EventKind::Damage, 50, {954821}},
++    {781396, 781397, Family::Wizard, EventKind::Damage, 50, {2643}},
++    {781398, 781399, Family::Wizard, EventKind::Damage, 50, {5116}},
++    {781400, 781401, Family::Wizard, EventKind::Damage, 50, {56641}},
++    {781402, 781403, Family::Wizard, EventKind::Damage, 50, {19434}},
++    {781404, 781405, Family::Wizard, EventKind::Damage, 50, {53351}},
++    {781406, 781407, Family::Wizard, EventKind::Damage, 50, {53209}},
++    {781408, 781409, Family::Wizard, EventKind::Damage, 50, {6343}},
++    {781410, 781411, Family::Wizard, EventKind::Damage, 50, {954835}},
++    {781412, 781413, Family::Wizard, EventKind::Damage, 50, {26679}},
++    {781414, 781415, Family::Wizard, EventKind::Damage, 50, {24275}},
++    {781416, 781417, Family::Wizard, EventKind::Damage, 50, {20187, 20271, 20467, 31804, 53407, 53408, 53733, 54158}},
++    {781418, 781419, Family::Wizard, EventKind::Damage, 50, {53301, 53352}},
++    {781420, 781421, Family::Wizard, EventKind::Damage, 50, {3044}},
++    {781422, 781423, Family::Wizard, EventKind::Damage, 50, {585}},
++    {781424, 781425, Family::Wizard, EventKind::Direct, 50, {14914}},
++    {781426, 781427, Family::Wizard, EventKind::Damage, 25, {15237}},
++    {781428, 781429, Family::Wizard, EventKind::Damage, 50, {31935}},
++    {781430, 781431, Family::Wizard, EventKind::Damage, 50, {879}},
++    {781432, 781433, Family::Wizard, EventKind::Damage, 50, {2812}},
++    {781434, 781435, Family::Wizard, EventKind::Periodic, 15, {26573}},
++    {781436, 781437, Family::Wizard, EventKind::Direct, 50, {133}},
++    {781438, 781439, Family::Wizard, EventKind::Direct, 25, {2120}},
++    {781440, 781441, Family::Wizard, EventKind::Damage, 50, {2136}},
++    {781442, 781443, Family::Wizard, EventKind::Damage, 50, {2948}},
++    {781444, 781445, Family::Wizard, EventKind::Direct, 50, {11366}},
++    {781446, 781447, Family::Wizard, EventKind::Damage, 50, {31661}},
++    {781448, 781449, Family::Wizard, EventKind::Damage, 15, {1949}},
++    {781450, 781451, Family::Wizard, EventKind::Damage, 50, {5676}},
++    {781452, 781453, Family::Wizard, EventKind::Damage, 50, {6353}},
++    {781454, 781455, Family::Wizard, EventKind::Damage, 50, {29722}},
++    {781456, 781457, Family::Wizard, EventKind::Direct, 50, {17962}},
++    {781458, 781459, Family::Wizard, EventKind::Damage, 50, {50796}},
++    {781460, 781461, Family::Wizard, EventKind::Periodic, 25, {8050}},
++    {781462, 781463, Family::Wizard, EventKind::Damage, 50, {51505}},
++    {781464, 781465, Family::Wizard, EventKind::Periodic, 25, {339}},
++    {781466, 781467, Family::Wizard, EventKind::Damage, 50, {5176}},
++    {781468, 781469, Family::Wizard, EventKind::Damage, 50, {403}},
++    {781470, 781471, Family::Wizard, EventKind::Damage, 30, {421}},
++    {781472, 781473, Family::Wizard, EventKind::Damage, 50, {8042}},
++    {781474, 781475, Family::Wizard, EventKind::Damage, 50, {116}},
++    {781476, 781477, Family::Wizard, EventKind::Damage, 50, {120}},
++    {781478, 781479, Family::Wizard, EventKind::Damage, 50, {122}},
++    {781480, 781481, Family::Wizard, EventKind::Damage, 50, {30455}},
++    {781482, 781483, Family::Wizard, EventKind::Damage, 100, {44572, 71757}},
++    {781484, 781485, Family::Wizard, EventKind::Damage, 50, {8056}},
++    {781486, 781487, Family::Wizard, EventKind::Damage, 50, {954807}},
++    {781488, 781489, Family::Wizard, EventKind::Damage, 50, {8092}},
++    {781490, 781491, Family::Wizard, EventKind::Damage, 50, {32379}},
++    {781492, 781493, Family::Wizard, EventKind::Damage, 25, {15407}},
++    {781494, 781495, Family::Wizard, EventKind::Periodic, 25, {34914}},
++    {781496, 781497, Family::Wizard, EventKind::Periodic, 25, {2944}},
++    {781498, 781499, Family::Wizard, EventKind::Damage, 25, {689}},
++    {781500, 781501, Family::Wizard, EventKind::Damage, 25, {1120}},
++    {781502, 781503, Family::Wizard, EventKind::Damage, 50, {48181}},
++    {781504, 781505, Family::Wizard, EventKind::Damage, 50, {686}},
++    {781506, 781507, Family::Wizard, EventKind::Damage, 50, {17877}},
++    {781508, 781509, Family::Wizard, EventKind::Damage, 50, {30283}},
++    {781510, 781511, Family::Wizard, EventKind::Direct, 50, {47897}},
++    {781512, 781513, Family::Wizard, EventKind::Damage, 50, {954611}},
++    {781514, 781515, Family::Wizard, EventKind::Damage, 15, {1449}},
++    {781516, 781517, Family::Wizard, EventKind::Damage, 50, {30451}},
++    {781518, 781519, Family::Wizard, EventKind::Damage, 50, {44425}},
++    {781520, 781521, Family::Wizard, EventKind::Damage, 50, {2912}},
++    {781522, 781523, Family::Wizard, EventKind::Damage, 50, {954800}},
++    {781524, 781525, Family::Wizard, EventKind::Damage, 25, {5143}},
++    {781526, 781527, Family::Wizard, EventKind::Periodic, 25, {772}},
++    {781528, 781529, Family::Wizard, EventKind::Periodic, 25, {703}},
++    {781530, 781531, Family::Wizard, EventKind::Periodic, 25, {1943}},
++    {781532, 781533, Family::Wizard, EventKind::Periodic, 25, {1079}},
++    {781534, 781535, Family::Wizard, EventKind::Periodic, 25, {33745}},
++    {781536, 781537, Family::Wizard, EventKind::Periodic, 25, {44457}},
++    {781538, 781539, Family::Wizard, EventKind::Periodic, 25, {348}},
++    {781540, 781541, Family::Wizard, EventKind::Periodic, 25, {5570}},
++    {781542, 781543, Family::Wizard, EventKind::Periodic, 25, {1978}},
++    {781544, 781545, Family::Wizard, EventKind::Periodic, 25, {589}},
++    {781546, 781547, Family::Wizard, EventKind::Periodic, 25, {172}},
++    {781548, 781549, Family::Wizard, EventKind::Periodic, 25, {980}},
++    {781550, 781551, Family::Wizard, EventKind::Periodic, 25, {30108}},
++    {781552, 781553, Family::Wizard, EventKind::Periodic, 25, {8921}},
++    {781610, 781611, Family::Primal, EventKind::Damage, 50, {1495}},
++    {781612, 781613, Family::Primal, EventKind::Damage, 50, {2974}},
++    {781614, 781615, Family::Primal, EventKind::Damage, 50, {19306}},
++    {781616, 781617, Family::Primal, EventKind::Damage, 50, {1464, 50783}},
++    {781618, 781619, Family::Primal, EventKind::Damage, 50, {1680}},
++    {781620, 781621, Family::Primal, EventKind::Damage, 50, {5308, 20647}},
++    {781622, 781623, Family::Primal, EventKind::Damage, 50, {34428}},
++    {781624, 781625, Family::Primal, EventKind::Damage, 50, {23881}},
++    {781626, 781627, Family::Primal, EventKind::Damage, 50, {954876}},
++    {781628, 781629, Family::Primal, EventKind::Damage, 50, {954836}},
++    {781630, 781631, Family::Primal, EventKind::Damage, 50, {1715}},
++    {781632, 781633, Family::Primal, EventKind::Damage, 50, {7384}},
++    {781634, 781635, Family::Primal, EventKind::Damage, 50, {12294}},
++    {781636, 781637, Family::Primal, EventKind::Damage, 50, {86361}},
++    {781638, 781639, Family::Primal, EventKind::Damage, 50, {6572}},
++    {781640, 781641, Family::Primal, EventKind::Damage, 50, {23922}},
++    {781642, 781643, Family::Primal, EventKind::Damage, 50, {20243}},
++    {781644, 781645, Family::Primal, EventKind::Damage, 50, {53}},
++    {781646, 781647, Family::Primal, EventKind::Damage, 50, {1752}},
++    {781648, 781649, Family::Primal, EventKind::Damage, 50, {5938, 5940}},
++    {781650, 781651, Family::Primal, EventKind::Damage, 50, {14251}},
++    {781652, 781653, Family::Primal, EventKind::Damage, 50, {14278}},
++    {781654, 781655, Family::Primal, EventKind::Damage, 50, {16511}},
++    {781656, 781657, Family::Primal, EventKind::Damage, 50, {2098}},
++    {781658, 781659, Family::Primal, EventKind::Damage, 50, {8676}},
++    {781660, 781661, Family::Primal, EventKind::Damage, 50, {1329}},
++    {781662, 781663, Family::Primal, EventKind::Damage, 50, {954553}},
++    {781664, 781665, Family::Primal, EventKind::Direct, 25, {954809}},
++    {781666, 781667, Family::Primal, EventKind::Damage, 25, {779}},
++    {781668, 781669, Family::Primal, EventKind::Damage, 50, {1082}},
++    {781670, 781671, Family::Primal, EventKind::Damage, 25, {1822}},
++    {781672, 781673, Family::Primal, EventKind::Damage, 50, {5221}},
++    {781674, 781675, Family::Primal, EventKind::Damage, 50, {6807}},
++    {781676, 781677, Family::Primal, EventKind::Damage, 50, {22568}},
++    {781678, 781679, Family::Primal, EventKind::Damage, 25, {62078}},
++    {781680, 781681, Family::Primal, EventKind::Damage, 50, {17364}},
++    {781682, 781683, Family::Primal, EventKind::Damage, 50, {35395}},
++    {781684, 781685, Family::Primal, EventKind::Damage, 50, {53385}},
++    {781686, 781687, Family::Primal, EventKind::Damage, 50, {53600}},
++    {781688, 781689, Family::Primal, EventKind::Damage, 50, {53595}},
++    {781690, 781691, Family::Primal, EventKind::Damage, 50, {60103}},
++    {781692, 781693, Family::Primal, EventKind::Damage, 50, {32645}},
++    {781694, 781695, Family::Primal, EventKind::Damage, 50, {954821}},
++    {781696, 781697, Family::Primal, EventKind::Damage, 50, {2643}},
++    {781698, 781699, Family::Primal, EventKind::Damage, 50, {5116}},
++    {781700, 781701, Family::Primal, EventKind::Damage, 50, {56641}},
++    {781702, 781703, Family::Primal, EventKind::Damage, 50, {19434}},
++    {781704, 781705, Family::Primal, EventKind::Damage, 50, {53351}},
++    {781706, 781707, Family::Primal, EventKind::Damage, 50, {53209}},
++    {781708, 781709, Family::Primal, EventKind::Damage, 50, {6343}},
++    {781710, 781711, Family::Primal, EventKind::Damage, 50, {954835}},
++    {781712, 781713, Family::Primal, EventKind::Damage, 50, {26679}},
++    {781714, 781715, Family::Primal, EventKind::Damage, 50, {24275}},
++    {781716, 781717, Family::Primal, EventKind::Damage, 50, {20187, 20271, 20467, 31804, 53407, 53408, 53733, 54158}},
++    {781718, 781719, Family::Primal, EventKind::Damage, 50, {53301, 53352}},
++    {781720, 781721, Family::Primal, EventKind::Damage, 50, {3044}},
++    {781722, 781723, Family::Primal, EventKind::Damage, 50, {585}},
++    {781724, 781725, Family::Primal, EventKind::Direct, 50, {14914}},
++    {781726, 781727, Family::Primal, EventKind::Damage, 25, {15237}},
++    {781728, 781729, Family::Primal, EventKind::Damage, 50, {31935}},
++    {781730, 781731, Family::Primal, EventKind::Damage, 50, {879}},
++    {781732, 781733, Family::Primal, EventKind::Damage, 50, {2812}},
++    {781734, 781735, Family::Primal, EventKind::Periodic, 15, {26573}},
++    {781736, 781737, Family::Primal, EventKind::Direct, 50, {133}},
++    {781738, 781739, Family::Primal, EventKind::Direct, 25, {2120}},
++    {781740, 781741, Family::Primal, EventKind::Damage, 50, {2136}},
++    {781742, 781743, Family::Primal, EventKind::Damage, 50, {2948}},
++    {781744, 781745, Family::Primal, EventKind::Direct, 50, {11366}},
++    {781746, 781747, Family::Primal, EventKind::Damage, 50, {31661}},
++    {781748, 781749, Family::Primal, EventKind::Damage, 15, {1949}},
++    {781750, 781751, Family::Primal, EventKind::Damage, 50, {5676}},
++    {781752, 781753, Family::Primal, EventKind::Damage, 50, {6353}},
++    {781754, 781755, Family::Primal, EventKind::Damage, 50, {29722}},
++    {781756, 781757, Family::Primal, EventKind::Direct, 50, {17962}},
++    {781758, 781759, Family::Primal, EventKind::Damage, 50, {50796}},
++    {781760, 781761, Family::Primal, EventKind::Periodic, 25, {8050}},
++    {781762, 781763, Family::Primal, EventKind::Damage, 50, {51505}},
++    {781764, 781765, Family::Primal, EventKind::Periodic, 25, {339}},
++    {781766, 781767, Family::Primal, EventKind::Damage, 50, {5176}},
++    {781768, 781769, Family::Primal, EventKind::Damage, 50, {403}},
++    {781770, 781771, Family::Primal, EventKind::Damage, 30, {421}},
++    {781772, 781773, Family::Primal, EventKind::Damage, 50, {8042}},
++    {781774, 781775, Family::Primal, EventKind::Damage, 50, {116}},
++    {781776, 781777, Family::Primal, EventKind::Damage, 50, {120}},
++    {781778, 781779, Family::Primal, EventKind::Damage, 50, {122}},
++    {781780, 781781, Family::Primal, EventKind::Damage, 50, {30455}},
++    {781782, 781783, Family::Primal, EventKind::Damage, 100, {44572, 71757}},
++    {781784, 781785, Family::Primal, EventKind::Damage, 50, {8056}},
++    {781786, 781787, Family::Primal, EventKind::Damage, 50, {954807}},
++    {781788, 781789, Family::Primal, EventKind::Damage, 50, {8092}},
++    {781790, 781791, Family::Primal, EventKind::Damage, 50, {32379}},
++    {781792, 781793, Family::Primal, EventKind::Damage, 25, {15407}},
++    {781794, 781795, Family::Primal, EventKind::Periodic, 25, {34914}},
++    {781796, 781797, Family::Primal, EventKind::Periodic, 25, {2944}},
++    {781798, 781799, Family::Primal, EventKind::Damage, 25, {689}},
++    {781800, 781801, Family::Primal, EventKind::Damage, 25, {1120}},
++    {781802, 781803, Family::Primal, EventKind::Damage, 50, {48181}},
++    {781804, 781805, Family::Primal, EventKind::Damage, 50, {686}},
++    {781806, 781807, Family::Primal, EventKind::Damage, 50, {17877}},
++    {781808, 781809, Family::Primal, EventKind::Damage, 50, {30283}},
++    {781810, 781811, Family::Primal, EventKind::Direct, 50, {47897}},
++    {781812, 781813, Family::Primal, EventKind::Damage, 50, {954611}},
++    {781814, 781815, Family::Primal, EventKind::Damage, 15, {1449}},
++    {781816, 781817, Family::Primal, EventKind::Damage, 50, {30451}},
++    {781818, 781819, Family::Primal, EventKind::Damage, 50, {44425}},
++    {781820, 781821, Family::Primal, EventKind::Damage, 50, {2912}},
++    {781822, 781823, Family::Primal, EventKind::Damage, 50, {954800}},
++    {781824, 781825, Family::Primal, EventKind::Damage, 25, {5143}},
++    {781826, 781827, Family::Primal, EventKind::Periodic, 25, {772}},
++    {781828, 781829, Family::Primal, EventKind::Periodic, 25, {703}},
++    {781830, 781831, Family::Primal, EventKind::Periodic, 25, {1943}},
++    {781832, 781833, Family::Primal, EventKind::Periodic, 25, {1079}},
++    {781834, 781835, Family::Primal, EventKind::Periodic, 25, {33745}},
++    {781836, 781837, Family::Primal, EventKind::Periodic, 25, {44457}},
++    {781838, 781839, Family::Primal, EventKind::Periodic, 25, {348}},
++    {781840, 781841, Family::Primal, EventKind::Periodic, 25, {5570}},
++    {781842, 781843, Family::Primal, EventKind::Periodic, 25, {1978}},
++    {781844, 781845, Family::Primal, EventKind::Periodic, 25, {589}},
++    {781846, 781847, Family::Primal, EventKind::Periodic, 25, {172}},
++    {781848, 781849, Family::Primal, EventKind::Periodic, 25, {980}},
++    {781850, 781851, Family::Primal, EventKind::Periodic, 25, {30108}},
++    {781852, 781853, Family::Primal, EventKind::Periodic, 25, {8921}},
++    {781910, 781911, Family::Demonic, EventKind::Damage, 50, {1495}},
++    {781912, 781913, Family::Demonic, EventKind::Damage, 50, {2974}},
++    {781914, 781915, Family::Demonic, EventKind::Damage, 50, {19306}},
++    {781916, 781917, Family::Demonic, EventKind::Damage, 50, {1464, 50783}},
++    {781918, 781919, Family::Demonic, EventKind::Damage, 50, {1680}},
++    {781920, 781921, Family::Demonic, EventKind::Damage, 50, {5308, 20647}},
++    {781922, 781923, Family::Demonic, EventKind::Damage, 50, {34428}},
++    {781924, 781925, Family::Demonic, EventKind::Damage, 50, {23881}},
++    {781926, 781927, Family::Demonic, EventKind::Damage, 50, {954876}},
++    {781928, 781929, Family::Demonic, EventKind::Damage, 50, {954836}},
++    {781930, 781931, Family::Demonic, EventKind::Damage, 50, {1715}},
++    {781932, 781933, Family::Demonic, EventKind::Damage, 50, {7384}},
++    {781934, 781935, Family::Demonic, EventKind::Damage, 50, {12294}},
++    {781936, 781937, Family::Demonic, EventKind::Damage, 50, {86361}},
++    {781938, 781939, Family::Demonic, EventKind::Damage, 50, {6572}},
++    {781940, 781941, Family::Demonic, EventKind::Damage, 50, {23922}},
++    {781942, 781943, Family::Demonic, EventKind::Damage, 50, {20243}},
++    {781944, 781945, Family::Demonic, EventKind::Damage, 50, {53}},
++    {781946, 781947, Family::Demonic, EventKind::Damage, 50, {1752}},
++    {781948, 781949, Family::Demonic, EventKind::Damage, 50, {5938, 5940}},
++    {781950, 781951, Family::Demonic, EventKind::Damage, 50, {14251}},
++    {781952, 781953, Family::Demonic, EventKind::Damage, 50, {14278}},
++    {781954, 781955, Family::Demonic, EventKind::Damage, 50, {16511}},
++    {781956, 781957, Family::Demonic, EventKind::Damage, 50, {2098}},
++    {781958, 781959, Family::Demonic, EventKind::Damage, 50, {8676}},
++    {781960, 781961, Family::Demonic, EventKind::Damage, 50, {1329}},
++    {781962, 781963, Family::Demonic, EventKind::Damage, 50, {954553}},
++    {781964, 781965, Family::Demonic, EventKind::Direct, 25, {954809}},
++    {781966, 781967, Family::Demonic, EventKind::Damage, 25, {779}},
++    {781968, 781969, Family::Demonic, EventKind::Damage, 50, {1082}},
++    {781970, 781971, Family::Demonic, EventKind::Damage, 25, {1822}},
++    {781972, 781973, Family::Demonic, EventKind::Damage, 50, {5221}},
++    {781974, 781975, Family::Demonic, EventKind::Damage, 50, {6807}},
++    {781976, 781977, Family::Demonic, EventKind::Damage, 50, {22568}},
++    {781978, 781979, Family::Demonic, EventKind::Damage, 25, {62078}},
++    {781980, 781981, Family::Demonic, EventKind::Damage, 50, {17364}},
++    {781982, 781983, Family::Demonic, EventKind::Damage, 50, {35395}},
++    {781984, 781985, Family::Demonic, EventKind::Damage, 50, {53385}},
++    {781986, 781987, Family::Demonic, EventKind::Damage, 50, {53600}},
++    {781988, 781989, Family::Demonic, EventKind::Damage, 50, {53595}},
++    {781990, 781991, Family::Demonic, EventKind::Damage, 50, {60103}},
++    {781992, 781993, Family::Demonic, EventKind::Damage, 50, {32645}},
++    {781994, 781995, Family::Demonic, EventKind::Damage, 50, {954821}},
++    {781996, 781997, Family::Demonic, EventKind::Damage, 50, {2643}},
++    {781998, 781999, Family::Demonic, EventKind::Damage, 50, {5116}},
++    {782000, 782001, Family::Demonic, EventKind::Damage, 50, {56641}},
++    {782002, 782003, Family::Demonic, EventKind::Damage, 50, {19434}},
++    {782004, 782005, Family::Demonic, EventKind::Damage, 50, {53351}},
++    {782006, 782007, Family::Demonic, EventKind::Damage, 50, {53209}},
++    {782008, 782009, Family::Demonic, EventKind::Damage, 50, {6343}},
++    {782010, 782011, Family::Demonic, EventKind::Damage, 50, {954835}},
++    {782012, 782013, Family::Demonic, EventKind::Damage, 50, {26679}},
++    {782014, 782015, Family::Demonic, EventKind::Damage, 50, {24275}},
++    {782016, 782017, Family::Demonic, EventKind::Damage, 50, {20187, 20271, 20467, 31804, 53407, 53408, 53733, 54158}},
++    {782018, 782019, Family::Demonic, EventKind::Damage, 50, {53301, 53352}},
++    {782020, 782021, Family::Demonic, EventKind::Damage, 50, {3044}},
++    {782022, 782023, Family::Demonic, EventKind::Damage, 50, {585}},
++    {782024, 782025, Family::Demonic, EventKind::Direct, 50, {14914}},
++    {782026, 782027, Family::Demonic, EventKind::Damage, 25, {15237}},
++    {782028, 782029, Family::Demonic, EventKind::Damage, 50, {31935}},
++    {782030, 782031, Family::Demonic, EventKind::Damage, 50, {879}},
++    {782032, 782033, Family::Demonic, EventKind::Damage, 50, {2812}},
++    {782034, 782035, Family::Demonic, EventKind::Periodic, 15, {26573}},
++    {782036, 782037, Family::Demonic, EventKind::Direct, 50, {133}},
++    {782038, 782039, Family::Demonic, EventKind::Direct, 25, {2120}},
++    {782040, 782041, Family::Demonic, EventKind::Damage, 50, {2136}},
++    {782042, 782043, Family::Demonic, EventKind::Damage, 50, {2948}},
++    {782044, 782045, Family::Demonic, EventKind::Direct, 50, {11366}},
++    {782046, 782047, Family::Demonic, EventKind::Damage, 50, {31661}},
++    {782048, 782049, Family::Demonic, EventKind::Damage, 15, {1949}},
++    {782050, 782051, Family::Demonic, EventKind::Damage, 50, {5676}},
++    {782052, 782053, Family::Demonic, EventKind::Damage, 50, {6353}},
++    {782054, 782055, Family::Demonic, EventKind::Damage, 50, {29722}},
++    {782056, 782057, Family::Demonic, EventKind::Direct, 50, {17962}},
++    {782058, 782059, Family::Demonic, EventKind::Damage, 50, {50796}},
++    {782060, 782061, Family::Demonic, EventKind::Periodic, 25, {8050}},
++    {782062, 782063, Family::Demonic, EventKind::Damage, 50, {51505}},
++    {782064, 782065, Family::Demonic, EventKind::Periodic, 25, {339}},
++    {782066, 782067, Family::Demonic, EventKind::Damage, 50, {5176}},
++    {782068, 782069, Family::Demonic, EventKind::Damage, 50, {403}},
++    {782070, 782071, Family::Demonic, EventKind::Damage, 30, {421}},
++    {782072, 782073, Family::Demonic, EventKind::Damage, 50, {8042}},
++    {782074, 782075, Family::Demonic, EventKind::Damage, 50, {116}},
++    {782076, 782077, Family::Demonic, EventKind::Damage, 50, {120}},
++    {782078, 782079, Family::Demonic, EventKind::Damage, 50, {122}},
++    {782080, 782081, Family::Demonic, EventKind::Damage, 50, {30455}},
++    {782082, 782083, Family::Demonic, EventKind::Damage, 100, {44572, 71757}},
++    {782084, 782085, Family::Demonic, EventKind::Damage, 50, {8056}},
++    {782086, 782087, Family::Demonic, EventKind::Damage, 50, {954807}},
++    {782088, 782089, Family::Demonic, EventKind::Damage, 50, {8092}},
++    {782090, 782091, Family::Demonic, EventKind::Damage, 50, {32379}},
++    {782092, 782093, Family::Demonic, EventKind::Damage, 25, {15407}},
++    {782094, 782095, Family::Demonic, EventKind::Periodic, 25, {34914}},
++    {782096, 782097, Family::Demonic, EventKind::Periodic, 25, {2944}},
++    {782098, 782099, Family::Demonic, EventKind::Damage, 25, {689}},
++    {782100, 782101, Family::Demonic, EventKind::Damage, 25, {1120}},
++    {782102, 782103, Family::Demonic, EventKind::Damage, 50, {48181}},
++    {782104, 782105, Family::Demonic, EventKind::Damage, 50, {686}},
++    {782106, 782107, Family::Demonic, EventKind::Damage, 50, {17877}},
++    {782108, 782109, Family::Demonic, EventKind::Damage, 50, {30283}},
++    {782110, 782111, Family::Demonic, EventKind::Direct, 50, {47897}},
++    {782112, 782113, Family::Demonic, EventKind::Damage, 50, {954611}},
++    {782114, 782115, Family::Demonic, EventKind::Damage, 15, {1449}},
++    {782116, 782117, Family::Demonic, EventKind::Damage, 50, {30451}},
++    {782118, 782119, Family::Demonic, EventKind::Damage, 50, {44425}},
++    {782120, 782121, Family::Demonic, EventKind::Damage, 50, {2912}},
++    {782122, 782123, Family::Demonic, EventKind::Damage, 50, {954800}},
++    {782124, 782125, Family::Demonic, EventKind::Damage, 25, {5143}},
++    {782126, 782127, Family::Demonic, EventKind::Periodic, 25, {772}},
++    {782128, 782129, Family::Demonic, EventKind::Periodic, 25, {703}},
++    {782130, 782131, Family::Demonic, EventKind::Periodic, 25, {1943}},
++    {782132, 782133, Family::Demonic, EventKind::Periodic, 25, {1079}},
++    {782134, 782135, Family::Demonic, EventKind::Periodic, 25, {33745}},
++    {782136, 782137, Family::Demonic, EventKind::Periodic, 25, {44457}},
++    {782138, 782139, Family::Demonic, EventKind::Periodic, 25, {348}},
++    {782140, 782141, Family::Demonic, EventKind::Periodic, 25, {5570}},
++    {782142, 782143, Family::Demonic, EventKind::Periodic, 25, {1978}},
++    {782144, 782145, Family::Demonic, EventKind::Periodic, 25, {589}},
++    {782146, 782147, Family::Demonic, EventKind::Periodic, 25, {172}},
++    {782148, 782149, Family::Demonic, EventKind::Periodic, 25, {980}},
++    {782150, 782151, Family::Demonic, EventKind::Periodic, 25, {30108}},
++    {782152, 782153, Family::Demonic, EventKind::Periodic, 25, {8921}},
++    {782210, 782211, Family::Draconic, EventKind::Damage, 50, {1495}},
++    {782212, 782213, Family::Draconic, EventKind::Damage, 50, {2974}},
++    {782214, 782215, Family::Draconic, EventKind::Damage, 50, {19306}},
++    {782216, 782217, Family::Draconic, EventKind::Damage, 50, {1464, 50783}},
++    {782218, 782219, Family::Draconic, EventKind::Damage, 50, {1680}},
++    {782220, 782221, Family::Draconic, EventKind::Damage, 50, {5308, 20647}},
++    {782222, 782223, Family::Draconic, EventKind::Damage, 50, {34428}},
++    {782224, 782225, Family::Draconic, EventKind::Damage, 50, {23881}},
++    {782226, 782227, Family::Draconic, EventKind::Damage, 50, {954876}},
++    {782228, 782229, Family::Draconic, EventKind::Damage, 50, {954836}},
++    {782230, 782231, Family::Draconic, EventKind::Damage, 50, {1715}},
++    {782232, 782233, Family::Draconic, EventKind::Damage, 50, {7384}},
++    {782234, 782235, Family::Draconic, EventKind::Damage, 50, {12294}},
++    {782236, 782237, Family::Draconic, EventKind::Damage, 50, {86361}},
++    {782238, 782239, Family::Draconic, EventKind::Damage, 50, {6572}},
++    {782240, 782241, Family::Draconic, EventKind::Damage, 50, {23922}},
++    {782242, 782243, Family::Draconic, EventKind::Damage, 50, {20243}},
++    {782244, 782245, Family::Draconic, EventKind::Damage, 50, {53}},
++    {782246, 782247, Family::Draconic, EventKind::Damage, 50, {1752}},
++    {782248, 782249, Family::Draconic, EventKind::Damage, 50, {5938, 5940}},
++    {782250, 782251, Family::Draconic, EventKind::Damage, 50, {14251}},
++    {782252, 782253, Family::Draconic, EventKind::Damage, 50, {14278}},
++    {782254, 782255, Family::Draconic, EventKind::Damage, 50, {16511}},
++    {782256, 782257, Family::Draconic, EventKind::Damage, 50, {2098}},
++    {782258, 782259, Family::Draconic, EventKind::Damage, 50, {8676}},
++    {782260, 782261, Family::Draconic, EventKind::Damage, 50, {1329}},
++    {782262, 782263, Family::Draconic, EventKind::Damage, 50, {954553}},
++    {782264, 782265, Family::Draconic, EventKind::Direct, 25, {954809}},
++    {782266, 782267, Family::Draconic, EventKind::Damage, 25, {779}},
++    {782268, 782269, Family::Draconic, EventKind::Damage, 50, {1082}},
++    {782270, 782271, Family::Draconic, EventKind::Damage, 25, {1822}},
++    {782272, 782273, Family::Draconic, EventKind::Damage, 50, {5221}},
++    {782274, 782275, Family::Draconic, EventKind::Damage, 50, {6807}},
++    {782276, 782277, Family::Draconic, EventKind::Damage, 50, {22568}},
++    {782278, 782279, Family::Draconic, EventKind::Damage, 25, {62078}},
++    {782280, 782281, Family::Draconic, EventKind::Damage, 50, {17364}},
++    {782282, 782283, Family::Draconic, EventKind::Damage, 50, {35395}},
++    {782284, 782285, Family::Draconic, EventKind::Damage, 50, {53385}},
++    {782286, 782287, Family::Draconic, EventKind::Damage, 50, {53600}},
++    {782288, 782289, Family::Draconic, EventKind::Damage, 50, {53595}},
++    {782290, 782291, Family::Draconic, EventKind::Damage, 50, {60103}},
++    {782292, 782293, Family::Draconic, EventKind::Damage, 50, {32645}},
++    {782294, 782295, Family::Draconic, EventKind::Damage, 50, {954821}},
++    {782296, 782297, Family::Draconic, EventKind::Damage, 50, {2643}},
++    {782298, 782299, Family::Draconic, EventKind::Damage, 50, {5116}},
++    {782300, 782301, Family::Draconic, EventKind::Damage, 50, {56641}},
++    {782302, 782303, Family::Draconic, EventKind::Damage, 50, {19434}},
++    {782304, 782305, Family::Draconic, EventKind::Damage, 50, {53351}},
++    {782306, 782307, Family::Draconic, EventKind::Damage, 50, {53209}},
++    {782308, 782309, Family::Draconic, EventKind::Damage, 50, {6343}},
++    {782310, 782311, Family::Draconic, EventKind::Damage, 50, {954835}},
++    {782312, 782313, Family::Draconic, EventKind::Damage, 50, {26679}},
++    {782314, 782315, Family::Draconic, EventKind::Damage, 50, {24275}},
++    {782316, 782317, Family::Draconic, EventKind::Damage, 50, {20187, 20271, 20467, 31804, 53407, 53408, 53733, 54158}},
++    {782318, 782319, Family::Draconic, EventKind::Damage, 50, {53301, 53352}},
++    {782320, 782321, Family::Draconic, EventKind::Damage, 50, {3044}},
++    {782322, 782323, Family::Draconic, EventKind::Damage, 50, {585}},
++    {782324, 782325, Family::Draconic, EventKind::Direct, 50, {14914}},
++    {782326, 782327, Family::Draconic, EventKind::Damage, 25, {15237}},
++    {782328, 782329, Family::Draconic, EventKind::Damage, 50, {31935}},
++    {782330, 782331, Family::Draconic, EventKind::Damage, 50, {879}},
++    {782332, 782333, Family::Draconic, EventKind::Damage, 50, {2812}},
++    {782334, 782335, Family::Draconic, EventKind::Periodic, 15, {26573}},
++    {782336, 782337, Family::Draconic, EventKind::Direct, 50, {133}},
++    {782338, 782339, Family::Draconic, EventKind::Direct, 25, {2120}},
++    {782340, 782341, Family::Draconic, EventKind::Damage, 50, {2136}},
++    {782342, 782343, Family::Draconic, EventKind::Damage, 50, {2948}},
++    {782344, 782345, Family::Draconic, EventKind::Direct, 50, {11366}},
++    {782346, 782347, Family::Draconic, EventKind::Damage, 50, {31661}},
++    {782348, 782349, Family::Draconic, EventKind::Damage, 15, {1949}},
++    {782350, 782351, Family::Draconic, EventKind::Damage, 50, {5676}},
++    {782352, 782353, Family::Draconic, EventKind::Damage, 50, {6353}},
++    {782354, 782355, Family::Draconic, EventKind::Damage, 50, {29722}},
++    {782356, 782357, Family::Draconic, EventKind::Direct, 50, {17962}},
++    {782358, 782359, Family::Draconic, EventKind::Damage, 50, {50796}},
++    {782360, 782361, Family::Draconic, EventKind::Periodic, 25, {8050}},
++    {782362, 782363, Family::Draconic, EventKind::Damage, 50, {51505}},
++    {782364, 782365, Family::Draconic, EventKind::Periodic, 25, {339}},
++    {782366, 782367, Family::Draconic, EventKind::Damage, 50, {5176}},
++    {782368, 782369, Family::Draconic, EventKind::Damage, 50, {403}},
++    {782370, 782371, Family::Draconic, EventKind::Damage, 30, {421}},
++    {782372, 782373, Family::Draconic, EventKind::Damage, 50, {8042}},
++    {782374, 782375, Family::Draconic, EventKind::Damage, 50, {116}},
++    {782376, 782377, Family::Draconic, EventKind::Damage, 50, {120}},
++    {782378, 782379, Family::Draconic, EventKind::Damage, 50, {122}},
++    {782380, 782381, Family::Draconic, EventKind::Damage, 50, {30455}},
++    {782382, 782383, Family::Draconic, EventKind::Damage, 100, {44572, 71757}},
++    {782384, 782385, Family::Draconic, EventKind::Damage, 50, {8056}},
++    {782386, 782387, Family::Draconic, EventKind::Damage, 50, {954807}},
++    {782388, 782389, Family::Draconic, EventKind::Damage, 50, {8092}},
++    {782390, 782391, Family::Draconic, EventKind::Damage, 50, {32379}},
++    {782392, 782393, Family::Draconic, EventKind::Damage, 25, {15407}},
++    {782394, 782395, Family::Draconic, EventKind::Periodic, 25, {34914}},
++    {782396, 782397, Family::Draconic, EventKind::Periodic, 25, {2944}},
++    {782398, 782399, Family::Draconic, EventKind::Damage, 25, {689}},
++    {782400, 782401, Family::Draconic, EventKind::Damage, 25, {1120}},
++    {782402, 782403, Family::Draconic, EventKind::Damage, 50, {48181}},
++    {782404, 782405, Family::Draconic, EventKind::Damage, 50, {686}},
++    {782406, 782407, Family::Draconic, EventKind::Damage, 50, {17877}},
++    {782408, 782409, Family::Draconic, EventKind::Damage, 50, {30283}},
++    {782410, 782411, Family::Draconic, EventKind::Direct, 50, {47897}},
++    {782412, 782413, Family::Draconic, EventKind::Damage, 50, {954611}},
++    {782414, 782415, Family::Draconic, EventKind::Damage, 15, {1449}},
++    {782416, 782417, Family::Draconic, EventKind::Damage, 50, {30451}},
++    {782418, 782419, Family::Draconic, EventKind::Damage, 50, {44425}},
++    {782420, 782421, Family::Draconic, EventKind::Damage, 50, {2912}},
++    {782422, 782423, Family::Draconic, EventKind::Damage, 50, {954800}},
++    {782424, 782425, Family::Draconic, EventKind::Damage, 25, {5143}},
++    {782426, 782427, Family::Draconic, EventKind::Periodic, 25, {772}},
++    {782428, 782429, Family::Draconic, EventKind::Periodic, 25, {703}},
++    {782430, 782431, Family::Draconic, EventKind::Periodic, 25, {1943}},
++    {782432, 782433, Family::Draconic, EventKind::Periodic, 25, {1079}},
++    {782434, 782435, Family::Draconic, EventKind::Periodic, 25, {33745}},
++    {782436, 782437, Family::Draconic, EventKind::Periodic, 25, {44457}},
++    {782438, 782439, Family::Draconic, EventKind::Periodic, 25, {348}},
++    {782440, 782441, Family::Draconic, EventKind::Periodic, 25, {5570}},
++    {782442, 782443, Family::Draconic, EventKind::Periodic, 25, {1978}},
++    {782444, 782445, Family::Draconic, EventKind::Periodic, 25, {589}},
++    {782446, 782447, Family::Draconic, EventKind::Periodic, 25, {172}},
++    {782448, 782449, Family::Draconic, EventKind::Periodic, 25, {980}},
++    {782450, 782451, Family::Draconic, EventKind::Periodic, 25, {30108}},
++    {782452, 782453, Family::Draconic, EventKind::Periodic, 25, {8921}},
++    {782510, 782511, Family::Gigantic, EventKind::Damage, 50, {1495}},
++    {782512, 782513, Family::Gigantic, EventKind::Damage, 50, {2974}},
++    {782514, 782515, Family::Gigantic, EventKind::Damage, 50, {19306}},
++    {782516, 782517, Family::Gigantic, EventKind::Damage, 50, {1464, 50783}},
++    {782518, 782519, Family::Gigantic, EventKind::Damage, 50, {1680}},
++    {782520, 782521, Family::Gigantic, EventKind::Damage, 50, {5308, 20647}},
++    {782522, 782523, Family::Gigantic, EventKind::Damage, 50, {34428}},
++    {782524, 782525, Family::Gigantic, EventKind::Damage, 50, {23881}},
++    {782526, 782527, Family::Gigantic, EventKind::Damage, 50, {954876}},
++    {782528, 782529, Family::Gigantic, EventKind::Damage, 50, {954836}},
++    {782530, 782531, Family::Gigantic, EventKind::Damage, 50, {1715}},
++    {782532, 782533, Family::Gigantic, EventKind::Damage, 50, {7384}},
++    {782534, 782535, Family::Gigantic, EventKind::Damage, 50, {12294}},
++    {782536, 782537, Family::Gigantic, EventKind::Damage, 50, {86361}},
++    {782538, 782539, Family::Gigantic, EventKind::Damage, 50, {6572}},
++    {782540, 782541, Family::Gigantic, EventKind::Damage, 50, {23922}},
++    {782542, 782543, Family::Gigantic, EventKind::Damage, 50, {20243}},
++    {782544, 782545, Family::Gigantic, EventKind::Damage, 50, {53}},
++    {782546, 782547, Family::Gigantic, EventKind::Damage, 50, {1752}},
++    {782548, 782549, Family::Gigantic, EventKind::Damage, 50, {5938, 5940}},
++    {782550, 782551, Family::Gigantic, EventKind::Damage, 50, {14251}},
++    {782552, 782553, Family::Gigantic, EventKind::Damage, 50, {14278}},
++    {782554, 782555, Family::Gigantic, EventKind::Damage, 50, {16511}},
++    {782556, 782557, Family::Gigantic, EventKind::Damage, 50, {2098}},
++    {782558, 782559, Family::Gigantic, EventKind::Damage, 50, {8676}},
++    {782560, 782561, Family::Gigantic, EventKind::Damage, 50, {1329}},
++    {782562, 782563, Family::Gigantic, EventKind::Damage, 50, {954553}},
++    {782564, 782565, Family::Gigantic, EventKind::Damage, 25, {954809}},
++    {782566, 782567, Family::Gigantic, EventKind::Damage, 25, {779}},
++    {782568, 782569, Family::Gigantic, EventKind::Damage, 50, {1082}},
++    {782570, 782571, Family::Gigantic, EventKind::Damage, 25, {1822}},
++    {782572, 782573, Family::Gigantic, EventKind::Damage, 50, {5221}},
++    {782574, 782575, Family::Gigantic, EventKind::Damage, 50, {6807}},
++    {782576, 782577, Family::Gigantic, EventKind::Damage, 50, {22568}},
++    {782578, 782579, Family::Gigantic, EventKind::Damage, 25, {62078}},
++    {782580, 782581, Family::Gigantic, EventKind::Damage, 50, {17364}},
++    {782582, 782583, Family::Gigantic, EventKind::Damage, 50, {35395}},
++    {782584, 782585, Family::Gigantic, EventKind::Damage, 50, {53385}},
++    {782586, 782587, Family::Gigantic, EventKind::Damage, 50, {53600}},
++    {782588, 782589, Family::Gigantic, EventKind::Damage, 50, {53595}},
++    {782590, 782591, Family::Gigantic, EventKind::Damage, 50, {60103}},
++    {782592, 782593, Family::Gigantic, EventKind::Damage, 50, {32645}},
++    {782594, 782595, Family::Gigantic, EventKind::Damage, 50, {954821}},
++    {782596, 782597, Family::Gigantic, EventKind::Damage, 50, {2643}},
++    {782598, 782599, Family::Gigantic, EventKind::Damage, 50, {5116}},
++    {782600, 782601, Family::Gigantic, EventKind::Damage, 50, {56641}},
++    {782602, 782603, Family::Gigantic, EventKind::Damage, 50, {19434}},
++    {782604, 782605, Family::Gigantic, EventKind::Damage, 50, {53351}},
++    {782606, 782607, Family::Gigantic, EventKind::Damage, 50, {53209}},
++    {782608, 782609, Family::Gigantic, EventKind::Damage, 50, {6343}},
++    {782610, 782611, Family::Gigantic, EventKind::Damage, 50, {954835}},
++    {782612, 782613, Family::Gigantic, EventKind::Damage, 50, {26679}},
++    {782614, 782615, Family::Gigantic, EventKind::Damage, 50, {24275}},
++    {782616, 782617, Family::Gigantic, EventKind::Damage, 50, {20187, 20271, 20467, 31804, 53407, 53408, 53733, 54158}},
++    {782618, 782619, Family::Gigantic, EventKind::Damage, 50, {53301, 53352}},
++    {782620, 782621, Family::Gigantic, EventKind::Damage, 50, {3044}},
++    {782622, 782623, Family::Gigantic, EventKind::Damage, 50, {585}},
++    {782624, 782625, Family::Gigantic, EventKind::Damage, 50, {14914}},
++    {782626, 782627, Family::Gigantic, EventKind::Damage, 25, {15237}},
++    {782628, 782629, Family::Gigantic, EventKind::Damage, 50, {31935}},
++    {782630, 782631, Family::Gigantic, EventKind::Damage, 50, {879}},
++    {782632, 782633, Family::Gigantic, EventKind::Damage, 50, {2812}},
++    {782634, 782635, Family::Gigantic, EventKind::Damage, 15, {26573}},
++    {782636, 782637, Family::Gigantic, EventKind::Damage, 50, {133}},
++    {782638, 782639, Family::Gigantic, EventKind::Damage, 25, {2120}},
++    {782640, 782641, Family::Gigantic, EventKind::Damage, 50, {2136}},
++    {782642, 782643, Family::Gigantic, EventKind::Damage, 50, {2948}},
++    {782644, 782645, Family::Gigantic, EventKind::Damage, 50, {11366}},
++    {782646, 782647, Family::Gigantic, EventKind::Damage, 50, {31661}},
++    {782648, 782649, Family::Gigantic, EventKind::Damage, 15, {1949}},
++    {782650, 782651, Family::Gigantic, EventKind::Damage, 50, {5676}},
++    {782652, 782653, Family::Gigantic, EventKind::Damage, 50, {6353}},
++    {782654, 782655, Family::Gigantic, EventKind::Damage, 50, {29722}},
++    {782656, 782657, Family::Gigantic, EventKind::Damage, 50, {17962}},
++    {782658, 782659, Family::Gigantic, EventKind::Damage, 50, {50796}},
++    {782660, 782661, Family::Gigantic, EventKind::Damage, 25, {8050}},
++    {782662, 782663, Family::Gigantic, EventKind::Damage, 50, {51505}},
++    {782664, 782665, Family::Gigantic, EventKind::Damage, 25, {339}},
++    {782666, 782667, Family::Gigantic, EventKind::Damage, 50, {5176}},
++    {782668, 782669, Family::Gigantic, EventKind::Damage, 50, {403}},
++    {782670, 782671, Family::Gigantic, EventKind::Damage, 30, {421}},
++    {782672, 782673, Family::Gigantic, EventKind::Damage, 50, {8042}},
++    {782674, 782675, Family::Gigantic, EventKind::Damage, 50, {116}},
++    {782676, 782677, Family::Gigantic, EventKind::Damage, 50, {120}},
++    {782678, 782679, Family::Gigantic, EventKind::Damage, 50, {122}},
++    {782680, 782681, Family::Gigantic, EventKind::Damage, 50, {30455}},
++    {782682, 782683, Family::Gigantic, EventKind::Damage, 100, {44572, 71757}},
++    {782684, 782685, Family::Gigantic, EventKind::Damage, 50, {8056}},
++    {782686, 782687, Family::Gigantic, EventKind::Damage, 50, {954807}},
++    {782688, 782689, Family::Gigantic, EventKind::Damage, 50, {8092}},
++    {782690, 782691, Family::Gigantic, EventKind::Damage, 50, {32379}},
++    {782692, 782693, Family::Gigantic, EventKind::Damage, 25, {15407}},
++    {782694, 782695, Family::Gigantic, EventKind::Damage, 25, {34914}},
++    {782696, 782697, Family::Gigantic, EventKind::Damage, 25, {2944}},
++    {782698, 782699, Family::Gigantic, EventKind::Damage, 25, {689}},
++    {782700, 782701, Family::Gigantic, EventKind::Damage, 25, {1120}},
++    {782702, 782703, Family::Gigantic, EventKind::Damage, 50, {48181}},
++    {782704, 782705, Family::Gigantic, EventKind::Damage, 50, {686}},
++    {782706, 782707, Family::Gigantic, EventKind::Damage, 50, {17877}},
++    {782708, 782709, Family::Gigantic, EventKind::Damage, 50, {30283}},
++    {782710, 782711, Family::Gigantic, EventKind::Damage, 50, {47897}},
++    {782712, 782713, Family::Gigantic, EventKind::Damage, 50, {954611}},
++    {782714, 782715, Family::Gigantic, EventKind::Damage, 15, {1449}},
++    {782716, 782717, Family::Gigantic, EventKind::Damage, 50, {30451}},
++    {782718, 782719, Family::Gigantic, EventKind::Damage, 50, {44425}},
++    {782720, 782721, Family::Gigantic, EventKind::Damage, 50, {2912}},
++    {782722, 782723, Family::Gigantic, EventKind::Damage, 50, {954800}},
++    {782724, 782725, Family::Gigantic, EventKind::Damage, 25, {5143}},
++    {782726, 782727, Family::Gigantic, EventKind::Damage, 25, {772}},
++    {782728, 782729, Family::Gigantic, EventKind::Damage, 25, {703}},
++    {782730, 782731, Family::Gigantic, EventKind::Damage, 25, {1943}},
++    {782732, 782733, Family::Gigantic, EventKind::Damage, 25, {1079}},
++    {782734, 782735, Family::Gigantic, EventKind::Damage, 25, {33745}},
++    {782736, 782737, Family::Gigantic, EventKind::Damage, 25, {44457}},
++    {782738, 782739, Family::Gigantic, EventKind::Damage, 25, {348}},
++    {782740, 782741, Family::Gigantic, EventKind::Damage, 25, {5570}},
++    {782742, 782743, Family::Gigantic, EventKind::Damage, 25, {1978}},
++    {782744, 782745, Family::Gigantic, EventKind::Damage, 25, {589}},
++    {782746, 782747, Family::Gigantic, EventKind::Damage, 25, {172}},
++    {782748, 782749, Family::Gigantic, EventKind::Damage, 25, {980}},
++    {782750, 782751, Family::Gigantic, EventKind::Damage, 25, {30108}},
++    {782752, 782753, Family::Gigantic, EventKind::Damage, 25, {8921}},
++    {782810, 782811, Family::Necrotic, EventKind::KillingBlow, 100, {1495}},
++    {782812, 782813, Family::Necrotic, EventKind::KillingBlow, 100, {2974}},
++    {782814, 782815, Family::Necrotic, EventKind::KillingBlow, 100, {19306}},
++    {782816, 782817, Family::Necrotic, EventKind::KillingBlow, 100, {1464, 50783}},
++    {782818, 782819, Family::Necrotic, EventKind::KillingBlow, 100, {1680}},
++    {782820, 782821, Family::Necrotic, EventKind::KillingBlow, 100, {5308, 20647}},
++    {782822, 782823, Family::Necrotic, EventKind::KillingBlow, 100, {34428}},
++    {782824, 782825, Family::Necrotic, EventKind::KillingBlow, 100, {23881}},
++    {782826, 782827, Family::Necrotic, EventKind::KillingBlow, 100, {954876}},
++    {782828, 782829, Family::Necrotic, EventKind::KillingBlow, 100, {954836}},
++    {782830, 782831, Family::Necrotic, EventKind::KillingBlow, 100, {1715}},
++    {782832, 782833, Family::Necrotic, EventKind::KillingBlow, 100, {7384}},
++    {782834, 782835, Family::Necrotic, EventKind::KillingBlow, 100, {12294}},
++    {782836, 782837, Family::Necrotic, EventKind::KillingBlow, 100, {86361}},
++    {782838, 782839, Family::Necrotic, EventKind::KillingBlow, 100, {6572}},
++    {782840, 782841, Family::Necrotic, EventKind::KillingBlow, 100, {23922}},
++    {782842, 782843, Family::Necrotic, EventKind::KillingBlow, 100, {20243}},
++    {782844, 782845, Family::Necrotic, EventKind::KillingBlow, 100, {53}},
++    {782846, 782847, Family::Necrotic, EventKind::KillingBlow, 100, {1752}},
++    {782848, 782849, Family::Necrotic, EventKind::KillingBlow, 100, {5938, 5940}},
++    {782850, 782851, Family::Necrotic, EventKind::KillingBlow, 100, {14251}},
++    {782852, 782853, Family::Necrotic, EventKind::KillingBlow, 100, {14278}},
++    {782854, 782855, Family::Necrotic, EventKind::KillingBlow, 100, {16511}},
++    {782856, 782857, Family::Necrotic, EventKind::KillingBlow, 100, {2098}},
++    {782858, 782859, Family::Necrotic, EventKind::KillingBlow, 100, {8676}},
++    {782860, 782861, Family::Necrotic, EventKind::KillingBlow, 100, {1329}},
++    {782862, 782863, Family::Necrotic, EventKind::KillingBlow, 100, {954553}},
++    {782864, 782865, Family::Necrotic, EventKind::KillingBlow, 100, {954809}},
++    {782866, 782867, Family::Necrotic, EventKind::KillingBlow, 100, {779}},
++    {782868, 782869, Family::Necrotic, EventKind::KillingBlow, 100, {1082}},
++    {782870, 782871, Family::Necrotic, EventKind::KillingBlow, 100, {1822}},
++    {782872, 782873, Family::Necrotic, EventKind::KillingBlow, 100, {5221}},
++    {782874, 782875, Family::Necrotic, EventKind::KillingBlow, 100, {6807}},
++    {782876, 782877, Family::Necrotic, EventKind::KillingBlow, 100, {22568}},
++    {782878, 782879, Family::Necrotic, EventKind::KillingBlow, 100, {62078}},
++    {782880, 782881, Family::Necrotic, EventKind::KillingBlow, 100, {17364}},
++    {782882, 782883, Family::Necrotic, EventKind::KillingBlow, 100, {35395}},
++    {782884, 782885, Family::Necrotic, EventKind::KillingBlow, 100, {53385}},
++    {782886, 782887, Family::Necrotic, EventKind::KillingBlow, 100, {53600}},
++    {782888, 782889, Family::Necrotic, EventKind::KillingBlow, 100, {53595}},
++    {782890, 782891, Family::Necrotic, EventKind::KillingBlow, 100, {60103}},
++    {782892, 782893, Family::Necrotic, EventKind::KillingBlow, 100, {32645}},
++    {782894, 782895, Family::Necrotic, EventKind::KillingBlow, 100, {954821}},
++    {782896, 782897, Family::Necrotic, EventKind::KillingBlow, 100, {2643}},
++    {782898, 782899, Family::Necrotic, EventKind::KillingBlow, 100, {5116}},
++    {782900, 782901, Family::Necrotic, EventKind::KillingBlow, 100, {56641}},
++    {782902, 782903, Family::Necrotic, EventKind::KillingBlow, 100, {19434}},
++    {782904, 782905, Family::Necrotic, EventKind::KillingBlow, 100, {53351}},
++    {782906, 782907, Family::Necrotic, EventKind::KillingBlow, 100, {53209}},
++    {782908, 782909, Family::Necrotic, EventKind::KillingBlow, 100, {6343}},
++    {782910, 782911, Family::Necrotic, EventKind::KillingBlow, 100, {954835}},
++    {782912, 782913, Family::Necrotic, EventKind::KillingBlow, 100, {26679}},
++    {782914, 782915, Family::Necrotic, EventKind::KillingBlow, 100, {24275}},
++    {782916, 782917, Family::Necrotic, EventKind::KillingBlow, 100, {20187, 20271, 20467, 31804, 53407, 53408, 53733, 54158}},
++    {782918, 782919, Family::Necrotic, EventKind::KillingBlow, 100, {53301, 53352}},
++    {782920, 782921, Family::Necrotic, EventKind::KillingBlow, 100, {3044}},
++    {782922, 782923, Family::Necrotic, EventKind::KillingBlow, 100, {585}},
++    {782924, 782925, Family::Necrotic, EventKind::KillingBlow, 100, {14914}},
++    {782926, 782927, Family::Necrotic, EventKind::KillingBlow, 100, {15237}},
++    {782928, 782929, Family::Necrotic, EventKind::KillingBlow, 100, {31935}},
++    {782930, 782931, Family::Necrotic, EventKind::KillingBlow, 100, {879}},
++    {782932, 782933, Family::Necrotic, EventKind::KillingBlow, 100, {2812}},
++    {782934, 782935, Family::Necrotic, EventKind::KillingBlow, 100, {26573}},
++    {782936, 782937, Family::Necrotic, EventKind::KillingBlow, 100, {133}},
++    {782938, 782939, Family::Necrotic, EventKind::KillingBlow, 100, {2120}},
++    {782940, 782941, Family::Necrotic, EventKind::KillingBlow, 100, {2136}},
++    {782942, 782943, Family::Necrotic, EventKind::KillingBlow, 100, {2948}},
++    {782944, 782945, Family::Necrotic, EventKind::KillingBlow, 100, {11366}},
++    {782946, 782947, Family::Necrotic, EventKind::KillingBlow, 100, {31661}},
++    {782948, 782949, Family::Necrotic, EventKind::KillingBlow, 100, {1949}},
++    {782950, 782951, Family::Necrotic, EventKind::KillingBlow, 100, {5676}},
++    {782952, 782953, Family::Necrotic, EventKind::KillingBlow, 100, {6353}},
++    {782954, 782955, Family::Necrotic, EventKind::KillingBlow, 100, {29722}},
++    {782956, 782957, Family::Necrotic, EventKind::KillingBlow, 100, {17962}},
++    {782958, 782959, Family::Necrotic, EventKind::KillingBlow, 100, {50796}},
++    {782960, 782961, Family::Necrotic, EventKind::KillingBlow, 100, {8050}},
++    {782962, 782963, Family::Necrotic, EventKind::KillingBlow, 100, {51505}},
++    {782964, 782965, Family::Necrotic, EventKind::KillingBlow, 100, {339}},
++    {782966, 782967, Family::Necrotic, EventKind::KillingBlow, 100, {5176}},
++    {782968, 782969, Family::Necrotic, EventKind::KillingBlow, 100, {403}},
++    {782970, 782971, Family::Necrotic, EventKind::KillingBlow, 100, {421}},
++    {782972, 782973, Family::Necrotic, EventKind::KillingBlow, 100, {8042}},
++    {782974, 782975, Family::Necrotic, EventKind::KillingBlow, 100, {116}},
++    {782976, 782977, Family::Necrotic, EventKind::KillingBlow, 100, {120}},
++    {782978, 782979, Family::Necrotic, EventKind::KillingBlow, 100, {122}},
++    {782980, 782981, Family::Necrotic, EventKind::KillingBlow, 100, {30455}},
++    {782982, 782983, Family::Necrotic, EventKind::KillingBlow, 100, {44572, 71757}},
++    {782984, 782985, Family::Necrotic, EventKind::KillingBlow, 100, {8056}},
++    {782986, 782987, Family::Necrotic, EventKind::KillingBlow, 100, {954807}},
++    {782988, 782989, Family::Necrotic, EventKind::KillingBlow, 100, {8092}},
++    {782990, 782991, Family::Necrotic, EventKind::KillingBlow, 100, {32379}},
++    {782992, 782993, Family::Necrotic, EventKind::KillingBlow, 100, {15407}},
++    {782994, 782995, Family::Necrotic, EventKind::KillingBlow, 100, {34914}},
++    {782996, 782997, Family::Necrotic, EventKind::KillingBlow, 100, {2944}},
++    {782998, 782999, Family::Necrotic, EventKind::KillingBlow, 100, {689}},
++    {783000, 783001, Family::Necrotic, EventKind::KillingBlow, 100, {1120}},
++    {783002, 783003, Family::Necrotic, EventKind::KillingBlow, 100, {48181}},
++    {783004, 783005, Family::Necrotic, EventKind::KillingBlow, 100, {686}},
++    {783006, 783007, Family::Necrotic, EventKind::KillingBlow, 100, {17877}},
++    {783008, 783009, Family::Necrotic, EventKind::KillingBlow, 100, {30283}},
++    {783010, 783011, Family::Necrotic, EventKind::KillingBlow, 100, {47897}},
++    {783012, 783013, Family::Necrotic, EventKind::KillingBlow, 100, {954611}},
++    {783014, 783015, Family::Necrotic, EventKind::KillingBlow, 100, {1449}},
++    {783016, 783017, Family::Necrotic, EventKind::KillingBlow, 100, {30451}},
++    {783018, 783019, Family::Necrotic, EventKind::KillingBlow, 100, {44425}},
++    {783020, 783021, Family::Necrotic, EventKind::KillingBlow, 100, {2912}},
++    {783022, 783023, Family::Necrotic, EventKind::KillingBlow, 100, {954800}},
++    {783024, 783025, Family::Necrotic, EventKind::KillingBlow, 100, {5143}},
++    {783026, 783027, Family::Necrotic, EventKind::KillingBlow, 100, {772}},
++    {783028, 783029, Family::Necrotic, EventKind::KillingBlow, 100, {703}},
++    {783030, 783031, Family::Necrotic, EventKind::KillingBlow, 100, {1943}},
++    {783032, 783033, Family::Necrotic, EventKind::KillingBlow, 100, {1079}},
++    {783034, 783035, Family::Necrotic, EventKind::KillingBlow, 100, {33745}},
++    {783036, 783037, Family::Necrotic, EventKind::KillingBlow, 100, {44457}},
++    {783038, 783039, Family::Necrotic, EventKind::KillingBlow, 100, {348}},
++    {783040, 783041, Family::Necrotic, EventKind::KillingBlow, 100, {5570}},
++    {783042, 783043, Family::Necrotic, EventKind::KillingBlow, 100, {1978}},
++    {783044, 783045, Family::Necrotic, EventKind::KillingBlow, 100, {589}},
++    {783046, 783047, Family::Necrotic, EventKind::KillingBlow, 100, {172}},
++    {783048, 783049, Family::Necrotic, EventKind::KillingBlow, 100, {980}},
++    {783050, 783051, Family::Necrotic, EventKind::KillingBlow, 100, {30108}},
++    {783052, 783053, Family::Necrotic, EventKind::KillingBlow, 100, {8921}},
++    {783110, 783111, Family::ElementBound, EventKind::Damage, 50, {1495}},
++    {783112, 783113, Family::ElementBound, EventKind::Damage, 50, {2974}},
++    {783114, 783115, Family::ElementBound, EventKind::Damage, 50, {19306}},
++    {783116, 783117, Family::ElementBound, EventKind::Damage, 50, {1464, 50783}},
++    {783118, 783119, Family::ElementBound, EventKind::Damage, 50, {1680}},
++    {783120, 783121, Family::ElementBound, EventKind::Damage, 50, {5308, 20647}},
++    {783122, 783123, Family::ElementBound, EventKind::Damage, 50, {34428}},
++    {783124, 783125, Family::ElementBound, EventKind::Damage, 50, {23881}},
++    {783126, 783127, Family::ElementBound, EventKind::Damage, 50, {954876}},
++    {783128, 783129, Family::ElementBound, EventKind::Damage, 50, {954836}},
++    {783130, 783131, Family::ElementBound, EventKind::Damage, 50, {1715}},
++    {783132, 783133, Family::ElementBound, EventKind::Damage, 50, {7384}},
++    {783134, 783135, Family::ElementBound, EventKind::Damage, 50, {12294}},
++    {783136, 783137, Family::ElementBound, EventKind::Damage, 50, {86361}},
++    {783138, 783139, Family::ElementBound, EventKind::Damage, 50, {6572}},
++    {783140, 783141, Family::ElementBound, EventKind::Damage, 50, {23922}},
++    {783142, 783143, Family::ElementBound, EventKind::Damage, 50, {20243}},
++    {783144, 783145, Family::ElementBound, EventKind::Damage, 50, {53}},
++    {783146, 783147, Family::ElementBound, EventKind::Damage, 50, {1752}},
++    {783148, 783149, Family::ElementBound, EventKind::Damage, 50, {5938, 5940}},
++    {783150, 783151, Family::ElementBound, EventKind::Damage, 50, {14251}},
++    {783152, 783153, Family::ElementBound, EventKind::Damage, 50, {14278}},
++    {783154, 783155, Family::ElementBound, EventKind::Damage, 50, {16511}},
++    {783156, 783157, Family::ElementBound, EventKind::Damage, 50, {2098}},
++    {783158, 783159, Family::ElementBound, EventKind::Damage, 50, {8676}},
++    {783160, 783161, Family::ElementBound, EventKind::Damage, 50, {1329}},
++    {783162, 783163, Family::ElementBound, EventKind::Damage, 50, {954553}},
++    {783164, 783165, Family::ElementBound, EventKind::Direct, 25, {954809}},
++    {783166, 783167, Family::ElementBound, EventKind::Damage, 25, {779}},
++    {783168, 783169, Family::ElementBound, EventKind::Damage, 50, {1082}},
++    {783170, 783171, Family::ElementBound, EventKind::Damage, 25, {1822}},
++    {783172, 783173, Family::ElementBound, EventKind::Damage, 50, {5221}},
++    {783174, 783175, Family::ElementBound, EventKind::Damage, 50, {6807}},
++    {783176, 783177, Family::ElementBound, EventKind::Damage, 50, {22568}},
++    {783178, 783179, Family::ElementBound, EventKind::Damage, 25, {62078}},
++    {783180, 783181, Family::ElementBound, EventKind::Damage, 50, {17364}},
++    {783182, 783183, Family::ElementBound, EventKind::Damage, 50, {35395}},
++    {783184, 783185, Family::ElementBound, EventKind::Damage, 50, {53385}},
++    {783186, 783187, Family::ElementBound, EventKind::Damage, 50, {53600}},
++    {783188, 783189, Family::ElementBound, EventKind::Damage, 50, {53595}},
++    {783190, 783191, Family::ElementBound, EventKind::Damage, 50, {60103}},
++    {783192, 783193, Family::ElementBound, EventKind::Damage, 50, {32645}},
++    {783194, 783195, Family::ElementBound, EventKind::Damage, 50, {954821}},
++    {783196, 783197, Family::ElementBound, EventKind::Damage, 50, {2643}},
++    {783198, 783199, Family::ElementBound, EventKind::Damage, 50, {5116}},
++    {783200, 783201, Family::ElementBound, EventKind::Damage, 50, {56641}},
++    {783202, 783203, Family::ElementBound, EventKind::Damage, 50, {19434}},
++    {783204, 783205, Family::ElementBound, EventKind::Damage, 50, {53351}},
++    {783206, 783207, Family::ElementBound, EventKind::Damage, 50, {53209}},
++    {783208, 783209, Family::ElementBound, EventKind::Damage, 50, {6343}},
++    {783210, 783211, Family::ElementBound, EventKind::Damage, 50, {954835}},
++    {783212, 783213, Family::ElementBound, EventKind::Damage, 50, {26679}},
++    {783214, 783215, Family::ElementBound, EventKind::Damage, 50, {24275}},
++    {783216, 783217, Family::ElementBound, EventKind::Damage, 50, {20187, 20271, 20467, 31804, 53407, 53408, 53733, 54158}},
++    {783218, 783219, Family::ElementBound, EventKind::Damage, 50, {53301, 53352}},
++    {783220, 783221, Family::ElementBound, EventKind::Damage, 50, {3044}},
++    {783222, 783223, Family::ElementBound, EventKind::Damage, 50, {585}},
++    {783224, 783225, Family::ElementBound, EventKind::Direct, 50, {14914}},
++    {783226, 783227, Family::ElementBound, EventKind::Damage, 25, {15237}},
++    {783228, 783229, Family::ElementBound, EventKind::Damage, 50, {31935}},
++    {783230, 783231, Family::ElementBound, EventKind::Damage, 50, {879}},
++    {783232, 783233, Family::ElementBound, EventKind::Damage, 50, {2812}},
++    {783234, 783235, Family::ElementBound, EventKind::Periodic, 15, {26573}},
++    {783236, 783237, Family::ElementBound, EventKind::Direct, 50, {133}},
++    {783238, 783239, Family::ElementBound, EventKind::Direct, 25, {2120}},
++    {783240, 783241, Family::ElementBound, EventKind::Damage, 50, {2136}},
++    {783242, 783243, Family::ElementBound, EventKind::Damage, 50, {2948}},
++    {783244, 783245, Family::ElementBound, EventKind::Direct, 50, {11366}},
++    {783246, 783247, Family::ElementBound, EventKind::Damage, 50, {31661}},
++    {783248, 783249, Family::ElementBound, EventKind::Damage, 15, {1949}},
++    {783250, 783251, Family::ElementBound, EventKind::Damage, 50, {5676}},
++    {783252, 783253, Family::ElementBound, EventKind::Damage, 50, {6353}},
++    {783254, 783255, Family::ElementBound, EventKind::Damage, 50, {29722}},
++    {783256, 783257, Family::ElementBound, EventKind::Direct, 50, {17962}},
++    {783258, 783259, Family::ElementBound, EventKind::Damage, 50, {50796}},
++    {783260, 783261, Family::ElementBound, EventKind::Periodic, 25, {8050}},
++    {783262, 783263, Family::ElementBound, EventKind::Damage, 50, {51505}},
++    {783264, 783265, Family::ElementBound, EventKind::Periodic, 25, {339}},
++    {783266, 783267, Family::ElementBound, EventKind::Damage, 50, {5176}},
++    {783268, 783269, Family::ElementBound, EventKind::Damage, 50, {403}},
++    {783270, 783271, Family::ElementBound, EventKind::Damage, 30, {421}},
++    {783272, 783273, Family::ElementBound, EventKind::Damage, 50, {8042}},
++    {783274, 783275, Family::ElementBound, EventKind::Damage, 50, {116}},
++    {783276, 783277, Family::ElementBound, EventKind::Damage, 50, {120}},
++    {783278, 783279, Family::ElementBound, EventKind::Damage, 50, {122}},
++    {783280, 783281, Family::ElementBound, EventKind::Damage, 50, {30455}},
++    {783282, 783283, Family::ElementBound, EventKind::Damage, 100, {44572, 71757}},
++    {783284, 783285, Family::ElementBound, EventKind::Damage, 50, {8056}},
++    {783286, 783287, Family::ElementBound, EventKind::Damage, 50, {954807}},
++    {783288, 783289, Family::ElementBound, EventKind::Damage, 50, {8092}},
++    {783290, 783291, Family::ElementBound, EventKind::Damage, 50, {32379}},
++    {783292, 783293, Family::ElementBound, EventKind::Damage, 25, {15407}},
++    {783294, 783295, Family::ElementBound, EventKind::Periodic, 25, {34914}},
++    {783296, 783297, Family::ElementBound, EventKind::Periodic, 25, {2944}},
++    {783298, 783299, Family::ElementBound, EventKind::Damage, 25, {689}},
++    {783300, 783301, Family::ElementBound, EventKind::Damage, 25, {1120}},
++    {783302, 783303, Family::ElementBound, EventKind::Damage, 50, {48181}},
++    {783304, 783305, Family::ElementBound, EventKind::Damage, 50, {686}},
++    {783306, 783307, Family::ElementBound, EventKind::Damage, 50, {17877}},
++    {783308, 783309, Family::ElementBound, EventKind::Damage, 50, {30283}},
++    {783310, 783311, Family::ElementBound, EventKind::Direct, 50, {47897}},
++    {783312, 783313, Family::ElementBound, EventKind::Damage, 50, {954611}},
++    {783314, 783315, Family::ElementBound, EventKind::Damage, 15, {1449}},
++    {783316, 783317, Family::ElementBound, EventKind::Damage, 50, {30451}},
++    {783318, 783319, Family::ElementBound, EventKind::Damage, 50, {44425}},
++    {783320, 783321, Family::ElementBound, EventKind::Damage, 50, {2912}},
++    {783322, 783323, Family::ElementBound, EventKind::Damage, 50, {954800}},
++    {783324, 783325, Family::ElementBound, EventKind::Damage, 25, {5143}},
++    {783326, 783327, Family::ElementBound, EventKind::Periodic, 25, {772}},
++    {783328, 783329, Family::ElementBound, EventKind::Periodic, 25, {703}},
++    {783330, 783331, Family::ElementBound, EventKind::Periodic, 25, {1943}},
++    {783332, 783333, Family::ElementBound, EventKind::Periodic, 25, {1079}},
++    {783334, 783335, Family::ElementBound, EventKind::Periodic, 25, {33745}},
++    {783336, 783337, Family::ElementBound, EventKind::Periodic, 25, {44457}},
++    {783338, 783339, Family::ElementBound, EventKind::Periodic, 25, {348}},
++    {783340, 783341, Family::ElementBound, EventKind::Periodic, 25, {5570}},
++    {783342, 783343, Family::ElementBound, EventKind::Periodic, 25, {1978}},
++    {783344, 783345, Family::ElementBound, EventKind::Periodic, 25, {589}},
++    {783346, 783347, Family::ElementBound, EventKind::Periodic, 25, {172}},
++    {783348, 783349, Family::ElementBound, EventKind::Periodic, 25, {980}},
++    {783350, 783351, Family::ElementBound, EventKind::Periodic, 25, {30108}},
++    {783352, 783353, Family::ElementBound, EventKind::Periodic, 25, {8921}},
++    {783357, 783358, Family::Fighter, EventKind::Damage, 50, {33876, 33878, 33917}},
++    {783359, 783360, Family::Wizard, EventKind::Damage, 50, {33876, 33878, 33917}},
++    {783361, 783362, Family::Primal, EventKind::Damage, 50, {33876, 33878, 33917}},
++    {783363, 783364, Family::Demonic, EventKind::Damage, 50, {33876, 33878, 33917}},
++    {783365, 783366, Family::Draconic, EventKind::Damage, 50, {33876, 33878, 33917}},
++    {783367, 783368, Family::Gigantic, EventKind::Damage, 50, {33876, 33878, 33917}},
++    {783369, 783370, Family::Necrotic, EventKind::KillingBlow, 50, {33876, 33878, 33917}},
++    {783371, 783372, Family::Fighter, EventKind::Damage, 50, {760050}},
++    {783373, 783374, Family::Wizard, EventKind::Damage, 50, {760050}},
++    {783375, 783376, Family::Primal, EventKind::Damage, 50, {760050}},
++    {783377, 783378, Family::Demonic, EventKind::Damage, 50, {760050}},
++    {783379, 783380, Family::Draconic, EventKind::Damage, 50, {760050}},
++    {783381, 783382, Family::Gigantic, EventKind::Damage, 50, {760050}},
++    {783383, 783384, Family::Necrotic, EventKind::KillingBlow, 50, {760050}},
++}};
++inline Definition const* Find(std::uint32_t enchant)
++{
++    auto found = std::lower_bound(Catalog.begin(), Catalog.end(), enchant,
++        [](Definition const& entry, std::uint32_t value) { return entry.enchant < value; });
++    return found != Catalog.end() && found->enchant == enchant ? &*found : nullptr;
++}
++inline bool OwnsBuff(std::uint32_t source, std::uint32_t buff)
++{
++    auto entry = Find(source);
++    if (!entry)
++        return false;
++    switch (entry->family)
++    {
++        case Family::Fighter: return buff == 781000;
++        case Family::Wizard: return buff == 781300;
++        case Family::Primal: return buff == 781600;
++        case Family::Demonic: return buff == 781900;
++        case Family::Draconic: return buff == 782200 || buff == 782201;
++        case Family::Gigantic: return buff == 782500 || buff == 782501;
++        case Family::Necrotic: return buff == 782800;
++        case Family::ElementBound: return buff == 783100 || buff == 783101;
++    }
++    return false;
++}
++}
++#endif
+--- /dev/null
++++ b/src/server/coa/Area52WorldforgedRules.h
+@@ -0,0 +1,84 @@
++/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
++#ifndef AREA52_WORLDFORGED_RULES_H
++#define AREA52_WORLDFORGED_RULES_H
++
++#include <algorithm>
++#include <cstdint>
++#include <vector>
++
++namespace Area52Worldforged
++{
++enum class EventKind { Damage, Direct, Periodic, KillingBlow };
++enum class Family { Fighter, Wizard, Primal, Demonic, Draconic, Gigantic, Necrotic, ElementBound };
++
++struct Candidate
++{
++    std::uint32_t enchant;
++    std::uint32_t copies;
++    std::uint32_t chance;
++    Family family;
++    EventKind required;
++    bool matches;
++};
++
++struct Event
++{
++    bool area52;
++    bool active;
++    bool alive;
++    bool cooldown;
++    bool periodic;
++    bool killingBlow;
++    std::uint32_t damage;
++    std::uint32_t healthBefore;
++    std::uint32_t maxHealth;
++};
++
++inline bool Eligible(Candidate const& candidate, Event const& event)
++{
++    if (!event.area52 || !event.active || !event.alive || event.cooldown || !event.damage || !event.healthBefore ||
++        !candidate.matches || !candidate.copies || !candidate.chance || candidate.chance > 100)
++        return false;
++    if (candidate.required == EventKind::Direct && event.periodic)
++        return false;
++    if (candidate.required == EventKind::Periodic && !event.periodic)
++        return false;
++    if (candidate.required == EventKind::KillingBlow && !event.killingBlow)
++        return false;
++    if (candidate.family == Family::Gigantic && (!event.maxHealth ||
++        std::uint64_t(event.healthBefore) * 100 <= std::uint64_t(event.maxHealth) * 75))
++        return false;
++    return true;
++}
++
++template <class Random, class Roll>
++std::uint32_t Select(std::vector<Candidate> candidates, Event const& event, Random& random, Roll&& roll)
++{
++    candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
++        [&](Candidate const& candidate) { return !Eligible(candidate, event); }), candidates.end());
++    std::shuffle(candidates.begin(), candidates.end(), random);
++    for (Candidate const& candidate : candidates)
++        if (roll(candidate.chance))
++            return candidate.enchant;
++    return 0;
++}
++
++inline std::uint32_t Scaled(std::uint32_t value, std::uint32_t copies,
++    std::uint32_t numerator, std::uint32_t denominator)
++{
++    return std::uint64_t(value) * copies * numerator / denominator;
++}
++
++inline std::uint32_t DamageBonus(Family family, std::uint32_t copies,
++    std::uint32_t healthBefore, std::uint32_t maxHealth)
++{
++    if (!maxHealth)
++        return 0;
++    bool const gigantic = family == Family::Gigantic &&
++        std::uint64_t(healthBefore) * 100 > std::uint64_t(maxHealth) * 75;
++    bool const necrotic = family == Family::Necrotic &&
++        std::uint64_t(healthBefore) * 100 < std::uint64_t(maxHealth) * 35;
++    return gigantic || necrotic ? 2 * copies : 0;
++}
++}
++#endif
+--- a/src/server/coa/AscensionFreePick.cpp
++++ b/src/server/coa/AscensionFreePick.cpp
+@@ -1,3 +1,4 @@
++#include "Area52Worldforged.h"
+ /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
+ #include "AscensionFreePick.h"
+ #include "AscensionClassMechanics.h"
+@@ -220,6 +221,7 @@
+         }
+     }
+     RefreshArea52SpellCharges(chargeSpells);
++    Area52Worldforged::RefreshAccess();
+     if (enabled)
+         LOG_INFO("coa", "Free Pick advancement: enabled={}, entries={}, essence levels={}",
+             Active, Data.Entries.size(), Data.Budgets.size());
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -1,3 +1,5 @@
++#include "Area52WorldforgedCatalog.h"
++#include "Area52Worldforged.h"
+ /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
+ #include "AscensionMysticEnchantCatalog.h"
+ #include "AscensionMysticSpellGrants.h"
+@@ -685,6 +687,7 @@
+     return found;
+ }
+ 
++#include "Area52WorldforgedCatalog.h"
+ void LoadConnections()
+ {
+     Active = false;
+@@ -751,6 +754,12 @@
+         if (entry.Quality < 2 || entry.Quality > 5 || !info || !info->IsPassive() ||
+             info->HasAttribute(SPELL_ATTR0_CU_FORCE_AURA_SAVING))
+             continue;
++        if (Area52Worldforged::Find(spell))
++        {
++            if (HasArea52EpicEquipmentHandlers(spell))
++                Connected.emplace(spell, std::max<std::uint32_t>(1, info->StackAmount));
++            continue;
++        }
+         if (spell == Area52Legendary::UnboundedDeathbringer)
+         {
+             if (HasArea52UnboundedDeathbringerHandler())
+@@ -1489,3 +1498,15 @@
+             player->AddAura(enchant, player);
+     }
+ }
++
++void Area52Worldforged::RefreshAccess()
++{
++    AscensionMysticEnchant::LoadConnections();
++    AscensionMysticEnchant::RefreshTestAccess();
++}
++
++bool Area52Worldforged::OwnerReady(Player* player)
++{
++    auto state = player ? player->CustomData.Get<AscensionMysticEnchant::State>(AscensionMysticEnchant::StateKey) : nullptr;
++    return state && state->Loaded;
++}
+--- a/src/server/coa/AscensionMysticKnightEpics.cpp
++++ b/src/server/coa/AscensionMysticKnightEpics.cpp
+@@ -10,6 +10,9 @@
+ #include "GridNotifiersImpl.h"
+ #include "Area52CryotherapistRules.h"
+ #include "Area52WizardFrostboltRules.h"
++#include "Area52Worldforged.h"
++#include "Area52WorldforgedCatalog.h"
++#include <set>
+ #include "Random.h"
+ #include "Player.h"
+ #include "ScriptMgr.h"
+@@ -119,7 +122,7 @@
+ }
+ #include "Area52GlacialLight.inc"
+ #include "Area52StayFrosty.inc"
+-#include "Area52WizardFrostbolt.inc"
++#include "Area52Worldforged.inc"
+ class EpicWorld final : public WorldScript
+ {
+ public:
+@@ -150,7 +153,7 @@
+             return;
+         ConfigureNimbleMind(info);
+         ConfigureStayFrosty(info);
+-        ConfigureWizardFrostbolt(info);
++        ConfigureWorldforged(info);
+         if (info->Id == 983723)
+             info->AuraInterruptFlags &= ~AURA_INTERRUPT_FLAG_LEAVE_COMBAT;
+         if (info->Id == 35395 || (info->Id >= 35601 && info->Id <= 35607))
+@@ -242,7 +245,7 @@
+             std::find(Devastate.begin(), Devastate.end(), spell) != Devastate.end()))
+         {
+             Synchronize(player);
+-            RefreshWizardFrostbolt(player);
++            RefreshWorldforged(player);
+         }
+     }
+     void OnPlayerLevelChanged(Player* player, uint8) override
+@@ -250,7 +253,7 @@
+         if (Applies(player))
+         {
+             Synchronize(player);
+-            RefreshWizardFrostbolt(player);
++            RefreshWorldforged(player);
+         }
+     }
+     void OnPlayerLearnSpell(Player* player, uint32 spell) override { Refresh(player, spell); }
+@@ -270,7 +273,7 @@
+     {
+         Player* player = GetTarget()->ToPlayer();
+         Synchronize(player);
+-        RefreshWizardFrostbolt(player);
++        RefreshWorldforged(player);
+         if (GetId() == Light)
+         {
+             player->RemoveAurasDueToSpell(926590, player->GetGUID());
+@@ -624,8 +627,8 @@
+     new EpicWorld();
+     new GlacialLightSpells();
+     new StayFrostyCasts();
+-    new WizardFrostboltCasts();
+-    new WizardFrostboltCleanup();
++    new WorldforgedAuras();
++    WorldforgedRegistered = true;
+     new StayFrostyProcs();
+     RegisterSpellScript(aura_area52_stay_frosty);
+     new GlacialLightAbsorbs();
+@@ -661,6 +664,8 @@
+ 
+ bool HasArea52EpicEquipmentHandlers(uint32 spell)
+ {
++    if (Area52Worldforged::Find(spell))
++        return Enabled && WorldforgedRegistered;
+     if (Enabled && spell == 414032)
+     {
+         std::list<AuraScript*> handlers;
+@@ -767,10 +772,10 @@
+ 
+ void AscensionMysticEnchant::RefreshEpicReplacements(Player* player)
+ {
++    RefreshWorldforged(player);
+     if (Applies(player))
+     {
+         Synchronize(player);
+-        RefreshWizardFrostbolt(player);
+     }
+ }
+ 
+@@ -783,3 +788,61 @@
+ {
+     ConsumeGlacialLightFingers(spell);
+ }
++
++void Area52Worldforged::Damage(Unit* attacker, Unit* target, SpellInfo const* spell, uint32 damage,
++    uint32 healthBefore, uint32 maxHealth, bool periodic, bool killingBlow)
++{
++    Player* player = attacker ? attacker->ToPlayer() : nullptr;
++    if (!WorldforgedRegistered || !Applies(player) || !target || target == player || !spell ||
++        !damage || !player->IsAlive() || player->HasAura(780999))
++        return;
++    std::vector<Candidate> candidates;
++    std::set<uint32> seen;
++    for (auto const& [id, application] : player->GetAppliedAuras())
++    {
++        auto entry = Find(id);
++        Aura* aura = application->GetBase();
++        if (!entry || aura->GetCasterGUID() != player->GetGUID() || !seen.insert(id).second ||
++            !AscensionMysticEnchant::GrantsActive(player, id) || !WorldforgedMatches(player, spell, *entry))
++            continue;
++        candidates.push_back({id, aura->GetStackAmount(), entry->chance, entry->family, entry->event, true});
++    }
++    Event const event{true, true, true, false, periodic, killingBlow, damage, healthBefore, maxHealth};
++    uint32 const winner = Select(std::move(candidates), event, RandomEngine::Instance(),
++        [](uint32 chance) { return roll_chance_i(chance); });
++    if (auto entry = Find(winner))
++        ProcWorldforged(player, *entry);
++}
++
++uint32 Area52Worldforged::Bonus(Unit* attacker, Unit* target, SpellInfo const* spell, uint32 damage)
++{
++    Player* player = attacker ? attacker->ToPlayer() : nullptr;
++    if (!WorldforgedRegistered || !Applies(player) || !target || target == player || !spell || !damage)
++        return damage;
++    uint32 bonus = 0;
++    std::set<uint32> seen;
++    for (auto const& [id, application] : player->GetAppliedAuras())
++    {
++        auto entry = Find(id);
++        if (!entry || (entry->family != Family::Gigantic && entry->family != Family::Necrotic) ||
++            application->GetBase()->GetCasterGUID() != player->GetGUID() || !seen.insert(id).second ||
++            !AscensionMysticEnchant::GrantsActive(player, id) || !WorldforgedMatches(player, spell, *entry))
++            continue;
++        bonus += DamageBonus(entry->family, application->GetBase()->GetStackAmount(), target->GetHealth(), target->GetMaxHealth());
++    }
++    return uint32(std::min<uint64>(uint64(damage) * (100 + bonus) / 100, INT32_MAX));
++}
++
++int32 Area52Worldforged::PrimaryStat(Aura* aura, int32 fallback)
++{
++    Player* player = aura ? aura->GetUnitOwner()->ToPlayer() : nullptr;
++    if (!Enabled || !player || player->getClass() != CLASS_HERO)
++        return fallback;
++    uint64 stat = aura->GetScriptValue(781600);
++    if (!stat)
++    {
++        stat = WorldforgedSelectedStat(player) + 1;
++        aura->SetScriptValue(781600, stat);
++    }
++    return int32(stat - 1);
++}
+--- a/src/server/coa/AscensionWhiteWalkerSupport.cpp
++++ b/src/server/coa/AscensionWhiteWalkerSupport.cpp
+@@ -961,10 +961,7 @@
+ 
+     bool CheckProc(ProcEventInfo& event)
+     {
+-        return Area52Enabled && event.GetActor() == GetTarget() && event.GetSpellInfo() &&
+-            GetTarget()->ToPlayer() && GetTarget()->ToPlayer()->MatchesSpellInteraction(
+-                event.GetSpellInfo()->Id, AscensionWhiteWalkerSupport::SinisterStrike) &&
+-            !GetTarget()->HasAura(780999) && event.GetDamageInfo() && event.GetDamageInfo()->GetDamage();
++        return false;
+     }
+ 
+     void Proc(ProcEventInfo& event)
+--- a/src/server/game/Entities/Player/PlayerStorage.cpp
++++ b/src/server/game/Entities/Player/PlayerStorage.cpp
+@@ -49,6 +49,7 @@
+ #include "OutdoorPvP.h"
+ #include "Pet.h"
+ #include "Player.h"
++#include "../../../coa/Area52WorldforgedCatalog.h"
+ #include "QueryHolder.h"
+ #include "QuestDef.h"
+ #include "RBAC.h"
+@@ -5922,9 +5923,9 @@
+                 }
+ 
+                 aura->SetLoadedState(maxduration, remaintime, remaincharges, stackcount, recalculatemask, &damage[0]);
+-                if (AscensionFreePick::Enabled() && getClass() == CLASS_HERO && spellid == 781300 &&
+-                    fields[15].Get<uint32>() == 781474 && caster_guid == GetGUID())
+-                    aura->SetTriggeredByAuraSpellInfo(sSpellMgr->GetSpellInfo(781474));
++                if (AscensionFreePick::Enabled() && getClass() == CLASS_HERO && caster_guid == GetGUID() &&
++                    Area52Worldforged::OwnsBuff(fields[15].Get<uint32>(), spellid))
++                    aura->SetTriggeredByAuraSpellInfo(sSpellMgr->GetSpellInfo(fields[15].Get<uint32>()));
+                 aura->ApplyForTargets();
+                 LOG_DEBUG("entities.player", "Added aura spellid {}, effectmask {}", spellInfo->Id, effmask);
+             }
+@@ -7451,8 +7452,8 @@
+         stmt->SetData(index++, itr->second->GetDuration());
+         stmt->SetData(index++, itr->second->GetCharges());
+         SpellInfo const* sourceAura = aura->GetTriggeredByAuraSpellInfo();
+-        stmt->SetData(index, AscensionFreePick::Applies(this) && aura->GetId() == 781300 &&
+-            sourceAura && sourceAura->Id == 781474 ? sourceAura->Id : 0u);
++        stmt->SetData(index, AscensionFreePick::Applies(this) && sourceAura &&
++            Area52Worldforged::OwnsBuff(sourceAura->Id, aura->GetId()) ? sourceAura->Id : 0u);
+         trans->Append(stmt);
+     }
+ }
+--- a/src/server/game/Entities/Unit/Unit.cpp
++++ b/src/server/game/Entities/Unit/Unit.cpp
+@@ -16,6 +16,7 @@
+  */
+ 
+ #include "Unit.h"
++#include "../../../coa/Area52Worldforged.h"
+ #include "../../../coa/AscensionMysticEnchantCatalog.h"
+ #include "../../../coa/AscensionFreePick.h"
+ #include "../../../coa/Area52MarksmanRules.h"
+@@ -1238,6 +1239,7 @@
+     LOG_DEBUG("entities.unit", "DealDamageStart");
+ 
+     uint32 health = victim->GetHealth();
++    uint32 const worldforgedMaxHealth = victim->GetMaxHealth();
+     LOG_DEBUG("entities.unit", "deal dmg:{} to health:{} ", damage, health);
+ 
+     // duel ends when player has 1 or less hp
+@@ -1442,6 +1444,10 @@
+         }
+     }
+ 
++    if (damagetype != NODAMAGE && spellProto)
++        Area52Worldforged::Damage(attacker, victim, spellProto, damage, health, worldforgedMaxHealth,
++            damagetype == DOT, health != 0 && health <= damage && !victim->IsAlive());
++
+     LOG_DEBUG("entities.unit", "DealDamageEnd returned {} damage", damage);
+ 
+     if (scriptHealthLeechDamage)
+@@ -1645,6 +1651,7 @@
+ 
+      // Script Hook For CalculateSpellDamageTaken -- Allow scripts to change the Damage post class mitigation calculations
+     sScriptMgr->ModifySpellDamageTaken(damageInfo->target, damageInfo->attacker, damage, spellInfo);
++    damage = int32(Area52Worldforged::Bonus(damageInfo->attacker, damageInfo->target, spellInfo, uint32(std::max(damage, 0))));
+ 
+     if (victim->GetAI())
+     {
+--- a/src/server/game/Spells/Auras/SpellAuraEffects.cpp
++++ b/src/server/game/Spells/Auras/SpellAuraEffects.cpp
+@@ -17,6 +17,7 @@
+  */
+ 
+ #include "SpellAuraEffects.h"
++#include "../../../coa/Area52Worldforged.h"
+ #include "../../../coa/AscensionFreePick.h"
+ #include "Item.h"
+ #include "AreaDefines.h"
+@@ -494,6 +495,8 @@
+ 
+ int32 AuraEffect::GetMiscValue() const
+ {
++    if (GetId() == 781600 && GetEffIndex() == EFFECT_0)
++        return Area52Worldforged::PrimaryStat(GetBase(), m_spellInfo->Effects[m_effIndex].MiscValue);
+     return m_spellInfo->Effects[m_effIndex].MiscValue;
+ }
+ 
+@@ -4384,6 +4387,9 @@
+     if (!(mode & (AURA_EFFECT_HANDLE_CHANGE_AMOUNT_MASK | AURA_EFFECT_HANDLE_STAT)))
+         return;
+ 
++    if (GetId() == 781600 && GetMiscValue() == MAX_STATS)
++        return;
++
+     if (GetMiscValue() < -2 || GetMiscValue() > 4)
+     {
+         LOG_ERROR("spells.aura.effect", "WARNING: Spell {} effect {} has an unsupported misc value ({}) for SPELL_AURA_MOD_STAT ", GetId(), GetEffIndex(), GetMiscValue());
+@@ -6597,6 +6603,7 @@
+ 
+     // Script Hook For HandlePeriodicDamageAurasTick -- Allow scripts to change the Damage pre class mitigation calculations
+     sScriptMgr->ModifyPeriodicDamageAurasTick(target, caster, damage, GetSpellInfo());
++    damage = Area52Worldforged::Bonus(caster, target, GetSpellInfo(), damage);
+ 
+     if (target->GetAI())
+     {
+@@ -6718,6 +6725,7 @@
+ 
+     // Script Hook For HandlePeriodicHealthLeechAurasTick -- Allow scripts to change the Damage pre class mitigation calculations
+     sScriptMgr->ModifyPeriodicDamageAurasTick(target, caster, damage, GetSpellInfo());
++    damage = Area52Worldforged::Bonus(caster, target, GetSpellInfo(), damage);
+ 
+     if (target->GetAI())
+     {

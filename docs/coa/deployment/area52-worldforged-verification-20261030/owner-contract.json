@@ -1,0 +1,11 @@
+{
+  "necrotic": "All variants require named ability killing blow; correct ambiguous tooltips",
+  "arbitration": "Randomize eligible enchant entries; first successful roll starts shared 20-second cooldown",
+  "activation": "Not authorized; prepare combined verified package",
+  "preserve": "Activated bot companions and existing Wizard correction",
+  "pending": [],
+  "element_bound": "Retain native helper resource-cost scope; tooltip says reduces spell costs",
+  "proc_event_granularity": "One proc roll per eligible enchant per damaged target for each direct hit or periodic tick, using its own SLS companion chance. Multiple equipped copies do not add rolls or chance; each additional copy adds 100% of the base buff power.",
+  "periodic_example": "Wizard's Moonfire: 25% per damaging tick per target.",
+  "primal_primary_stat": "Area 52 has Strength, Agility, Intellect and Spirit paths only. Path of Duality is not available and is excluded; owner confirmed October 30."
+}
