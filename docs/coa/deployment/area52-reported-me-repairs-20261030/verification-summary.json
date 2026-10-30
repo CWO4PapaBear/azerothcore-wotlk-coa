@@ -1,0 +1,64 @@
+{
+  "scope": "Four reported repairs; no new Verified or Certified promotion",
+  "reports": [
+    "combined/full-build-r1",
+    "native-r4",
+    "scroll-verification-r5",
+    "cosmic/native-r6",
+    "cosmic/sql-r1",
+    "combined/package-verification-r1"
+  ],
+  "limits": [
+    "Oversized healing input source remains under investigation.",
+    "Critical Judgement catalog repair does not establish full crit mechanics.",
+    "Cosmic retains native coefficients; no cross-realm numerical imports."
+  ],
+  "source": [
+    {
+      "path": "src/server/game/Spells/SpellMgr.cpp",
+      "effective_before_sha256": "1b61ede340c578cbdb2c48754a21587657514961f413562e495a8814bac43370",
+      "installed_before_sha256": "1b61ede340c578cbdb2c48754a21587657514961f413562e495a8814bac43370",
+      "after_sha256": "668ae995f14dd4a378b4b1326691a493b5026fe1b7f543d94fe7f1c35be0bdfc"
+    },
+    {
+      "path": "src/server/game/Entities/Player/Player.cpp",
+      "effective_before_sha256": "ac64a25715f4a777cb81506667ddaace2c418ffbf4b7c7854a4a0b8179f534f9",
+      "installed_before_sha256": "ac64a25715f4a777cb81506667ddaace2c418ffbf4b7c7854a4a0b8179f534f9",
+      "after_sha256": "18091ef22d28b9d9b6f6581b274de2b04cc190b768c0885b6b0c12323ba16232"
+    },
+    {
+      "path": "src/server/game/Entities/Unit/Unit.cpp",
+      "effective_before_sha256": "78f8b8f250493ababcc415b3c872c576cbf81096980f0cbdfb2536e89a848805",
+      "installed_before_sha256": "78f8b8f250493ababcc415b3c872c576cbf81096980f0cbdfb2536e89a848805",
+      "after_sha256": "f5529102c4fb2acacea96605c7a50470dd0f3e998883110d586b96073f189e77"
+    },
+    {
+      "path": "src/server/coa/Area52CosmicReprisal.inc",
+      "effective_before_sha256": null,
+      "installed_before_sha256": null,
+      "after_sha256": "ad29f8218246b452ee6fe8c56a061e9a8cb61e60f4ef82cbc7592c8b6d7a4d4e"
+    },
+    {
+      "path": "src/server/coa/AscensionMysticKnightEpics.cpp",
+      "effective_before_sha256": "666da7f1a0701bf517d3fffeea9dcb861968b0b07c80148fe998af8a50c7d3bf",
+      "installed_before_sha256": "666da7f1a0701bf517d3fffeea9dcb861968b0b07c80148fe998af8a50c7d3bf",
+      "after_sha256": "1a78f1660991995d1db3c98f678d1f7580f7a6f1b18c9dea4aba1beaff20c3da"
+    },
+    {
+      "path": "data/sql/updates/pending_db_world/2026_10_30_01_area52_cosmic_reprisal.sql",
+      "effective_before_sha256": null,
+      "installed_before_sha256": null,
+      "after_sha256": "10def6761be68d1e70e65c18e71d8a4707a19eab6453ef7d53d645dc0b4bfa7d"
+    }
+  ],
+  "server_sha256": "a3fe64946caf20142473c18c87e094409cd71dd063cd4d72808d9b01e2333419",
+  "publication_tests": {
+    "publication": 36,
+    "publication_windows_skips": 2,
+    "windows_tls": 2,
+    "deployment": 11,
+    "client_staging": 3,
+    "channel_contract": 1,
+    "result": "passed"
+  }
+}

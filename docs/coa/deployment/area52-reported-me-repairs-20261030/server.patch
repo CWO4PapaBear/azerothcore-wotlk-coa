@@ -1,0 +1,226 @@
+--- a/src/server/game/Spells/SpellMgr.cpp
++++ b/src/server/game/Spells/SpellMgr.cpp
+@@ -2305,7 +2305,7 @@
+                 addTriggerFlag = true;
+ 
+             // Many proc auras with taken procFlag mask don't have
+-            // attribute "can proc with triggered" — they should
++            // attribute "can proc with triggered" â€” they should
+             // proc nevertheless (e.g. mage armor spells with
+             // judgement)
+             if (!addTriggerFlag
+@@ -3713,6 +3713,9 @@
+ 
+         sScriptMgr->OnLoadSpellCustomAttr(spellInfo);
+ 
++        if (spellInfo->Id == 978701)
++            spellInfo->_spellSpecific = spellInfo->LoadSpellSpecific();
++
+         // Module hooks can change effect targets after the initial mask was cached.
+         spellInfo->_InitializeExplicitTargetMask();
+     }
+--- a/src/server/game/Entities/Player/Player.cpp
++++ b/src/server/game/Entities/Player/Player.cpp
+@@ -13916,11 +13916,19 @@
+             return;
+         m_temporarySpellReplacements[original] = replacement;
+     }
+-    if (previous != replacement && IsInWorld())
+-    {
++    if (previous != replacement && IsInWorld() && HasActiveSpell(original))
++    {
++        if (original == 6117 && replacement == 978701)
++        {
++            WorldPacket remove(SMSG_REMOVED_SPELL, 5);
++            remove << uint32(replacement) << uint8(0);
++            GetSession()->SendPacket(&remove);
++        }
+         WorldPacket packet(SMSG_SUPERCEDED_SPELL, 8);
+         packet << previous << replacement;
+         GetSession()->SendPacket(&packet);
++        if (original == 6117 && replacement == original && HasActiveSpell(978701))
++            SendLearnPacket(978701, true);
+     }
+ }
+ 
+--- a/src/server/game/Entities/Unit/Unit.cpp
++++ b/src/server/game/Entities/Unit/Unit.cpp
+@@ -8777,7 +8777,7 @@
+     }
+ 
+     if (addhealth)
+-        gain = victim->ModifyHealth(int32(addhealth));
++        gain = victim->ModifyHealth(int32(std::min<uint32>(addhealth, INT32_MAX)));
+ 
+     // Hook for OnHeal Event
+     sScriptMgr->OnHeal(healer, victim, (uint32&)gain);
+@@ -9102,7 +9102,7 @@
+ 
+     victim->ModifyPower(powerType, damage, false);
+ 
+-    // Happiness is internal hunter pet state, not combat assistance — energizing it must not generate threat
++    // Happiness is internal hunter pet state, not combat assistance â€” energizing it must not generate threat
+     if (powerType != POWER_HAPPINESS && !(powerType == POWER_MANA && victim->GainsManaWithoutThreat()))
+         if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellID))
+         {
+@@ -12612,16 +12612,16 @@
+     if (dVal == 0)
+         return 0;
+ 
+-    int32 curHealth = (int32)GetHealth();
+-
+-    int32 val = dVal + curHealth;
++    int64 curHealth = GetHealth();
++
++    int64 val = int64(dVal) + curHealth;
+     if (val <= 0)
+     {
+         SetHealth(0);
+         return -curHealth;
+     }
+ 
+-    int32 maxHealth = (int32)GetMaxHealth();
++    int64 maxHealth = GetMaxHealth();
+ 
+     if (val < maxHealth)
+     {
+@@ -12644,15 +12644,15 @@
+     if (dVal == 0)
+         return 0;
+ 
+-    int32 curHealth = (int32)GetHealth();
+-
+-    int32 val = dVal + curHealth;
++    int64 curHealth = GetHealth();
++
++    int64 val = int64(dVal) + curHealth;
+     if (val <= 0)
+     {
+         return -curHealth;
+     }
+ 
+-    int32 maxHealth = (int32)GetMaxHealth();
++    int64 maxHealth = GetMaxHealth();
+ 
+     if (val < maxHealth)
+         gain = dVal;
+@@ -13207,7 +13207,7 @@
+         return target;
+     }
+ 
+-    // Don't evade if another unit has us on their threat list — evading would
++    // Don't evade if another unit has us on their threat list â€” evading would
+     // end the bidirectional combat reference and remove us from their threat list,
+     // causing them to lose their target (e.g. an NPC fighting a guardian whose
+     // CanAIAttack rejects the NPC).
+--- /dev/null
++++ b/src/server/coa/Area52CosmicReprisal.inc
+@@ -0,0 +1,68 @@
++constexpr uint32 CosmicReprisal = 978733;
++constexpr uint32 CosmicSolarEclipse = 48517;
++constexpr uint32 CosmicLunarEclipse = 48518;
++constexpr uint32 CosmicBrightSun = 978734;
++constexpr uint32 CosmicShimmeringMoon = 978736;
++
++void ConfigureCosmicReprisal(SpellInfo* info)
++{
++    if (info->Id == CosmicBrightSun)
++        info->ProcFlags = PROC_FLAG_TAKEN_MELEE_AUTO_ATTACK | PROC_FLAG_TAKEN_SPELL_MELEE_DMG_CLASS |
++            PROC_FLAG_TAKEN_RANGED_AUTO_ATTACK | PROC_FLAG_TAKEN_SPELL_RANGED_DMG_CLASS;
++    if (info->Id == CosmicShimmeringMoon)
++        info->ProcFlags = PROC_FLAG_TAKEN_SPELL_MAGIC_DMG_CLASS_NEG | PROC_FLAG_TAKEN_SPELL_NONE_DMG_CLASS_NEG;
++}
++
++void SynchronizeCosmicReprisal(Player* player)
++{
++    if (!Applies(player) || !player->IsInWorld())
++        return;
++    bool const active = player->IsAlive() && player->HasAura(CosmicReprisal, player->GetGUID()) &&
++        AscensionMysticEnchant::GrantsActive(player, CosmicReprisal);
++    constexpr std::array<std::pair<uint32, uint32>, 2> links =
++    {{
++        {CosmicSolarEclipse, CosmicBrightSun},
++        {CosmicLunarEclipse, CosmicShimmeringMoon}
++    }};
++    for (auto const& [eclipse, helper] : links)
++    {
++        Aura const* effect = active ? player->GetAura(eclipse, player->GetGUID()) : nullptr;
++        if (!effect)
++        {
++            player->RemoveAurasDueToSpell(helper, player->GetGUID());
++            continue;
++        }
++        Aura* defense = player->GetAura(helper, player->GetGUID());
++        if (!defense)
++            defense = player->AddAura(helper, player);
++        if (defense)
++        {
++            defense->SetMaxDuration(effect->GetMaxDuration());
++            defense->SetDuration(effect->GetDuration());
++        }
++    }
++}
++
++bool CosmicReprisalLifecycleSpell(uint32 spell)
++{
++    return spell == CosmicReprisal || spell == CosmicSolarEclipse || spell == CosmicLunarEclipse;
++}
++
++class CosmicReprisalAuras final : public UnitScript
++{
++public:
++    CosmicReprisalAuras() : UnitScript("Area52CosmicReprisalAuras", true,
++        {UNITHOOK_ON_AURA_APPLY, UNITHOOK_ON_AURA_REMOVE}) { }
++
++    void OnAuraApply(Unit* unit, Aura* aura) override
++    {
++        if (unit && aura && CosmicReprisalLifecycleSpell(aura->GetId()))
++            SynchronizeCosmicReprisal(unit->ToPlayer());
++    }
++
++    void OnAuraRemove(Unit* unit, AuraApplication* application, AuraRemoveMode) override
++    {
++        if (unit && application && CosmicReprisalLifecycleSpell(application->GetBase()->GetId()))
++            SynchronizeCosmicReprisal(unit->ToPlayer());
++    }
++};
+--- a/src/server/coa/AscensionMysticKnightEpics.cpp
++++ b/src/server/coa/AscensionMysticKnightEpics.cpp
+@@ -122,6 +122,7 @@
+ }
+ #include "Area52GlacialLight.inc"
+ #include "Area52StayFrosty.inc"
++#include "Area52CosmicReprisal.inc"
+ #include "Area52Worldforged.inc"
+ class EpicWorld final : public WorldScript
+ {
+@@ -153,6 +154,7 @@
+             return;
+         ConfigureNimbleMind(info);
+         ConfigureStayFrosty(info);
++        ConfigureCosmicReprisal(info);
+         ConfigureWorldforged(info);
+         if (info->Id == 983723)
+             info->AuraInterruptFlags &= ~AURA_INTERRUPT_FLAG_LEAVE_COMBAT;
+@@ -630,6 +632,7 @@
+     new WorldforgedAuras();
+     WorldforgedRegistered = true;
+     new StayFrostyProcs();
++    new CosmicReprisalAuras();
+     RegisterSpellScript(aura_area52_stay_frosty);
+     new GlacialLightAbsorbs();
+     new CryotherapistContracts();
+@@ -773,6 +776,7 @@
+ void AscensionMysticEnchant::RefreshEpicReplacements(Player* player)
+ {
+     RefreshWorldforged(player);
++    SynchronizeCosmicReprisal(player);
+     if (Applies(player))
+     {
+         Synchronize(player);
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/2026_10_30_01_area52_cosmic_reprisal.sql
+@@ -0,0 +1,3 @@
++DELETE FROM `spell_proc` WHERE `SpellId` = 978734;
++INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `ProcFlags`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
++(978734, 1, 0, 0, 0, 0, 680, 1, 2, 0, 0, 0, 0, 100, 0, 0);

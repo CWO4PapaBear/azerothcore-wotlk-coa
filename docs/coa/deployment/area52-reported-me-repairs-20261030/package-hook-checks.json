@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "cases": [
+    "artifact integrity",
+    "qualified SQL hooks byte-identical",
+    "qualified source semantic identity",
+    "data/client apply and rollback",
+    "partial application rollback",
+    "drift and certification edit rejection",
+    "client closure rejection"
+  ]
+}
