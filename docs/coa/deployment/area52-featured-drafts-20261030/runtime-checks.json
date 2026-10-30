@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "checks": [
+    "collection not ready",
+    "temporary ownership never permanently learns",
+    "unmet investment equips dormant",
+    "investment learned and removed toggles aura without re-equipping",
+    "all 17 slots at level1",
+    "invalid capacity/catalog/stack rejection",
+    "equipment failure restores entitlement",
+    "busy cleanup rejected",
+    "exit removes all equipment and preserves known collection",
+    "actual manual-exit persistence sets both forfeiture flags",
+    "clears stale Draft specializations and preserves ordinary ones",
+    "internal auto-learning bypasses manual forfeiture",
+    "busy/unsafe/equipment failure leaves Draft unchanged",
+    "other-realm isolation"
+  ],
+  "scope": "Extracted production entitlement, slot-validation, aura synchronization portion and manual-exit functions; bounded Player/equipment adapters. Spell-grant loop and full session dispatch are source-traced, not executed here."
+}

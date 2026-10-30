@@ -1,0 +1,562 @@
+--- a/Interface/AddOns/Ascension_BuildCreator/BuildCreator.lua
++++ b/Interface/AddOns/Ascension_BuildCreator/BuildCreator.lua
+@@ -526,6 +526,7 @@
+ end
+ 
+ function BuildCreatorMixin:PromptPublishBuild()
++    if Area52DraftSelector and not Area52DraftSelector.Valid(self.EditableBuildViewPanel) then return end
+     local editor = self.EditableBuildViewPanel
+     if editor:IsShown() then
+         if editor.editElement then
+@@ -837,4 +838,228 @@
+ 	end
+ 
+ 	self:ShowError(DELETE_BUILD_FAILED, _G[result] or result)
+-end+end
++-- Area 52 internal build imports and portable build codes.
++Area52BuildImport = {}
++local Import = Area52BuildImport
++local MAX_CODE = 100000
++
++local function integer(value, maximum)
++    assert(type(value) == "number" and value >= 0 and value <= maximum and value == math.floor(value), "Invalid number")
++    return value
++end
++
++local function text(value, maximum)
++    value = value or ""
++    assert(type(value) == "string" and #value <= maximum and not value:find("%z"), "Invalid text")
++    return value
++end
++
++local function array(value, maximum, convert)
++    assert(type(value) == "table" and #value <= maximum, "Invalid list")
++    local result, seen = {}, {}
++    for key in pairs(value) do assert(type(key) == "number" and key >= 1 and key <= #value and key == math.floor(key), "Invalid list index") end
++    for i, row in ipairs(value) do
++        result[i] = convert(row)
++        local id = result[i].Spell or result[i].Enchant or result[i].Type
++        assert(not seen[id], "Duplicate selection")
++        seen[id] = true
++    end
++    return result
++end
++
++function Import.Validate(build)
++    assert(type(build) == "table", "Invalid build")
++    local result = {}
++    for key, limit in pairs({Name=128, Icon=256, Description=8192}) do result[key] = text(build[key], limit) end
++    assert(#result.Name > 0, "Missing build name")
++    for _, key in ipairs({'Category','Roles','PrimaryStat','DifficultyRating'}) do result[key]=text(build[key],64) end
++    assert(Enum.BuildRoles[result.Roles] or result.Roles=='PLAYER_ROLE_NONE', 'Invalid role')
++    local stats={STAT_STRENGTH=true,STAT_AGILITY=true,STAT_INTELLECT=true,STAT_SPIRIT=true}
++    assert(stats[result.PrimaryStat], 'Invalid primary stat')
++    local validDifficulty=false
++    for _,value in pairs(Enum.BuildDifficulty) do if value==result.DifficultyRating then validDifficulty=true end end
++    assert(validDifficulty,'Invalid difficulty')
++    local validCategory = false
++    for _, key in ipairs({"Leveling", "Level60PvE", "Level60PvP", "Level70PvE", "Level70PvP", "BuildDraft", "BuildDraftEndGamePvE", "BuildDraftEndGamePvP"}) do
++        if Enum.BuildCategory[key] == result.Category then validCategory = true end
++    end
++    assert(validCategory, "Unsupported build category")
++    result.Spells = array(build.Spells, 512, function(row)
++        assert(type(row) == "table", "Invalid spell")
++        local r = {Spell=integer(row.Spell, 4294967295), Level=integer(row.Level or 1, 80), Comment=text(row.Comment,128), Flags=integer(row.Flags or 0,4294967295)}
++        assert(r.Spell > 0, "Invalid spell ID")
++        for _, key in ipairs({"IsCoreAbility", "IsOptimalAbility", "IsEmpoweringAbility", "IsSynergisticAbility"}) do
++            assert(row[key] == nil or type(row[key]) == "boolean", "Invalid spell role")
++            r[key] = row[key] or false
++        end
++        return r
++    end)
++    result.RandomEnchants = array(build.RandomEnchants, 64, function(row)
++        assert(type(row) == "table", "Invalid enchant")
++        local r = {Enchant=integer(row.Enchant,4294967295), Stacks=integer(row.Stacks,17), Level=integer(row.Level or 1,80), Comment=text(row.Comment,128), Flags=integer(row.Flags or 0,4294967295)}
++        assert(r.Enchant > 0 and r.Stacks > 0, "Invalid enchant selection")
++        return r
++    end)
++    for _, key in ipairs({"ArmorTypes", "WeaponTypes"}) do
++        result[key] = array(build[key],32,function(row)
++            assert(type(row) == "table", "Invalid equipment")
++            local kind=text(row.Type,64)
++            local allowed=key=='ArmorTypes' and Enum.ArmorSubClassSID or Enum.WeaponSubClassSID
++            assert(allowed[kind], 'Invalid equipment type')
++            return {Type=kind, Comment=text(row.Comment,128)}
++        end)
++    end
++    return result
++end
++
++local function pack(value)
++    if type(value) == "string" then return "s"..#value..":"..value end
++    if type(value) == "number" then return "n"..string.format("%.0f", value)..":" end
++    if type(value) == "boolean" then return value and "b1" or "b0" end
++    local keys = {}
++    for key in pairs(value) do keys[#keys+1] = key end
++    table.sort(keys, function(a,b) return tostring(a) < tostring(b) end)
++    local parts = {"t"..#keys..":"}
++    for _, key in ipairs(keys) do parts[#parts+1] = pack(key); parts[#parts+1] = pack(value[key]) end
++    return table.concat(parts)
++end
++
++function Import.Encode(build)
++    local raw = pack(Import.Validate(build))
++    local code = "A52B1:"..raw:gsub(".", function(c) return string.format("%02x",string.byte(c)) end)
++    assert(#code <= MAX_CODE, "Build is too large to share")
++    return code
++end
++
++function Import.Decode(code)
++    assert(type(code) == "string" and #code <= MAX_CODE, "Build code is too large")
++    code = code:match("^%s*(.-)%s*$")
++    assert(code:sub(1,6) == "A52B1:", "Expected an Area 52 build code (A52B1)")
++    local hex = code:sub(7)
++    assert(#hex % 2 == 0 and not hex:find("[^%x]"), "Invalid build code")
++    local raw = hex:gsub("..", function(pair) return string.char(tonumber(pair,16)) end)
++    local pos, nodes = 1, 0
++    local function read(depth)
++        nodes = nodes+1
++        assert(depth <= 5 and nodes <= 16000, "Build code exceeds limits")
++        local kind = raw:sub(pos,pos); pos=pos+1
++        if kind == "b" then
++            local b=raw:sub(pos,pos);pos=pos+1
++            assert(b=="0" or b=="1", "Invalid boolean")
++            return b=="1"
++        end
++        local stop=raw:find(":",pos,true)
++        assert(stop and stop-pos <= 10, "Invalid code length")
++        local digits=raw:sub(pos,stop-1)
++        assert(digits:match("^%d+$"), "Invalid code number")
++        local size=tonumber(digits);pos=stop+1
++        if kind=="n" then return integer(size,4294967295) end
++        if kind=="s" then
++            assert(size<=8192 and pos+size-1<=#raw,"Invalid text length")
++            local s=raw:sub(pos,pos+size-1);pos=pos+size;return s
++        end
++        assert(kind=="t" and size<=512,"Invalid code table")
++        local t={}
++        for i=1,size do
++            local key=read(depth+1)
++            assert((type(key)=="string" or type(key)=="number") and t[key]==nil,"Invalid or repeated key")
++            t[key]=read(depth+1)
++        end
++        return t
++    end
++    local build=read(0)
++    assert(pos==#raw+1,"Trailing build data")
++    return Import.Validate(build)
++end
++
++local function enabled()
++    return GetRealmName() == "Area 52 - Free-Pick"
++end
++
++local function showError(message)
++    UIErrorsFrame:AddMessage(tostring(message):gsub("^.-:%d+: ",""),1,0.2,0.2)
++end
++
++function Import.Apply(build)
++    local ok, copy=pcall(Import.Validate,build)
++    if not ok then showError(copy);return false end
++    if not C_Player:IsGM() and BuildCreatorUtil.IsCategoryBuildDraft(copy.Category) then
++        copy.Category=Enum.BuildCategory.Leveling
++    end
++    StaticPopup_Show("AREA52_CONFIRM_BUILD_COPY",copy.Name,nil,copy)
++    return true
++end
++
++function Import.Commit(copy)
++    copy=Import.Validate(copy)
++    if not C_Player:IsGM() and BuildCreatorUtil.IsCategoryBuildDraft(copy.Category) then copy.Category=Enum.BuildCategory.Leveling end
++    C_BuildEditor.DiscardPendingBuild()
++    for _, key in ipairs({"Name","Icon","Category","Description","Roles","PrimaryStat","DifficultyRating"}) do C_BuildEditor["Set"..key](copy[key]) end
++    for _, row in ipairs(copy.Spells) do C_BuildEditor.AddSpell(row) end
++    for _, row in ipairs(copy.RandomEnchants) do C_BuildEditor.AddRandomEnchant(row) end
++    for _, row in ipairs(copy.ArmorTypes) do C_BuildEditor.AddArmorType(row) end
++    for _, row in ipairs(copy.WeaponTypes) do C_BuildEditor.AddWeaponType(row) end
++    BuildCreatorFrame:CreateBuild(copy.Category,true)
++end
++
++StaticPopupDialogs["AREA52_CONFIRM_BUILD_COPY"] = {
++    text="Create an editable copy of %s? This replaces the current unsaved draft. The source build is unchanged.",
++    button1="Create Copy",button2=CANCEL,whileDead=true,hideOnEscape=true,
++    OnAccept=function(self,copy) Import.Commit(copy) end,
++}
++StaticPopupDialogs["AREA52_IMPORT_BUILD_CODE"] = {
++    text="Import Build Code\nPaste an Area 52 build code. Website links are not supported.",button1="Import",button2=CANCEL,
++    hasEditBox=true,maxLetters=MAX_CODE,maxBytes=MAX_CODE+1,whileDead=true,hideOnEscape=true,
++    OnAccept=function(self)
++        local ok,build=pcall(Import.Decode,self.editBox:GetText())
++        if not ok then showError(build);return true end
++        Import.Apply(build)
++    end,
++}
++StaticPopupDialogs["AREA52_COPY_BUILD_CODE"] = {
++    text="Build Code\nPress Ctrl+C to copy this complete build, then share it using Import Build Code.",button1=CLOSE,
++    hasEditBox=true,maxLetters=MAX_CODE,maxBytes=MAX_CODE+1,whileDead=true,hideOnEscape=true,
++    OnShow=function(self,code) self.editBox:SetText(code);self.editBox:SetFocus();self.editBox:HighlightText() end,
++}
++StaticPopupDialogs["AREA52_BUILD_IMPORT_METHOD"] = {
++    text="Import a Build\nChoose a build from this realm's library or paste an Area 52 build code.",
++    button1="Choose Internal Build",button2=CANCEL,button3="Import Build Code",whileDead=true,hideOnEscape=true,
++    OnAccept=function()
++        local frame=BuildCreatorFrame
++        frame:ShowBuildCategories();frame.ToggleCreateButton:SetText(CREATE_BUILD)
++        frame:SelectCategory(Enum.BuildCategory.None)
++        UIErrorsFrame:AddMessage("Open a build, then choose Copy Build.",1,0.82,0)
++    end,
++    OnAlt=function() StaticPopup_Show("AREA52_IMPORT_BUILD_CODE") end,
++}
++
++local originalCreate=BuildCreatorMixin.CreateBuild
++function BuildCreatorMixin:CreateBuild(category,deserialize)
++    if enabled() and category==Enum.BuildCreateCategory.Import and not deserialize then
++        StaticPopup_Show("AREA52_BUILD_IMPORT_METHOD");return
++    end
++    return originalCreate(self,category,deserialize)
++end
++
++function Import.Attach(view)
++    if not enabled() then return end
++    if not view.Area52ImportButtons then
++        view.Area52ImportButtons={}
++        view.Controls:SetHeight(76)
++        view.MainFrame:SetHeight(593)
++        for i,label in ipairs({"Copy Build","Copy Build Code","Import Build Code"}) do
++            local b=CreateFrame("Button",nil,view.Controls,"SharedButtonTemplate")
++            b:SetSize(160,26);b:SetPoint("TOPLEFT",6+(i-1)*166,-46);b:SetText(label)
++            view.Area52ImportButtons[i]=b
++        end
++        view.Area52ImportButtons[1]:SetScript("OnClick",function() Import.Apply(view.build) end)
++        view.Area52ImportButtons[2]:SetScript("OnClick",function()
++            local ok,code=pcall(Import.Encode,view.build)
++            if not ok then showError(code);return end
++            StaticPopup_Show("AREA52_COPY_BUILD_CODE",nil,nil,code)
++        end)
++        view.Area52ImportButtons[3]:SetScript("OnClick",function() StaticPopup_Show("AREA52_IMPORT_BUILD_CODE") end)
++    end
++end
++
+--- a/Interface/AddOns/Ascension_BuildCreator/BuildView.lua
++++ b/Interface/AddOns/Ascension_BuildCreator/BuildView.lua
+@@ -55,6 +55,7 @@
+     self:SetBuildInfo()
+     self:SetAlternateBuilds()
+     self:UpdateControlButtons()
++    if Area52BuildImport then Area52BuildImport.Attach(self) end
+ end
+ 
+ function BuildViewMixin:SetBuildInfo()
+@@ -679,7 +680,7 @@
+         activateButton:Enable()
+     else
+         activateButton:SetText(ACTIVATE_BUILD)
+-        activateButton:SetEnabled(C_BuildCreator.CanActivateBuild(self.build.ID))
++        activateButton:SetEnabled((GetRealmName() == "Area 52 - Free-Pick" and self.build.Category == Enum.BuildCategory.BuildDraft) or C_BuildCreator.CanActivateBuild(self.build.ID))
+     end
+     
+     local canEdit = C_BuildCreator.IsOwnedBuild(self.build.ID)
+--- a/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
++++ b/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
+@@ -263,7 +263,7 @@
+     self:UpdateRole()
+     self:UpdatePrimaryStat()
+     if not deserialize then
+-        C_BuildEditor.SetDescription(description)
++        C_BuildEditor.SetDescription(Area52DraftSelector.Description(self, description))
+         C_BuildEditor.SetName(self.MainFrame.Name:ToText())
+         C_BuildEditor.SetIcon(self.MainFrame.Icon:ToText())
+         C_BuildEditor.SetRoles(self.MainFrame.Role:ToText())
+@@ -395,3 +395,179 @@
+     
+     self:UpdatePendingBuild(true)
+ end
++
++Area52DraftArchetypes = {
++{id=1,label="Tank / Melee",entries={
++{id=19,name="Blade Warden"},
++{id=20,name="Bulwark"},
++{id=143,name="Carnage Incarnate"},
++{id=22,name="Relentless"},
++{id=21,name="Swashbuckler"},
++{id=24,name="Vanguard Sentinel"},
++}},
++{id=2,label="Tank / Magic",entries={
++{id=26,name="Demoniac"},
++{id=31,name="Icebound"},
++{id=25,name="Templar of Flame"},
++}},
++{id=3,label="Tank / Hybrid",entries={
++{id=33,name="Beast of Nightmare"},
++{id=29,name="Crimson Champion"},
++{id=27,name="Mystic Knight"},
++{id=32,name="Plague Bearer"},
++{id=30,name="Stormguard"},
++{id=34,name="Thunderpaw"},
++}},
++{id=5,label="Healer / Pure Healer",entries={
++{id=2,name="Dawnkeeper"},
++{id=3,name="Eternal Caretaker"},
++{id=10,name="Grove Keeper"},
++{id=12,name="Hierophant"},
++{id=1,name="Naturalist"},
++{id=6,name="Sacred Sentinel"},
++{id=16,name="Steward of Eternity"},
++{id=7,name="Tide Mender"},
++}},
++{id=6,label="Healer / Combat Healer",entries={
++{id=13,name="Cryotherapist"},
++{id=17,name="Fire Sage"},
++{id=15,name="Grove Ranger"},
++{id=14,name="Tree of Wrath"},
++{id=18,name="Vampire Lord"},
++}},
++{id=9,label="Damage / Melee",entries={
++{id=86,name="Defias Gunslinger"},
++{id=78,name="Dragon Warrior"},
++{id=129,name="Gutripper"},
++{id=77,name="Heavyweight"},
++{id=73,name="Hoplite"},
++{id=79,name="Son of Gruul"},
++{id=74,name="Warden"},
++{id=141,name="Wind Rager"},
++}},
++{id=10,label="Damage / Ranged",entries={
++{id=85,name="Bestial Ranger"},
++{id=140,name="Dark Ranger"},
++{id=139,name="Locust Ranger"},
++{id=82,name="Marksman"},
++{id=84,name="Paratrooper"},
++}},
++{id=11,label="Damage / Magic",entries={
++{id=101,name="Ascendant"},
++{id=97,name="Cryomancer"},
++{id=90,name="Druid of the Eclipse"},
++{id=88,name="Evoker"},
++{id=144,name="Fel Apostate"},
++{id=95,name="Shadowseer"},
++{id=104,name="Stormcaller"},
++}},
++{id=12,label="Damage / Hybrid",entries={
++{id=132,name="Crusader"},
++{id=136,name="Divine Sentinel"},
++{id=75,name="Druid of the Fang"},
++{id=134,name="Firelord"},
++{id=131,name="Hellcat"},
++{id=80,name="Master of Shadows"},
++{id=142,name="Storm Giant"},
++{id=133,name="White Walker"},
++}},
++}
++
++Area52DraftSelector = {}
++local Selector = Area52DraftSelector
++local byID = {}
++for _, group in ipairs(Area52DraftArchetypes) do
++    for _, entry in ipairs(group.entries) do byID[entry.id] = entry end
++end
++function Selector.Applies(build)
++    return GetRealmName() == 'Area 52 - Free-Pick' and build and build.Category == Enum.BuildCategory.BuildDraft
++end
++function Selector.ReadID(description)
++    local id = (description or ''):match('###AREA52_ARCHETYPE_ID\n(%d+)')
++    return id and tonumber(id)
++end
++function Selector.Description(view, description)
++    if GetRealmName() ~= 'Area 52 - Free-Pick' then return description end
++    description = (description or ''):gsub('\n*###AREA52_ARCHETYPE_ID[^#]*','')
++    if Selector.Applies(C_BuildEditor.GetPendingBuild()) and C_Player:IsGM() and byID[view.Area52ArchetypeID] then
++        return description .. '\n\n###AREA52_ARCHETYPE_ID\n' .. view.Area52ArchetypeID
++    end
++    return description
++end
++function Selector.Valid(view)
++    local build = C_BuildEditor.GetPendingBuild()
++    if not Selector.Applies(build) then return true end
++    local entry = byID[view.Area52ArchetypeID]
++    return C_Player:IsGM() and entry and build.Name == entry.name
++        and Selector.ReadID(build.Description) == entry.id
++end
++function Selector.Choose(view, id)
++    if not C_Player:IsGM() or not Selector.Applies(C_BuildEditor.GetPendingBuild()) or not byID[id] then return end
++    view.Area52ArchetypeID = id
++    view.MainFrame.Name:SetText(byID[id].name)
++    C_BuildEditor.SetName(byID[id].name)
++    view:UpdatePendingBuild()
++    CloseDropDownMenus()
++end
++function Selector.Menu(view, level, menuList)
++    if not C_Player:IsGM() then return end
++    if level == 1 then
++        for _, group in ipairs(Area52DraftArchetypes) do
++            local info = UIDropDownMenu_CreateInfo()
++            info.text=group.label;info.hasArrow=true;info.notCheckable=true;info.menuList=group.id
++            UIDropDownMenu_AddButton(info,level)
++        end
++    elseif level == 2 then
++        for _, group in ipairs(Area52DraftArchetypes) do
++            if group.id == menuList then
++                for _, entry in ipairs(group.entries) do
++                    local id=entry.id
++                    local info=UIDropDownMenu_CreateInfo()
++                    info.text=entry.name;info.checked=view.Area52ArchetypeID==id
++                    info.func=function() Selector.Choose(view,id) end
++                    UIDropDownMenu_AddButton(info,level)
++                end
++            end
++        end
++    end
++end
++function Selector.Before(view, deserialize)
++    if GetRealmName() ~= 'Area 52 - Free-Pick' then return end
++    local build=C_BuildEditor.GetPendingBuild()
++    if deserialize or view.Area52LastBuildID ~= build.ID or view.Area52LastCategory ~= build.Category then
++        view.Area52ArchetypeID=Selector.ReadID(build.Description)
++    end
++    view.Area52LastBuildID=build.ID;view.Area52LastCategory=build.Category
++    if not Selector.Applies(build) then view.Area52ArchetypeID=nil end
++end
++function Selector.After(view)
++    if GetRealmName() ~= 'Area 52 - Free-Pick' then return end
++    local applies=Selector.Applies(C_BuildEditor.GetPendingBuild())
++    view.MainFrame.Name:SetShown(not applies)
++    if applies and not view.Area52ArchetypeDropdown then
++        local dropdown=CreateFrame('Frame',nil,view.MainFrame,'UIDropDownMenuTemplate2')
++        dropdown:SetScale(0.8)
++        dropdown:SetPoint('TOPLEFT',view.MainFrame.Name,'TOPLEFT',-16,4)
++        UIDropDownMenu_SetWidth(dropdown,530)
++        UIDropDownMenu_Initialize(dropdown,function(_,level,menuList) Selector.Menu(view,level,menuList) end)
++        view.Area52ArchetypeDropdown=dropdown
++    end
++    if view.Area52ArchetypeDropdown then
++        view.Area52ArchetypeDropdown:SetShown(applies)
++        if C_Player:IsGM() then UIDropDownMenu_EnableDropDown(view.Area52ArchetypeDropdown)
++        else UIDropDownMenu_DisableDropDown(view.Area52ArchetypeDropdown) end
++        local entry=byID[view.Area52ArchetypeID]
++        UIDropDownMenu_SetText(view.Area52ArchetypeDropdown,entry and entry.name or 'Choose a character-creation archetype')
++    end
++    if applies and not Selector.Valid(view) then
++        view.Controls.PublishBuild:Disable()
++        view.Controls.PublishBuild.tooltipTitle='Select a character-creation archetype'
++        view.Controls.PublishBuild.tooltipText='Only a GM may select an archetype for a Featured Draft.'
++    end
++end
++local originalUpdate=EditableBuildViewMixin.UpdatePendingBuild
++function EditableBuildViewMixin:UpdatePendingBuild(deserialize)
++    Selector.Before(self,deserialize)
++    originalUpdate(self,deserialize)
++    Selector.After(self)
++end
+--- a/Interface/SharedXML/Util/NewCharacterSetupUtil.lua
++++ b/Interface/SharedXML/Util/NewCharacterSetupUtil.lua
+@@ -142,11 +142,12 @@
+         if buildID ~= nil then
+             dprint("Found build for "..playerName.." activating "..buildID)
+ 
+-            if UnitLevel("player") == 1 then -- for not to mess up anything 
+-                C_BuildCreator.ActivateBuild(buildID, true, true)
+-            end
+-
+-            NewCharacterSetupUtil.SetCharacterData(playerName, "archetypeBuildID", nil)
++            if not Area52DraftFirstLogin or not Area52DraftFirstLogin.Begin(playerName, buildID) then
++                if UnitLevel("player") == 1 then
++                    C_BuildCreator.ActivateBuild(buildID, true, true)
++                end
++                NewCharacterSetupUtil.SetCharacterData(playerName, "archetypeBuildID", nil)
++            end
+         end
+ 
+         -- locale based newcomer chat
+@@ -194,4 +195,54 @@
+             end
+         end
+     end)
+-end +end 
++if not InGlue() then
++Area52DraftFirstLogin = {}
++local Draft = Area52DraftFirstLogin
++local request, attempts, awaiting, generation = nil, 0, false, 0
++local MAX_ATTEMPTS = 12
++
++function Draft.Begin(playerName, buildID)
++    if GetRealmName() ~= "Area 52 - Free-Pick" then return false end
++    generation = generation + 1
++    local current = generation
++    request, attempts, awaiting = {name = playerName, id = buildID}, 0, false
++    local function attempt()
++        if generation ~= current or not request then return end
++        if UnitLevel("player") ~= 1 or UnitName("player") ~= request.name then
++            request, awaiting = nil, false
++            return
++        end
++        if attempts >= MAX_ATTEMPTS then
++            awaiting = false
++            UIErrorsFrame:AddMessage("Your selected Draft could not be activated. Your selection is saved; contact a GM or try logging in again.", 1, 0.3, 0.3)
++            return
++        end
++        attempts = attempts + 1
++        awaiting = true
++        C_BuildCreator.ActivateBuild(request.id, true, true)
++        C_Timer.After(5, attempt)
++    end
++    C_Timer.After(2, attempt)
++    return true
++end
++
++function Draft.Result(result)
++    if not request or not awaiting then return end
++    awaiting = false
++    if result == "ACTIVATE_BUILD_OK" then
++        NewCharacterSetupUtil.SetCharacterData(request.name, "archetypeBuildID", nil)
++        request = nil
++        generation = generation + 1
++    elseif result ~= "ACTIVATE_BUILD_NOT_AVAILABLE" then
++        request = nil
++        generation = generation + 1
++        UIErrorsFrame:AddMessage("Your selected Draft is not available. The selection has been retained; ask a GM to register its Featured Draft.", 1, 0.3, 0.3)
++    end
++end
++
++local listener = CreateFrame("Frame")
++listener:RegisterEvent("BUILD_CREATOR_ACTIVATE_RESULT")
++listener:SetScript("OnEvent", function(_, _, result) Draft.Result(result) end)
++
++end
+--- a/Interface/FrameXML/Util/BuildCreatorUtil.lua
++++ b/Interface/FrameXML/Util/BuildCreatorUtil.lua
+@@ -626,4 +626,35 @@
+ 
+ function BuildCreatorUtil.ClearPendingBuildID()
+ 	pendingBuildID = nil
+-end +end 
++local previousToggle = BuildCreatorUtil.ToggleBuildActive
++StaticPopupDialogs.AREA52_DRAFT_BUILD_CHANGE = {
++    text = "%s", button1 = ACCEPT, button2 = CANCEL,
++    timeout = 0, whileDead = false, hideOnEscape = true,
++    OnAccept = function(_, data)
++        if data.deactivate then C_BuildCreator.DeactivateBuild(data.id)
++        else C_BuildCreator.ActivateBuild(data.id, data.automatic, data.automatic) end
++    end,
++}
++function BuildCreatorUtil.ToggleBuildActive(buildID, category, autoLearn)
++    if GetRealmName() ~= "Area 52 - Free-Pick" then
++        return previousToggle(buildID, category, autoLearn)
++    end
++    local active = BuildCreatorUtil.IsActiveBuildID(buildID)
++    local draft = category == Enum.BuildCategory.BuildDraft
++    local text
++    if active then
++        text = draft and "Leaving this Featured Draft forfeits its maximum-level rewards and removes ALL equipped Mystic Enchants. Your collection is preserved. Continue?"
++            or "Deactivate this build and stop automatic learning?"
++    elseif draft then
++        text = "Activate this Featured Draft? This resets your ability and talent selections, enables automatic learning, and replaces your equipped Mystic Enchants with the Draft's enchants. Missing prerequisites keep their effects dormant. "
++        text = text .. (UnitLevel("player") < 10
++            and "Switching between Featured Drafts before level 10 preserves existing reward eligibility."
++            or "Switching at level 10 or later forfeits maximum-level collection rewards.")
++        text = text .. " Previously forfeited rewards or automatic enchant grants are not restored."
++    else
++        text = "Activating this build resets your ability and talent selections. Normal reset costs apply. If you are leaving a Featured Draft, all equipped Mystic Enchants are removed and its maximum-level rewards are forfeited. Your collection is preserved. Ordinary builds do not automatically equip Mystic Enchants. Continue?"
++    end
++    StaticPopup_Show("AREA52_DRAFT_BUILD_CHANGE", text, nil,
++        {id = buildID, deactivate = active, automatic = draft or autoLearn})
++end
