@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "checks": [
+    "exact hook backup/apply/readback/rollback",
+    "idempotent apply",
+    "schema drift rejected",
+    "partial apply rollback",
+    "post-apply data retained for recovery"
+  ],
+  "no_live_sql": true
+}

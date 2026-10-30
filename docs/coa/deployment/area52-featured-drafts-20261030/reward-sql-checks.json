@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "checks": [
+    "production collection collation",
+    "atomic claim and grants rollback on partial failure",
+    "existing ownership preserved",
+    "same-character retry idempotent",
+    "different draft and account cannot reuse claim",
+    "concurrent reward single claim",
+    "exact mapped creation lookup",
+    "unassigned archetype fails closed"
+  ],
+  "no_live_sql": true
+}

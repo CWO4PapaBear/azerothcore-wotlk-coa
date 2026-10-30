@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "checks": [
+    "production client hook backup/apply/readback/rollback",
+    "unexpected client edits preserved",
+    "baseline drift rejected"
+  ],
+  "scope": "Temporary files and client-closure adapter; installed client untouched"
+}

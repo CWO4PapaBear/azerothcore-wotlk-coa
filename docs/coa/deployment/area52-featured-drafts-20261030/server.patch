@@ -1,0 +1,929 @@
+--- a/src/server/coa/Area52ActiveBuild.cpp
++++ b/src/server/coa/Area52ActiveBuild.cpp
+@@ -1,5 +1,8 @@
+ #include "Area52ActiveBuild.h"
+ #include "Area52BuildProtocol.h"
++#include "Area52DraftAssignment.h"
++#include "Area52DraftLifecycle.h"
++#include "AscensionMysticEnchantCatalog.h"
+ #include "AscensionCompatOpcodes.h"
+ #include "AscensionCoAConfig.h"
+ #include "AscensionFreePick.h"
+@@ -12,6 +15,7 @@
+ #include "Trainer.h"
+ #include "WorldPacket.h"
+ #include "WorldSession.h"
++#include "World.h"
+ #include <algorithm>
+ #include <atomic>
+ #include <charconv>
+@@ -40,6 +44,8 @@
+     bool Loaded = false;
+     bool Busy = false;
+     bool Automatic = false;
++    bool Draft = false;
++    bool InternalSelection = false;
+     bool Pending = false;
+     std::string LastFailure;
+     Clock::time_point NextRequest{};
+@@ -115,6 +121,7 @@
+     player->UpdatePlayerSetting(Setting, 1, std::uint32_t(id >> 32));
+     player->UpdatePlayerSetting(Setting, 2, state.Revision);
+     player->UpdatePlayerSetting(Setting, 3, state.Automatic ? 1 : 0);
++    player->UpdatePlayerSetting(Setting, 4, state.Draft ? 1 : 0);
+ }
+ 
+ bool Learn(Player* player, State& state, std::uint32_t maximumLevel, bool learnSpells = true)
+@@ -129,7 +136,11 @@
+         return true;
+     }
+     if (result)
++    {
++        state.InternalSelection = true;
+         result = AscensionFreePick::Apply(player, wanted, false);
++        state.InternalSelection = false;
++    }
+     if (!result)
+     {
+         std::string const failure = std::string(result.Status) + " " + result.Learn;
+@@ -145,16 +156,27 @@
+ 
+ void Fetch(Player* player, std::uint64_t id, std::uint32_t revision, bool automatic, bool restore)
+ {
++    auto const archetype = CreationArchetypeFromReference(id);
++    if (id >= CreationReferenceBase && (!archetype || restore || player->GetLevel() != 1))
++    {
++        Reply(player, true, "ACTIVATE_BUILD_NOT_AVAILABLE");
++        return;
++    }
++    if (archetype)
++        automatic = true;
++
+     auto* state = player->CustomData.GetDefault<State>(StateKey);
+     state->Busy = true;
+     WorldSession* session = player->GetSession();
+     ObjectGuid const guid = player->GetGUID();
+     auto const generation = state->Generation;
+-    auto* query = CharacterDatabase.GetPreparedStatement(restore ? CHAR_SEL_A52_ACTIVE_REVISION : CHAR_SEL_A52_BUILD_PUBLIC);
+-    query->SetData(0, id);
+-    query->SetData(1, restore ? revision : session->GetAccountId());
++    auto* query = CharacterDatabase.GetPreparedStatement(archetype ? CHAR_SEL_A52_CREATION_DRAFT
++        : restore ? CHAR_SEL_A52_ACTIVE_REVISION : CHAR_SEL_A52_BUILD_PUBLIC);
++    query->SetData(0, archetype ? archetype : id);
++    if (!archetype)
++        query->SetData(1, restore ? revision : session->GetAccountId());
+     session->GetQueryProcessor().AddCallback(CharacterDatabase.AsyncQuery(query).WithPreparedCallback(
+-        [session, guid, generation, automatic, restore, id](PreparedQueryResult rows)
++        [session, guid, generation, automatic, restore, id, archetype](PreparedQueryResult rows)
+         {
+             Player* owner = session->GetPlayer();
+             if (!Applies(owner) || owner->GetGUID() != guid)
+@@ -164,7 +186,9 @@
+                 return;
+             current->Busy = false;
+             Entry plan;
+-            if (!rows || !DecodeHex(rows->Fetch()[2].Get<std::string>(), plan) || plan.Id != std::to_string(id))
++            if (!rows || !DecodeHex(rows->Fetch()[2].Get<std::string>(), plan)
++                || (!archetype && plan.Id != std::to_string(id))
++                || (archetype && DraftArchetype(plan) != archetype))
+             {
+                 if (restore)
+                 {
+@@ -180,10 +204,20 @@
+                     Reply(owner, true, "ACTIVATE_BUILD_NOT_FOUND");
+                 return;
+             }
+-            if (!restore && rows->Fetch()[3].Get<std::uint8_t>())
++            bool const drafted = restore ? owner->GetPlayerSetting(Setting, 4).value != 0
++                : rows->Fetch()[3].Get<std::uint8_t>() != 0;
++            if ((drafted && (plan.Category != FeaturedDraftCategory || !DraftArchetype(plan)))
++                || (!restore && (drafted || current->Draft) && !AscensionMysticEnchant::DraftEquipmentReady(owner)))
+             {
+                 Reply(owner, true, "ACTIVATE_BUILD_NOT_AVAILABLE");
+-                ChatHandler(session).SendSysMessage("Featured Draft activation is not enabled in this candidate.");
++                return;
++            }
++            bool const learnAutomatically = drafted || automatic;
++            bool const grantDraftEnchants = drafted
++                && !owner->GetPlayerSetting("core.area52.draft_progress", 2).value;
++            if (!restore && grantDraftEnchants && !AscensionMysticEnchant::CanApplyDraftEnchants(owner, plan.Enchants))
++            {
++                Reply(owner, true, "ACTIVATE_BUILD_NOT_AVAILABLE");
+                 return;
+             }
+             if (!restore && !Safe(owner))
+@@ -192,25 +226,39 @@
+                 return;
+             }
+             std::vector<AscensionFreePick::KnownEntry> wanted;
+-            auto result = AscensionFreePick::PlanSelection(owner, plan, wanted, false, 80, automatic);
++            auto result = AscensionFreePick::PlanSelection(owner, plan, wanted, false, 80, learnAutomatically);
+             if (!result && !restore)
+             {
+                 Reply(owner, true, *result.Learn ? result.Learn : result.Status);
+                 return;
+             }
+             Entry const previousPlan = current->Plan;
++            bool const previousDraft = current->Draft;
++            auto const previousSelection = AscensionFreePick::KnownEntries(owner);
+             auto const previousRevision = current->Revision;
+             bool const previousAutomatic = current->Automatic;
+             current->Plan = std::move(plan);
+             current->Revision = rows->Fetch()[1].Get<std::uint32_t>();
+-            current->Automatic = automatic;
++            current->Automatic = learnAutomatically;
++            current->Draft = drafted;
+             current->Loaded = true;
+             if (!restore)
+             {
+-                Store(owner, *current);
++                current->InternalSelection = true;
+                 result = AscensionFreePick::Apply(owner, wanted);
++                current->InternalSelection = false;
++                if (result && ((grantDraftEnchants
++                    && !AscensionMysticEnchant::ApplyDraftEnchants(owner, current->Plan.Enchants))
++                    || (!grantDraftEnchants && previousDraft && !AscensionMysticEnchant::ClearDraftEnchants(owner))))
++                    result = { "ACTIVATE_BUILD_NOT_AVAILABLE" };
+                 if (!result)
+                 {
++                    current->InternalSelection = true;
++                    AscensionFreePick::Apply(owner, previousSelection);
++                    current->InternalSelection = false;
++                    current->Draft = previousDraft;
++                    if (previousDraft && !owner->GetPlayerSetting("core.area52.draft_progress", 2).value)
++                        AscensionMysticEnchant::ApplyDraftEnchants(owner, previousPlan.Enchants);
+                     current->Plan = previousPlan;
+                     current->Revision = previousRevision;
+                     current->Automatic = previousAutomatic;
+@@ -218,6 +266,18 @@
+                     Reply(owner, true, *result.Learn ? result.Learn : result.Status);
+                     return;
+                 }
++                std::uint64_t previousId = 0;
++                ParseId(previousPlan.Id, previousId);
++                std::uint64_t nextId = 0;
++                ParseId(current->Plan.Id, nextId);
++                DraftLifecycle progress{previousDraft ? previousId : 0, previousDraft ? previousRevision : 0,
++                    owner->GetPlayerSetting("core.area52.draft_progress", 0).value != 0,
++                    owner->GetPlayerSetting("core.area52.draft_progress", 1).value != 0,
++                    owner->GetPlayerSetting("core.area52.draft_progress", 2).value != 0};
++                progress = SwitchFeaturedDraft(progress, owner->GetLevel(), nextId, current->Revision, drafted);
++                owner->UpdatePlayerSetting("core.area52.draft_progress", 0, progress.Forfeited ? 1 : 0);
++                owner->UpdatePlayerSetting("core.area52.draft_progress", 2, progress.EntitlementForfeited ? 1 : 0);
++                Store(owner, *current);
+                 owner->SaveToDB(false, false);
+                 SendArea52Advancement(owner);
+             }
+@@ -321,9 +381,39 @@
+             return;
+         if (state->Pending && state->Loaded && Safe(player))
+         {
++            if (state->Draft && !AscensionMysticEnchant::DraftEquipmentReady(player))
++                return;
+             state->Pending = false;
+-            if (Learn(player, *state, 80, state->Automatic) && state->Automatic)
+-                AscensionFreePick::LearnAvailableRanks(player);
++            if (Learn(player, *state, 80, state->Automatic))
++            {
++                if (state->Automatic)
++                    AscensionFreePick::LearnAvailableRanks(player);
++                if (state->Draft && !player->GetPlayerSetting("core.area52.draft_progress", 2).value
++                    && !AscensionMysticEnchant::ApplyDraftEnchants(player, state->Plan.Enchants))
++                {
++                    state->Pending = true;
++                    state->NextRequest = Clock::now() + std::chrono::seconds(2);
++                    return;
++                }
++            }
++            else if (state->Draft)
++            {
++                state->Pending = true;
++                state->NextRequest = Clock::now() + std::chrono::seconds(2);
++                return;
++            }
++        }
++        if (state->Draft && state->Loaded && !state->Pending)
++        {
++            std::uint64_t build = 0;
++            ParseId(state->Plan.Id, build);
++            DraftLifecycle progress{build, state->Revision,
++                player->GetPlayerSetting("core.area52.draft_progress", 0).value != 0,
++                player->GetPlayerSetting("core.area52.draft_progress", 1).value != 0,
++                player->GetPlayerSetting("core.area52.draft_progress", 2).value != 0};
++            if (DraftRewardDue(progress, player->GetLevel(), sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
++                && AscensionMysticEnchant::GrantDraftReward(player, build, state->Revision, state->Plan.Enchants))
++                state->NextRequest = Clock::now() + std::chrono::seconds(2);
+         }
+         WorldPacket packet;
+         {
+@@ -349,7 +439,12 @@
+         }
+         if (id == state->Plan.Id)
+         {
+-            state->Automatic = activate && automatic;
++            if (!activate && state->Draft && !BeforeManualDraftChange(player))
++            {
++                Reply(player, false, "ACTIVATE_BUILD_NOT_AVAILABLE");
++                return;
++            }
++            state->Automatic = activate && (state->Draft || automatic);
+             state->Pending = activate;
+             if (!activate)
+             {
+@@ -410,6 +505,41 @@
+         state->Loaded = true;
+         SendState(player, *state);
+     }
++}
++
++bool IsFeaturedDraft(Player* player)
++{
++    auto const* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
++    return Applies(player) && state && state->Draft;
++}
++
++bool BeforeManualDraftChange(Player* player)
++{
++    if (!Applies(player))
++        return true;
++    auto* state = player->CustomData.Get<State>(StateKey);
++    if (!state || state->InternalSelection || !state->Draft)
++        return true;
++    if (state->Busy || !Safe(player) || !AscensionMysticEnchant::ClearDraftEnchants(player))
++        return false;
++    player->UpdatePlayerSetting("core.area52.draft_progress", 0, 1);
++    player->UpdatePlayerSetting("core.area52.draft_progress", 2, 1);
++    for (std::uint32_t spec = 0; spec < AscensionFreePick::SpecializationSpells.size(); ++spec)
++    {
++        auto const key = "core.area52.spec." + std::to_string(spec) + ".active_build";
++        if (player->GetPlayerSetting(key, 4).value)
++            for (std::uint32_t index = 0; index < 5; ++index)
++                player->UpdatePlayerSetting(key, index, 0);
++    }
++    state->Draft = false;
++    state->Automatic = false;
++    state->Pending = false;
++    state->Plan = {};
++    state->Revision = 0;
++    Store(player, *state);
++    player->SaveToDB(false, false);
++    SendState(player, *state);
++    return true;
+ }
+ 
+ void PauseAutoLearnForReset(Player* player)
+--- a/src/server/coa/Area52ActiveBuild.h
++++ b/src/server/coa/Area52ActiveBuild.h
+@@ -8,6 +8,8 @@
+ {
+ struct Entry;
+ void PauseAutoLearnForReset(Player* player);
++bool BeforeManualDraftChange(Player* player);
++bool IsFeaturedDraft(Player* player);
+ bool CanSwitchSpecialization(Player* player);
+ void RestoreSpecialization(Player* player);
+ std::uint32_t Train(Player* player, Creature* trainer, std::uint32_t maximumLevel = 80);
+--- a/src/server/coa/Area52BuildService.cpp
++++ b/src/server/coa/Area52BuildService.cpp
+@@ -1,4 +1,5 @@
+ #include "Area52BuildProtocol.h"
++#include "Area52DraftAssignment.h"
+ #include "AscensionCompatOpcodes.h"
+ #include "AscensionFreePick.h"
+ #include "Config.h"
+@@ -235,6 +236,20 @@
+     revision->SetData(5, session->GetAccountId());
+     revision->SetData(6, previous);
+     transaction->Append(revision);
++    if (entry.Category == FeaturedDraftCategory)
++    {
++        auto* assignment = CharacterDatabase.GetPreparedStatement(CHAR_UPS_A52_DRAFT_ASSIGNMENT);
++        assignment->SetData(0, DraftArchetype(entry));
++        assignment->SetData(1, id);
++        assignment->SetData(2, previous + 1);
++        transaction->Append(assignment);
++        auto* featured = CharacterDatabase.GetPreparedStatement(CHAR_UPS_A52_FEATURED_DRAFT);
++        featured->SetData(0, id);
++        featured->SetData(1, previous + 1);
++        featured->SetData(2, session->GetAccountId());
++        transaction->Append(featured);
++    }
++
+     session->AddTransactionCallback(CharacterDatabase.AsyncCommitTransaction(transaction)).AfterComplete(
+         [session, state, opcode, entry, wire, id](bool success)
+         {
+@@ -254,7 +269,10 @@
+                     state->Busy = false;
+                     if (!Current(session, state))
+                         return;
+-                    bool const stored = result && result->Fetch()[2].Get<std::string>() == wire;
++                    bool const stored = result && result->Fetch()[2].Get<std::string>() == wire
++                        && (entry.Category != FeaturedDraftCategory
++                            || (result->Fetch()[3].Get<bool>()
++                                && result->Fetch()[4].Get<uint32>() == DraftArchetype(entry)));
+                     PublishResult(session, opcode, stored ? "PUBLISH_BUILD_OK" : "PUBLISH_BUILD_UNKNOWN", entry);
+                 }));
+         });
+@@ -266,7 +284,7 @@
+         return "PUBLISH_BUILD_NO_NAME";
+     if (entry.Spells.empty())
+         return "PUBLISH_BUILD_NO_SPELLS";
+-    if (entry.Category < 1 || entry.Category > 7)
++    if (entry.Category < 1 || entry.Category > FeaturedDraftCategory)
+         return "PUBLISH_BUILD_BAD_CATEGORY";
+     if (entry.Difficulty > 4 || entry.PrimaryStat > 6 || entry.Roles > 15)
+         return "PUBLISH_BUILD_UNKNOWN";
+@@ -286,6 +304,12 @@
+     {
+         state->Busy = false;
+         PublishResult(session, packet.GetOpcode(), "PUBLISH_BUILD_UNKNOWN", entry);
++        return;
++    }
++    if (!CanSaveDraftAssignment(entry, session->GetSecurity() >= SEC_GAMEMASTER))
++    {
++        state->Busy = false;
++        PublishResult(session, packet.GetOpcode(), "PUBLISH_BUILD_NO_PERMISSION", entry);
+         return;
+     }
+     if (char const* error = Validate(entry))
+@@ -359,6 +383,9 @@
+                 error = "PUBLISH_BUILD_NOT_FOUND";
+             else if (rows->Fetch()[0].Get<uint32>() != session->GetAccountId())
+                 error = "PUBLISH_BUILD_NO_PERMISSION";
++            else if (previous.Category == FeaturedDraftCategory
++                && (entry.Category != FeaturedDraftCategory || DraftArchetype(previous) != DraftArchetype(entry)))
++                error = "PUBLISH_BUILD_NO_PERMISSION";
+             else if (previous.Updated != entry.Updated || rows->Fetch()[1].Get<uint32>() >= 1000)
+                 error = "PUBLISH_BUILD_UNKNOWN";
+             if (error)
+@@ -390,7 +417,7 @@
+         {
+             if (!Current(session, state))
+                 return;
+-            if (!row || row->Fetch()[0].Get<uint32>() != session->GetAccountId())
++            if (!row || row->Fetch()[0].Get<uint32>() != session->GetAccountId() || row->Fetch()[2].Get<bool>())
+             {
+                 DeleteResult(session, state, "DELETE_BUILD_UNKNOWN");
+                 return;
+@@ -547,8 +574,8 @@
+             }
+             else
+             {
+-                std::array<std::string_view, 8> const categories = { "None", "Leveling", "Level60PvE",
+-                    "Level60PvP", "Level60PvPvE", "Level70PvE", "Level70PvP", "Level70PvPvE" };
++                std::array<std::string_view, 9> const categories = { "None", "Leveling", "Level60PvE",
++                    "Level60PvP", "Level60PvPvE", "Level70PvE", "Level70PvP", "Level70PvPvE", "BuildDraft" };
+                 auto it = std::find(categories.begin(), categories.end(), text);
+                 if (it != categories.end())
+                 {
+--- /dev/null
++++ b/src/server/coa/Area52DraftAssignment.h
+@@ -0,0 +1,108 @@
++#ifndef AREA52_DRAFT_ASSIGNMENT_H
++#define AREA52_DRAFT_ASSIGNMENT_H
++#include "Area52BuildProtocol.h"
++#include <charconv>
++#include <string_view>
++namespace Area52Build
++{
++constexpr std::uint32_t FeaturedDraftCategory = 8;
++struct CreationArchetype { std::uint32_t Id; std::string_view Name; };
++constexpr CreationArchetype CreationArchetypes[] = {
++    {19, "Blade Warden"},
++    {20, "Bulwark"},
++    {143, "Carnage Incarnate"},
++    {22, "Relentless"},
++    {21, "Swashbuckler"},
++    {24, "Vanguard Sentinel"},
++    {26, "Demoniac"},
++    {31, "Icebound"},
++    {25, "Templar of Flame"},
++    {33, "Beast of Nightmare"},
++    {29, "Crimson Champion"},
++    {27, "Mystic Knight"},
++    {32, "Plague Bearer"},
++    {30, "Stormguard"},
++    {34, "Thunderpaw"},
++    {2, "Dawnkeeper"},
++    {3, "Eternal Caretaker"},
++    {10, "Grove Keeper"},
++    {12, "Hierophant"},
++    {1, "Naturalist"},
++    {6, "Sacred Sentinel"},
++    {16, "Steward of Eternity"},
++    {7, "Tide Mender"},
++    {13, "Cryotherapist"},
++    {17, "Fire Sage"},
++    {15, "Grove Ranger"},
++    {14, "Tree of Wrath"},
++    {18, "Vampire Lord"},
++    {86, "Defias Gunslinger"},
++    {78, "Dragon Warrior"},
++    {129, "Gutripper"},
++    {77, "Heavyweight"},
++    {73, "Hoplite"},
++    {79, "Son of Gruul"},
++    {74, "Warden"},
++    {141, "Wind Rager"},
++    {85, "Bestial Ranger"},
++    {140, "Dark Ranger"},
++    {139, "Locust Ranger"},
++    {82, "Marksman"},
++    {84, "Paratrooper"},
++    {101, "Ascendant"},
++    {97, "Cryomancer"},
++    {90, "Druid of the Eclipse"},
++    {88, "Evoker"},
++    {144, "Fel Apostate"},
++    {95, "Shadowseer"},
++    {104, "Stormcaller"},
++    {132, "Crusader"},
++    {136, "Divine Sentinel"},
++    {75, "Druid of the Fang"},
++    {134, "Firelord"},
++    {131, "Hellcat"},
++    {80, "Master of Shadows"},
++    {142, "Storm Giant"},
++    {133, "White Walker"},
++};
++inline std::uint32_t DraftArchetype(Entry const& entry)
++{
++    constexpr std::string_view marker = "###AREA52_ARCHETYPE_ID\n";
++    auto const start = entry.Description.find(marker);
++    if (start == std::string::npos || (start && entry.Description[start - 1] != '\n')
++        || entry.Description.find(marker, start + marker.size()) != std::string::npos)
++        return 0;
++    auto const begin = entry.Description.data() + start + marker.size();
++    auto const finish = entry.Description.data() + entry.Description.size();
++    std::uint32_t id = 0;
++    auto parsed = std::from_chars(begin, finish, id);
++    if (parsed.ec != std::errc{} || begin == parsed.ptr)
++        return 0;
++    while (parsed.ptr != finish && (*parsed.ptr == '\n' || *parsed.ptr == '\r' || *parsed.ptr == ' '))
++        ++parsed.ptr;
++    if (parsed.ptr != finish)
++        return 0;
++    for (auto const& archetype : CreationArchetypes)
++        if (archetype.Id == id && archetype.Name == entry.Name)
++            return id;
++    return 0;
++}
++inline bool CanSaveDraftAssignment(Entry const& entry, bool gameMaster)
++{
++    if (entry.Category == FeaturedDraftCategory)
++        return gameMaster && DraftArchetype(entry);
++    return entry.Category >= 1 && entry.Category <= 7
++        && entry.Description.find("AREA52_ARCHETYPE_ID") == std::string::npos;
++}
++constexpr std::uint64_t CreationReferenceBase = std::uint64_t{1} << 63;
++inline std::uint32_t CreationArchetypeFromReference(std::uint64_t reference)
++{
++    if (reference < CreationReferenceBase)
++        return 0;
++    for (auto const& archetype : CreationArchetypes)
++        if (reference == CreationReferenceBase + archetype.Id)
++            return archetype.Id;
++    return 0;
++}
++}
++#endif
+--- /dev/null
++++ b/src/server/coa/Area52DraftLifecycle.h
+@@ -0,0 +1,39 @@
++#ifndef AREA52_DRAFT_LIFECYCLE_H
++#define AREA52_DRAFT_LIFECYCLE_H
++#include <cstdint>
++namespace Area52Build
++{
++struct DraftLifecycle
++{
++    std::uint64_t Build = 0;
++    std::uint32_t Revision = 0;
++    bool Forfeited = false;
++    bool Rewarded = false;
++    bool EntitlementForfeited = false;
++};
++inline DraftLifecycle SwitchFeaturedDraft(DraftLifecycle state, std::uint32_t level,
++    std::uint64_t build, std::uint32_t revision, bool featured)
++{
++    if (!featured || (level >= 10 && (state.Build != build || state.Revision != revision)))
++        state.Forfeited = true;
++    if (!featured)
++        state.EntitlementForfeited = true;
++    state.Build = featured ? build : 0;
++    state.Revision = featured ? revision : 0;
++    return state;
++}
++inline DraftLifecycle CustomizeDraft(DraftLifecycle state)
++{
++    state.Build = 0;
++    state.Revision = 0;
++    state.Forfeited = true;
++    state.EntitlementForfeited = true;
++    return state;
++}
++inline bool DraftRewardDue(DraftLifecycle const& state, std::uint32_t level, std::uint32_t maximum)
++{
++    return state.Build && state.Revision && !state.Forfeited && !state.Rewarded && !state.EntitlementForfeited
++        && maximum >= 10 && level >= maximum;
++}
++}
++#endif
+--- a/src/server/coa/Area52PrestigeReset.inc
++++ b/src/server/coa/Area52PrestigeReset.inc
+@@ -36,6 +36,11 @@
+         error = "Your active specialization changed. Reopen Prestige and try again.";
+         return false;
+     }
++    if (!Area52Build::BeforeManualDraftChange(player))
++    {
++        error = "The active Draft cannot be left right now.";
++        return false;
++    }
+     auto const count = KnownEntries(player).size();
+     if (!Apply(player, {}, false, true))
+     {
+--- a/src/server/coa/AscensionFreePick.cpp
++++ b/src/server/coa/AscensionFreePick.cpp
+@@ -521,6 +521,8 @@
+             player->SaveToDB(false, false);
+         return {};
+     }
++    if (!Area52Build::BeforeManualDraftChange(player))
++        return { "CA_UPDATE_ENTRIES_UNKNOWN" };
+     auto const actionSpells = AscensionRemovedSpellActionBars::Capture(player);
+     RemoveSelectionBuffs(player, oldSpells, newSpells);
+     auto const* settings = player->FindPlayerSettings(SelectionSetting);
+@@ -846,6 +848,11 @@
+     if (!result)
+     {
+         error = "The saved specialization is not eligible at your current level or with the current rules.";
++        return false;
++    }
++    if (!Area52Build::BeforeManualDraftChange(player))
++    {
++        error = "The active Draft cannot be left right now.";
+         return false;
+     }
+     StoreSlot(player, previous);
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -2,6 +2,8 @@
+ #include "Area52Worldforged.h"
+ /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
+ #include "AscensionMysticEnchantCatalog.h"
++#include "Area52BuildProtocol.h"
++#include "Area52ActiveBuild.h"
+ #include "AscensionMysticSpellGrants.h"
+ #include "AscensionFreePick.h"
+ #include "AscensionCompatOpcodes.h"
+@@ -91,6 +93,7 @@
+ struct State : DataMap::Base
+ {
+     std::set<std::uint32_t> Known;
++    std::set<std::uint32_t> DraftEntitlement;
+     std::set<std::uint32_t> Applied;
+     std::uint64_t Generation = ++NextGeneration;
+     bool Loaded = false;
+@@ -277,6 +280,17 @@
+     return false;
+ }
+ 
++bool ValidateOwnedSlots(State const& state, Slots const& slots, std::uint32_t level)
++{
++    if (state.DraftEntitlement.empty())
++        return ValidateSlots(Data, slots, level, state.Known, Connected);
++    auto owned = state.DraftEntitlement;
++    for (auto spell : slots)
++        if (state.Known.contains(spell))
++            owned.insert(spell);
++    return ValidateSlots(Data, slots, level, owned, Connected);
++}
++
+ void Synchronize(Player* player)
+ {
+     auto* state = player->CustomData.Get<State>(StateKey);
+@@ -284,7 +298,7 @@
+         return;
+     std::map<std::uint32_t, std::uint32_t> wanted;
+     auto const slots = ReadSlots(player);
+-    if (Applies(player) && player->IsAlive() && ValidateSlots(Data, slots, player->GetLevel(), state->Known, Connected))
++    if (Applies(player) && player->IsAlive() && ValidateOwnedSlots(*state, slots, player->GetLevel()))
+         for (auto spell : slots)
+             if (spell && InvestmentMet(player, Data.BySpell.at(spell), false) &&
+                 InvestmentMet(player, Data.BySpell.at(spell), true))
+@@ -398,24 +412,23 @@
+     auto const before = ReadSlots(player);
+     if (before == wanted)
+         return true;
++    if (!administrator && Area52Build::IsFeaturedDraft(player))
++        return Area52Build::BeforeManualDraftChange(player);
++
+     if (!administrator && !NearAltar(player))
+         return reject("RE_COLLECTION_REFORGE_NO_MYSTIC_ALTAR");
+     if (!IsRemovalOnly(before, wanted))
+     {
+         for (auto spell : wanted)
+-            if (spell && !state->Known.contains(spell))
++            if (spell && !state->Known.contains(spell) && !state->DraftEntitlement.contains(spell))
+                 return reject("RE_COLLECTION_REFORGE_NOT_KNOWN_ENCHANTMENT");
+-        if (!ValidateSlots(Data, wanted, player->GetLevel(), state->Known, Connected))
++        if (!ValidateOwnedSlots(*state, wanted, player->GetLevel()))
+             return reject("RE_COLLECTION_REFORGE_BAD_ENCHANTMENT");
+         std::uint32_t worldforged = 0;
+         for (auto spell : wanted)
+             if (spell)
+             {
+                 auto const& entry = Data.BySpell.at(spell);
+-                if (!InvestmentMet(player, entry, false))
+-                    return reject("RE_COLLECTION_REFORGE_REQUIRED_AE_INVESTMENT");
+-                if (!InvestmentMet(player, entry, true))
+-                    return reject("RE_COLLECTION_REFORGE_REQUIRED_TE_INVESTMENT");
+                 worldforged += entry.Worldforged && entry.Quality == 3;
+             }
+         if (worldforged > 3)
+@@ -480,7 +493,8 @@
+         if (packet.size() == 4 && CanChange(player, state))
+         {
+             auto const preset = packet.read<std::uint32_t>(0);
+-            if (preset < PresetCount(player))
++            if (preset < PresetCount(player) && (preset == ActivePreset(player)
++                || Area52Build::BeforeManualDraftChange(player)))
+             {
+                 player->UpdatePlayerSetting(ActivePresetSetting, 0, preset);
+                 Synchronize(player);
+@@ -1169,6 +1183,161 @@
+     }
+     else if (!preserve)
+         player->removeSpell(spell, SPEC_MASK_ALL, false);
++}
++
++bool DraftEquipmentReady(Player* player)
++{
++    auto const* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
++    return state && CanChange(player, state) && !player->IsNonMeleeSpellCast(false);
++}
++
++bool CanApplyDraftEnchants(Player* player, std::vector<Area52Build::Enchant> const& enchants)
++{
++    if (!DraftEquipmentReady(player))
++        return false;
++    Slots slots{};
++    std::set<std::uint32_t> owned;
++    std::size_t next = 0;
++    std::uint32_t worldforged = 0;
++    for (auto const& enchant : enchants)
++    {
++        if (!enchant.Stacks || enchant.Stacks > slots.size() - next)
++            return false;
++        owned.insert(enchant.Id);
++        for (std::uint32_t i = 0; i < enchant.Stacks; ++i)
++            slots[next++] = enchant.Id;
++    }
++    if (!ValidateSlots(Data, slots, player->GetLevel(), owned, Connected))
++        return false;
++    for (auto spell : slots)
++        if (spell)
++        {
++            auto const& entry = Data.BySpell.at(spell);
++            worldforged += entry.Worldforged && entry.Quality == 3;
++        }
++    if (worldforged > 3)
++        return false;
++    for (std::size_t i = 0; i < slots.size(); ++i)
++        for (std::size_t j = i + 1; j < slots.size(); ++j)
++            if (slots[i] && slots[j] && slots[i] != slots[j] &&
++                sSpellMgr->CheckSpellGroupStackRules(sSpellMgr->GetSpellInfo(slots[i]),
++                    sSpellMgr->GetSpellInfo(slots[j])) != SPELL_GROUP_STACK_RULE_DEFAULT)
++                return false;
++    return true;
++}
++
++bool ApplyDraftEnchants(Player* player, std::vector<Area52Build::Enchant> const& enchants)
++{
++    auto* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
++    if (!state || !CanChange(player, state))
++        return false;
++    Slots wanted{};
++    std::size_t slot = 0;
++    std::set<std::uint32_t> entitlement;
++    for (auto const& enchant : enchants)
++    {
++        if (!enchant.Stacks || enchant.Stacks > wanted.size() - slot)
++            return false;
++        entitlement.insert(enchant.Id);
++        for (std::uint32_t i = 0; i < enchant.Stacks; ++i)
++            wanted[slot++] = enchant.Id;
++    }
++    if (!ValidateSlots(Data, wanted, player->GetLevel(), entitlement, Connected))
++        return false;
++    auto const previous = state->DraftEntitlement;
++    state->DraftEntitlement = std::move(entitlement);
++    if (!Equip(player, wanted, true))
++    {
++        state->DraftEntitlement = previous;
++        return false;
++    }
++    Synchronize(player);
++    return true;
++}
++
++bool ClearDraftEnchants(Player* player)
++{
++    auto* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
++    if (!state || !CanChange(player, state) || !Equip(player, Slots{}, true))
++        return false;
++    state->DraftEntitlement.clear();
++    Synchronize(player);
++    return true;
++}
++
++bool GrantDraftReward(Player* player, std::uint64_t build, std::uint32_t revision,
++    std::vector<Area52Build::Enchant> const& enchants)
++{
++    auto* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
++    if (!state || !CanChange(player, state) || !build || !revision)
++        return false;
++    std::set<std::uint32_t> spells;
++    for (auto const& enchant : enchants)
++    {
++        if (!Data.BySpell.contains(enchant.Id))
++            return false;
++        spells.insert(enchant.Id);
++    }
++    auto const guid = player->GetGUID();
++    auto const account = player->GetSession()->GetAccountId();
++    auto const generation = state->Generation;
++    auto* session = player->GetSession();
++    auto transaction = CharacterDatabase.BeginTransaction();
++    auto* claim = CharacterDatabase.GetPreparedStatement(CHAR_INS_A52_DRAFT_REWARD);
++    claim->SetData(0, guid.GetCounter());
++    claim->SetData(1, account);
++    claim->SetData(2, build);
++    claim->SetData(3, revision);
++    transaction->Append(claim);
++    for (auto spell : spells)
++    {
++        auto* grant = CharacterDatabase.GetPreparedStatement(CHAR_INS_A52_DRAFT_REWARD_ENCHANT);
++        grant->SetData(0, account);
++        grant->SetData(1, spell);
++        grant->SetData(2, guid.GetCounter());
++        grant->SetData(3, account);
++        grant->SetData(4, build);
++        grant->SetData(5, revision);
++        transaction->Append(grant);
++    }
++    state->Busy = true;
++    session->AddTransactionCallback(CharacterDatabase.AsyncCommitTransaction(transaction)).AfterComplete(
++        [session, guid, account, generation, build, revision, spells](bool success)
++        {
++            auto* owner = session->GetPlayer();
++            auto* current = owner && owner->GetGUID() == guid ? owner->CustomData.Get<State>(StateKey) : nullptr;
++            if (!current || current->Generation != generation)
++                return;
++            if (!success)
++            {
++                current->Busy = false;
++                return;
++            }
++            auto* query = CharacterDatabase.GetPreparedStatement(CHAR_SEL_A52_DRAFT_REWARD);
++            query->SetData(0, guid.GetCounter());
++            query->SetData(1, account);
++            session->GetQueryProcessor().AddCallback(CharacterDatabase.AsyncQuery(query).WithPreparedCallback(
++                [session, guid, generation, build, revision, spells](PreparedQueryResult result)
++                {
++                    auto* player = session->GetPlayer();
++                    auto* state = player && player->GetGUID() == guid
++                        ? player->CustomData.Get<State>(StateKey) : nullptr;
++                    if (!state || state->Generation != generation)
++                        return;
++                    state->Busy = false;
++                    if (!result)
++                        return;
++                    if (result->Fetch()[0].Get<std::uint64_t>() == build
++                        && result->Fetch()[1].Get<std::uint32_t>() == revision)
++                    {
++                        state->Known.insert(spells.begin(), spells.end());
++                        SendKnown(player, *state);
++                    }
++                    player->UpdatePlayerSetting("core.area52.draft_progress", 1, 1);
++                    player->SaveToDB(false, false);
++                }));
++        });
++    return true;
+ }
+ 
+ bool CollectionLoaded(Player* player)
+--- a/src/server/coa/AscensionMysticEnchantCatalog.h
++++ b/src/server/coa/AscensionMysticEnchantCatalog.h
+@@ -7,8 +7,10 @@
+ #include <map>
+ #include <set>
+ #include <string>
++#include <vector>
+ 
+ class Player;
++namespace Area52Build { struct Enchant; }
+ 
+ class Unit;
+ class Spell;
+@@ -42,6 +44,12 @@
+ bool ResolveNative(std::uint32_t spell, std::map<std::uint32_t, SpellNode> const& spells);
+ bool CollectionLoaded(Player* player);
+ void RefreshEquipped(Player* player);
++bool DraftEquipmentReady(Player* player);
++bool CanApplyDraftEnchants(Player* player, std::vector<Area52Build::Enchant> const& enchants);
++bool ApplyDraftEnchants(Player* player, std::vector<Area52Build::Enchant> const& enchants);
++bool ClearDraftEnchants(Player* player);
++bool GrantDraftReward(Player* player, std::uint64_t build, std::uint32_t revision,
++    std::vector<Area52Build::Enchant> const& enchants);
+ void RefreshEpicReplacements(Player* player);
+ bool HasGlacialLight(Unit const* target);
+ void ConsumeGlacialLightFingersForCast(Spell* spell);
+--- a/src/server/database/Database/Implementation/CharacterDatabase.cpp
++++ b/src/server/database/Database/Implementation/CharacterDatabase.cpp
+@@ -24,7 +24,8 @@
+         m_stmts.resize(MAX_CHARACTERDATABASE_STATEMENTS);
+ 
+     PrepareStatement(CHAR_SEL_A52_DELETE_STATE,
+-        "SELECT owner_account,archived FROM area52_build WHERE id=?", CONNECTION_ASYNC);
++        "SELECT owner_account,archived,EXISTS(SELECT 1 FROM area52_build_archetype a WHERE a.build_id=b.id) "
++        "FROM area52_build b WHERE id=?", CONNECTION_ASYNC);
+     PrepareStatement(CHAR_UPD_A52_ARCHIVE_BUILD,
+         "UPDATE area52_build SET archived=1 WHERE id=? AND owner_account=? AND archived=0", CONNECTION_ASYNC);
+     PrepareStatement(CHAR_SEL_A52_ACTIVE_REVISION,
+@@ -34,7 +35,8 @@
+         CONNECTION_ASYNC);
+     PrepareStatement(CHAR_SEL_A52_BUILD,
+         "SELECT b.owner_account,r.revision,JSON_UNQUOTE(JSON_EXTRACT(r.document,'$.wire')),"
+-        "COALESCE(f.revision,0)=r.revision FROM area52_build b JOIN area52_build_revision r ON r.build_id=b.id "
++        "COALESCE(f.revision,0)=r.revision,COALESCE((SELECT a.archetype_id FROM area52_build_archetype a "
++        "WHERE a.build_id=b.id AND a.revision=r.revision),0) FROM area52_build b JOIN area52_build_revision r ON r.build_id=b.id "
+         "LEFT JOIN area52_build_featured f ON f.build_id=b.id WHERE b.id=? AND b.archived=0 "
+         "AND r.revision=(SELECT MAX(x.revision) FROM area52_build_revision x WHERE x.build_id=b.id)",
+         CONNECTION_ASYNC);
+@@ -59,6 +61,29 @@
+         "FROM area52_build WHERE owner_account=?", CONNECTION_ASYNC);
+     PrepareStatement(CHAR_INS_A52_BUILD,
+         "INSERT INTO area52_build(id,owner_account) VALUES (?,?)", CONNECTION_ASYNC);
++    PrepareStatement(CHAR_INS_A52_DRAFT_REWARD,
++        "INSERT IGNORE INTO area52_draft_reward(guid,account,build_id,revision) VALUES (?,?,?,?)",
++        CONNECTION_ASYNC);
++    PrepareStatement(CHAR_INS_A52_DRAFT_REWARD_ENCHANT,
++        "INSERT IGNORE INTO account_freepick_mystic_collection(account,spell) "
++        "SELECT ?,? FROM area52_draft_reward WHERE guid=? AND account=? AND build_id=? AND revision=?",
++        CONNECTION_ASYNC);
++    PrepareStatement(CHAR_SEL_A52_DRAFT_REWARD,
++        "SELECT build_id,revision FROM area52_draft_reward WHERE guid=? AND account=?", CONNECTION_ASYNC);
++    PrepareStatement(CHAR_SEL_A52_CREATION_DRAFT,
++        "SELECT b.owner_account,r.revision,JSON_UNQUOTE(JSON_EXTRACT(r.document,'$.wire')),1 "
++        "FROM area52_build_archetype a JOIN area52_build b ON b.id=a.build_id AND b.archived=0 "
++        "JOIN area52_build_revision r ON r.build_id=a.build_id AND r.revision=a.revision AND r.category=8 "
++        "JOIN area52_build_featured f ON f.build_id=a.build_id AND f.revision=a.revision WHERE a.archetype_id=?",
++        CONNECTION_ASYNC);
++    PrepareStatement(CHAR_UPS_A52_DRAFT_ASSIGNMENT,
++        "INSERT INTO area52_build_archetype(archetype_id,build_id,revision) VALUES (?,?,?) "
++        "ON DUPLICATE KEY UPDATE revision=IF(build_id=VALUES(build_id) AND archetype_id=VALUES(archetype_id),"
++        "VALUES(revision),0)", CONNECTION_ASYNC);
++    PrepareStatement(CHAR_UPS_A52_FEATURED_DRAFT,
++        "INSERT INTO area52_build_featured(build_id,revision,featured_by_account) VALUES (?,?,?) "
++        "ON DUPLICATE KEY UPDATE revision=VALUES(revision),featured_by_account=VALUES(featured_by_account),"
++        "featured_at=CURRENT_TIMESTAMP", CONNECTION_ASYNC);
+     PrepareStatement(CHAR_INS_A52_BUILD_REVISION,
+         "INSERT INTO area52_build_revision(build_id,revision,category,name,document) "
+         "SELECT b.id,?,?,?,JSON_OBJECT('wire',?) FROM area52_build b WHERE b.id=? AND b.owner_account=? "
+--- a/src/server/database/Database/Implementation/CharacterDatabase.h
++++ b/src/server/database/Database/Implementation/CharacterDatabase.h
+@@ -588,6 +588,12 @@
+     CHAR_SEL_A52_BUILD_COUNT,
+     CHAR_INS_A52_BUILD,
+     CHAR_INS_A52_BUILD_REVISION,
++    CHAR_UPS_A52_DRAFT_ASSIGNMENT,
++    CHAR_SEL_A52_CREATION_DRAFT,
++    CHAR_INS_A52_DRAFT_REWARD,
++    CHAR_INS_A52_DRAFT_REWARD_ENCHANT,
++    CHAR_SEL_A52_DRAFT_REWARD,
++    CHAR_UPS_A52_FEATURED_DRAFT,
+ 
+     CHAR_SEL_A52_CERTIFICATIONS,
+     CHAR_SEL_A52_CERTIFICATION,
+--- /dev/null
++++ b/data/sql/updates/pending_db_characters/2026_10_30_00_area52_draft_assignment.sql
+@@ -0,0 +1,17 @@
++CREATE TABLE IF NOT EXISTS `area52_build_archetype` (
++    `archetype_id` INT UNSIGNED NOT NULL,
++    `build_id` BIGINT UNSIGNED NOT NULL,
++    `revision` INT UNSIGNED NOT NULL,
++    PRIMARY KEY (`archetype_id`),
++    UNIQUE KEY `area52_archetype_build` (`build_id`),
++    CONSTRAINT `area52_archetype_revision` FOREIGN KEY (`build_id`, `revision`)
++        REFERENCES `area52_build_revision` (`build_id`, `revision`) ON DELETE RESTRICT
++) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
++
++CREATE TABLE IF NOT EXISTS `area52_draft_reward` (
++    `guid` INT UNSIGNED NOT NULL,
++    `account` INT UNSIGNED NOT NULL,
++    `build_id` BIGINT UNSIGNED NOT NULL,
++    `revision` INT UNSIGNED NOT NULL,
++    PRIMARY KEY (`guid`)
++) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

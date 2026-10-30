@@ -1,0 +1,93 @@
+{
+  "status": "offline engineering and full server build passed; activation preflight pending",
+  "activated": false,
+  "baseline_package": "area52-playerbot-readiness-repair-20261030",
+  "source": [
+    {
+      "path": "src/server/coa/Area52ActiveBuild.cpp",
+      "before_sha256": "496490302090712be8f306351838fb5f9bc15fabb17688f7432a2384e1c6b189",
+      "after_sha256": "1da3c96ab4573a1108b2df18970f96c226db9552168c6f37a0ece0a9f84fa738"
+    },
+    {
+      "path": "src/server/coa/Area52ActiveBuild.h",
+      "before_sha256": "ccfd9a6850a0b1ba75bf163e9a443fe934869b94e3b4c36bbf590b9aa513e822",
+      "after_sha256": "078a9f4027f9c5b29acdbba539604f0d06b9305d9b62b915db3c5fdf5aaf178c"
+    },
+    {
+      "path": "src/server/coa/Area52BuildService.cpp",
+      "before_sha256": "ba8b7a26137fbdc38dbd19659e227751de52126ac0b49780acd0a102598548d1",
+      "after_sha256": "32ff267ecb3cc14d1ee7e1f55a39adbc4a46e3a77ef1b7469a06e7a7c9529aca"
+    },
+    {
+      "path": "src/server/coa/Area52DraftAssignment.h",
+      "before_sha256": null,
+      "after_sha256": "33ed484db0aa4df8584995b12dfbde5f1958dc6791c57a893bbc60eafdc7233d"
+    },
+    {
+      "path": "src/server/coa/Area52DraftLifecycle.h",
+      "before_sha256": null,
+      "after_sha256": "f3f20c04a84ee99cbb8a4c5dc699cda85321935e6ef53eb781d9f84a6ffc38e4"
+    },
+    {
+      "path": "src/server/coa/Area52PrestigeReset.inc",
+      "before_sha256": "5ccd6c6b9e0bfd511df8fdf057beb0ed3633fb11dfcbe0ab3ab3baa654f3fcda",
+      "after_sha256": "07101070120d456b81f3a71530f3afc9c0953eee79d84a1596289890d2cdba4a"
+    },
+    {
+      "path": "src/server/coa/AscensionFreePick.cpp",
+      "before_sha256": "8d920776620ff1a511999d89f993a153b4a7c7f7a0cc13348b735611dd28860d",
+      "after_sha256": "703ee2dd172b722a0b423d082bfee8e021366c1071fbb8929b5aec2ead436568"
+    },
+    {
+      "path": "src/server/coa/AscensionMysticEnchant.cpp",
+      "before_sha256": "777b0a575d3caa726e80998f0c6538c9f9082e9f2642dee3980fff85bb380a07",
+      "after_sha256": "0130ab6a49404e2d2ffd80a3855c29f8727f23bb1e8ed697a6e8191448563593"
+    },
+    {
+      "path": "src/server/coa/AscensionMysticEnchantCatalog.h",
+      "before_sha256": "23437f073b92ac191ccb37148001e9b5fb25072d9fbb736b4ee2ba2d49c625b3",
+      "after_sha256": "9b71a6fcf5c1d91c55dedcc03a34ecec3d3aa99cf5462cb2c267a667221ccfc7"
+    },
+    {
+      "path": "src/server/database/Database/Implementation/CharacterDatabase.cpp",
+      "before_sha256": "29e1081226e7e05132d4a47a6d1f276851dd08d3a6e5c2c15683e91b8b3348ed",
+      "after_sha256": "a39bbe5f299e48898bc126c6787c89b908a92c8f5d6c891cb9d46f6b406411f0"
+    },
+    {
+      "path": "src/server/database/Database/Implementation/CharacterDatabase.h",
+      "before_sha256": "7c42c2aa335fa354658e2699dd6048f4d95a9bc8dc69c07bc8cb61475082e8bb",
+      "after_sha256": "d0948bb03ed6dfe843a15aa078862d7c80c5025d2af2c5c2eadab27f5220600b"
+    }
+  ],
+  "client": {
+    "changed_members": [
+      "Interface\\AddOns\\Ascension_BuildCreator\\BuildCreator.lua",
+      "Interface\\AddOns\\Ascension_BuildCreator\\BuildView.lua",
+      "Interface\\AddOns\\Ascension_BuildCreator\\BuildEditor\\EditableBuildView.lua",
+      "Interface\\SharedXML\\Util\\NewCharacterSetupUtil.lua",
+      "Interface\\FrameXML\\Util\\BuildCreatorUtil.lua",
+      "DBFilesClient\\CharacterCreationArchetypes.dbc"
+    ],
+    "source_archives": {
+      "Interface\\AddOns\\Ascension_BuildCreator\\BuildCreator.lua": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-B.MPQ",
+      "Interface\\AddOns\\Ascension_BuildCreator\\BuildView.lua": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-B.MPQ",
+      "Interface\\AddOns\\Ascension_BuildCreator\\BuildEditor\\EditableBuildView.lua": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-B.MPQ",
+      "Interface\\SharedXML\\Util\\NewCharacterSetupUtil.lua": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-B.MPQ",
+      "Interface\\FrameXML\\Util\\BuildCreatorUtil.lua": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-B.MPQ"
+    },
+    "preserved_members": 11,
+    "baseline_sha256": "494e69d7e3ec55e5cb0b17b0878257a7dbf09248365548985a895af3308a1730",
+    "candidate_sha256": "4b707b814dc60c1075f52cd7dbd77265c913bf924c6478ce61fbc43f8113d568",
+    "stable_package_sha256": "eb5892c9c4de157b376d9f8801464e3a31b9fbde8cdcfd31e85b2496cf1fe470",
+    "installed": false
+  },
+  "reports": [
+    "draft-save-20261030/native-r9/report.json",
+    "bot-integration-review/draft-runtime-20261030-r4/report.json",
+    "bot-integration-review/draft-save-sql-20261030-r7/report.json",
+    "bot-integration-review/draft-save-ui-20261030-r5/report.json",
+    "draft-save-20261030/full-build-r5/report.json"
+  ],
+  "limits": "Native production object compilation, policy tests, extracted production entitlement/aura checks with bounded adapters, exact isolated SQL and Lua UI adapters. No live gameplay or Certification claim. No library builds promoted automatically.",
+  "server_sha256": "b7c4ac889133ac74bb826cd7375a237b9c4d22250cf5a024ab116ede188aaf66"
+}

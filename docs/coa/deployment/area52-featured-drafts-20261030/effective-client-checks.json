@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "files": {
+    "DBFilesClient\\CharacterCreationArchetypeCategories.dbc": {
+      "source": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-M.MPQ",
+      "sha256": "c635f1f4b16ca66b7ea41e249740d3a335881ed131cf3abd1c2e6eea12960db2"
+    },
+    "DBFilesClient\\CharacterCreationArchetypeRoles.dbc": {
+      "source": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-M.MPQ",
+      "sha256": "a935ac6cc3199e0d9cb4bb2102dadbcdc8cfd75b06a5e59406d5de8cdb99b33e"
+    },
+    "DBFilesClient\\CharacterCreationArchetypes.dbc": {
+      "source": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-M.MPQ",
+      "sha256": "4042891f6c9ab700cff38aac96d7714d85500b86b988f664e8c8f607fa3ed2ff"
+    },
+    "Interface\\AddOns\\Ascension_BuildCreator\\BuildCreator.lua": {
+      "source": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-B.MPQ",
+      "sha256": "46fc420b9337ecf6984709a01992e2459a3cd3aa6dd568f78a25a7608d70befc"
+    },
+    "Interface\\AddOns\\Ascension_BuildCreator\\BuildEditor\\EditableBuildView.lua": {
+      "source": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-B.MPQ",
+      "sha256": "9cadcebf98a68d6e54df1cc2df6c1d0f7516b10b5999f166af28a8212795e8b0"
+    },
+    "Interface\\AddOns\\Ascension_BuildCreator\\BuildView.lua": {
+      "source": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-B.MPQ",
+      "sha256": "a2ac963447d23c1aaf5feca856dae471167203f7743fe956e6f63e60d64094a7"
+    },
+    "Interface\\FrameXML\\Util\\BuildCreatorUtil.lua": {
+      "source": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-B.MPQ",
+      "sha256": "6b61934ea225bbeafcd48716e995c6b1e8d302d6692b276bce4e5c1e2bc5433a"
+    },
+    "Interface\\SharedXML\\Util\\NewCharacterSetupUtil.lua": {
+      "source": "D:\\DML WOTLK Client Side\\Ascension A52 Free Pick\\ascension-live\\ascension-live\\Data\\patch-B.MPQ",
+      "sha256": "4181e938554766ee95b99233a8add7a611231188462b3b5e693840194e90fc1e"
+    }
+  },
+  "installed_changes": false
+}
