@@ -1,0 +1,1720 @@
+--- /dev/null
++++ b/data/sql/playerbots/custom/area52_pilot_ownership.sql
+@@ -0,0 +1,6 @@
++CREATE TABLE IF NOT EXISTS `playerbots_area52_pilot_owner` (
++  `roster_index` TINYINT UNSIGNED NOT NULL,
++  `account_id` INT UNSIGNED NOT NULL,
++  PRIMARY KEY (`roster_index`),
++  UNIQUE KEY `account_id` (`account_id`)
++) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--- /dev/null
++++ b/data/sql/playerbots/custom/zzzz_area52_library_pilot.sql
+@@ -0,0 +1,143 @@
++-- Area 52 pilot: pin Mystic Knight to library build 6404392635807108315 revision 14.
++-- Wire SHA256 d399191c247056318dbd87b23a3215dacda24cd5a1a4c2cee217d29fd713e7c8
++-- Explicit snapshot; future library synchronization is separate work.
++-- Owner-approved exception: Mark of the Wild1126 deferred from62 to63; all final choices preserved.
++UPDATE playerbots_legendary_class SET primary_stat=3 WHERE spec='mknight';
++DELETE FROM playerbots_legendary_pick WHERE spec='mknight';
++INSERT INTO playerbots_legendary_pick (spec,spell,level) VALUES
++('mknight',100,1),
++('mknight',20243,1),
++('mknight',701463,4),
++('mknight',26573,8),
++('mknight',20101,10),
++('mknight',35512,10),
++('mknight',20102,11),
++('mknight',20103,12),
++('mknight',954707,12),
++('mknight',20166,12),
++('mknight',812575,13),
++('mknight',812576,14),
++('mknight',986067,14),
++('mknight',812577,15),
++('mknight',828574,16),
++('mknight',1449,16),
++('mknight',828575,17),
++('mknight',828576,18),
++('mknight',954705,18),
++('mknight',697,18),
++('mknight',31785,19),
++('mknight',33776,20),
++('mknight',92169,20),
++('mknight',53408,20),
++('mknight',28574,21),
++('mknight',54658,22),
++('mknight',54659,23),
++('mknight',20335,24),
++('mknight',19028,24),
++('mknight',20336,25),
++('mknight',20337,26),
++('mknight',91234,26),
++('mknight',12298,27),
++('mknight',12724,28),
++('mknight',5277,28),
++('mknight',12725,29),
++('mknight',410000,30),
++('mknight',760216,31),
++('mknight',410001,31),
++('mknight',410002,32),
++('mknight',20911,33),
++('mknight',12297,33),
++('mknight',954711,33),
++('mknight',5504,34),
++('mknight',12750,34),
++('mknight',20127,35),
++('mknight',20217,36),
++('mknight',20130,36),
++('mknight',20135,37),
++('mknight',12751,38),
++('mknight',760053,38),
++('mknight',12752,39),
++('mknight',6117,40),
++('mknight',12753,40),
++('mknight',92155,40),
++('mknight',23785,41),
++('mknight',23822,42),
++('mknight',92157,42),
++('mknight',465,42),
++('mknight',23823,43),
++('mknight',23824,44),
++('mknight',955032,44),
++('mknight',23825,45),
++('mknight',20096,46),
++('mknight',4987,46),
++('mknight',20097,47),
++('mknight',20098,48),
++('mknight',1459,48),
++('mknight',20099,49),
++('mknight',20100,50),
++('mknight',2812,50),
++('mknight',12299,51),
++('mknight',33206,52),
++('mknight',12761,52),
++('mknight',12762,53),
++('mknight',954518,54),
++('mknight',16538,54),
++('mknight',53556,55),
++('mknight',30146,56),
++('mknight',53557,56),
++('mknight',16539,57),
++('mknight',16540,58),
++('mknight',1243,58),
++('mknight',16541,59),
++('mknight',16542,60),
++('mknight',44425,60),
++('mknight',47585,60),
++('mknight',33592,61),
++('mknight',1161,61),
++('mknight',33596,62),
++('mknight',1126,63),
++('mknight',31850,63),
++('mknight',31851,64),
++('mknight',31852,65),
++('mknight',698,65),
++('mknight',18697,66),
++('mknight',18698,67),
++('mknight',20252,68),
++('mknight',18699,68),
++('mknight',14749,69),
++('mknight',14767,70),
++('mknight',556,70),
++('mknight',49042,71),
++('mknight',47476,72),
++('mknight',49786,72),
++('mknight',49787,73),
++('mknight',49788,74),
++('mknight',3714,74),
++('mknight',49789,75),
++('mknight',2565,76),
++('mknight',57499,76),
++('mknight',857499,77),
++('mknight',47294,78),
++('mknight',31789,78),
++('mknight',47295,79),
++('mknight',19752,80),
++('mknight',47296,80);
++DELETE FROM playerbots_legendary_enchant WHERE spec='mknight';
++INSERT INTO playerbots_legendary_enchant (spec,slot,spell) VALUES
++('mknight',1,81116),
++('mknight',2,500196),
++('mknight',3,101278),
++('mknight',4,912298),
++('mknight',5,912298),
++('mknight',6,912298),
++('mknight',7,965377),
++('mknight',8,965377),
++('mknight',9,965377),
++('mknight',10,920127),
++('mknight',11,920127),
++('mknight',12,920127),
++('mknight',13,913705),
++('mknight',14,933592),
++('mknight',15,954081),
++('mknight',16,926573),
++('mknight',17,92580);
+--- /dev/null
++++ b/docs/area52/classes/mystic-knight-library.json
+@@ -0,0 +1,544 @@
++{
++  "id": "6404392635807108315",
++  "revision": 14,
++  "name": "Mystic Knight",
++  "sha256": "d399191c247056318dbd87b23a3215dacda24cd5a1a4c2cee217d29fd713e7c8",
++  "primary_stat": 3,
++  "picks": [
++    [
++      100,
++      1
++    ],
++    [
++      20243,
++      1
++    ],
++    [
++      701463,
++      4
++    ],
++    [
++      26573,
++      8
++    ],
++    [
++      20101,
++      10
++    ],
++    [
++      35512,
++      10
++    ],
++    [
++      20102,
++      11
++    ],
++    [
++      20103,
++      12
++    ],
++    [
++      954707,
++      12
++    ],
++    [
++      20166,
++      12
++    ],
++    [
++      812575,
++      13
++    ],
++    [
++      812576,
++      14
++    ],
++    [
++      986067,
++      14
++    ],
++    [
++      812577,
++      15
++    ],
++    [
++      828574,
++      16
++    ],
++    [
++      1449,
++      16
++    ],
++    [
++      828575,
++      17
++    ],
++    [
++      828576,
++      18
++    ],
++    [
++      954705,
++      18
++    ],
++    [
++      697,
++      18
++    ],
++    [
++      31785,
++      19
++    ],
++    [
++      33776,
++      20
++    ],
++    [
++      92169,
++      20
++    ],
++    [
++      53408,
++      20
++    ],
++    [
++      28574,
++      21
++    ],
++    [
++      54658,
++      22
++    ],
++    [
++      54659,
++      23
++    ],
++    [
++      20335,
++      24
++    ],
++    [
++      19028,
++      24
++    ],
++    [
++      20336,
++      25
++    ],
++    [
++      20337,
++      26
++    ],
++    [
++      91234,
++      26
++    ],
++    [
++      12298,
++      27
++    ],
++    [
++      12724,
++      28
++    ],
++    [
++      5277,
++      28
++    ],
++    [
++      12725,
++      29
++    ],
++    [
++      410000,
++      30
++    ],
++    [
++      760216,
++      31
++    ],
++    [
++      410001,
++      31
++    ],
++    [
++      410002,
++      32
++    ],
++    [
++      20911,
++      33
++    ],
++    [
++      12297,
++      33
++    ],
++    [
++      954711,
++      33
++    ],
++    [
++      5504,
++      34
++    ],
++    [
++      12750,
++      34
++    ],
++    [
++      20127,
++      35
++    ],
++    [
++      20217,
++      36
++    ],
++    [
++      20130,
++      36
++    ],
++    [
++      20135,
++      37
++    ],
++    [
++      12751,
++      38
++    ],
++    [
++      760053,
++      38
++    ],
++    [
++      12752,
++      39
++    ],
++    [
++      6117,
++      40
++    ],
++    [
++      12753,
++      40
++    ],
++    [
++      92155,
++      40
++    ],
++    [
++      23785,
++      41
++    ],
++    [
++      23822,
++      42
++    ],
++    [
++      92157,
++      42
++    ],
++    [
++      465,
++      42
++    ],
++    [
++      23823,
++      43
++    ],
++    [
++      23824,
++      44
++    ],
++    [
++      955032,
++      44
++    ],
++    [
++      23825,
++      45
++    ],
++    [
++      20096,
++      46
++    ],
++    [
++      4987,
++      46
++    ],
++    [
++      20097,
++      47
++    ],
++    [
++      20098,
++      48
++    ],
++    [
++      1459,
++      48
++    ],
++    [
++      20099,
++      49
++    ],
++    [
++      20100,
++      50
++    ],
++    [
++      2812,
++      50
++    ],
++    [
++      12299,
++      51
++    ],
++    [
++      33206,
++      52
++    ],
++    [
++      12761,
++      52
++    ],
++    [
++      12762,
++      53
++    ],
++    [
++      954518,
++      54
++    ],
++    [
++      16538,
++      54
++    ],
++    [
++      53556,
++      55
++    ],
++    [
++      30146,
++      56
++    ],
++    [
++      53557,
++      56
++    ],
++    [
++      16539,
++      57
++    ],
++    [
++      16540,
++      58
++    ],
++    [
++      1243,
++      58
++    ],
++    [
++      16541,
++      59
++    ],
++    [
++      16542,
++      60
++    ],
++    [
++      44425,
++      60
++    ],
++    [
++      47585,
++      60
++    ],
++    [
++      33592,
++      61
++    ],
++    [
++      1161,
++      61
++    ],
++    [
++      33596,
++      62
++    ],
++    [
++      1126,
++      63
++    ],
++    [
++      31850,
++      63
++    ],
++    [
++      31851,
++      64
++    ],
++    [
++      31852,
++      65
++    ],
++    [
++      698,
++      65
++    ],
++    [
++      18697,
++      66
++    ],
++    [
++      18698,
++      67
++    ],
++    [
++      20252,
++      68
++    ],
++    [
++      18699,
++      68
++    ],
++    [
++      14749,
++      69
++    ],
++    [
++      14767,
++      70
++    ],
++    [
++      556,
++      70
++    ],
++    [
++      49042,
++      71
++    ],
++    [
++      47476,
++      72
++    ],
++    [
++      49786,
++      72
++    ],
++    [
++      49787,
++      73
++    ],
++    [
++      49788,
++      74
++    ],
++    [
++      3714,
++      74
++    ],
++    [
++      49789,
++      75
++    ],
++    [
++      2565,
++      76
++    ],
++    [
++      57499,
++      76
++    ],
++    [
++      857499,
++      77
++    ],
++    [
++      47294,
++      78
++    ],
++    [
++      31789,
++      78
++    ],
++    [
++      47295,
++      79
++    ],
++    [
++      19752,
++      80
++    ],
++    [
++      47296,
++      80
++    ]
++  ],
++  "enchants": [
++    [
++      500196,
++      1,
++      1
++    ],
++    [
++      101278,
++      1,
++      1
++    ],
++    [
++      912298,
++      3,
++      1
++    ],
++    [
++      965377,
++      3,
++      1
++    ],
++    [
++      920127,
++      3,
++      1
++    ],
++    [
++      913705,
++      1,
++      1
++    ],
++    [
++      933592,
++      1,
++      1
++    ],
++    [
++      954081,
++      1,
++      1
++    ],
++    [
++      926573,
++      1,
++      1
++    ],
++    [
++      92580,
++      1,
++      1
++    ],
++    [
++      81116,
++      1,
++      1
++    ]
++  ],
++  "source": "Area 52 current build library; native Area52Build::Decode",
++  "live_sync": false,
++  "owner_approved_overrides": [
++    {
++      "spell": 1126,
++      "from_level": 62,
++      "to_level": 63,
++      "reason": "63 AE requested at level62; owner approved deferring Mark of the Wild only. Saved library unchanged."
++    }
++  ]
++}
+--- a/src/Ai/Base/Actions/BattleGroundJoinAction.cpp
++++ b/src/Ai/Base/Actions/BattleGroundJoinAction.cpp
+@@ -5,6 +5,7 @@
+  */
+ 
+ #include "BattleGroundJoinAction.h"
++#include "CoaArenaCompatibility.h"
+ #include "ArenaTeam.h"
+ #include "CoaSpecialization.h"
+ #include "ArenaTeamMgr.h"
+@@ -598,7 +599,7 @@
+ 
+         switch (arenaType)
+         {
+-            case ARENA_TYPE_1v1:
++            case CoaArenaCompatibility::Solo:
+                 arenaslot = 2;
+                 _bgType = "1v1";
+                 break;
+@@ -679,18 +680,20 @@
+         return nullptr;
+ 
+     ArenaType const type = ArenaType(BattlegroundMgr::BGArenaType(queueTypeId));
+-    if (type != ARENA_TYPE_1v1 && type != ARENA_TYPE_2v2 && type != ARENA_TYPE_3v3)
++    if (!CoaArenaCompatibility::HasSolo && static_cast<unsigned>(type) == CoaArenaCompatibility::Solo)
+         return nullptr;
++    if (type != CoaArenaCompatibility::Solo && type != ARENA_TYPE_2v2 && type != ARENA_TYPE_3v3)
++        return nullptr;
+ 
+     BattlegroundInfo& info = sRandomPlayerbotMgr.BattlegroundData[queueTypeId][bracketId];
+-    uint32* need = type != ARENA_TYPE_1v1 && GetCoaRole(bot) == CoaRole::Heal ? &info.ratedSoloHealersNeeded
++    uint32* need = type != CoaArenaCompatibility::Solo && GetCoaRole(bot) == CoaRole::Heal ? &info.ratedSoloHealersNeeded
+                                                                               : &info.ratedSoloDamageNeeded;
+     if (!*need)
+         return nullptr;
+ 
+     // The core plays it with a personal team in that slot (the 5v5 one for 1v1), one it creates or the bot
+     // already has from an earlier match: a bot of a real team there is left out.
+-    uint8 const slot = ArenaTeam::GetSlotByType(type == ARENA_TYPE_1v1 ? uint32(ARENA_TEAM_5v5) : uint32(type));
++    uint8 const slot = ArenaTeam::GetSlotByType(type == CoaArenaCompatibility::Solo ? uint32(ARENA_TEAM_5v5) : uint32(type));
+     if (uint32 teamId = bot->GetArenaTeamId(slot))
+     {
+         ArenaTeam* team = sArenaTeamMgr->GetArenaTeamById(teamId);
+@@ -700,7 +703,7 @@
+     // The core names a new personal team "<name> <bracket>" and refuses the queue when that name is taken, as
+     // by a bot team its captain named so: the need would be spent on a bot that never queues.
+     else if (sArenaTeamMgr->GetArenaTeamByName(bot->GetName() + " " +
+-                                               (type == ARENA_TYPE_1v1 ? "1v1" : type == ARENA_TYPE_2v2 ? "2v2" : "3v3")))
++                                               (type == CoaArenaCompatibility::Solo ? "1v1" : type == ARENA_TYPE_2v2 ? "2v2" : "3v3")))
+         return nullptr;
+ 
+     return need;
+@@ -724,9 +727,9 @@
+         return false;
+ 
+     ArenaType const type = ArenaType(BattlegroundMgr::BGArenaType(queueTypeId));
+-    bool const healer = type != ARENA_TYPE_1v1 && GetCoaRole(bot) == CoaRole::Heal;
++    bool const healer = type != CoaArenaCompatibility::Solo && GetCoaRole(bot) == CoaRole::Heal;
+     WorldPacket packet(CMSG_BATTLEMASTER_JOIN_ARENA_WITH_ROLE, 8);
+-    packet << uint32(type == ARENA_TYPE_1v1 ? 5 : type) << uint32(healer ? ARENA_ROLE_HEALER : 0);
++    packet << uint32(type == CoaArenaCompatibility::Solo ? 5 : type) << uint32(healer ? ARENA_ROLE_HEALER : 0);
+     if (sScriptMgr->CanPacketReceiveEarly(bot->GetSession(), packet))
+     {
+         LOG_DEBUG("playerbots", "Bot {} <{}>: the rated solo queue is not available", bot->GetGUID().ToString(),
+@@ -1051,7 +1054,7 @@
+ 
+     switch (arenaType)
+     {
+-        case ARENA_TYPE_1v1:
++        case CoaArenaCompatibility::Solo:
+             _bgType = "1v1";
+             break;
+         case ARENA_TYPE_2v2:
+@@ -1155,7 +1158,7 @@
+             // A bot of a rated solo queue waits as long as a real player waits there, unless no lineup needs it.
+             if (isRated && ginfo.Players.size() == 1)
+             {
+-                uint32& surplus = arenaType != ARENA_TYPE_1v1 && GetCoaRole(bot) == CoaRole::Heal
++                uint32& surplus = arenaType != CoaArenaCompatibility::Solo && GetCoaRole(bot) == CoaRole::Heal
+                                       ? info.ratedSoloHealersSurplus
+                                       : info.ratedSoloDamageSurplus;
+                 realPlayers =
+--- a/src/Ai/Base/Actions/LfgActions.cpp
++++ b/src/Ai/Base/Actions/LfgActions.cpp
+@@ -107,6 +107,8 @@
+ 
+ bool LfgJoinAction::JoinLFG()
+ {
++    if (sPlayerbotAIConfig.area52DungeonPool)
++        return false;
+     // check if already in lfg
+     LfgState state = sLFGMgr->GetState(bot->GetGUID());
+     if (state != LFG_STATE_NONE)
+@@ -324,6 +326,8 @@
+ 
+ bool LfgLeaveAction::Execute(Event /*event*/)
+ {
++    if (sPlayerbotAIConfig.area52DungeonPool)
++        return false;
+     // Don't leave if lfg strategy enabled
+     // if (botAI->HasStrategy("lfg", BOT_STATE_NON_COMBAT))
+     //    return false;
+@@ -379,6 +383,8 @@
+ 
+ bool LfgJoinAction::isUseful()
+ {
++    if (sPlayerbotAIConfig.area52DungeonPool)
++        return false;
+     if (!sPlayerbotAIConfig.randomBotJoinLfg)
+     {
+         // botAI->ChangeStrategy("-lfg", BOT_STATE_NON_COMBAT);
+--- /dev/null
++++ b/src/Ai/Coa/Area52DungeonPool.h
+@@ -0,0 +1,124 @@
++#ifndef PLAYERBOTS_AREA52_DUNGEON_POOL_H
++#define PLAYERBOTS_AREA52_DUNGEON_POOL_H
++
++#include <algorithm>
++#include <array>
++#include <cstdint>
++#include <map>
++#include <optional>
++#include <set>
++#include <vector>
++
++namespace Area52DungeonPool
++{
++using Id = std::uint64_t;
++constexpr std::size_t Capacity = 20;
++
++struct Request
++{
++    Id queue = 0;
++    Id leader = 0;
++    std::uint32_t level = 0;
++    std::uint32_t faction = 0;
++    std::set<std::uint32_t> dungeons;
++    std::map<Id, std::uint32_t> humans;
++    bool operator==(Request const&) const = default;
++};
++
++struct Bot
++{
++    Id id = 0;
++    std::uint32_t faction = 0;
++    std::uint32_t role = 0;
++    bool available = false;
++};
++
++inline std::optional<std::array<unsigned, 3>> MissingRoles(std::vector<std::uint32_t> const& roles,
++    std::size_t index = 0, std::array<unsigned, 3> remaining = { 1, 1, 3 })
++{
++    if (roles.size() > 5)
++        return std::nullopt;
++    if (index == roles.size())
++        return remaining;
++    for (unsigned slot = 0; slot < 3; ++slot)
++        if (remaining[slot] && (roles[index] & (2u << slot)))
++        {
++            auto next = remaining;
++            --next[slot];
++            if (auto result = MissingRoles(roles, index + 1, next))
++                return result;
++        }
++    return std::nullopt;
++}
++
++class Pool
++{
++public:
++    std::map<Id, Request> reservations;
++
++    std::vector<Id> Release(Id queue)
++    {
++        std::vector<Id> released;
++        for (auto it = reservations.begin(); it != reservations.end();)
++            if (it->second.queue == queue)
++            {
++                released.push_back(it->first);
++                it = reservations.erase(it);
++            }
++            else
++                ++it;
++        return released;
++    }
++
++    bool Reserve(Request const& request, std::vector<Bot> const& bots)
++    {
++        if (!request.queue || !request.leader || request.level < 15 || request.level > 80 ||
++            request.dungeons.empty() || request.humans.empty() || request.humans.size() >= 5 ||
++            !request.humans.contains(request.leader) || bots.size() > Capacity)
++            return false;
++        std::vector<std::uint32_t> roles;
++        for (auto const& [id, role] : request.humans)
++            roles.push_back(role);
++        auto missing = MissingRoles(roles);
++        if (!missing)
++            return false;
++        std::set<Id> ids;
++        for (Bot const& bot : bots)
++            if (!bot.id || !ids.insert(bot.id).second)
++                return false;
++        for (auto const& [id, reservation] : reservations)
++            if (reservation.queue == request.queue)
++            {
++                if (reservation != request)
++                    return false;
++                auto bot = std::find_if(bots.begin(), bots.end(), [id](Bot const& value) { return value.id == id; });
++                if (bot == bots.end() || bot->role < 1 || bot->role > 3 || !(*missing)[bot->role - 1])
++                    return false;
++                --(*missing)[bot->role - 1];
++            }
++        std::vector<Id> selected;
++        for (Bot const& bot : bots)
++            if (bot.available && bot.faction == request.faction && bot.role >= 1 && bot.role <= 3 &&
++                !reservations.contains(bot.id) && (*missing)[bot.role - 1])
++            {
++                --(*missing)[bot.role - 1];
++                selected.push_back(bot.id);
++            }
++        if ((*missing)[0] || (*missing)[1] || (*missing)[2] || reservations.size() + selected.size() > Capacity)
++            return false;
++        for (Id id : selected)
++            reservations.emplace(id, request);
++        return true;
++    }
++
++    bool CanMatch(std::set<Id> const& queues) const
++    {
++        for (Id id : queues)
++            if (auto found = reservations.find(id); found != reservations.end() &&
++                !queues.contains(found->second.queue))
++                return false;
++        return true;
++    }
++};
++}
++#endif
+--- /dev/null
++++ b/src/Ai/Coa/Area52FixedPilot.h
+@@ -0,0 +1,42 @@
++#ifndef PLAYERBOTS_AREA52_FIXED_PILOT_H
++#define PLAYERBOTS_AREA52_FIXED_PILOT_H
++
++#include <cstdint>
++#include <array>
++#include <optional>
++#include <vector>
++
++namespace Area52FixedPilot
++{
++constexpr std::uint32_t Accounts = 2;
++constexpr std::uint32_t PerFaction = 10;
++constexpr char const* Setting = "core.area52.bot.pilot";
++
++constexpr std::uint32_t Role(std::uint32_t slot)
++{
++    return slot >= PerFaction ? 0 : slot < 2 ? 1 : slot < 4 ? 2 : 3;
++}
++
++constexpr char const* Spec(std::uint32_t role)
++{
++    return role == 1 ? "mknight" : role == 2 ? "naturalist" : role == 3 ? "hoplite" : "";
++}
++
++inline std::optional<std::vector<std::uint32_t>> MissingRoles(std::vector<std::uint32_t> const& saved)
++{
++    std::array<unsigned, 4> left = { 0, 2, 2, 6 };
++    for (auto role : saved)
++    {
++        if (role < 1 || role > 3 || !left[role])
++            return std::nullopt;
++        --left[role];
++    }
++    std::vector<std::uint32_t> missing;
++    for (unsigned role = 1; role <= 3; ++role)
++        for (unsigned count = 0; count < left[role]; ++count)
++            missing.push_back(role);
++    return missing;
++}
++}
++
++#endif
+--- /dev/null
++++ b/src/Ai/Coa/CoaArenaCompatibility.h
+@@ -0,0 +1,21 @@
++#ifndef PLAYERBOTS_COA_ARENA_COMPATIBILITY_H
++#define PLAYERBOTS_COA_ARENA_COMPATIBILITY_H
++
++#include "Battleground.h"
++
++namespace CoaArenaCompatibility
++{
++template <typename Type>
++constexpr unsigned SoloType()
++{
++    if constexpr (requires { Type::ARENA_TYPE_1v1; })
++        return static_cast<unsigned>(Type::ARENA_TYPE_1v1);
++    else
++        return 255;
++}
++
++constexpr unsigned Solo = SoloType<ArenaType>();
++constexpr bool HasSolo = Solo != 255;
++}
++
++#endif
+--- /dev/null
++++ b/src/Ai/Coa/CoaDungeonPool.cpp
+@@ -0,0 +1,190 @@
++#include "CoaDungeonPool.h"
++#include "Area52DungeonPool.h"
++#include "Area52FixedPilot.h"
++#include "CoaLegendaryClasses.h"
++#include "Group.h"
++#include "Item.h"
++#include "LFGMgr.h"
++#include "Map.h"
++#include "ObjectAccessor.h"
++#include "Player.h"
++#include "PlayerbotAI.h"
++#include "PlayerbotAIConfig.h"
++#include "PlayerbotFactory.h"
++#include "RandomPlayerbotMgr.h"
++#include "World.h"
++
++namespace CoaDungeonPool
++{
++namespace
++{
++Area52DungeonPool::Pool Pool;
++uint32 Elapsed = 0;
++Area52DungeonPool::Id LastPrepared = 0;
++std::map<Area52DungeonPool::Id, uint32> PreparedLevels;
++
++uint32 Role(Player const* bot)
++{
++    auto const* settings = bot->FindPlayerSettings(Area52FixedPilot::Setting);
++    return settings && !settings->empty() ? settings->front().value : 0;
++}
++
++bool Available(Player* bot)
++{
++    return bot && bot->IsInWorld() && bot->IsAlive() && !bot->IsInCombat() && !bot->GetGroup() &&
++        !bot->IsBeingTeleported() && !bot->InBattleground() && !bot->InBattlegroundQueue() &&
++        bot->FindMap() && !bot->FindMap()->Instanceable() &&
++        sLFGMgr->GetState(bot->GetGUID()) == lfg::LFG_STATE_NONE;
++}
++
++std::optional<Area52DungeonPool::Request> RequestFor(Player* player)
++{
++    if (!player || !player->IsInWorld() || sRandomPlayerbotMgr.IsRandomBot(player))
++        return std::nullopt;
++    Group* group = player->GetGroup();
++    Player* leader = group ? ObjectAccessor::FindConnectedPlayer(group->GetLeaderGUID()) : player;
++    if (!leader || sRandomPlayerbotMgr.IsRandomBot(leader))
++        return std::nullopt;
++    ObjectGuid queue = group ? group->GetGUID() : leader->GetGUID();
++    auto state = sLFGMgr->GetState(queue);
++    if (state != lfg::LFG_STATE_QUEUED && state != lfg::LFG_STATE_PROPOSAL)
++        return std::nullopt;
++    Area52DungeonPool::Request result;
++    result.queue = queue.GetRawValue();
++    result.leader = leader->GetGUID().GetRawValue();
++    result.level = leader->GetLevel();
++    result.faction = leader->GetTeamId();
++    result.dungeons = sLFGMgr->GetSelectedDungeons(leader->GetGUID());
++    if (group)
++    {
++        if (group->isRaidGroup())
++            return std::nullopt;
++        for (GroupReference* ref = group->GetFirstMember(); ref; ref = ref->next())
++        {
++            Player* member = ref->GetSource();
++            if (!member || !member->IsInWorld() || sRandomPlayerbotMgr.IsRandomBot(member))
++                return std::nullopt;
++            result.humans.emplace(member->GetGUID().GetRawValue(), sLFGMgr->GetRoles(member->GetGUID()));
++        }
++    }
++    else
++        result.humans.emplace(result.leader, sLFGMgr->GetRoles(leader->GetGUID()));
++    return result;
++}
++
++bool Prepare(Player* bot, uint32 level)
++{
++    if (!Available(bot) || level < 15 || level > sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
++        return false;
++    auto const* build = FindCoaLegendaryClass(Area52FixedPilot::Spec(Role(bot)));
++    if (!build)
++        return false;
++    auto id = bot->GetGUID().GetRawValue();
++    if (PreparedLevels[id] != level || bot->GetLevel() != level)
++    {
++        if (bot->IsMounted())
++            bot->Dismount();
++        bot->GiveLevel(level);
++        bot->InitStatsForLevel(true);
++        std::string error;
++        if (!ApplyCoaLegendaryClass(bot, *build, error))
++            return false;
++        PlayerbotFactory factory(bot, level);
++        factory.InitSkills();
++        factory.InitAvailableSpells();
++        PlayerbotFactory::DestroyEquippedGear(bot);
++        factory.SetDeterministic(true);
++        factory.InitEquipment(false, true);
++        factory.InitAmmo();
++        factory.InitPet();
++        bot->SaveToDB(false, false);
++        PreparedLevels[id] = level;
++        return false;
++    }
++    EnsureCoaLegendaryClass(bot);
++    if (!CoaLegendaryClassReady(bot))
++        return false;
++    for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
++        if (Item* item = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot); item && bot->CanUseItem(item->GetTemplate()) != EQUIP_ERR_OK)
++            return false;
++    return bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND) != nullptr;
++}
++}
++
++bool Busy(ObjectGuid guid)
++{
++    return sPlayerbotAIConfig.area52DungeonPool && Pool.reservations.contains(guid.GetRawValue());
++}
++
++bool CanMatch(std::set<ObjectGuid> const& queues)
++{
++    if (!sPlayerbotAIConfig.area52DungeonPool)
++        return true;
++    std::set<Area52DungeonPool::Id> ids;
++    for (ObjectGuid guid : queues)
++        if (!guid.IsEmpty())
++            ids.insert(guid.GetRawValue());
++    if (!Pool.CanMatch(ids))
++        return false;
++    for (auto const& [id, request] : Pool.reservations)
++        if (ids.contains(id))
++        {
++            auto current = RequestFor(ObjectAccessor::FindConnectedPlayer(ObjectGuid(request.leader)));
++            Player* bot = ObjectAccessor::FindConnectedPlayer(ObjectGuid(id));
++            if (!current || *current != request || !bot || bot->GetLevel() != request.level)
++                return false;
++        }
++    return true;
++}
++
++void Update(uint32 diff)
++{
++    if (!sPlayerbotAIConfig.enabled || !sPlayerbotAIConfig.area52DungeonPool)
++        return;
++    Elapsed += diff;
++    if (Elapsed < 1000)
++        return;
++    Elapsed = 0;
++    std::map<Area52DungeonPool::Id, Area52DungeonPool::Request> requests;
++    for (Player* player : sRandomPlayerbotMgr.GetPlayers())
++        if (auto request = RequestFor(player))
++            requests.emplace(request->queue, *request);
++    std::set<Area52DungeonPool::Id> released;
++    for (auto const& [id, request] : Pool.reservations)
++    {
++        auto current = requests.find(request.queue);
++        Player* bot = ObjectAccessor::FindConnectedPlayer(ObjectGuid(id));
++        if (!bot || bot->GetGroup() || current == requests.end() || current->second != request)
++            released.insert(request.queue);
++    }
++    for (auto queue : released)
++        for (auto id : Pool.Release(queue))
++            if (Player* bot = ObjectAccessor::FindConnectedPlayer(ObjectGuid(id)); bot && !bot->GetGroup() &&
++                sLFGMgr->GetState(bot->GetGUID()) != lfg::LFG_STATE_NONE)
++                sLFGMgr->LeaveLfg(bot->GetGUID());
++    std::vector<Area52DungeonPool::Bot> bots;
++    for (auto it = sRandomPlayerbotMgr.GetPlayerBotsBegin(); it != sRandomPlayerbotMgr.GetPlayerBotsEnd(); ++it)
++        if (Player* bot = it->second; bot && sRandomPlayerbotMgr.IsRandomBot(bot))
++            bots.push_back({ bot->GetGUID().GetRawValue(), bot->GetTeamId(), Role(bot), Available(bot) });
++    for (auto const& [queue, request] : requests)
++        if (sLFGMgr->GetState(ObjectGuid(queue)) == lfg::LFG_STATE_QUEUED)
++            Pool.Reserve(request, bots);
++    auto next = Pool.reservations.upper_bound(LastPrepared);
++    for (std::size_t checked = 0; checked < Pool.reservations.size(); ++checked)
++    {
++        if (next == Pool.reservations.end())
++            next = Pool.reservations.begin();
++        auto const& [id, request] = *next++;
++        Player* bot = ObjectAccessor::FindConnectedPlayer(ObjectGuid(id));
++        if (!Available(bot) || sLFGMgr->GetState(ObjectGuid(request.queue)) != lfg::LFG_STATE_QUEUED)
++            continue;
++        if (Prepare(bot, request.level))
++        {
++            auto dungeons = request.dungeons;
++            sLFGMgr->JoinLfg(bot, 1u << Role(bot), dungeons, "Area 52 dungeon companion");
++        }
++        LastPrepared = id;
++        break;
++    }
++}
++}
+--- /dev/null
++++ b/src/Ai/Coa/CoaDungeonPool.h
+@@ -0,0 +1,11 @@
++#ifndef PLAYERBOTS_COA_DUNGEON_POOL_H
++#define PLAYERBOTS_COA_DUNGEON_POOL_H
++#include "ObjectGuid.h"
++#include <set>
++namespace CoaDungeonPool
++{
++void Update(uint32 diff);
++bool Busy(ObjectGuid guid);
++bool CanMatch(std::set<ObjectGuid> const& queues);
++}
++#endif
+--- a/src/Ai/Coa/CoaLegendaryClasses.cpp
++++ b/src/Ai/Coa/CoaLegendaryClasses.cpp
+@@ -1,4 +1,5 @@
+ #include "CoaLegendaryClasses.h"
++#include "Area52FixedPilot.h"
+ 
+ #include "CoaLegendaryPets.h"
+ #include "Config.h"
+@@ -218,6 +219,13 @@
+ 
+ CoaLegendaryClass const* RandomClassFor(Player const* bot)
+ {
++    if (sPlayerbotAIConfig.area52FixedPilot)
++    {
++        PlayerSettingVector const* roster = bot->FindPlayerSettings(Area52FixedPilot::Setting);
++        if (!roster || roster->empty())
++            return nullptr;
++        return FindCoaLegendaryClass(Area52FixedPilot::Spec((*roster)[0].value));
++    }
+     uint32 const roll = (bot->GetGUID().GetCounter() * 2654435761u >> 16) % 100;
+     uint32 reached = 0;
+     for (CoaLegendaryClass const& legendaryClass : LoadedClasses())
+@@ -420,32 +428,36 @@
+ void CoaFillMysticCollection(uint32 accountId)
+ {
+ #if COA_LEGENDARY_CLASSES
++    if (std::find(sPlayerbotAIConfig.randomBotAccounts.begin(), sPlayerbotAIConfig.randomBotAccounts.end(), accountId)
++        == sPlayerbotAIConfig.randomBotAccounts.end())
++        return;
+     static std::mutex lock;
+-    static std::set<uint32> filled;
+-    static std::vector<uint32> const enchants = []
+-    {
+-        std::vector<uint32> spells;
+-        AscensionMysticEnchant::Catalog catalog;
+-        if (AscensionMysticEnchant::LoadCatalog(catalog, GetClientDBCPath("MysticEnchant.dbc")))
+-            for (auto const& [spell, entry] : catalog.BySpell)
+-                spells.push_back(spell);
+-        return spells;
+-    }();
+-    if (enchants.empty() || !AscensionFreePick::Enabled())
++    if (!AscensionFreePick::Enabled())
+         return;
+-    {
+-        std::lock_guard<std::mutex> guard(lock);
+-        if (!filled.insert(accountId).second)
+-            return;
+-    }
++    std::lock_guard<std::mutex> guard(lock);
++    AscensionMysticEnchant::Catalog catalog;
++    if (!AscensionMysticEnchant::LoadCatalog(catalog, GetClientDBCPath("MysticEnchant.dbc")) || catalog.BySpell.empty())
++        return;
++    std::set<uint32> missing;
++    for (auto const& [spell, entry] : catalog.BySpell)
++        missing.insert(spell);
+     if (QueryResult owned = CharacterDatabase.Query(
+-            "SELECT COUNT(*) FROM `account_freepick_mystic_collection` WHERE `account` = {}", accountId))
+-        if (owned->Fetch()[0].Get<uint64>() >= enchants.size())
+-            return;
++            "SELECT `spell` FROM `account_freepick_mystic_collection` WHERE `account` = {}", accountId))
++    {
++        do
++            missing.erase(owned->Fetch()[0].Get<uint32>());
++        while (owned->NextRow());
++    }
++    if (missing.empty())
++        return;
+     std::ostringstream insert;
+     insert << "INSERT IGNORE INTO `account_freepick_mystic_collection` (`account`, `spell`) VALUES ";
+-    for (std::size_t i = 0; i < enchants.size(); ++i)
+-        insert << (i ? "," : "") << '(' << accountId << ',' << enchants[i] << ')';
++    bool first = true;
++    for (uint32 spell : missing)
++    {
++        insert << (first ? "" : ",") << '(' << accountId << ',' << spell << ')';
++        first = false;
++    }
+     CharacterDatabase.DirectExecute(insert.str());
+ #else
+     (void)accountId;
+@@ -502,6 +514,13 @@
+     if (!IsCoaHero(bot))
+     {
+         error = "I am not a Freepick Hero.";
++        return false;
++    }
++
++    if (sPlayerbotAIConfig.area52FixedPilot &&
++        (!sRandomPlayerbotMgr.IsRandomBot(bot) || RandomClassFor(bot) != &legendaryClass))
++    {
++        error = "This pilot bot keeps its assigned roster role.";
+         return false;
+     }
+ 
+@@ -621,6 +640,17 @@
+             legendaryClass->name, error);
+ }
+ 
++bool CoaLegendaryClassReady(Player* bot)
++{
++    auto const* build = GetCoaLegendaryClass(bot);
++    if (!IsCoaHero(bot) || !build)
++        return false;
++    std::lock_guard<std::mutex> guard(StatesLock);
++    auto found = States.find(bot->GetGUID().GetRawValue());
++    return found != States.end() && found->second.appliedLevel == bot->GetLevel() &&
++        bot->HasAura(build->legendary) && SlotsMatch(bot, *build) && !ShieldMissing(bot, *build);
++}
++
+ bool CoaLegendaryClassUnready(Player* bot)
+ {
+     if (!IsCoaHero(bot))
+--- a/src/Ai/Coa/CoaLegendaryClasses.h
++++ b/src/Ai/Coa/CoaLegendaryClasses.h
+@@ -67,7 +67,7 @@
+ 
+ // Puts every Mystic Enchant in a bot account's collection (the owner's rule for bots) before the bot logs in: the
+ // core reads the collection at login, and its "mystic grant" command never finishes for a bot (see
+-// PlayerbotHolder::UpdateSessions). Once per account and server start; nothing on a core without Free Pick.
++// PlayerbotHolder::UpdateSessions). Reconciles missing entries on each login; retries after readiness/write failures.
+ void CoaFillMysticCollection(uint32 accountId);
+ 
+ // A shield of the bot's class it cannot hold yet beside its two-handed weapon: the core allows it only once the
+@@ -91,6 +91,7 @@
+ // enchants again. Once its Legendary is on, a class that carries a shield next to a two-handed weapon equips one:
+ // the core refuses it before the Legendary is on, when the bot's gear is first chosen. Does nothing for anyone else.
+ void EnsureCoaLegendaryClass(Player* bot);
++bool CoaLegendaryClassReady(Player* bot);
+ 
+ // Whether a Hero bot's class is not fully set up: no class, picks behind its level, the Legendary not on yet, or
+ // the shield of its class missing.
+--- a/src/Bot/Factory/RandomPlayerbotFactory.cpp
++++ b/src/Bot/Factory/RandomPlayerbotFactory.cpp
+@@ -5,6 +5,7 @@
+  */
+ 
+ #include "RandomPlayerbotFactory.h"
++#include "Area52FixedPilot.h"
+ #include "AccountMgr.h"
+ #include "ArenaTeamMgr.h"
+ #include "CharacterCache.h"
+@@ -23,8 +24,12 @@
+ #include "SharedDefines.h"
+ #include "SocialMgr.h"
+ #include "Timer.h"
++#include "SRP6.h"
++#include "Util.h"
+ 
+ #include <algorithm>
++#include <memory>
++#include <cctype>
+ #include <unordered_set>
+ 
+ constexpr RandomPlayerbotFactory::NameRaceAndGender RandomPlayerbotFactory::CombineRaceAndGender(uint8 race,
+@@ -66,11 +71,12 @@
+     return info != nullptr;
+ }
+ 
+-Player* RandomPlayerbotFactory::CreateRandomBot(WorldSession* session, uint8 cls, std::unordered_map<NameRaceAndGender, std::vector<std::string>>& nameCache)
++Player* RandomPlayerbotFactory::CreateRandomBot(WorldSession* session, uint8 cls, std::unordered_map<NameRaceAndGender, std::vector<std::string>>& nameCache,
++    int8 fixedAlliance)
+ {
+     LOG_DEBUG("playerbots", "Creating a new random bot for class: {}", cls);
+ 
+-    const bool alliance = static_cast<bool>(urand(0, 1));
++    const bool alliance = fixedAlliance < 0 ? static_cast<bool>(urand(0, 1)) : fixedAlliance != 0;
+ 
+     std::vector<uint8> raceOptions;
+     for (uint8 race = RACE_HUMAN; race < sRaceMgr->GetMaxRaces(); ++race)
+@@ -383,6 +389,8 @@
+ // AssignAccountTypes()
+ uint32 RandomPlayerbotFactory::CalculateTotalAccountCount()
+ {
++    if (sPlayerbotAIConfig.area52FixedPilot)
++        return Area52FixedPilot::Accounts;
+     // Reset account types if features are disabled
+     // Reset is done here to precede needed accounts calculations
+     if (sPlayerbotAIConfig.maxRandomBots == 0 || sPlayerbotAIConfig.addClassAccountPoolSize == 0)
+@@ -524,8 +532,59 @@
+     return availableChars;
+ }
+ 
++namespace
++{
++bool CreatePilotAccount(std::string username, std::string password, uint32 index)
++{
++    auto const* botConnection = PlayerbotsDatabase.GetConnectionInfo();
++    auto const* authConnection = LoginDatabase.GetConnectionInfo();
++    if (index >= Area52FixedPilot::Accounts || username.size() > MAX_ACCOUNT_STR || password.size() > MAX_PASS_STR ||
++        botConnection->host != authConnection->host || botConnection->port_or_socket != authConnection->port_or_socket)
++        return false;
++    auto const& schema = botConnection->database;
++    if (schema.empty() || !std::all_of(schema.begin(), schema.end(), [](unsigned char c)
++        { return std::isalnum(c) || c == '_'; }))
++        return false;
++    Utf8ToUpperOnlyLatin(username);
++    Utf8ToUpperOnlyLatin(password);
++    auto [salt, verifier] = Acore::Crypto::SRP6::MakeRegistrationData(username, password);
++    auto transaction = LoginDatabase.BeginTransaction();
++    auto* statement = LoginDatabase.GetPreparedStatement(LOGIN_INS_ACCOUNT);
++    statement->SetData(0, username);
++    statement->SetData(1, salt);
++    statement->SetData(2, verifier);
++    statement->SetData(3, uint8(sWorld->getIntConfig(CONFIG_EXPANSION)));
++    statement->SetData(4, std::string());
++    statement->SetData(5, std::string());
++    transaction->Append(statement);
++    LoginDatabase.EscapeString(username);
++    transaction->Append("INSERT INTO `{}`.playerbots_area52_pilot_owner (roster_index,account_id) "
++        "SELECT {},id FROM account WHERE username='{}'", schema, index, username);
++    transaction->Append("INSERT INTO realmcharacters (realmid,acctid,numchars) "
++        "SELECT r.id,a.id,0 FROM realmlist r JOIN account a ON a.username='{}'", username);
++    // LOGIN_INS_ACCOUNT is ASYNC-only; wait for its worker transaction, never a direct synchronous commit.
++    return LoginDatabase.AsyncCommitTransaction(transaction).m_future.get();
++}
++}
++
+ void RandomPlayerbotFactory::CreateRandomBots()
+ {
++    // A fixed Hero roster must never fall through to generic class creation,
++    // including when module configuration is absent during cold startup.
++    if (sPlayerbotAIConfig.area52FixedPilot && !CoaHeroBotsWanted())
++    {
++        LOG_ERROR("playerbots", "Fixed Hero pilot requires the effective Area52 Hero realm configuration; module disabled before account creation.");
++        sPlayerbotAIConfig.enabled = false;
++        return;
++    }
++
++    if (sPlayerbotAIConfig.area52FixedPilot &&
++        !PlayerbotsDatabase.Query("SELECT COUNT(*) FROM playerbots_area52_pilot_owner"))
++    {
++        LOG_ERROR("playerbots", "Pilot ownership schema is unavailable; module disabled before account creation.");
++        sPlayerbotAIConfig.enabled = false;
++        return;
++    }
+     /* multi-thread here is meaningless? since the async db operations */
+ 
+     if (sPlayerbotAIConfig.deleteRandomBotAccounts)
+@@ -785,6 +844,14 @@
+         PreparedQueryResult result = LoginDatabase.Query(stmt);
+         if (result)
+         {
++            if (sPlayerbotAIConfig.area52FixedPilot && !PlayerbotsDatabase.Query(
++                    "SELECT 1 FROM playerbots_area52_pilot_owner WHERE roster_index = {} AND account_id = {}",
++                    accountNumber, result->Fetch()[0].Get<uint32>()))
++            {
++                LOG_ERROR("playerbots", "Pilot account exists without matching ownership; module disabled.");
++                sPlayerbotAIConfig.enabled = false;
++                return;
++            }
+             continue;
+         }
+         account_creation++;
+@@ -799,7 +866,26 @@
+         else
+             password = accountName;
+ 
+-        sAccountMgr->CreateAccount(accountName, password);
++        bool created = sPlayerbotAIConfig.area52FixedPilot ? CreatePilotAccount(accountName, password, accountNumber) :
++            sAccountMgr->CreateAccount(accountName, password) == AOR_OK;
++        if (sPlayerbotAIConfig.area52FixedPilot)
++        {
++            uint32 accountId = AccountMgr::GetId(accountName);
++            if (!created || !accountId)
++            {
++                LOG_ERROR("playerbots", "Pilot account creation failed; module disabled.");
++                sPlayerbotAIConfig.enabled = false;
++                return;
++            }
++            if (!PlayerbotsDatabase.Query(
++                    "SELECT 1 FROM playerbots_area52_pilot_owner WHERE roster_index = {} AND account_id = {}",
++                    accountNumber, accountId))
++            {
++                LOG_ERROR("playerbots", "Pilot ownership persistence failed; module disabled.");
++                sPlayerbotAIConfig.enabled = false;
++                return;
++            }
++        }
+ 
+         LOG_DEBUG("playerbots", "Account {} created for random bots", accountName.c_str());
+     }
+@@ -818,7 +904,7 @@
+     LOG_INFO("playerbots", "Creating random bot characters...");
+     uint32 totalRandomBotChars = 0;
+     std::vector<std::pair<Player*, uint32>> playerBots;
+-    std::vector<WorldSession*> sessionBots;
++    std::vector<std::unique_ptr<WorldSession>> sessionBots;
+     int bot_creation = 0;
+     timer = getMSTime();
+     bool nameCached = false;
+@@ -837,9 +923,35 @@
+         Field* fields = result->Fetch();
+         uint32 accountId = fields[0].Get<uint32>();
+ 
++        uint32 count = AccountMgr::GetCharactersCount(accountId);
++        std::vector<uint32> missingRoles;
++        if (sPlayerbotAIConfig.area52FixedPilot)
++        {
++            std::vector<uint32> saved;
++            bool valid = AccountMgr::GetSecurity(accountId) == SEC_PLAYER;
++            if (QueryResult characters = CharacterDatabase.Query(
++                    "SELECT c.class, c.race, s.data FROM characters c LEFT JOIN character_settings s "
++                    "ON s.guid = c.guid AND s.source = 'core.area52.bot.pilot' WHERE c.account = {}", accountId))
++            {
++                do
++                {
++                    Field* row = characters->Fetch();
++                    auto settings = PlayerSettingsStore::ParseSettingsData(row[2].Get<std::string>());
++                    valid = valid && row[0].Get<uint8>() == CoaHeroClass && settings.size() == 1 &&
++                        Player::TeamIdForRace(row[1].Get<uint8>()) == (accountNumber == 0 ? TEAM_ALLIANCE : TEAM_HORDE);
++                    saved.push_back(settings.empty() ? 0 : settings.front().value);
++                } while (characters->NextRow());
++            }
++            auto missing = Area52FixedPilot::MissingRoles(saved);
++            if (!valid || saved.size() != count || !missing)
++            {
++                LOG_ERROR("playerbots", "Pilot roster ownership, faction or roles are inconsistent; module disabled.");
++                sPlayerbotAIConfig.enabled = false;
++                return;
++            }
++            missingRoles = *missing;
++        }
+         sPlayerbotAIConfig.randomBotAccounts.push_back(accountId);
+-
+-        uint32 count = AccountMgr::GetCharactersCount(accountId);
+         if (count >= 10)
+         {
+             continue;
+@@ -879,20 +991,23 @@
+ 
+         WorldSession* session = new WorldSession(accountId, "", 0x0, nullptr, SEC_PLAYER, EXPANSION_WRATH_OF_THE_LICH_KING,
+                                                 time_t(0), LOCALE_enUS, 0, false, false, 0, true);
+-        sessionBots.push_back(session);
++        sessionBots.emplace_back(session);
+ 
+         // Area 52 Freepick: every random bot is a Hero; its Legendary class makes it a tank, healer or damage dealer.
+         if (CoaHeroBotsWanted())
+         {
+             for (uint32 slot = count; slot < 10; ++slot)
+             {
+-                Player* playerBot = factory.CreateRandomBot(session, CoaHeroClass, nameCache);
++                Player* playerBot = factory.CreateRandomBot(session, CoaHeroClass, nameCache,
++                    sPlayerbotAIConfig.area52FixedPilot ? static_cast<int8>(accountNumber == 0) : -1);
+                 if (!playerBot)
+                 {
+                     LOG_ERROR("playerbots", "Fail to create a Hero for account {}", accountId);
+                     break;
+                 }
+ 
++                if (sPlayerbotAIConfig.area52FixedPilot)
++                    playerBot->UpdatePlayerSetting(Area52FixedPilot::Setting, 0, missingRoles.at(slot - count));
+                 playerBot->SaveToDB(true, false);
+                 sCharacterCache->AddCharacterCacheEntry(playerBot->GetGUID(), accountId, playerBot->GetName(),
+                                                         playerBot->getGender(), playerBot->getRace(),
+@@ -949,8 +1064,7 @@
+         LOG_INFO("playerbots", ">> {} Characters loaded into database in {} ms", bot_creation, GetMSTimeDiffToNow(timer));
+     }
+ 
+-    for (WorldSession* session : sessionBots)
+-        delete session;
++    sessionBots.clear();
+ 
+     for (uint32 accountId : sPlayerbotAIConfig.randomBotAccounts)
+     {
+--- a/src/Bot/Factory/RandomPlayerbotFactory.h
++++ b/src/Bot/Factory/RandomPlayerbotFactory.h
+@@ -51,7 +51,8 @@
+     RandomPlayerbotFactory() {};
+     virtual ~RandomPlayerbotFactory() {}
+ 
+-    Player* CreateRandomBot(WorldSession* session, uint8 cls, std::unordered_map<NameRaceAndGender, std::vector<std::string>>& names);
++    Player* CreateRandomBot(WorldSession* session, uint8 cls, std::unordered_map<NameRaceAndGender, std::vector<std::string>>& names,
++        int8 fixedAlliance = -1);
+     static void CreateRandomBots();
+     static std::string const CreateRandomGuildName();
+     static uint32 CalculateTotalAccountCount();
+--- a/src/Bot/RandomPlayerbotMgr.cpp
++++ b/src/Bot/RandomPlayerbotMgr.cpp
+@@ -5,6 +5,7 @@
+  */
+ 
+ #include "RandomPlayerbotMgr.h"
++#include "CoaDungeonPool.h"
+ #include "BattlegroundUtils.h"
+ #include "AiFactory.h"
+ #include "ArenaTeam.h"
+@@ -30,6 +31,7 @@
+ #include "Player.h"
+ #include "PlayerbotAI.h"
+ #include "PlayerbotAIConfig.h"
++#include "CoaArenaCompatibility.h"
+ #include "PlayerbotFactory.h"
+ #include "CoaSpecialization.h"
+ #include "AscensionSpecialization.h"
+@@ -1000,7 +1002,7 @@
+ 
+     Battleground* bg = player->GetBattleground();
+     if (bg && bg->isArena() && bg->isRated() &&
+-        (bg->GetArenaType() == ARENA_TYPE_1v1 || bg->GetArenaTeamIdForTeam(TEAM_ALLIANCE) >= MAX_ARENA_TEAM_ID))
++        (bg->GetArenaType() == CoaArenaCompatibility::Solo || bg->GetArenaTeamIdForTeam(TEAM_ALLIANCE) >= MAX_ARENA_TEAM_ID))
+         return RatedSolo::Taken;
+     return RatedSolo::None;
+ }
+@@ -1419,7 +1421,7 @@
+     for (RatedSoloWait const& wait : ratedSoloWaiting)
+     {
+         uint8 const arenaType = BattlegroundMgr::BGArenaType(BattlegroundQueueTypeId(wait.queueTypeId));
+-        if (arenaType == ARENA_TYPE_1v1)
++        if (arenaType == CoaArenaCompatibility::Solo)
+             continue;
+ 
+         BattlegroundInfo& info = BattlegroundData[wait.queueTypeId][wait.bracketId];
+@@ -1469,7 +1471,7 @@
+             uint32 const realDamage = info.ratedSoloPlayerDamage;
+ 
+             uint8 const arenaType = BattlegroundMgr::BGArenaType(queueTypeId);
+-            if (arenaType == ARENA_TYPE_1v1)
++            if (arenaType == CoaArenaCompatibility::Solo)
+             {
+                 uint32 const real = realHealers + realDamage;
+                 uint32 const bots = info.ratedSoloBotHealers + info.ratedSoloBotDamage;
+@@ -1853,6 +1855,8 @@
+ 
+ bool RandomPlayerbotMgr::ProcessBot(Player* bot)
+ {
++    if (CoaDungeonPool::Busy(bot->GetGUID()))
++        return false;
+ 
+     PlayerbotAI* botAI = GET_PLAYERBOT_AI(bot);
+     if (!botAI)
+--- a/src/PlayerbotAIConfig.cpp
++++ b/src/PlayerbotAIConfig.cpp
+@@ -758,6 +758,8 @@
+         sConfigMgr->GetOption<bool>("AiPlayerbot.AutoLearnTradeskillSpells", true);
+     coaClassesOnly = sConfigMgr->GetOption<bool>("AiPlayerbot.CoaClassesOnly", false);
+     area52HeroBots = sConfigMgr->GetOption<bool>("AiPlayerbot.Area52HeroBots", true);
++    area52FixedPilot = sConfigMgr->GetOption<bool>("AiPlayerbot.Area52FixedPilot", false);
++    area52DungeonPool = sConfigMgr->GetOption<bool>("AiPlayerbot.Area52DungeonPool", false);
+     gatherOnlySkillUp = sConfigMgr->GetOption<bool>("AiPlayerbot.GatherOnlySkillUp", true, false);
+     // Written by the CoA Server Manager's custom races module ("bots use custom races"): a list of race ids,
+     // not a mask, since its races go up to 97. CrashingBotRaces adds to it the races that module's author lists
+@@ -907,7 +909,23 @@
+     selfBotLevel = sConfigMgr->GetOption<int32>("AiPlayerbot.SelfBotLevel", 1);
+     botTextLocale = sConfigMgr->GetOption<int32>("AiPlayerbot.BotTextLocale", -1);
+ 
++    if ((area52DungeonPool && !area52FixedPilot) || (area52FixedPilot && (!area52HeroBots || minRandomBots != 20 || maxRandomBots != 20 ||
++        randomBotAccountCount != 2 || addClassAccountPoolSize != 0 || enablePeriodicOnlineOffline ||
++        coaPlayersReplaceBots != 0 || disabledWithoutRealPlayer || allowAccountBots || allowGuildBots ||
++        allowTrustedAccountBots || selfBotLevel != 0 || deleteRandomBotAccounts || deleteRandomBotGuilds ||
++        deleteRandomBotArenaTeams || randomBotMinLevel != (area52DungeonPool ? 15 : 70) ||
++        randomBotMaxLevel != (area52DungeonPool ? 80 : 70) ||
++        randombotStartingLevel != 70 || !disableRandomLevels || !randomBotRandomPassword)))
++    {
++        LOG_ERROR("server.loading", "Area52 fixed pilot requires 20 bots, two dedicated accounts, Hero creation, "
++            "approved level bounds, no population adjustment, no player account control and no deletion settings. Module disabled.");
++        enabled = false;
++        return false;
++    }
++
+     RandomPlayerbotFactory::CreateRandomBots();
++    if (!enabled)
++        return false;
+     if (World::IsStopped())
+     {
+         return true;
+--- a/src/PlayerbotAIConfig.h
++++ b/src/PlayerbotAIConfig.h
+@@ -401,6 +401,8 @@
+     bool autoLearnTradeskillSpells;
+     bool coaClassesOnly;
+     bool area52HeroBots;
++    bool area52FixedPilot;
++    bool area52DungeonPool;
+     bool gatherOnlySkillUp;
+     std::vector<uint32> excludedBotRaces;
+     bool customRacesForBots;
+--- a/src/Script/Playerbots.cpp
++++ b/src/Script/Playerbots.cpp
+@@ -23,6 +23,7 @@
+ #include "PlayerbotWorldThreadProcessor.h"
+ #include "RandomPlayerbotMgr.h"
+ #include "CoaLegendaryClasses.h"
++#include "CoaDungeonPool.h"
+ #include "ScriptMgr.h"
+ #include "cmath"
+ 
+@@ -424,6 +425,7 @@
+         PlayerbotWorldThreadProcessor::instance().Update(diff);
+         sRandomPlayerbotMgr.UpdateAI(diff);  // World thread only
+         sRandomPlayerbotMgr.CoaReleaseOrphanGroups();
++        CoaDungeonPool::Update(diff);
+     }
+ 
+     void OnShutdown() override
+@@ -440,6 +442,9 @@
+ 
+     bool OnPlayerbotCheckLFGQueue(lfg::Lfg5Guids const& guidsList) override
+     {
++        std::set<ObjectGuid> queues(guidsList.guids.begin(), guidsList.guids.end());
++        if (!CoaDungeonPool::CanMatch(queues))
++            return false;
+         bool nonBotFound = false;
+ 
+         for (ObjectGuid const& guid : guidsList.guids)
