@@ -1,0 +1,82 @@
+{
+  "id": "area52-worldforged-verification-20261030",
+  "state": "qualified offline; final stable preflight pending; not activated or published",
+  "entries": 990,
+  "new_verified": 987,
+  "certification_preserved": true,
+  "baseline_binary_sha256": "09b727aa15868d1a461662d2914d85b097022af40cfe9dba1aec6b25c6bee070",
+  "binary_sha256": "3e731e5aea86ada8ab038e4ff64ef9f802f1ff28c88251649e292421fcaef969",
+  "unstripped_binary_sha256": "719901585ae634f50f2f39cb8e1da1ab5f3577420fb9a75699bee32fc2d02a38",
+  "allocated_elf_sections_identical": true,
+  "source_patch_sha256": "ae9d02ca1b917def3b69e255dc873a20ef74dfe18c2d56998682d79643726391",
+  "source_files": {
+    "src/server/coa/Area52HopliteRemaining.inc": {
+      "before_sha256": "22d85a6b5c7587e694dda1f95e4e37a3588ba6f32cf1eb5142fa908c93c60840",
+      "after_sha256": "d4ded6a710e36c7657ac044cd3cf2df7748d166930f39de7e818cbccd23b5bfc"
+    },
+    "src/server/coa/Area52WizardFrostbolt.inc": {
+      "before_sha256": "286aeaca3dee07dd13ed4b03b46e55367af386e8168683d32acc6e95f41276e0",
+      "after_sha256": "01f53a7dd7ce86afd4113afdc26384046229b884a089ee6e46b0263214a61248"
+    },
+    "src/server/coa/Area52Worldforged.h": {
+      "before_sha256": null,
+      "after_sha256": "6e950a4502b833a5c939882024d9b5cbdd0e009d707510c37e44d9cde3db56ee"
+    },
+    "src/server/coa/Area52Worldforged.inc": {
+      "before_sha256": null,
+      "after_sha256": "a13f9bf53e5295d7acd31c607a6b40ed1fab3a5d85790c46b649807f513e88a4"
+    },
+    "src/server/coa/Area52WorldforgedCatalog.h": {
+      "before_sha256": null,
+      "after_sha256": "0d275cfd0dc848efc2bed7116f86f536fcbafb3bfd0a954c409ec308f06460eb"
+    },
+    "src/server/coa/Area52WorldforgedRules.h": {
+      "before_sha256": null,
+      "after_sha256": "27078c63a5a51141eb0e06d4e8e799d39f3905f1e766828a29f270ea67b99983"
+    },
+    "src/server/coa/AscensionFreePick.cpp": {
+      "before_sha256": "88a583b1dbbae9b23b74430dbde72ba34cd32dd2e322558aa806f3f5a15257e8",
+      "after_sha256": "8d920776620ff1a511999d89f993a153b4a7c7f7a0cc13348b735611dd28860d"
+    },
+    "src/server/coa/AscensionMysticEnchant.cpp": {
+      "before_sha256": "fb65ceb0d145ff7d2de5d36deddcc03c676514646971b5c6d3c6b7e0af734997",
+      "after_sha256": "24eeea0bf9179b3bc7d8aac8c841b262142bad0817095b7e96caf141822a9245"
+    },
+    "src/server/coa/AscensionMysticKnightEpics.cpp": {
+      "before_sha256": "ce428934ea286381aa80138b07cf33bcc961b6e09321adc5e99c6e7d985a4660",
+      "after_sha256": "666da7f1a0701bf517d3fffeea9dcb861968b0b07c80148fe998af8a50c7d3bf"
+    },
+    "src/server/coa/AscensionWhiteWalkerSupport.cpp": {
+      "before_sha256": "8c52d4fb9922c75157e2f69ae2892eb1f7856d8cfa6c7d9aa01530778e10f277",
+      "after_sha256": "a0b834a00cbc256e48d09450500bf53d8dfe851e8983b1ba159895acc1906392"
+    },
+    "src/server/game/Entities/Player/PlayerStorage.cpp": {
+      "before_sha256": "18b0be06a7f508bd2a6fc2e8b4843f5f2b282c72b9ac3bfabe9c243c73612649",
+      "after_sha256": "6bad5c893a1fd2479b28535bcaf4ca4e8b796bb4134e24ab81f509bd3e077089"
+    },
+    "src/server/game/Entities/Unit/Unit.cpp": {
+      "before_sha256": "5a9ddf863da2f05d54a7ac8582d00a4d8fc36c1fafaacbf62b62c09f2a9c4fa1",
+      "after_sha256": "78f8b8f250493ababcc415b3c872c576cbf81096980f0cbdfb2536e89a848805"
+    },
+    "src/server/game/Spells/Auras/SpellAuraEffects.cpp": {
+      "before_sha256": "af8ab14b9c31544163cdadb82f8766183c6fec1c4c78494cef2acd1ec24bd7ed",
+      "after_sha256": "b64ca74f5b8a96c1f80f04342590e89aafcad8c02b84339cbf7ab270caa4ae64"
+    }
+  },
+  "checks": {
+    "native-r5": "729396d265aedb1b7b586649111e169435832e693b8169ee64948e68227687f4",
+    "runtime-r6": "f5527fc60bdc1c63d054517bb718700df94235f330cd1020c5564a9135e0c146",
+    "sql-r2": "f663914a8dc0553d235e79b50f7f993a9b2aa82b28697adf0d904b8a601a69fc",
+    "package-r3": "11184348f30a083c0f707fc0cf6a46672708e65901301abe5ac2b53cc203e442"
+  },
+  "limits": "Offline native function tests use bounded DBC/session/database adapters; gameplay certification remains tester-owned. No live gameplay or database writes.",
+  "pending_bot_readiness": "Preserved separately; not included in this binary. Either package requires rebasing after the other activates.",
+  "client_inventory": {
+    "managed_files": 509,
+    "cached_hashes_reused": 509,
+    "changed": [
+      "Data/area-52/patch-D.MPQ"
+    ]
+  },
+  "rollback": "Selective removal of new-family temporary power buffs with exact source provenance; retains existing Wizard power, shared cooldown and unrelated auras"
+}

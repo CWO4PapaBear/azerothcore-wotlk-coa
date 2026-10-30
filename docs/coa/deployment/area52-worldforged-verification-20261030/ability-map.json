@@ -1,0 +1,1037 @@
+{
+  "count": 124,
+  "source_hashes": {
+    "AscensionFreePickLinkedSpells.h": "eb51f45f55f9ba9ec28f7099c0ec79fdb3cf93bdc0b3632d2c2098dda8de25e9",
+    "AscensionFreePick.cpp": "88a583b1dbbae9b23b74430dbde72ba34cd32dd2e322558aa806f3f5a15257e8",
+    "Area52HopliteRemainingRules.h": "295af81fc534b210947fbf2e1be48f207b3393bfc3977ef91ac0254d6647d014"
+  },
+  "limits": "Root associations only; not a proof of all rank/helper dispatch or eligibility",
+  "abilities": {
+    "Aimed Shot": {
+      "roots": [
+        19434
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Ambush": {
+      "roots": [
+        8676
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Arcane Barrage": {
+      "roots": [
+        44425
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Arcane Blast": {
+      "roots": [
+        30451
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Arcane Explosion": {
+      "roots": [
+        1449
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Arcane Missiles": {
+      "roots": [
+        5143
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Arcane Shot": {
+      "roots": [
+        3044
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Avenger's Shield": {
+      "roots": [
+        31935
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Backstab": {
+      "roots": [
+        53
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Bloodthirst": {
+      "roots": [
+        23881
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Chain Lightning": {
+      "roots": [
+        421
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Chaos Bolt": {
+      "roots": [
+        50796
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Chimera Shot": {
+      "roots": [
+        53209
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Claw": {
+      "roots": [
+        1082
+      ],
+      "grant": 768,
+      "evidence": "Cat Form linked grant",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Colossus Smash": {
+      "roots": [
+        86361
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Concussive Shot": {
+      "roots": [
+        5116
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Cone of Cold": {
+      "roots": [
+        120
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Conflagrate": {
+      "roots": [
+        17962
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Consecration": {
+      "roots": [
+        26573
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Corruption": {
+      "roots": [
+        172
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Counterattack": {
+      "roots": [
+        19306
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Crimson Tempest": {
+      "roots": [
+        954809
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Crusader Strike": {
+      "roots": [
+        35395
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Curse of Agony": {
+      "roots": [
+        980
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Deadly Throw": {
+      "roots": [
+        26679
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Deep Freeze": {
+      "roots": [
+        44572
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "damage_helpers": [
+        71757
+      ],
+      "script_helper_evidence": "Native named-ability script or periodic handler; see dispatch trace",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Devastate": {
+      "roots": [
+        20243
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Devouring Plague": {
+      "roots": [
+        2944
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Dispatch": {
+      "roots": [
+        954553
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Divine Storm": {
+      "roots": [
+        53385
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Dragon's Breath": {
+      "roots": [
+        31661
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Drain Life": {
+      "roots": [
+        689
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Drain Soul": {
+      "roots": [
+        1120
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Earth Shock": {
+      "roots": [
+        8042
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Elemental Blast": {
+      "roots": [
+        954807
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Entangling Roots": {
+      "roots": [
+        339
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Envenom": {
+      "roots": [
+        32645
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Eviscerate": {
+      "roots": [
+        2098
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Execute": {
+      "roots": [
+        5308
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "damage_helpers": [
+        20647
+      ],
+      "script_helper_evidence": "Native named-ability script or periodic handler; see dispatch trace",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Exorcism": {
+      "roots": [
+        879
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Explosive Shot": {
+      "roots": [
+        53301
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "damage_helpers": [
+        53352
+      ],
+      "script_helper_evidence": "Native named-ability script or periodic handler; see dispatch trace",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Ferocious Bite": {
+      "roots": [
+        22568
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Fire Blast": {
+      "roots": [
+        2136
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Fireball": {
+      "roots": [
+        133
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Flame Shock": {
+      "roots": [
+        8050
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Flamestrike": {
+      "roots": [
+        2120
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Frost Nova": {
+      "roots": [
+        122
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Frost Shock": {
+      "roots": [
+        8056
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Frostbolt": {
+      "roots": [
+        116
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Garrote": {
+      "roots": [
+        703
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Ghostly Strike": {
+      "roots": [
+        14278
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Glaive Toss": {
+      "roots": [
+        954821
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Gloomblade": {
+      "roots": [
+        760050
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Hammer of Wrath": {
+      "roots": [
+        24275
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Hammer of the Righteous": {
+      "roots": [
+        53595
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Hamstring": {
+      "roots": [
+        1715
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Hand of Gul'dan": {
+      "roots": [
+        954611
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Haunt": {
+      "roots": [
+        48181
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Hellfire": {
+      "roots": [
+        1949
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Hemorrhage": {
+      "roots": [
+        16511
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Holy Fire": {
+      "roots": [
+        14914
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Holy Nova": {
+      "roots": [
+        15237
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Holy Wrath": {
+      "roots": [
+        2812
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Ice Lance": {
+      "roots": [
+        30455
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Immolate": {
+      "roots": [
+        348
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Incinerate": {
+      "roots": [
+        29722
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Insect Swarm": {
+      "roots": [
+        5570
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Judgement": {
+      "roots": [
+        20271,
+        53407,
+        53408
+      ],
+      "damage_helpers": [
+        54158,
+        20187,
+        20467,
+        31804,
+        53733
+      ],
+      "evidence": "Area52HopliteRemainingRules native Judgement consumer; seal helper attribution pending",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Kill Shot": {
+      "roots": [
+        53351
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Lacerate": {
+      "roots": [
+        33745
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Lava Burst": {
+      "roots": [
+        51505
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Lava Lash": {
+      "roots": [
+        60103
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Lightning Bolt": {
+      "roots": [
+        403
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Living Bomb": {
+      "roots": [
+        44457
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Mangle": {
+      "roots": [
+        33917
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [
+        33876,
+        33878
+      ],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Maul": {
+      "roots": [
+        6807
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Mind Blast": {
+      "roots": [
+        8092
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Mind Flay": {
+      "roots": [
+        15407
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Mongoose Bite": {
+      "roots": [
+        1495
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Moonfire": {
+      "roots": [
+        8921
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Mortal Strike": {
+      "roots": [
+        12294
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Multi-Shot": {
+      "roots": [
+        2643
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Mutilate": {
+      "roots": [
+        1329
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Overpower": {
+      "roots": [
+        7384
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Pyroblast": {
+      "roots": [
+        11366
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Raging Blow": {
+      "roots": [
+        954836
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Rake": {
+      "roots": [
+        1822
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Rend": {
+      "roots": [
+        772
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Revenge": {
+      "roots": [
+        6572
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Rip": {
+      "roots": [
+        1079
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Riposte": {
+      "roots": [
+        14251
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Rupture": {
+      "roots": [
+        1943
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Scorch": {
+      "roots": [
+        2948
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Searing Pain": {
+      "roots": [
+        5676
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Serpent Sting": {
+      "roots": [
+        1978
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Shadow Bolt": {
+      "roots": [
+        686
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Shadow Word: Death": {
+      "roots": [
+        32379
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Shadow Word: Pain": {
+      "roots": [
+        589
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Shadowburn": {
+      "roots": [
+        17877
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Shadowflame": {
+      "roots": [
+        47897
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Shadowfury": {
+      "roots": [
+        30283
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Shield Slam": {
+      "roots": [
+        23922
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Shield of Righteousness": {
+      "roots": [
+        53600
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Shiv": {
+      "roots": [
+        5938
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "damage_helpers": [
+        5940
+      ],
+      "script_helper_evidence": "Native named-ability script or periodic handler; see dispatch trace",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Shred": {
+      "roots": [
+        5221
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Shuriken Toss": {
+      "roots": [
+        954835
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Siegebreaker": {
+      "roots": [
+        954876
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Sinister Strike": {
+      "roots": [
+        1752
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Slam": {
+      "roots": [
+        1464
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "damage_helpers": [
+        50783
+      ],
+      "script_helper_evidence": "Native named-ability script or periodic handler; see dispatch trace",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Smite": {
+      "roots": [
+        585
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Soul Fire": {
+      "roots": [
+        6353
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Starfire": {
+      "roots": [
+        2912
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Starsurge": {
+      "roots": [
+        954800
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Steady Shot": {
+      "roots": [
+        56641
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Stormstrike": {
+      "roots": [
+        17364
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Swipe (Bear)": {
+      "roots": [
+        779
+      ],
+      "grant": 5487,
+      "evidence": "Bear Form linked grant",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Swipe (Cat)": {
+      "roots": [
+        62078
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Thunder Clap": {
+      "roots": [
+        6343
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Unstable Affliction": {
+      "roots": [
+        30108
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Vampiric Touch": {
+      "roots": [
+        34914
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Victory Rush": {
+      "roots": [
+        34428
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Whirlwind": {
+      "roots": [
+        1680
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Wing Clip": {
+      "roots": [
+        2974
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    },
+    "Wrath": {
+      "roots": [
+        5176
+      ],
+      "evidence": "Area52 CharacterAdvancement selectable named spell",
+      "linked_children": [],
+      "runtime_gate": "Native rank-chain and authorized recursive replacement matching; damage helper tracing incomplete"
+    }
+  }
+}

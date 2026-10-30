@@ -1,0 +1,9 @@
+# Worldforged verification build
+
+Baseline: deployed Area 52 companion server, binary 09b727aa15868d1a461662d2914d85b097022af40cfe9dba1aec6b25c6bee070.
+Apply server.patch to its reconciled active source. The patch reproduces the exact candidate files; source hashes are in verification-summary.json.
+Reuse the existing area52-playerbots-20261026 build and the deployed companion module snapshot, not the pending bot-readiness working tree. Build changed components with tools/verify_all.py stages build,unit in local/ascension-freepick-builder:20261001. The prepared stripped executable retains all allocated ELF section contents and addresses from that successful build.
+
+The new runtime uses the resolved damage dispatcher, native power/stat/crit/haste/cost effects and source-aware aura persistence. The existing character_aura.sourceAuraSpell column is required and checked read-only; normal activation includes no schema migration or SQL writes. Temporary tester access reads the staged Verified statuses at startup/login. Rollback restores prior source, binary, status files and exact client archive. Emergency rollback also clears only the newly supported families' temporary power buffs with exact source-enchant provenance, because the older binary has incompatible helper layouts. Preflight rejects any such preexisting rows. Existing Wizard power, shared cooldown, unrelated auras and provenance-free legacy rows are preserved; character records are never broadly reset.
+
+Client changes affect only the 990 parent descriptions in patch-D.MPQ. All other records, archive members and managed client files are preserved. Publication includes current launcher assets/manifest/feed verification, scoped feature-branch source evidence, full notes and Discord. No DLL changes. Pending bot-readiness work remains separate and must be rebased if this package activates first. This patch is prepared source publication, not integration into main.
