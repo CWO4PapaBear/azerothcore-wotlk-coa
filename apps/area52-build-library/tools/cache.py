@@ -8,6 +8,7 @@ import tempfile
 
 import portable_dependency
 from library import canonical, encode, require, validate_record
+from layout import check_index, check_entry
 
 
 def safe_preview(value):
@@ -17,14 +18,11 @@ def safe_preview(value):
 def snapshot(remote, catalog, blob_directory=None):
     head = remote.head()
     raw = remote.read(head, 'index.json')
-    index = json.loads(raw) if raw else {'schema': 1, 'builds': []}
-    require(isinstance(index, dict) and set(index) == {'schema', 'builds'} and index['schema'] == 1, 'Unsupported index')
-    require(isinstance(index['builds'], list) and len(index['builds']) <= 10000, 'Library index exceeds limits')
+    index = check_index(json.loads(raw) if raw else {'schema': 2, 'builds': []})
     result, seen = [], set()
     for item in index['builds']:
         require(isinstance(item, dict) and isinstance(item.get('path'), str), 'Invalid index entry')
         path = item['path']
-        require(re.fullmatch(r'builds/[0-9a-f-]{36}/[1-9][0-9]{0,9}\.json', path) is not None, 'Invalid library path')
         require(path not in seen, 'Duplicate library revision')
         seen.add(path)
         digest=item.get('sha256')
@@ -33,11 +31,7 @@ def snapshot(remote, catalog, blob_directory=None):
         body = cached.read_bytes() if cached and cached.is_file() else remote.read(head, path)
         require(body is not None and len(body) <= 200000, 'Missing or oversized library record')
         require(hashlib.sha256(body).hexdigest() == item.get('sha256'), 'Library record hash mismatch')
-        record = validate_record(json.loads(body))
-        require(path == 'builds/' + record['id'] + '/' + str(record['revision']) + '.json', 'Library identity mismatch')
-        require(item.get('id') == record['id'] and item.get('revision') == record['revision'], 'Index identity mismatch')
-        require(item.get('name') == record['build']['Name'] and item.get('author') == record['author'] and
-                item.get('compatibility') == record['compatibility'], 'Index metadata mismatch')
+        record = check_entry(item, body)
         if cached and not cached.exists():
             cached.parent.mkdir(parents=True,exist_ok=True)
             with tempfile.NamedTemporaryFile(dir=cached.parent,delete=False) as output:

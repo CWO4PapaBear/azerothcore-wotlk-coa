@@ -10,6 +10,7 @@ import portable_dependency
 from library import canonical, decode, make_record, require, validate_record
 from native_wire import portable, decode_wire
 from catalog import page, overview
+from layout import build_path, catalog_path, entry, check_index, check_entry
 
 
 class Queue:
@@ -56,6 +57,8 @@ class Queue:
             public_id = row[0] if row else str(uuid.uuid4())
             if not row:
                 self.connection.execute('INSERT INTO bindings VALUES (?,?)', (source, public_id))
+            highest = self.connection.execute('SELECT MAX(source_revision) FROM requests WHERE source=?', (source,)).fetchone()[0]
+            require(highest is None or local_revision > highest, 'Cannot publish a stale source revision')
             revision = self.connection.execute('SELECT COUNT(*)+1 FROM requests WHERE source=?', (source,)).fetchone()[0]
             record = make_record(build, author, catalog, public_id, revision)
             request = str(uuid.uuid4())
@@ -101,30 +104,44 @@ def publish(queue, request, remote):
     require(row['state'] == 'queued', 'Request requires operator review')
     record = validate_record(json.loads(row['record']))
     head = remote.head()
-    path = 'builds/' + record['id'] + '/' + str(record['revision']) + '.json'
+    path = build_path(record)
     body = canonical(record)
-    old = remote.read(head, path)
-    require(old is None or old == body, 'Conflicting public revision')
     previous_index = remote.read(head, 'index.json')
-    index = json.loads(previous_index) if previous_index else {'schema': 1, 'builds': []}
-    require(set(index) == {'schema', 'builds'} and index['schema'] == 1 and isinstance(index['builds'], list), 'Unsupported remote index')
-    item = {'id': record['id'], 'revision': record['revision'], 'name': record['build']['Name'],
-            'author': record['author'], 'compatibility': record['compatibility'], 'path': path,
-            'sha256': hashlib.sha256(body).hexdigest()}
-    existing = [r for r in index['builds'] if r.get('path') == path]
-    require(not existing or existing == [item], 'Conflicting remote index revision')
-    if not existing:
-        index['builds'].append(item)
-    index['builds'].sort(key=lambda r: (r['id'], r['revision']))
-    catalog_path = 'catalog/' + record['id'] + '/' + str(record['revision']) + '.md'
-    rendered = page(record).encode('utf-8')
-    prior_page = remote.read(head, catalog_path)
-    require(prior_page is None or prior_page == rendered, 'Conflicting public catalog revision')
-    files = {path: body, 'index.json': canonical(index), catalog_path: rendered,
-             'CATALOG.md': overview(index['builds']).encode('utf-8')}
+    index = check_index(json.loads(previous_index) if previous_index else {'schema': 2, 'builds': []})
+    require(index['schema'] == 2 or not index['builds'],
+            'Library layout migration required before publication; no write attempted')
+    pending = queue.connection.execute(
+        "SELECT id FROM requests WHERE source=? AND id<>? AND state='uncertain'",
+        (row['source'], request)).fetchone()
+    require(pending is None, 'Reconcile earlier uncertain publication before replacing this build')
+    previous = [item for item in index['builds'] if item['id'] == record['id']]
+    files = {}
+    if previous:
+        item = previous[0]
+        prior = check_entry(item, remote.read(head, item['path']))
+        require(prior['revision'] < record['revision'], 'Public revision is not older than this request')
+        owned = queue.connection.execute(
+            "SELECT record FROM requests WHERE source=? AND state='published'", (row['source'],)).fetchall()
+        require(any(json.loads(r[0]) == prior for r in owned),
+                'Public build differs from this owner publication history; operator review required')
+        old_page = catalog_path(item)
+        require(remote.read(head, old_page) == page(prior).encode('utf-8'), 'Public catalog page changed')
+        files[item['path']] = None
+        files[old_page] = None
+    else:
+        known = queue.connection.execute(
+            "SELECT id FROM requests WHERE source=? AND state='published'", (row['source'],)).fetchone()
+        require(known is None, 'Previously published build is missing; operator review required')
+    new_page = catalog_path(entry(record))
+    for target in (path, new_page):
+        require(target in files or remote.read(head, target) is None, 'Unindexed destination already exists')
+    index = {'schema': 2, 'builds': [item for item in index['builds'] if item['id'] != record['id']] + [entry(record)]}
+    index['builds'].sort(key=lambda item: item['id'])
+    files.update({path: body, 'index.json': canonical(index), new_page: page(record).encode('utf-8'),
+                  'CATALOG.md': overview(index['builds']).encode('utf-8')})
     commit = remote.create_commit(head, files)
     intent = {'repository': remote.repository, 'previous': head, 'commit': commit,
-              'files': {key: hashlib.sha256(value).hexdigest() for key, value in files.items()}}
+              'files': {key: hashlib.sha256(value).hexdigest() if value is not None else None for key, value in files.items()}}
     queue.intent(request, intent)
     try:
         remote.advance(head, commit)
@@ -142,7 +159,7 @@ def reconcile(queue, request, remote, intent):
         for commit in set((head, intent['commit'])):
             for path, digest in intent['files'].items():
                 value = remote.read(commit, path)
-                if value is None or hashlib.sha256(value).hexdigest() != digest:
+                if (value is not None if digest is None else value is None or hashlib.sha256(value).hexdigest() != digest):
                     queue.finish(request, 'conflict', 'Published files differ; operator review required')
                     return 'conflict'
         queue.finish(request, 'published')
@@ -195,8 +212,9 @@ class GitHub:
         import base64
         tree = []
         for path, body in files.items():
-            blob = self.api('git/blobs', {'content': base64.b64encode(body).decode(), 'encoding': 'base64'})
-            tree.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
+            sha = None if body is None else self.api('git/blobs', {
+                'content': base64.b64encode(body).decode(), 'encoding': 'base64'})['sha']
+            tree.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': sha})
         parent = self.api('git/commits/' + head)
         created = self.api('git/trees', {'base_tree': parent['tree']['sha'], 'tree': tree})
         return self.api('git/commits', {'message': 'Publish an explicitly shared Area 52 build', 'tree': created['sha'], 'parents': [head]})['sha']
