@@ -1,0 +1,169 @@
+--- a/Interface/AddOns/Ascension_BuildCreator/BuildCreator.lua
++++ b/Interface/AddOns/Ascension_BuildCreator/BuildCreator.lua
+@@ -1214,6 +1214,13 @@
+ 
+ local originalPrompt=BuildCreatorMixin.PromptPublishBuild
+ function BuildCreatorMixin:SaveBuild()
++    local allowed,reasons=Area52CanPublishBuild(self.EditableBuildViewPanel)
++    if allowed~=true and allowed~=1 then
++        savingForPublish=false
++        local lines={}
++        for _,reason in ipairs(reasons or {}) do lines[#lines+1]=Area52BuildPublishReason(reason) end
++        self:ShowError("Cannot save build",table.concat(lines,"\n"));return
++    end
+     if self.EditableBuildViewPanel.Area52CategoryRestoreFailed then self:ShowError("Cannot save build",Area52BuildPublishReason("AREA52_PUBLISH_CATEGORY_RESTORE_FAILED"));return end
+     local sent,reason=C_BuildEditor.PublishBuild()
+     if sent then self:ShowLoading("Saving build...")
+@@ -1229,6 +1236,13 @@
+ end
+ function BuildCreatorMixin:PromptSaveBuild()
+     if not Library.PrepareEditor(self.EditableBuildViewPanel) then return end
++    local allowed,reasons=Area52CanPublishBuild(self.EditableBuildViewPanel)
++    if allowed~=true and allowed~=1 then
++        savingForPublish=false
++        local lines={}
++        for _,reason in ipairs(reasons or {}) do lines[#lines+1]=Area52BuildPublishReason(reason) end
++        self:ShowError("Cannot save build",table.concat(lines,"\n"));return
++    end
+     local build=C_BuildEditor.GetPendingBuild()
+     if build then StaticPopup_Show("AREA52_SAVE_BUILD",build.Name) end
+ end
+@@ -1276,15 +1290,16 @@
+         controls.SaveBuild=button
+         button:SetSize(140,38);button:SetPoint("LEFT",controls.PublishBuild,"RIGHT",4,0);button:SetText("Save Build")
+         button:SetScript("OnClick",function() BuildCreatorFrame:PromptSaveBuild() end)
++        button:SetMotionScriptsWhileDisabled(true)
+         button:SetScript("OnEnter",GameTooltip_GenericTooltip);button:SetScript("OnLeave",GameTooltip_Hide)
+         controls.ResetBuild:ClearAllPoints();controls.ResetBuild:SetPoint("LEFT",button,"RIGHT",4,0)
+     end
+     local state=controls.PublishBuild:IsEnabled()
+     local enabled=(state==true or state==1)
+-    controls.SaveBuild:SetEnabled(controls.PublishBuild:IsEnabled())
++    controls.SaveBuild:SetEnabled(enabled)
+     controls.SaveBuild.tooltipTitle="Save Build"
+     controls.SaveBuild.tooltipText="Save this build to this server's build library. It will not be uploaded to the public Shared Library."
+-    if not controls.PublishBuild:IsEnabled() then
++    if not enabled then
+         controls.SaveBuild.tooltipTitle="Cannot Save Build"
+         controls.SaveBuild.tooltipText=controls.PublishBuild.tooltipText or "Review the build requirements before saving."
+     end
+--- a/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
++++ b/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
+@@ -684,7 +684,7 @@
+ end
+ function Area52BuildValidationDetails()
+     local lines,summary=progressionDetails()
+-    local header="Stage: client Publish progression validation (C_BuildEditor.CanPublishBuild)."
++    local header="This build cannot be learned in its current order. Save is disabled."
+     local coverage=string.format("Diagnostic coverage: %d/80 level budgets, %d spell entries; %d unchanged-level responses, %d unavailable checks.",summary.levels,summary.entries,summary.same,summary.unavailable)
+     if #lines==0 then
+         return header.."\nNo specific failing entry was exposed by the point-budget or level-edit APIs. Unchanged-level responses do not validate progression.\n"..coverage
+@@ -692,13 +692,16 @@
+     return header.."\n"..table.concat(lines,"\n").."\n"..coverage.."\nLevel-edit diagnostics locate reported issues; they do not reproduce the full Publish validator."
+ end
+ function Area52BuildPublishReason(reason)
++    if type(reason)=="string" and reason:sub(1,22)=="AREA52_RARITY_MESSAGE:" then return reason:sub(23) end
+     local featuredReasons={
++        AREA52_BUILD_VALIDATION_UNAVAILABLE="The complete build validation could not finish or did not provide a failure reason. Save is disabled. Reopen the editor and try again.",
+         AREA52_PUBLISH_ARCHETYPE_INVALID="Featured Draft assignment: select a character-creation archetype as a GM; its name and archetype ID must match.",
+         AREA52_PUBLISH_CATEGORY_RESTORE_FAILED="Featured Draft validation could not restore the category. Close and reopen the editor before saving or publishing.",
+         AREA52_PUBLISH_VALIDATION_UNAVAILABLE="Featured Draft progression validation could not complete. Nothing was published; reopen the editor and try again."
+     }
+     if featuredReasons[reason] then return featuredReasons[reason] end
+     if GetRealmName()~="Area 52 - Free-Pick" then return _G[reason] or reason end
++    if type(reason)=="string" and (reason:find("NON_TRAVERSIBLE",1,true) or reason:find("NOT_TRAVERSIBLE",1,true)) then return Area52BuildValidationDetails() end
+     if reason=="PUBLISH_BUILD_NOT_TRAVERSIBLE" or reason=="PUBLISH_BUILD_LEVEL_INAPPROPRIATE_SPELL" or reason=="BUILD_NOT_TRAVERSIBLE" or reason=="BUIL_NOT_TRAVERSIBLE" then
+         return Area52BuildValidationDetails()
+     end
+@@ -708,8 +711,71 @@
+ 
+ -- Area 52 Featured Drafts use the same authored leveling progression as Leveling builds.
+ -- Keep the real Draft category/name/assignment for saving and character creation.
+-function Area52CanPublishBuild(view)
++local function Area52BuildRarityReasons()
++    local build=C_BuildEditor.GetPendingBuild()
++    if type(build)~="table" or type(build.Spells)~="table" then error("missing build") end
++    local names={"Uncommon","Rare","Epic","Legendary"}
++    local limits, entries, picks, firstFailure={},{},{},{}
++    for _,name in ipairs(names) do
++        local quality=Enum.SpellQuality[name]
++        local limit=quality and C_CharacterAdvancement.GetQualityLimit(quality)
++        if type(limit)~="number" or limit<0 or limit%1~=0 then error("missing rarity budget") end
++        limits[name]=limit
++    end
++    for _,spell in ipairs(build.Spells) do
++        local entry=C_CharacterAdvancement.GetEntryBySpellID(spell.Spell)
++        local level=tonumber(spell.Level)
++        if not entry or not entry.ID or not level or level<1 or level>80 or level%1~=0 then error("missing selection") end
++        local cost=entry.QualityCost
++        if type(cost)~="number" or cost<0 or cost%1~=0 then error("missing rarity cost") end
++        entries[entry.ID]=entry
++        picks[entry.ID]=math.min(picks[entry.ID] or level,level)
++    end
++    for level=1,80 do
++        local used={Uncommon=0,Rare=0,Epic=0,Legendary=0}
++        for id,entry in pairs(entries) do
++            if picks[id]<=level then
++                local exempt=false
++                for _,masteryID in ipairs(entry.Masteries or {}) do
++                    if picks[masteryID] and picks[masteryID]<=level then exempt=true;break end
++                end
++                if not exempt and entry.QualityCost>0 then
++                    local matched=false
++                    for _,name in ipairs(names) do
++                        if entry.Quality==name or entry.Quality==Enum.SpellQuality[name] then
++                            used[name]=used[name]+entry.QualityCost;matched=true;break
++                        end
++                    end
++                    if not matched and entry.Quality~="Common" and entry.Quality~="Normal" and entry.Quality~="None"
++                        and entry.Quality~=0 and not (type(entry.Quality)=="number" and entry.Quality==Enum.SpellQuality.Normal) then
++                        error("unknown rarity")
++                    end
++                end
++            end
++        end
++        for _,name in ipairs(names) do
++            if used[name]>limits[name] and not firstFailure[name] then
++                firstFailure[name]=string.format("AREA52_RARITY_MESSAGE:%s rarity gem budget exceeded at level %d: %d used / %d allowed (%d over).",
++                    name,level,used[name],limits[name],used[name]-limits[name])
++            end
++        end
++    end
++    local reasons={}
++    for _,name in ipairs(names) do if firstFailure[name] then reasons[#reasons+1]=firstFailure[name] end end
++    return #reasons==0,reasons
++end
++
++function Area52ValidateBuildRarity()
++    if GetRealmName()~="Area 52 - Free-Pick" then return true,{} end
++    local ok,allowed,reasons=pcall(Area52BuildRarityReasons)
++    if not ok then return false,{"AREA52_RARITY_MESSAGE:Unable to validate rarity gem budgets. Reopen the editor before saving."} end
++    return allowed,reasons
++end
++
++local function Area52ValidateBuildInternal(view)
+     if view.Area52CategoryRestoreFailed then return false,{"AREA52_PUBLISH_CATEGORY_RESTORE_FAILED"} end
++    local rarityOK,rarityReasons=Area52ValidateBuildRarity()
++    if not rarityOK then return false,rarityReasons end
+     local build=C_BuildEditor.GetPendingBuild()
+     local selector=Area52DraftSelector
+     if not selector or not selector.Applies(build) then return C_BuildEditor.CanPublishBuild() end
+@@ -735,3 +801,18 @@
+     if not selector.Valid(view) then return false,{"AREA52_PUBLISH_ARCHETYPE_INVALID"} end
+     return result,details
+ end
++
++function Area52CanPublishBuild(view)
++    local ok,allowed,reasons=pcall(Area52ValidateBuildInternal,view)
++    if not ok then return false,{"AREA52_BUILD_VALIDATION_UNAVAILABLE"} end
++    if type(reasons)=="string" then reasons={reasons} end
++    local failures={}
++    if type(reasons)=="table" then
++        for _,reason in ipairs(reasons) do
++            if type(reason)=="string" and reason~="" then failures[#failures+1]=reason end
++        end
++    end
++    if (allowed==true or allowed==1) and #failures==0 then return true,{} end
++    if #failures==0 then failures={"AREA52_BUILD_VALIDATION_UNAVAILABLE"} end
++    return false,failures
++end
