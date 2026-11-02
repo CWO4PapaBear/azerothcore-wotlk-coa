@@ -1,0 +1,162 @@
+--- a/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
++++ b/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
+@@ -876,11 +876,18 @@
+     local appearances=C_ItemSet.GetAppearances(90000+id)
+     if not appearances or not next(appearances) then return end
+     local assigned=F.Read("")
+-    for slot=1,12 do
+-        local appearance=appearances[AppearanceUtil.GetCategorySlotID(F.Slots[slot][4])]
++    local keys={}
++    for key in pairs(appearances) do keys[#keys+1]=key end
++    table.sort(keys)
++    for _,key in ipairs(keys) do
++        local appearance=appearances[key]
+         if appearance and appearance~=0 then
+             local kind,item=C_Appearance.GetAppearanceDisplayInfo(appearance)
+-            if kind=="APPEARANCE_DISPLAY_TYPE_ITEM" and F.Accepts(slot,item) then assigned[slot]=item end
++            if kind=="APPEARANCE_DISPLAY_TYPE_ITEM" then
++                for slot=1,12 do
++                    if assigned[slot]==0 and F.Accepts(slot,item) then assigned[slot]=item;break end
++                end
++            end
+         end
+     end
+     local bundle=C_VanityCollection.GetItem(9901000+id)
+@@ -1049,16 +1056,21 @@
+     view.Area52PreviewSerial=(view.Area52PreviewSerial or 0)+1
+     local serial=view.Area52PreviewSerial
+     local missing={}
+-    panel.Model:SetUnit("player");panel.Model:SetCamera(1)
+-    panel.Model:SetPosition(0,0,0);panel.Model:SetFacing(0);panel.Model:Undress()
++    AppearancePlayerModelMixin.Dress(panel.Model)
+     for slot,definition in ipairs(F.Slots) do
+         local id=items[slot] or 0
+         local itemName=id>0 and GetItemInfo(id)
+         if id>0 and not itemName then missing[#missing+1]=id end
+         local name=id>0 and (itemName or ("Item "..id)) or "Not assigned"
+-        local icon=id>0 and GetItemIcon(id) or "Interface\\PaperDoll\\UI-Backpack-EmptySlot"
+-        panel.Buttons[slot].Icon:SetTexture(icon)
+-        if slot<=12 and id>0 then panel.Model:TryOn(id,AppearanceUtil.GetCategorySlotID(definition[4])) end
++        local button=panel.Buttons[slot]
++        if id>0 then button:SetActiveItemDisplay(id)
++        else
++            local invSlot=AppearanceUtil.GetCategorySlotID(definition[4])
++            local _,icon
++            if invSlot then _,icon=GetInventorySlotInfoByID(invSlot) end
++            button:SetInactiveIconDisplay(icon or "Interface\\Icons\\Ability_Mount_RidingHorse")
++        end
++        button.NoItemTexture:SetShown(id==0)
+     end
+     if not skipQuery and #missing>0 then
+         view.Area52PreviewCancel=ItemQueryListener:AddCancelableCallback(missing,function()
+@@ -1073,31 +1085,71 @@
+     BuildViewSectionMixin.CategoryIcons.AI_BOT_ROTATION = "Interface\\Icons\\inv_gizmo_02"
+     BuildViewSectionMixin.CategoryIcons.AREA52_FEATURED_VANITY = "Interface\\Icons\\inv_chest_chain"
+     if view.Area52VanitySection then return end
++    AppearanceUI_LoadUI()
+     local content=view.MainFrame.ScrollFrame.Content
+     local ai=CreateFrame("Frame",view:GetName().."Area52AI",content,"EditableBuildViewSectionTemplate")
+     ai:SetSize(764,190);ai:SetCategory("AI_BOT_ROTATION");ai.Area52FeaturedOnly=true
+     ai.Text=CreateFrame("Button",ai:GetName().."Text",ai,"EditableBuildMultilineTextTemplate")
+     ai.Text:SetSize(648,128);ai.Text:SetPoint("TOPLEFT",58,-36);ai.Text:SetPoint("TOPRIGHT",-58,-36)
+     local panel=CreateFrame("Frame",view:GetName().."Area52Vanity",content,"EditableBuildViewSectionTemplate")
+-    panel:SetSize(764,520);panel:SetCategory("AREA52_FEATURED_VANITY");panel.Area52FeaturedOnly=true
++    local scroll=view.MainFrame.ScrollFrame
++    local scale=math.min(1,math.max(0.25,(scroll:GetHeight()-76)/538))
++    panel:SetSize(764,76+538*scale);panel:SetCategory("AREA52_FEATURED_VANITY");panel.Area52FeaturedOnly=true
+     panel.Serialize=function() return nil end;panel.Deserialize=function() end
+-    panel.Model=CreateFrame("DressUpModel",nil,panel)
+-    panel.Model:SetSize(380,400);panel.Model:SetPoint("TOP",panel,"TOP",0,-55)
++    local canvas=CreateFrame("Frame",nil,scroll)
++    canvas:SetSize(380,538);canvas:SetScale(scale);canvas:SetPoint("TOP",panel,"TOP",0,-44/scale)
++    panel.Canvas=canvas
++    panel.Model=CreateFrame("DressUpModel",nil,canvas)
++    local model=panel.Model
++    model:SetAllPoints(canvas)
++    model.Background=model:CreateTexture(nil,"BACKGROUND");model.Background:SetAllPoints()
++    model.Background:SetAtlas(AppearanceUtil.GetBackgroundAtlas())
++    Mixin(model,ModelMixin)
++    model:SetPosition(0,0.12,0)
++    ModelMixin.OnLoad(model)
++    model:SetEnableDragRotation(true);model:SetEnableScrollZoom(true);model:SetEnableDragMove(true)
++    model:SetDragScale(0.001);model:SetMaxPosOffset(0.2,0.18);model:SetMinMaxDistance(-1,1)
++    model:SetUnit("player");model:SetCamera(1)
++    model.categoryID=1
++    model.InternalUndress=AppearancePlayerModelMixin.InternalUndress
++    model.GetSlotIllusionDisplayID=function() return 0 end
++    model.GetSlotDisplayID=function(_,inventorySlot)
++        for slot=1,12 do
++            if AppearanceUtil.GetCategorySlotID(F.Slots[slot][4])==inventorySlot then
++                local item=view.Area52FeaturedItems and view.Area52FeaturedItems[slot]
++                return item and item>0 and item or nil
++            end
++        end
++    end
++    local elapsed=0
++    panel:HookScript("OnHide",function() canvas:Hide() end)
++    panel:HookScript("OnUpdate",function(self,delta)
++        elapsed=elapsed+delta;if elapsed<0.05 then return end;elapsed=0
++        local top,bottom=scroll:GetTop(),scroll:GetBottom()
++        local a,b=canvas:GetTop(),canvas:GetBottom()
++        local visible=false
++        if panel:IsShown() and top and bottom and a and b then
++            local outerScale,innerScale=scroll:GetEffectiveScale(),canvas:GetEffectiveScale()
++            visible=a*innerScale<=top*outerScale+1 and b*innerScale>=bottom*outerScale-1
++        end
++        canvas:SetShown(visible)
++    end)
+     panel.Buttons={}
+     for slot=1,14 do
+         local index=slot
+-        local button=CreateFrame("Button",nil,panel)
+-        button:SetSize(42,42);button:RegisterForClicks("LeftButtonUp","RightButtonUp")
+-        button.Icon=button:CreateTexture(nil,"ARTWORK");button.Icon:SetAllPoints()
+-        button:SetNormalTexture("Interface\\Buttons\\UI-Quickslot2")
+-        button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square","ADD")
+-        local layout={{150,-70},{150,-126},{150,-238},{572,-126},{572,-238},{150,-294},{572,-182},{150,-182},{572,-70},{278,-420},{334,-420},{390,-420},{628,-350},{684,-350}}
+-        button:SetPoint("TOPLEFT",panel,"TOPLEFT",layout[slot][1],layout[slot][2])
++        local button=CreateFrame("CheckButton",nil,canvas,"AppearanceCategorySlotButtonTemplate")
++        button:SetFrameLevel(model:GetFrameLevel()+10)
++        button:UnregisterAllEvents()
++        button:SetScript("OnShow",function(self) self.AnimFrame:Hide() end)
++        button:SetScript("OnEvent",nil)
++        button:SetScript("OnHide",function() GameTooltip:Hide() end)
++        local layout={{"TOPLEFT",12,-56},{"TOPLEFT",12,-109},{"TOPLEFT",12,-215},{"TOPRIGHT",-12,-128},{"TOPRIGHT",-12,-287},{"TOPLEFT",12,-374},{"TOPRIGHT",-12,-181},{"TOPLEFT",12,-162},{"TOPRIGHT",-12,-234},{"BOTTOM",-53,28},{"BOTTOM",0,28},{"BOTTOM",53,28},{"TOPLEFT",402,-350},{"TOPLEFT",455,-350}}
++        button:SetPoint(layout[slot][1],canvas,layout[slot][1],layout[slot][2],layout[slot][3])
+         button:SetScript("OnClick",function(_,mouse)
+             if not F.Applies() then return end
+             if mouse=="RightButton" then
+                 view.Area52FeaturedItems[index]=0;F.Refresh(view);view:UpdatePendingBuild();GameTooltip:Hide()
+-            else F.OpenPicker(view,index) end
++            else model.IsRanged=(index==12);F.OpenPicker(view,index) end
+         end)
+         button:SetScript("OnEnter",function(self) F.SlotTooltip(view,index,self) end)
+         button:SetScript("OnLeave",function() GameTooltip:Hide() end)
+@@ -1106,15 +1158,15 @@
+         panel.Buttons[slot]=button
+     end
+     local full=Button(panel,"Choose full armor set",210,function() F.OpenPicker(view,0) end)
+-    full:SetPoint("BOTTOMLEFT",110,16)
++    full:SetPoint("BOTTOMLEFT",panel,"BOTTOMLEFT",110,8)
+     local assigned=Button(panel,"Load archetype set",180,function()
+         F.ImportAssigned(view,true);view:UpdatePendingBuild()
+     end)
+     assigned:SetPoint("LEFT",full,"RIGHT",12,0)
+     local help=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+-    help:SetPoint("TOP",panel,"TOP",0,-38);help:SetText("Hover for item details. Left-click to choose; right-click to clear.")
+-    local mounts=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+-    mounts:SetPoint("TOPLEFT",panel,"TOPLEFT",634,-324);mounts:SetText("Mounts")
++    help:SetPoint("TOP",panel,"TOP",0,-28);help:SetText("Hover for item details. Left-click to choose; right-click to clear.")
++    local mounts=canvas:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
++    mounts:SetPoint("TOPLEFT",canvas,"TOPLEFT",402,-324);mounts:SetText("Mounts")
+     local ordered={}
+     for _,section in ipairs(content.sections) do
+         if section~=ai and section~=panel then
+@@ -1149,6 +1201,7 @@
+     end
+     local enabled=F.Applies()
+     view.Area52AISection:SetShown(enabled);view.Area52VanitySection:SetShown(enabled)
++    view.Area52VanitySection.Canvas:SetShown(enabled and view:IsShown())
+     local content=view.MainFrame.ScrollFrame.Content
+     view.Area52AISection:ClearAllPoints();view.Area52AISection:SetPoint("TOPLEFT",content.Rotation,"BOTTOMLEFT",0,-16)
+     view.Area52VanitySection:ClearAllPoints();view.Area52VanitySection:SetPoint("TOPLEFT",view.Area52AISection,"BOTTOMLEFT",0,-16)
