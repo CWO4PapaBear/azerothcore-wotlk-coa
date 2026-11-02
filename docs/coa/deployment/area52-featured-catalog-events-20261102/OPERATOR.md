@@ -1,0 +1,11 @@
+# Save-triggered Featured catalog delivery
+
+Run the stable activation command from Administrator PowerShell. This package replaces the existing scheduled task, requiring task administration. CheckOnly is read-only; activation remains separately authorized.
+
+After successful relevant Featured Build database commits, the realm writes an atomic notification in its existing /logs bind. A hidden host listener waits for that file using inotify, coalesces saves for five seconds, and invokes the existing catalog publisher. Ordinary build text, ability, talent or enchant edits alone do not trigger export. Armor and weapons, mounts, pets, incarnation rewards and supported preview choices retain the existing export behavior. Shirt, Tabard and accessories remain excluded.
+
+The task starts at owner Windows logon and remains idle between events. One reconciliation at listener/server startup catches missed saves. Failure retries use 30 seconds, 2 minutes, 10 minutes, then 30 minutes, retaining immutable jobs, receipts and event state. An outstanding older job finishes before the latest catalog is checked. No recurring catalog scans run while idle. The host must remain powered and the owner signed in; this is not installed on tester PCs. Three task crash restarts are configured; repeated infrastructure failure requires operator inspection.
+
+Activation pauses the old task without terminating a running publication, preserves its XML and runtime files, installs the listener disabled, and starts it only after integrated package publication succeeds. Rollback restores the prior task and changed files without altering the outbox. Unrelated feed drift still stops publication; retries never bypass receipt or baseline guards.
+
+This server/worker-only package contains no client assets, DLL changes, live SQL migrations or launcher binary. The source patch is incremental against the captured active deployment, not upstream main. Existing bot overlays and all unrelated fixes are preserved. Offline evidence covers native transaction completion/startup/logout, failed and irrelevant saves, real file notification transport, retry/restart/coalescing and task migration adapters. No live gameplay or real task replacement was exercised during preparation.
