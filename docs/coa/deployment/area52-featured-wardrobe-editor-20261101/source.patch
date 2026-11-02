@@ -1,0 +1,148 @@
+--- a/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
++++ b/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
+@@ -870,6 +870,41 @@
+     UIErrorsFrame:AddMessage(message,1,0.3,0.2)
+ end
+ 
++function F.ImportAssigned(view,replace)
++    if not F.Applies() or not view.Area52ArchetypeID or view.Area52FeaturedInvalid then return end
++    local id=view.Area52ArchetypeID
++    local appearances=C_ItemSet.GetAppearances(90000+id)
++    if not appearances or not next(appearances) then return end
++    local assigned=F.Read("")
++    for slot=1,12 do
++        local appearance=appearances[AppearanceUtil.GetCategorySlotID(F.Slots[slot][4])]
++        if appearance and appearance~=0 then
++            local kind,item=C_Appearance.GetAppearanceDisplayInfo(appearance)
++            if kind=="APPEARANCE_DISPLAY_TYPE_ITEM" and F.Accepts(slot,item) then assigned[slot]=item end
++        end
++    end
++    local bundle=C_VanityCollection.GetItem(9901000+id)
++    for _,item in pairs(bundle and bundle.contentsPreview or {}) do
++        for slot=13,14 do if F.Accepts(slot,item) then assigned[slot]=item end end
++    end
++    for slot=1,14 do
++        if replace or view.Area52FeaturedItems[slot]==0 then view.Area52FeaturedItems[slot]=assigned[slot] end
++    end
++    if view.Area52FeaturedItems[10]>0 and GetItemInventoryType(view.Area52FeaturedItems[10])==17 then view.Area52FeaturedItems[11]=0 end
++    view.Area52FeaturedImported=id
++    F.Refresh(view)
++end
++
++function F.SlotTooltip(view,slot,button)
++    local item=view.Area52FeaturedItems and view.Area52FeaturedItems[slot] or 0
++    GameTooltip:SetOwner(button,"ANCHOR_RIGHT")
++    if item>0 then GameTooltip:SetHyperlink("item:"..item)
++    else GameTooltip:SetText(F.Slots[slot][1]..": Not assigned") end
++    GameTooltip:AddLine("Featured reward at level "..F.Slots[slot][2],1,0.82,0)
++    GameTooltip:AddLine("Left-click: choose. Right-click: clear.",0.8,0.8,0.8)
++    GameTooltip:Show()
++end
++
+ function F.ValidContext(context)
+     local build=C_BuildEditor.GetPendingBuild()
+     return context and C_Player:IsGM() and Area52DraftSelector.Applies(build)
+@@ -1014,13 +1049,15 @@
+     view.Area52PreviewSerial=(view.Area52PreviewSerial or 0)+1
+     local serial=view.Area52PreviewSerial
+     local missing={}
+-    panel.Model:SetUnit("player");panel.Model:Undress()
++    panel.Model:SetUnit("player");panel.Model:SetCamera(1)
++    panel.Model:SetPosition(0,0,0);panel.Model:SetFacing(0);panel.Model:Undress()
+     for slot,definition in ipairs(F.Slots) do
+         local id=items[slot] or 0
+         local itemName=id>0 and GetItemInfo(id)
+         if id>0 and not itemName then missing[#missing+1]=id end
+         local name=id>0 and (itemName or ("Item "..id)) or "Not assigned"
+-        panel.Buttons[slot]:SetText(definition[1].." ("..definition[2].."): "..name)
++        local icon=id>0 and GetItemIcon(id) or "Interface\\PaperDoll\\UI-Backpack-EmptySlot"
++        panel.Buttons[slot].Icon:SetTexture(icon)
+         if slot<=12 and id>0 then panel.Model:TryOn(id,AppearanceUtil.GetCategorySlotID(definition[4])) end
+     end
+     if not skipQuery and #missing>0 then
+@@ -1042,26 +1079,42 @@
+     ai.Text=CreateFrame("Button",ai:GetName().."Text",ai,"EditableBuildMultilineTextTemplate")
+     ai.Text:SetSize(648,128);ai.Text:SetPoint("TOPLEFT",58,-36);ai.Text:SetPoint("TOPRIGHT",-58,-36)
+     local panel=CreateFrame("Frame",view:GetName().."Area52Vanity",content,"EditableBuildViewSectionTemplate")
+-    panel:SetSize(764,460);panel:SetCategory("AREA52_FEATURED_VANITY");panel.Area52FeaturedOnly=true
++    panel:SetSize(764,520);panel:SetCategory("AREA52_FEATURED_VANITY");panel.Area52FeaturedOnly=true
+     panel.Serialize=function() return nil end;panel.Deserialize=function() end
+     panel.Model=CreateFrame("DressUpModel",nil,panel)
+-    panel.Model:SetSize(230,365);panel.Model:SetPoint("TOPLEFT",22,-45)
++    panel.Model:SetSize(380,400);panel.Model:SetPoint("TOP",panel,"TOP",0,-55)
+     panel.Buttons={}
+     for slot=1,14 do
+         local index=slot
+-        local button=Button(panel,"",400,function() F.OpenPicker(view,index) end)
+-        button:SetPoint("TOPLEFT",260,-40-(slot-1)*27)
+-        local clear=Button(panel,"X",25,function()
++        local button=CreateFrame("Button",nil,panel)
++        button:SetSize(42,42);button:RegisterForClicks("LeftButtonUp","RightButtonUp")
++        button.Icon=button:CreateTexture(nil,"ARTWORK");button.Icon:SetAllPoints()
++        button:SetNormalTexture("Interface\\Buttons\\UI-Quickslot2")
++        button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square","ADD")
++        local layout={{150,-70},{150,-126},{150,-238},{572,-126},{572,-238},{150,-294},{572,-182},{150,-182},{572,-70},{278,-420},{334,-420},{390,-420},{628,-350},{684,-350}}
++        button:SetPoint("TOPLEFT",panel,"TOPLEFT",layout[slot][1],layout[slot][2])
++        button:SetScript("OnClick",function(_,mouse)
+             if not F.Applies() then return end
+-            view.Area52FeaturedItems[index]=0;F.Refresh(view);view:UpdatePendingBuild()
++            if mouse=="RightButton" then
++                view.Area52FeaturedItems[index]=0;F.Refresh(view);view:UpdatePendingBuild();GameTooltip:Hide()
++            else F.OpenPicker(view,index) end
+         end)
+-        clear:SetPoint("LEFT",button,"RIGHT",4,0)
++        button:SetScript("OnEnter",function(self) F.SlotTooltip(view,index,self) end)
++        button:SetScript("OnLeave",function() GameTooltip:Hide() end)
++        local label=button:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
++        label:SetPoint("TOP",button,"BOTTOM",0,-2);label:SetText(tostring(F.Slots[slot][2]))
+         panel.Buttons[slot]=button
+     end
+     local full=Button(panel,"Choose full armor set",210,function() F.OpenPicker(view,0) end)
+-    full:SetPoint("BOTTOMLEFT",26,12)
++    full:SetPoint("BOTTOMLEFT",110,16)
++    local assigned=Button(panel,"Load archetype set",180,function()
++        F.ImportAssigned(view,true);view:UpdatePendingBuild()
++    end)
++    assigned:SetPoint("LEFT",full,"RIGHT",12,0)
+     local help=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+-    help:SetPoint("BOTTOMLEFT",260,12);help:SetText("Mailed once at the displayed levels. No Vanity relics.")
++    help:SetPoint("TOP",panel,"TOP",0,-38);help:SetText("Hover for item details. Left-click to choose; right-click to clear.")
++    local mounts=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
++    mounts:SetPoint("TOPLEFT",panel,"TOPLEFT",634,-324);mounts:SetText("Mounts")
+     local ordered={}
+     for _,section in ipairs(content.sections) do
+         if section~=ai and section~=panel then
+@@ -1077,13 +1130,22 @@
+     if GetRealmName()~="Area 52 - Free-Pick" then return end
+     F.Ensure(view)
+     local build=C_BuildEditor.GetPendingBuild()
+-    if deserialize or not view.Area52FeaturedItems or view.Area52FeaturedID~=build.ID then
++    local reload=deserialize or not view.Area52FeaturedItems or view.Area52FeaturedID~=build.ID
++    if reload then
+         view.Area52FeaturedGeneration=(view.Area52FeaturedGeneration or 0)+1
+         view.Area52FeaturedItems=F.Read(build.Description)
+         view.Area52FeaturedInvalid=not view.Area52FeaturedItems
+         view.Area52FeaturedItems=view.Area52FeaturedItems or F.Read("")
+         view.Area52FeaturedID=build.ID
++        view.Area52FeaturedImported=tonumber((build.Description or ""):match("###AREA52_FEATURED_IMPORTED\n(%d+)"))
+         F.Refresh(view)
++    end
++    local archetype
++    if reload then archetype=Area52DraftSelector.ReadID(build.Description)
++    else archetype=view.Area52ArchetypeID or Area52DraftSelector.ReadID(build.Description) end
++    if archetype and F.Applies() and view.Area52FeaturedImported~=archetype then
++        view.Area52ArchetypeID=archetype
++        F.ImportAssigned(view,false)
+     end
+     local enabled=F.Applies()
+     view.Area52AISection:SetShown(enabled);view.Area52VanitySection:SetShown(enabled)
+@@ -1097,7 +1159,9 @@
+ local oldDescription=Area52DraftSelector.Description
+ function Area52DraftSelector.Description(view,description)
+     description=(description or ""):gsub("\n*###AREA52_FEATURED_VANITY[^#]*","")
++    description=description:gsub("\n*###AREA52_FEATURED_IMPORTED[^#]*","")
+     if F.Applies() then description=description.."\n\n###AREA52_FEATURED_VANITY\n1:"..table.concat(view.Area52FeaturedItems,",") end
++    if F.Applies() and view.Area52FeaturedImported then description=description.."\n\n###AREA52_FEATURED_IMPORTED\n"..view.Area52FeaturedImported end
+     return oldDescription(view,description)
+ end
+ local oldUpdate=EditableBuildViewMixin.UpdatePendingBuild

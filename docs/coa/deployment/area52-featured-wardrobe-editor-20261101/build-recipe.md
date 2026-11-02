@@ -1,0 +1,9 @@
+# Featured Vanity Wardrobe editor
+
+Client-only change to EditableBuildView.lua; preserve the activated load-order fix and all prior work. No new addon, DLL, server binary or SQL. No installation, activation or publication is authorized.
+
+The reward section has42px icon slots around a380x400 full-body model, a level label per slot, separate mount slots, item tooltips, left-click picker and right-click clear. Camera1 and neutral model position/facing use the existing Wardrobe conventions. Full-set and Load archetype set controls remain. Live graphical acceptance is still needed for model appearance on different races and UI scales; offline checks do not claim that acceptance.
+
+Automatic import uses the current C_ItemSet.GetAppearances(90000+archetype) mapping with exact inventory-slot keys, C_Appearance.GetAppearanceDisplayInfo and the existing Vanity bundle's contentsPreview for assigned mounts. No player ownership is required or granted by editing. Existing nonzero selections are preserved; missing entries remain empty. An imported-archetype marker in the saved description prevents cleared slots from refilling after reopening. Explicit Load archetype set replaces the selections. Link an archetype and save the build to persist the imported choices; this does not bulk-edit live saved builds. Existing per-character reward revision and mail rules are unchanged.
+
+ui-r3/report.json passes actual load-order regression, existing picker/serialization/preview checks, compact slot/camera and tooltip/clear checks, exact-slot import, custom item preservation and empty-slot save/reopen. Widget/native API adapters limit the checks to offline engineering, not live graphical or gameplay certification. All unchanged MPQ members remain byte-identical. Package/release reports and final CheckOnly are recorded separately when complete.

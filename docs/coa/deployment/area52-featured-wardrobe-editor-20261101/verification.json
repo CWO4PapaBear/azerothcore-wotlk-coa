@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "checks": [
+    "actual installed TOC/XML load editor before section mixin",
+    "defective baseline fails with missing mixin; candidate loads before real section definitions",
+    "existing section serializer preserves separate AI text and escapes section injection",
+    "all fourteen fields round-trip; archetype marker remains terminal",
+    "invalid versions, lengths and values rejected",
+    "AI section directly follows Rotation; ordinary builds and non-GMs cannot edit",
+    "single-piece assignment uses Wardrobe and returns to editor without ownership changes",
+    "return to editor uses actual OnShow and preserves newly selected reward",
+    "full set replaces armor only, excludes relics, preserves weapons and mounts",
+    "preview refreshes uncached item names after loading and ignores stale callbacks",
+    "two-handed/offhand conflict enforced and relics rejected",
+    "ground/flying mount filters enforce effective spell classification",
+    "cancel and changed build/archetype/generation reject stale selections",
+    "closing Collections cancels picker; no selection affects character ownership",
+    "picker state polling is throttled; navigating away cancels without assigning",
+    "save fails with specific invalid slot, malformed metadata and oversized description",
+    "compact slots, reward tooltips, full body camera and clear without reimport",
+    "linked archetype imports exact slots and mounts, preserves custom items and saved empty slots",
+    "entire MPQ member hashes, all Lua syntax and XML script syntax pass"
+  ],
+  "limits": "Actual picker/serialization Lua with bounded widget/native catalog adapters; not live graphical acceptance."
+}
