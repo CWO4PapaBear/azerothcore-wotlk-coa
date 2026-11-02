@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "mount_items": 1727,
+  "checks": [
+    "actual delivery function: eligible levels, all twelve milestones, three weapon attachments",
+    "no online mail/items before successful commit",
+    "failure/retry, duplicate claim, disconnect, changed generation, reconnect ledger",
+    "forfeiture, entitlement, bots, pending state and ordinary build isolation",
+    "actual validation header with effective mount item/spell records and wrong-category rejection",
+    "ASYNC registration for claim/mail/item statements"
+  ],
+  "limits": "Bounded database/player adapters, not real database rollback qualification or gameplay."
+}

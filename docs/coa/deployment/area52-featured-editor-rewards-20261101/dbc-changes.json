@@ -1,0 +1,630 @@
+{
+  "client/CharacterCreationArchetypeDetails.dbc": [
+    {
+      "row": 141,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 142,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 143,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 144,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 145,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 146,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 147,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 148,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 149,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 150,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 151,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 152,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 153,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 154,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 155,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 156,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 157,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 158,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 159,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 160,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 821,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 822,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 823,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 824,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 825,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 826,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 827,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 828,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 829,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 830,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 831,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 832,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 833,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 834,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 835,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 836,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 837,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 838,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 839,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 840,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    }
+  ],
+  "client/ItemSet.dbc": [
+    {
+      "row": 90013,
+      "archetype": 13,
+      "field": 25,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 90097,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    }
+  ],
+  "client/VanityCollection.dbc": [
+    {
+      "row": 11125805,
+      "archetype": 13,
+      "field": 18,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 11125839,
+      "archetype": 97,
+      "field": 18,
+      "before": 106075,
+      "after": 116470
+    }
+  ],
+  "server/CharacterCreationArchetypeDetails.dbc": [
+    {
+      "row": 141,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 142,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 143,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 144,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 145,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 146,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 147,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 148,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 149,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 150,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 151,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 152,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 153,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 154,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 155,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 156,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 157,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 158,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 159,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 160,
+      "archetype": 13,
+      "field": 23,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 821,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 822,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 823,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 824,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 825,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 826,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 827,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 828,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 829,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 830,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 831,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 832,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 833,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 834,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 835,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 836,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 837,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 838,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 839,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    },
+    {
+      "row": 840,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    }
+  ],
+  "server/ItemSet.dbc": [
+    {
+      "row": 90013,
+      "archetype": 13,
+      "field": 25,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 90097,
+      "archetype": 97,
+      "field": 27,
+      "before": 106075,
+      "after": 116470
+    }
+  ],
+  "server/VanityCollection.dbc": [
+    {
+      "row": 11125805,
+      "archetype": 13,
+      "field": 18,
+      "before": 105918,
+      "after": 106075
+    },
+    {
+      "row": 11125839,
+      "archetype": 97,
+      "field": 18,
+      "before": 106075,
+      "after": 116470
+    }
+  ]
+}
