@@ -1,0 +1,75 @@
+--- a/src/server/coa/AscensionEldritchKnight.cpp
++++ b/src/server/coa/AscensionEldritchKnight.cpp
+@@ -12,6 +12,7 @@
+ #include "WorldSession.h"
+ #include <algorithm>
+ #include <array>
++#include <set>
+ 
+ namespace
+ {
+@@ -225,6 +226,38 @@
+ };
+ }
+ 
++bool ReduceArea52EldritchWrathCooldown(Player* player, int32 delta)
++{
++    if (!Applies(player) || !player->HasAura(Enchant))
++        return false;
++    if (delta >= 0)
++        return true;
++    std::set<uint32> origins(HolyWrath.begin(), HolyWrath.end());
++    for (uint32 id = 983703; id <= 983707; ++id)
++        origins.insert(id);
++    std::set<uint32> affected = origins;
++    for (auto const& [id, entry] : player->GetSpellMap())
++    {
++        if (entry->State == PLAYERSPELL_REMOVED)
++            continue;
++        auto const inherited = player->GetSpellInteractionOrigins(id);
++        if (std::any_of(inherited.begin(), inherited.end(),
++            [&origins](uint32 origin) { return origins.contains(origin); }))
++            affected.insert(id);
++    }
++    for (uint32 id : affected)
++    {
++        uint32 const remaining = player->GetSpellCooldownDelay(id);
++        if (!remaining)
++            continue;
++        if (uint64(-int64(delta)) >= remaining)
++            player->RemoveSpellCooldown(id, true);
++        else
++            player->ModifySpellCooldown(id, delta);
++    }
++    return true;
++}
++
+ void AddAscensionEldritchKnightScripts()
+ {
+     new EldritchRealm();
+--- a/src/server/game/Spells/SpellEffects.cpp
++++ b/src/server/game/Spells/SpellEffects.cpp
+@@ -374,6 +374,8 @@
+ }
+ }
+ 
++bool ReduceArea52EldritchWrathCooldown(Player* player, int32 delta);
++
+ void Spell::EffectAscensionModifyCooldown(SpellEffIndex effIndex)
+ {
+     if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+@@ -382,9 +384,11 @@
+     Unit* target = unitTarget ? unitTarget : m_caster;
+     Player* player = target ? target->ToPlayer() : nullptr;
+     SpellEffectInfo const& effect = m_spellInfo->Effects[effIndex];
+-    // Ascension names the original spell; a temporarily replaced spell keeps its cooldown on the replacement.
+-    uint32 const spellId = player ? player->GetTemporarySpellReplacement(effect.MiscValue) : effect.MiscValue;
+-    ModifyAscensionCooldown(player, spellId, damage, effect.MiscValueB != 0);
++    if (m_spellInfo->Id == 983724 && ReduceArea52EldritchWrathCooldown(player, damage))
++        return;
++    // Ascension names the original spell; a temporarily replaced spell keeps its cooldown on the replacement.
++    uint32 const spellId = player ? player->GetTemporarySpellReplacement(effect.MiscValue) : effect.MiscValue;
++    ModifyAscensionCooldown(player, spellId, damage, effect.MiscValueB != 0);
+ }
+ 
+ void Spell::EffectAscensionPlaySpellVisualKit(SpellEffIndex effIndex)

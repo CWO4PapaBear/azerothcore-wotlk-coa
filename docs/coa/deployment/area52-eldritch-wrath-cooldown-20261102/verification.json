@@ -1,0 +1,24 @@
+{
+  "status": "offline_verified_pending_integration",
+  "source": [
+    {
+      "path": "src/server/coa/AscensionEldritchKnight.cpp",
+      "before_sha256": "a7584ac6e9cc88e8981994b67e54453b258916e2abe5e677ec647ac6eb7ea8a8",
+      "after_sha256": "c690ce2ee4f6fde68498df08cec29b6f861304701d4e233b5ee23826478421ae"
+    },
+    {
+      "path": "src/server/game/Spells/SpellEffects.cpp",
+      "before_sha256": "78056b58a0f6a75e37db8f7aeea40a9f7699aa2ccbe6c83fadf5d88a4d484bdb",
+      "after_sha256": "7ad75ae8e8171869080723000dbd15e110e7e1a880f3fc9b7caa3cd722416d90"
+    }
+  ],
+  "binary_sha256": "0cbdf27461c486042974cc89933e0048aeaa520dd4b5de129bcd1693e601f7bb",
+  "build_provenance_sha256": "ac1a170049227266a0e827635834b8554f6bc83677c509d6592effcb2c8d5864",
+  "runtime_report": "runtime-r1/report.json",
+  "build_report": "build-r1/report.json",
+  "activation": false,
+  "publication": false,
+  "sql_changes": false,
+  "client_changes": false,
+  "limits": "Native offline adapters and incremental compile; not an in-game test or whole-build recertification."
+}
