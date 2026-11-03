@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "checks": [
+    "exact package hook preflight/backup/apply/verify/rollback on production MySQL/schema/collations",
+    "unexpected preexisting table and altered schema reject apply/rollback",
+    "failure after claim/item/mail insertion rolls back all rows with real MySQL transaction",
+    "retry duplicate claim cannot issue extra mail/items; rollback retains issued claims",
+    "concurrent milestone requests have exactly one successful transaction",
+    "next milestone and different character have independent claims"
+  ],
+  "database_version": "8.4.11",
+  "no_live_sql": true,
+  "temporary_fixture_removed": true
+}

@@ -1,0 +1,4120 @@
+--- /dev/null
++++ b/data/sql/updates/pending_db_characters/2026_11_01_00_area52_featured_milestones.sql
+@@ -0,0 +1,10 @@
++CREATE TABLE IF NOT EXISTS `area52_featured_milestones` (
++  `guid` INT UNSIGNED NOT NULL,
++  `level` TINYINT UNSIGNED NOT NULL,
++  `build_id` BIGINT UNSIGNED NOT NULL,
++  `revision` INT UNSIGNED NOT NULL,
++  `mail_id` INT UNSIGNED NOT NULL,
++  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
++  PRIMARY KEY (`guid`, `level`),
++  UNIQUE KEY `mail_id` (`mail_id`)
++) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--- a/src/server/coa/Area52ActiveBuild.cpp
++++ b/src/server/coa/Area52ActiveBuild.cpp
+@@ -1,571 +1,592 @@
+-#include "Area52ActiveBuild.h"
+-#include "Area52BuildProtocol.h"
+-#include "Area52DraftAssignment.h"
+-#include "Area52DraftLifecycle.h"
+-#include "AscensionMysticEnchantCatalog.h"
+-#include "AscensionCompatOpcodes.h"
+-#include "AscensionCoAConfig.h"
+-#include "AscensionFreePick.h"
+-#include "Chat.h"
+-#include "Config.h"
+-#include "Creature.h"
+-#include "DatabaseEnv.h"
+-#include "Player.h"
+-#include "ScriptMgr.h"
+-#include "Trainer.h"
+-#include "WorldPacket.h"
+-#include "WorldSession.h"
+-#include "World.h"
+-#include <algorithm>
+-#include <atomic>
+-#include <charconv>
+-#include <chrono>
+-#include <deque>
+-#include <mutex>
+-#include <unordered_map>
+-
+-namespace Area52Build
+-{
+-namespace
+-{
+-constexpr char StateKey[] = "coa.area52.active_build";
+-constexpr char Setting[] = "core.area52.active_build";
+-std::atomic<bool> Enabled{false};
+-std::atomic<std::uint64_t> NextGeneration{1};
+-using Clock = std::chrono::steady_clock;
+-std::mutex InboxLock;
+-std::unordered_map<WorldSession*, std::deque<WorldPacket>> Inboxes;
+-
+-struct State : DataMap::Base
+-{
+-    std::uint64_t Generation = NextGeneration.fetch_add(1);
+-    Entry Plan;
+-    std::uint32_t Revision = 0;
+-    bool Loaded = false;
+-    bool Busy = false;
+-    bool Automatic = false;
+-    bool Draft = false;
+-    bool InternalSelection = false;
+-    bool Pending = false;
+-    std::string LastFailure;
+-    Clock::time_point NextRequest{};
+-};
+-
+-bool Applies(Player* player)
+-{
+-    return Enabled && player && AscensionFreePick::Applies(player);
+-}
+-
+-bool Safe(Player* player)
+-{
+-    return player->IsInWorld() && player->FindMap() && player->IsAlive() && !player->IsInCombat()
+-        && !player->InBattleground() && !player->InArena() && !player->IsBeingTeleported();
+-}
+-
+-bool ParseId(std::string const& value, std::uint64_t& id)
+-{
+-    auto const parsed = std::from_chars(value.data(), value.data() + value.size(), id);
+-    return parsed.ec == std::errc{} && parsed.ptr == value.data() + value.size() && id;
+-}
+-
+-bool DecodeHex(std::string const& hex, Entry& entry)
+-{
+-    if (hex.size() % 2 || hex.size() > MaxPacketBytes * 2)
+-        return false;
+-    std::vector<std::uint8_t> bytes;
+-    for (std::size_t i = 0; i < hex.size(); i += 2)
+-    {
+-        unsigned value = 0;
+-        auto const parsed = std::from_chars(hex.data() + i, hex.data() + i + 2, value, 16);
+-        if (parsed.ec != std::errc{} || parsed.ptr != hex.data() + i + 2)
+-            return false;
+-        bytes.push_back(std::uint8_t(value));
+-    }
+-    return Decode(bytes, entry);
+-}
+-
+-void SendState(Player* player, State const& state)
+-{
+-    WorldPacket packet(0x633, 64);
+-    auto const active = AscensionFreePick::ActiveSpecialization(player);
+-    packet << std::uint32_t(AscensionFreePick::SpecializationSpells.size());
+-    for (std::uint32_t spec = 0; spec < AscensionFreePick::SpecializationSpells.size(); ++spec)
+-    {
+-        auto const key = "core.area52.spec." + std::to_string(spec) + ".active_build";
+-        auto const* saved = player->FindPlayerSettings(key);
+-        std::uint64_t const id = saved && saved->size() >= 4 ?
+-            std::uint64_t((*saved)[0].value) | (std::uint64_t((*saved)[1].value) << 32) : 0;
+-        bool const automatic = spec == active ? state.Automatic : id && (*saved)[3].value;
+-        packet << (spec == active ? state.Plan.Id : id ? std::to_string(id) : std::string{})
+-            << std::uint8_t(automatic) << std::uint8_t(automatic);
+-    }
+-    player->GetSession()->SendPacket(&packet);
+-    WorldPacket changed(0x632, 64);
+-    changed << active << state.Plan.Id
+-        << std::uint8_t(state.Automatic) << std::uint8_t(state.Automatic);
+-    player->GetSession()->SendPacket(&changed);
+-}
+-
+-void Reply(Player* player, bool activate, char const* result)
+-{
+-    WorldPacket packet(activate ? 0x5C3 : 0x5C5, 64);
+-    packet << result;
+-    player->GetSession()->SendPacket(&packet);
+-}
+-
+-void Store(Player* player, State const& state)
+-{
+-    std::uint64_t id = 0;
+-    ParseId(state.Plan.Id, id);
+-    player->UpdatePlayerSetting(Setting, 0, std::uint32_t(id));
+-    player->UpdatePlayerSetting(Setting, 1, std::uint32_t(id >> 32));
+-    player->UpdatePlayerSetting(Setting, 2, state.Revision);
+-    player->UpdatePlayerSetting(Setting, 3, state.Automatic ? 1 : 0);
+-    player->UpdatePlayerSetting(Setting, 4, state.Draft ? 1 : 0);
+-}
+-
+-bool Learn(Player* player, State& state, std::uint32_t maximumLevel, bool learnSpells = true)
+-{
+-    if (!Safe(player) || state.Plan.Id.empty())
+-        return false;
+-    std::vector<AscensionFreePick::KnownEntry> wanted;
+-    auto result = AscensionFreePick::PlanSelection(player, state.Plan, wanted, true, maximumLevel, learnSpells);
+-    if (result && AscensionFreePick::SameSelection(wanted, AscensionFreePick::KnownEntries(player)))
+-    {
+-        state.LastFailure.clear();
+-        return true;
+-    }
+-    if (result)
+-    {
+-        state.InternalSelection = true;
+-        result = AscensionFreePick::Apply(player, wanted, false);
+-        state.InternalSelection = false;
+-    }
+-    if (!result)
+-    {
+-        std::string const failure = std::string(result.Status) + " " + result.Learn;
+-        if (failure != state.LastFailure)
+-            ChatHandler(player->GetSession()).PSendSysMessage("Active build could not be learned: {}", failure);
+-        state.LastFailure = failure;
+-        return false;
+-    }
+-    state.LastFailure.clear();
+-    SendArea52Advancement(player);
+-    return true;
+-}
+-
+-void Fetch(Player* player, std::uint64_t id, std::uint32_t revision, bool automatic, bool restore)
+-{
+-    auto const archetype = CreationArchetypeFromReference(id);
+-    if (id >= CreationReferenceBase && (!archetype || restore || player->GetLevel() != 1))
+-    {
+-        Reply(player, true, "ACTIVATE_BUILD_NOT_AVAILABLE");
+-        return;
+-    }
+-    if (archetype)
+-        automatic = true;
+-
+-    auto* state = player->CustomData.GetDefault<State>(StateKey);
+-    state->Busy = true;
+-    WorldSession* session = player->GetSession();
+-    ObjectGuid const guid = player->GetGUID();
+-    auto const generation = state->Generation;
+-    auto* query = CharacterDatabase.GetPreparedStatement(archetype ? CHAR_SEL_A52_CREATION_DRAFT
+-        : restore ? CHAR_SEL_A52_ACTIVE_REVISION : CHAR_SEL_A52_BUILD_PUBLIC);
+-    query->SetData(0, archetype ? archetype : id);
+-    if (!archetype)
+-        query->SetData(1, restore ? revision : session->GetAccountId());
+-    session->GetQueryProcessor().AddCallback(CharacterDatabase.AsyncQuery(query).WithPreparedCallback(
+-        [session, guid, generation, automatic, restore, id, archetype](PreparedQueryResult rows)
+-        {
+-            Player* owner = session->GetPlayer();
+-            if (!Applies(owner) || owner->GetGUID() != guid)
+-                return;
+-            auto* current = owner->CustomData.Get<State>(StateKey);
+-            if (!current || current->Generation != generation)
+-                return;
+-            current->Busy = false;
+-            Entry plan;
+-            if (!rows || !DecodeHex(rows->Fetch()[2].Get<std::string>(), plan)
+-                || (!archetype && plan.Id != std::to_string(id))
+-                || (archetype && DraftArchetype(plan) != archetype))
+-            {
+-                if (restore)
+-                {
+-                    current->Plan = {};
+-                    current->Revision = 0;
+-                    current->Automatic = false;
+-                    current->Loaded = true;
+-                    Store(owner, *current);
+-                    SendState(owner, *current);
+-                    ChatHandler(session).SendSysMessage("Your saved active build is unavailable. Learned abilities were retained.");
+-                }
+-                else
+-                    Reply(owner, true, "ACTIVATE_BUILD_NOT_FOUND");
+-                return;
+-            }
+-            bool const drafted = restore ? owner->GetPlayerSetting(Setting, 4).value != 0
+-                : rows->Fetch()[3].Get<std::uint8_t>() != 0;
+-            if ((drafted && (plan.Category != FeaturedDraftCategory || !DraftArchetype(plan)))
+-                || (!restore && (drafted || current->Draft) && !AscensionMysticEnchant::DraftEquipmentReady(owner)))
+-            {
+-                Reply(owner, true, "ACTIVATE_BUILD_NOT_AVAILABLE");
+-                return;
+-            }
+-            bool const learnAutomatically = drafted || automatic;
+-            bool const grantDraftEnchants = drafted
+-                && !owner->GetPlayerSetting("core.area52.draft_progress", 2).value;
+-            if (!restore && grantDraftEnchants && !AscensionMysticEnchant::CanApplyDraftEnchants(owner, plan.Enchants))
+-            {
+-                Reply(owner, true, "ACTIVATE_BUILD_NOT_AVAILABLE");
+-                return;
+-            }
+-            if (!restore && !Safe(owner))
+-            {
+-                Reply(owner, true, "ACTIVATE_BUILD_NOT_AVAILABLE");
+-                return;
+-            }
+-            std::vector<AscensionFreePick::KnownEntry> wanted;
+-            auto result = AscensionFreePick::PlanSelection(owner, plan, wanted, false, 80, learnAutomatically);
+-            if (!result && !restore)
+-            {
+-                Reply(owner, true, *result.Learn ? result.Learn : result.Status);
+-                return;
+-            }
+-            Entry const previousPlan = current->Plan;
+-            bool const previousDraft = current->Draft;
+-            auto const previousSelection = AscensionFreePick::KnownEntries(owner);
+-            auto const previousRevision = current->Revision;
+-            bool const previousAutomatic = current->Automatic;
+-            current->Plan = std::move(plan);
+-            current->Revision = rows->Fetch()[1].Get<std::uint32_t>();
+-            current->Automatic = learnAutomatically;
+-            current->Draft = drafted;
+-            current->Loaded = true;
+-            if (!restore)
+-            {
+-                current->InternalSelection = true;
+-                result = AscensionFreePick::Apply(owner, wanted);
+-                current->InternalSelection = false;
+-                if (result && ((grantDraftEnchants
+-                    && !AscensionMysticEnchant::ApplyDraftEnchants(owner, current->Plan.Enchants))
+-                    || (!grantDraftEnchants && previousDraft && !AscensionMysticEnchant::ClearDraftEnchants(owner))))
+-                    result = { "ACTIVATE_BUILD_NOT_AVAILABLE" };
+-                if (!result)
+-                {
+-                    current->InternalSelection = true;
+-                    AscensionFreePick::Apply(owner, previousSelection);
+-                    current->InternalSelection = false;
+-                    current->Draft = previousDraft;
+-                    if (previousDraft && !owner->GetPlayerSetting("core.area52.draft_progress", 2).value)
+-                        AscensionMysticEnchant::ApplyDraftEnchants(owner, previousPlan.Enchants);
+-                    current->Plan = previousPlan;
+-                    current->Revision = previousRevision;
+-                    current->Automatic = previousAutomatic;
+-                    Store(owner, *current);
+-                    Reply(owner, true, *result.Learn ? result.Learn : result.Status);
+-                    return;
+-                }
+-                std::uint64_t previousId = 0;
+-                ParseId(previousPlan.Id, previousId);
+-                std::uint64_t nextId = 0;
+-                ParseId(current->Plan.Id, nextId);
+-                DraftLifecycle progress{previousDraft ? previousId : 0, previousDraft ? previousRevision : 0,
+-                    owner->GetPlayerSetting("core.area52.draft_progress", 0).value != 0,
+-                    owner->GetPlayerSetting("core.area52.draft_progress", 1).value != 0,
+-                    owner->GetPlayerSetting("core.area52.draft_progress", 2).value != 0};
+-                progress = SwitchFeaturedDraft(progress, owner->GetLevel(), nextId, current->Revision, drafted);
+-                owner->UpdatePlayerSetting("core.area52.draft_progress", 0, progress.Forfeited ? 1 : 0);
+-                owner->UpdatePlayerSetting("core.area52.draft_progress", 2, progress.EntitlementForfeited ? 1 : 0);
+-                Store(owner, *current);
+-                owner->SaveToDB(false, false);
+-                SendArea52Advancement(owner);
+-            }
+-            current->Pending = true;
+-            SendState(owner, *current);
+-            if (!restore)
+-                Reply(owner, true, "ACTIVATE_BUILD_OK");
+-        }));
+-}
+-
+-bool Handle(WorldSession* session, WorldPacket const& packet)
+-{
+-    if (!Enabled || !session)
+-        return false;
+-    std::lock_guard lock(InboxLock);
+-    auto it = Inboxes.find(session);
+-    if (it != Inboxes.end() && packet.size() <= 70 && it->second.size() < 2)
+-        it->second.push_back(packet);
+-    return true;
+-}
+-
+-class ActiveWorld final : public WorldScript
+-{
+-public:
+-    ActiveWorld() : WorldScript("Area52ActiveBuildWorld", { WORLDHOOK_ON_AFTER_CONFIG_LOAD }) { }
+-    void OnAfterConfigLoad(bool) override
+-    {
+-        Enabled = sConfigMgr->GetOption<bool>("CoA.FreePickBuilds.Apply", false)
+-            && sConfigMgr->GetOption<bool>("CoA.FreePickBuilds.Enable", false)
+-            && sConfigMgr->GetOption<bool>("CoA.Enable", true)
+-            && sConfigMgr->GetOption<std::string>("CoA.ClassModel", "coa") == "hero"
+-            && sConfigMgr->GetOption<std::string>("CoA.RealmType", "live") == "live"
+-            && sConfigMgr->GetOption<std::uint32_t>("CoA.GameModeMask", 0) == 0;
+-    }
+-};
+-
+-class ActiveTrainer final : public AllCreatureScript
+-{
+-public:
+-    ActiveTrainer() : AllCreatureScript("Area52ActiveBuildTrainer") { }
+-    bool CanCreatureGossipHello(Player* player, Creature* creature) override
+-    {
+-        if (Applies(player) && creature->HasNpcFlag(UNIT_NPC_FLAG_TRAINER)
+-            && creature->GetScriptName() != "npc_spellbook_trainer")
+-        {
+-            auto const* trainer = Trainer::GetTrainerFor(creature, player);
+-            if (trainer && trainer->GetTrainerType() == Trainer::Type::Class)
+-                Train(player, creature);
+-        }
+-        return false;
+-    }
+-};
+-
+-class ActivePlayer final : public PlayerScript
+-{
+-public:
+-    ActivePlayer() : PlayerScript("Area52ActiveBuildPlayer",
+-        { PLAYERHOOK_ON_LOGIN, PLAYERHOOK_ON_LOGOUT, PLAYERHOOK_ON_LEVEL_CHANGED,
+-          PLAYERHOOK_ON_UPDATE, PLAYERHOOK_ON_OPEN_TRAINER }) { }
+-    void OnPlayerOpenTrainer(Player* player, Creature* trainer) override
+-    {
+-        auto const* definition = Trainer::GetTrainerFor(trainer, player);
+-        if (definition && definition->GetTrainerType() == Trainer::Type::Class
+-            && trainer->GetScriptName() != "npc_spellbook_trainer")
+-            Train(player, trainer);
+-    }
+-    void OnPlayerLogin(Player* player) override
+-    {
+-        if (!Applies(player))
+-            return;
+-        {
+-            std::lock_guard lock(InboxLock);
+-            Inboxes[player->GetSession()].clear();
+-        }
+-        auto* state = player->CustomData.GetDefault<State>(StateKey);
+-        std::uint64_t const id = std::uint64_t(player->GetPlayerSetting(Setting, 0).value)
+-            | (std::uint64_t(player->GetPlayerSetting(Setting, 1).value) << 32);
+-        if (id)
+-            Fetch(player, id, player->GetPlayerSetting(Setting, 2).value,
+-                player->GetPlayerSetting(Setting, 3).value != 0, true);
+-        else
+-        {
+-            state->Loaded = true;
+-            SendState(player, *state);
+-        }
+-    }
+-    void OnPlayerLogout(Player* player) override
+-    {
+-        std::lock_guard lock(InboxLock);
+-        Inboxes.erase(player->GetSession());
+-    }
+-    void OnPlayerLevelChanged(Player* player, std::uint8_t) override
+-    {
+-        if (auto* state = player->CustomData.Get<State>(StateKey); Applies(player) && state && state->Automatic)
+-            state->Pending = true;
+-    }
+-    void OnPlayerUpdate(Player* player, std::uint32_t) override
+-    {
+-        auto* state = player->CustomData.Get<State>(StateKey);
+-        if (!Applies(player) || !state || state->Busy || Clock::now() < state->NextRequest)
+-            return;
+-        if (state->Pending && state->Loaded && Safe(player))
+-        {
+-            if (state->Draft && !AscensionMysticEnchant::DraftEquipmentReady(player))
+-                return;
+-            state->Pending = false;
+-            if (Learn(player, *state, 80, state->Automatic))
+-            {
+-                if (state->Automatic)
+-                    AscensionFreePick::LearnAvailableRanks(player);
+-                if (state->Draft && !player->GetPlayerSetting("core.area52.draft_progress", 2).value
+-                    && !AscensionMysticEnchant::ApplyDraftEnchants(player, state->Plan.Enchants))
+-                {
+-                    state->Pending = true;
+-                    state->NextRequest = Clock::now() + std::chrono::seconds(2);
+-                    return;
+-                }
+-            }
+-            else if (state->Draft)
+-            {
+-                state->Pending = true;
+-                state->NextRequest = Clock::now() + std::chrono::seconds(2);
+-                return;
+-            }
+-        }
+-        if (state->Draft && state->Loaded && !state->Pending)
+-        {
+-            std::uint64_t build = 0;
+-            ParseId(state->Plan.Id, build);
+-            DraftLifecycle progress{build, state->Revision,
+-                player->GetPlayerSetting("core.area52.draft_progress", 0).value != 0,
+-                player->GetPlayerSetting("core.area52.draft_progress", 1).value != 0,
+-                player->GetPlayerSetting("core.area52.draft_progress", 2).value != 0};
+-            if (DraftRewardDue(progress, player->GetLevel(), sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
+-                && AscensionMysticEnchant::GrantDraftReward(player, build, state->Revision, state->Plan.Enchants))
+-                state->NextRequest = Clock::now() + std::chrono::seconds(2);
+-        }
+-        WorldPacket packet;
+-        {
+-            std::lock_guard lock(InboxLock);
+-            auto it = Inboxes.find(player->GetSession());
+-            if (it == Inboxes.end() || it->second.empty())
+-                return;
+-            packet = std::move(it->second.front());
+-            it->second.pop_front();
+-        }
+-        state->NextRequest = Clock::now() + std::chrono::seconds(2);
+-        Reader input(std::span(packet.contents(), packet.size()));
+-        std::string id;
+-        std::uint8_t automatic = 0, secondary = 0;
+-        bool const activate = packet.GetOpcode() == 0x5C2;
+-        std::uint64_t numericId = 0;
+-        if (!input.Text(id, 64) || !ParseId(id, numericId)
+-            || (activate && (!input.Number(automatic) || !input.Number(secondary) || automatic > 1 || secondary > 1))
+-            || !input.Finished() || !Safe(player))
+-        {
+-            Reply(player, activate, "ACTIVATE_BUILD_NOT_AVAILABLE");
+-            return;
+-        }
+-        if (id == state->Plan.Id)
+-        {
+-            if (!activate && state->Draft && !BeforeManualDraftChange(player))
+-            {
+-                Reply(player, false, "ACTIVATE_BUILD_NOT_AVAILABLE");
+-                return;
+-            }
+-            state->Automatic = activate && (state->Draft || automatic);
+-            state->Pending = activate;
+-            if (!activate)
+-            {
+-                state->Plan = {};
+-                state->Revision = 0;
+-            }
+-            Store(player, *state);
+-            player->SaveToDB(false, false);
+-            SendState(player, *state);
+-            Reply(player, activate, activate ? "ACTIVATE_BUILD_OK" : "DEACTIVATE_BUILD_OK");
+-        }
+-        else if (activate)
+-            Fetch(player, numericId, 0, automatic != 0, false);
+-        else
+-            Reply(player, false, "DEACTIVATE_BUILD_NOT_FOUND");
+-    }
+-};
+-}
+-
+-std::uint32_t Train(Player* player, Creature* trainer, std::uint32_t maximumLevel)
+-{
+-    if (!Applies(player) || !trainer || !trainer->IsAlive() || !player->IsWithinDistInMap(trainer, 10.0f)
+-        || !player->HaveAtClient(trainer))
+-        return 0;
+-    auto* state = player->CustomData.Get<State>(StateKey);
+-    if (!state || !state->Loaded || state->Busy || state->Plan.Id.empty() || Clock::now() < state->NextRequest)
+-        return 0;
+-    state->NextRequest = Clock::now() + std::chrono::seconds(2);
+-    auto const before = AscensionFreePick::KnownEntries(player);
+-    if (!Learn(player, *state, maximumLevel))
+-        return 0;
+-    return AscensionFreePick::SameSelection(before, AscensionFreePick::KnownEntries(player)) ? 0 : 1;
+-}
+-
+-bool CanSwitchSpecialization(Player* player)
+-{
+-    auto const* state = player->CustomData.Get<State>(StateKey);
+-    return !Applies(player) || (state && state->Loaded && !state->Busy);
+-}
+-
+-void RestoreSpecialization(Player* player)
+-{
+-    if (!Applies(player))
+-        return;
+-    {
+-        std::lock_guard lock(InboxLock);
+-        Inboxes[player->GetSession()].clear();
+-    }
+-    auto* state = player->CustomData.GetDefault<State>(StateKey);
+-    *state = State{};
+-    std::uint64_t const id = std::uint64_t(player->GetPlayerSetting(Setting, 0).value)
+-        | (std::uint64_t(player->GetPlayerSetting(Setting, 1).value) << 32);
+-    if (id)
+-        Fetch(player, id, player->GetPlayerSetting(Setting, 2).value,
+-            player->GetPlayerSetting(Setting, 3).value != 0, true);
+-    else
+-    {
+-        state->Loaded = true;
+-        SendState(player, *state);
+-    }
+-}
+-
+-bool IsFeaturedDraft(Player* player)
+-{
+-    auto const* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
+-    return Applies(player) && state && state->Draft;
+-}
+-
+-bool BeforeManualDraftChange(Player* player)
+-{
+-    if (!Applies(player))
+-        return true;
+-    auto* state = player->CustomData.Get<State>(StateKey);
+-    if (!state || state->InternalSelection || !state->Draft)
+-        return true;
+-    if (state->Busy || !Safe(player) || !AscensionMysticEnchant::ClearDraftEnchants(player))
+-        return false;
+-    player->UpdatePlayerSetting("core.area52.draft_progress", 0, 1);
+-    player->UpdatePlayerSetting("core.area52.draft_progress", 2, 1);
+-    for (std::uint32_t spec = 0; spec < AscensionFreePick::SpecializationSpells.size(); ++spec)
+-    {
+-        auto const key = "core.area52.spec." + std::to_string(spec) + ".active_build";
+-        if (player->GetPlayerSetting(key, 4).value)
+-            for (std::uint32_t index = 0; index < 5; ++index)
+-                player->UpdatePlayerSetting(key, index, 0);
+-    }
+-    state->Draft = false;
+-    state->Automatic = false;
+-    state->Pending = false;
+-    state->Plan = {};
+-    state->Revision = 0;
+-    Store(player, *state);
+-    player->SaveToDB(false, false);
+-    SendState(player, *state);
+-    return true;
+-}
+-
+-void PauseAutoLearnForReset(Player* player)
+-{
+-    if (!Applies(player))
+-        return;
+-    auto* state = player->CustomData.Get<State>(StateKey);
+-    if (!state)
+-        return;
+-    state->Generation = NextGeneration.fetch_add(1);
+-    state->Automatic = false;
+-    state->Pending = false;
+-    state->Busy = false;
+-    state->Loaded = true;
+-    Store(player, *state);
+-    SendState(player, *state);
+-}
+-}
+-
+-void AddArea52ActiveBuildScripts()
+-{
+-    RegisterAscensionClientConfig([](AscensionClientConfig& config)
+-        { config.Booleans.emplace_back("CONFIG_AREA52_ACTIVE_BUILDS_ENABLED", Area52Build::Enabled.load()); });
+-    AscensionCompatOpcodes::Claim(0x5C2, &Area52Build::Handle);
+-    AscensionCompatOpcodes::Claim(0x5C4, &Area52Build::Handle);
+-    new Area52Build::ActiveWorld();
+-    new Area52Build::ActivePlayer();
+-    new Area52Build::ActiveTrainer();
+-}
++#include "Area52ActiveBuild.h"
++#include "Area52BuildProtocol.h"
++#include "Area52DraftAssignment.h"
++#include "Area52DraftLifecycle.h"
++#include "Area52FeaturedRewardValidation.h"
++#include "GameTime.h"
++#include "Item.h"
++#include "Mail.h"
++#include "MailMgr.h"
++#include <memory>
++#include <set>
++#include "AscensionMysticEnchantCatalog.h"
++#include "AscensionCompatOpcodes.h"
++#include "AscensionCoAConfig.h"
++#include "AscensionFreePick.h"
++#include "Chat.h"
++#include "Config.h"
++#include "Creature.h"
++#include "DatabaseEnv.h"
++#include "Player.h"
++#include "ScriptMgr.h"
++#include "Trainer.h"
++#include "WorldPacket.h"
++#include "WorldSession.h"
++#include "World.h"
++#include <algorithm>
++#include <atomic>
++#include <charconv>
++#include <chrono>
++#include <deque>
++#include <mutex>
++#include <unordered_map>
++
++namespace Area52Build
++{
++namespace
++{
++constexpr char StateKey[] = "coa.area52.active_build";
++constexpr char Setting[] = "core.area52.active_build";
++std::atomic<bool> Enabled{false};
++std::atomic<std::uint64_t> NextGeneration{1};
++using Clock = std::chrono::steady_clock;
++std::mutex InboxLock;
++std::unordered_map<WorldSession*, std::deque<WorldPacket>> Inboxes;
++
++struct State : DataMap::Base
++{
++    std::uint64_t Generation = NextGeneration.fetch_add(1);
++    Entry Plan;
++    std::uint32_t Revision = 0;
++    bool Loaded = false;
++    bool Busy = false;
++    bool Automatic = false;
++    bool Draft = false;
++    bool RewardsLoaded = false;
++    std::set<std::uint32_t> RewardLevels;
++    Clock::time_point NextReward{};
++    bool InternalSelection = false;
++    bool Pending = false;
++    std::string LastFailure;
++    Clock::time_point NextRequest{};
++};
++
++bool Applies(Player* player)
++{
++    return Enabled && player && AscensionFreePick::Applies(player);
++}
++
++bool Safe(Player* player)
++{
++    return player->IsInWorld() && player->FindMap() && player->IsAlive() && !player->IsInCombat()
++        && !player->InBattleground() && !player->InArena() && !player->IsBeingTeleported();
++}
++
++bool ParseId(std::string const& value, std::uint64_t& id)
++{
++    auto const parsed = std::from_chars(value.data(), value.data() + value.size(), id);
++    return parsed.ec == std::errc{} && parsed.ptr == value.data() + value.size() && id;
++}
++
++bool DecodeHex(std::string const& hex, Entry& entry)
++{
++    if (hex.size() % 2 || hex.size() > MaxPacketBytes * 2)
++        return false;
++    std::vector<std::uint8_t> bytes;
++    for (std::size_t i = 0; i < hex.size(); i += 2)
++    {
++        unsigned value = 0;
++        auto const parsed = std::from_chars(hex.data() + i, hex.data() + i + 2, value, 16);
++        if (parsed.ec != std::errc{} || parsed.ptr != hex.data() + i + 2)
++            return false;
++        bytes.push_back(std::uint8_t(value));
++    }
++    return Decode(bytes, entry);
++}
++
++void SendState(Player* player, State const& state)
++{
++    WorldPacket packet(0x633, 64);
++    auto const active = AscensionFreePick::ActiveSpecialization(player);
++    packet << std::uint32_t(AscensionFreePick::SpecializationSpells.size());
++    for (std::uint32_t spec = 0; spec < AscensionFreePick::SpecializationSpells.size(); ++spec)
++    {
++        auto const key = "core.area52.spec." + std::to_string(spec) + ".active_build";
++        auto const* saved = player->FindPlayerSettings(key);
++        std::uint64_t const id = saved && saved->size() >= 4 ?
++            std::uint64_t((*saved)[0].value) | (std::uint64_t((*saved)[1].value) << 32) : 0;
++        bool const automatic = spec == active ? state.Automatic : id && (*saved)[3].value;
++        packet << (spec == active ? state.Plan.Id : id ? std::to_string(id) : std::string{})
++            << std::uint8_t(automatic) << std::uint8_t(automatic);
++    }
++    player->GetSession()->SendPacket(&packet);
++    WorldPacket changed(0x632, 64);
++    changed << active << state.Plan.Id
++        << std::uint8_t(state.Automatic) << std::uint8_t(state.Automatic);
++    player->GetSession()->SendPacket(&changed);
++}
++
++void Reply(Player* player, bool activate, char const* result)
++{
++    WorldPacket packet(activate ? 0x5C3 : 0x5C5, 64);
++    packet << result;
++    player->GetSession()->SendPacket(&packet);
++}
++
++void Store(Player* player, State const& state)
++{
++    std::uint64_t id = 0;
++    ParseId(state.Plan.Id, id);
++    player->UpdatePlayerSetting(Setting, 0, std::uint32_t(id));
++    player->UpdatePlayerSetting(Setting, 1, std::uint32_t(id >> 32));
++    player->UpdatePlayerSetting(Setting, 2, state.Revision);
++    player->UpdatePlayerSetting(Setting, 3, state.Automatic ? 1 : 0);
++    player->UpdatePlayerSetting(Setting, 4, state.Draft ? 1 : 0);
++}
++
++bool Learn(Player* player, State& state, std::uint32_t maximumLevel, bool learnSpells = true)
++{
++    if (!Safe(player) || state.Plan.Id.empty())
++        return false;
++    std::vector<AscensionFreePick::KnownEntry> wanted;
++    auto result = AscensionFreePick::PlanSelection(player, state.Plan, wanted, true, maximumLevel, learnSpells);
++    if (result && AscensionFreePick::SameSelection(wanted, AscensionFreePick::KnownEntries(player)))
++    {
++        state.LastFailure.clear();
++        return true;
++    }
++    if (result)
++    {
++        state.InternalSelection = true;
++        result = AscensionFreePick::Apply(player, wanted, false);
++        state.InternalSelection = false;
++    }
++    if (!result)
++    {
++        std::string const failure = std::string(result.Status) + " " + result.Learn;
++        if (failure != state.LastFailure)
++            ChatHandler(player->GetSession()).PSendSysMessage("Active build could not be learned: {}", failure);
++        state.LastFailure = failure;
++        return false;
++    }
++    state.LastFailure.clear();
++    SendArea52Advancement(player);
++    return true;
++}
++
++#include "Area52FeaturedRewardMail.inc"
++
++void Fetch(Player* player, std::uint64_t id, std::uint32_t revision, bool automatic, bool restore)
++{
++    auto const archetype = CreationArchetypeFromReference(id);
++    if (id >= CreationReferenceBase && (!archetype || restore || player->GetLevel() != 1))
++    {
++        Reply(player, true, "ACTIVATE_BUILD_NOT_AVAILABLE");
++        return;
++    }
++    if (archetype)
++        automatic = true;
++
++    auto* state = player->CustomData.GetDefault<State>(StateKey);
++    state->Busy = true;
++    WorldSession* session = player->GetSession();
++    ObjectGuid const guid = player->GetGUID();
++    auto const generation = state->Generation;
++    auto* query = CharacterDatabase.GetPreparedStatement(archetype ? CHAR_SEL_A52_CREATION_DRAFT
++        : restore ? CHAR_SEL_A52_ACTIVE_REVISION : CHAR_SEL_A52_BUILD_PUBLIC);
++    query->SetData(0, archetype ? archetype : id);
++    if (!archetype)
++        query->SetData(1, restore ? revision : session->GetAccountId());
++    session->GetQueryProcessor().AddCallback(CharacterDatabase.AsyncQuery(query).WithPreparedCallback(
++        [session, guid, generation, automatic, restore, id, archetype](PreparedQueryResult rows)
++        {
++            Player* owner = session->GetPlayer();
++            if (!Applies(owner) || owner->GetGUID() != guid)
++                return;
++            auto* current = owner->CustomData.Get<State>(StateKey);
++            if (!current || current->Generation != generation)
++                return;
++            current->Busy = false;
++            Entry plan;
++            if (!rows || !DecodeHex(rows->Fetch()[2].Get<std::string>(), plan)
++                || (!archetype && plan.Id != std::to_string(id))
++                || (archetype && DraftArchetype(plan) != archetype))
++            {
++                if (restore)
++                {
++                    current->Plan = {};
++                    current->Revision = 0;
++                    current->Automatic = false;
++                    current->Loaded = true;
++                    Store(owner, *current);
++                    SendState(owner, *current);
++                    ChatHandler(session).SendSysMessage("Your saved active build is unavailable. Learned abilities were retained.");
++                }
++                else
++                    Reply(owner, true, "ACTIVATE_BUILD_NOT_FOUND");
++                return;
++            }
++            bool const drafted = restore ? owner->GetPlayerSetting(Setting, 4).value != 0
++                : rows->Fetch()[3].Get<std::uint8_t>() != 0;
++            if ((drafted && (plan.Category != FeaturedDraftCategory || !DraftArchetype(plan)))
++                || (!restore && (drafted || current->Draft) && !AscensionMysticEnchant::DraftEquipmentReady(owner)))
++            {
++                Reply(owner, true, "ACTIVATE_BUILD_NOT_AVAILABLE");
++                return;
++            }
++            std::uint64_t previousId = 0;
++            ParseId(current->Plan.Id, previousId);
++            std::uint64_t nextId = 0;
++            ParseId(plan.Id, nextId);
++            DraftLifecycle progress{current->Draft ? previousId : 0, current->Draft ? current->Revision : 0,
++                owner->GetPlayerSetting("core.area52.draft_progress", 0).value != 0,
++                owner->GetPlayerSetting("core.area52.draft_progress", 1).value != 0,
++                owner->GetPlayerSetting("core.area52.draft_progress", 2).value != 0};
++            if (!restore)
++                progress = SwitchFeaturedDraft(progress, owner->GetLevel(), nextId,
++                    rows->Fetch()[1].Get<std::uint32_t>(), drafted);
++            bool const learnAutomatically = drafted || automatic;
++            bool const grantDraftEnchants = drafted && !progress.EntitlementForfeited;
++            if (!restore && grantDraftEnchants && !AscensionMysticEnchant::CanApplyDraftEnchants(owner, plan.Enchants))
++            {
++                Reply(owner, true, "ACTIVATE_BUILD_NOT_AVAILABLE");
++                return;
++            }
++            if (!restore && !Safe(owner))
++            {
++                Reply(owner, true, "ACTIVATE_BUILD_NOT_AVAILABLE");
++                return;
++            }
++            std::vector<AscensionFreePick::KnownEntry> wanted;
++            auto result = AscensionFreePick::PlanSelection(owner, plan, wanted, false, 80, learnAutomatically);
++            if (!result && !restore)
++            {
++                Reply(owner, true, *result.Learn ? result.Learn : result.Status);
++                return;
++            }
++            Entry const previousPlan = current->Plan;
++            bool const previousDraft = current->Draft;
++            auto const previousSelection = AscensionFreePick::KnownEntries(owner);
++            auto const previousRevision = current->Revision;
++            bool const previousAutomatic = current->Automatic;
++            current->Plan = std::move(plan);
++            current->Revision = rows->Fetch()[1].Get<std::uint32_t>();
++            current->Automatic = learnAutomatically;
++            current->Draft = drafted;
++            current->Loaded = true;
++            if (!restore)
++            {
++                current->InternalSelection = true;
++                result = AscensionFreePick::Apply(owner, wanted);
++                current->InternalSelection = false;
++                if (result && ((grantDraftEnchants
++                    && !AscensionMysticEnchant::ApplyDraftEnchants(owner, current->Plan.Enchants))
++                    || (!grantDraftEnchants && previousDraft && !AscensionMysticEnchant::ClearDraftEnchants(owner))))
++                    result = { "ACTIVATE_BUILD_NOT_AVAILABLE" };
++                if (!result)
++                {
++                    current->InternalSelection = true;
++                    AscensionFreePick::Apply(owner, previousSelection);
++                    current->InternalSelection = false;
++                    current->Draft = previousDraft;
++                    if (previousDraft && !owner->GetPlayerSetting("core.area52.draft_progress", 2).value)
++                        AscensionMysticEnchant::ApplyDraftEnchants(owner, previousPlan.Enchants);
++                    current->Plan = previousPlan;
++                    current->Revision = previousRevision;
++                    current->Automatic = previousAutomatic;
++                    Store(owner, *current);
++                    Reply(owner, true, *result.Learn ? result.Learn : result.Status);
++                    return;
++                }
++                owner->UpdatePlayerSetting("core.area52.draft_progress", 0, progress.Forfeited ? 1 : 0);
++                owner->UpdatePlayerSetting("core.area52.draft_progress", 2, progress.EntitlementForfeited ? 1 : 0);
++                Store(owner, *current);
++                owner->SaveToDB(false, false);
++                SendArea52Advancement(owner);
++            }
++            current->Pending = true;
++            SendState(owner, *current);
++            if (!restore)
++                Reply(owner, true, "ACTIVATE_BUILD_OK");
++        }));
++}
++
++bool Handle(WorldSession* session, WorldPacket const& packet)
++{
++    if (!Enabled || !session)
++        return false;
++    std::lock_guard lock(InboxLock);
++    auto it = Inboxes.find(session);
++    if (it != Inboxes.end() && packet.size() <= 70 && it->second.size() < 2)
++        it->second.push_back(packet);
++    return true;
++}
++
++class ActiveWorld final : public WorldScript
++{
++public:
++    ActiveWorld() : WorldScript("Area52ActiveBuildWorld", { WORLDHOOK_ON_AFTER_CONFIG_LOAD }) { }
++    void OnAfterConfigLoad(bool) override
++    {
++        Enabled = sConfigMgr->GetOption<bool>("CoA.FreePickBuilds.Apply", false)
++            && sConfigMgr->GetOption<bool>("CoA.FreePickBuilds.Enable", false)
++            && sConfigMgr->GetOption<bool>("CoA.Enable", true)
++            && sConfigMgr->GetOption<std::string>("CoA.ClassModel", "coa") == "hero"
++            && sConfigMgr->GetOption<std::string>("CoA.RealmType", "live") == "live"
++            && sConfigMgr->GetOption<std::uint32_t>("CoA.GameModeMask", 0) == 0;
++    }
++};
++
++class ActiveTrainer final : public AllCreatureScript
++{
++public:
++    ActiveTrainer() : AllCreatureScript("Area52ActiveBuildTrainer") { }
++    bool CanCreatureGossipHello(Player* player, Creature* creature) override
++    {
++        if (Applies(player) && creature->HasNpcFlag(UNIT_NPC_FLAG_TRAINER)
++            && creature->GetScriptName() != "npc_spellbook_trainer")
++        {
++            auto const* trainer = Trainer::GetTrainerFor(creature, player);
++            if (trainer && trainer->GetTrainerType() == Trainer::Type::Class)
++                Train(player, creature);
++        }
++        return false;
++    }
++};
++
++class ActivePlayer final : public PlayerScript
++{
++public:
++    ActivePlayer() : PlayerScript("Area52ActiveBuildPlayer",
++        { PLAYERHOOK_ON_LOGIN, PLAYERHOOK_ON_LOGOUT, PLAYERHOOK_ON_LEVEL_CHANGED,
++          PLAYERHOOK_ON_UPDATE, PLAYERHOOK_ON_OPEN_TRAINER }) { }
++    void OnPlayerOpenTrainer(Player* player, Creature* trainer) override
++    {
++        auto const* definition = Trainer::GetTrainerFor(trainer, player);
++        if (definition && definition->GetTrainerType() == Trainer::Type::Class
++            && trainer->GetScriptName() != "npc_spellbook_trainer")
++            Train(player, trainer);
++    }
++    void OnPlayerLogin(Player* player) override
++    {
++        if (!Applies(player))
++            return;
++        {
++            std::lock_guard lock(InboxLock);
++            Inboxes[player->GetSession()].clear();
++        }
++        auto* state = player->CustomData.GetDefault<State>(StateKey);
++        std::uint64_t const id = std::uint64_t(player->GetPlayerSetting(Setting, 0).value)
++            | (std::uint64_t(player->GetPlayerSetting(Setting, 1).value) << 32);
++        if (id)
++            Fetch(player, id, player->GetPlayerSetting(Setting, 2).value,
++                player->GetPlayerSetting(Setting, 3).value != 0, true);
++        else
++        {
++            state->Loaded = true;
++            SendState(player, *state);
++        }
++    }
++    void OnPlayerLogout(Player* player) override
++    {
++        std::lock_guard lock(InboxLock);
++        Inboxes.erase(player->GetSession());
++    }
++    void OnPlayerLevelChanged(Player* player, std::uint8_t) override
++    {
++        if (auto* state = player->CustomData.Get<State>(StateKey); Applies(player) && state && state->Automatic)
++            state->Pending = true;
++    }
++    void OnPlayerUpdate(Player* player, std::uint32_t) override
++    {
++        auto* state = player->CustomData.Get<State>(StateKey);
++        if (!Applies(player) || !state || state->Busy || Clock::now() < state->NextRequest)
++            return;
++        if (state->Pending && state->Loaded && Safe(player))
++        {
++            if (state->Draft && !AscensionMysticEnchant::DraftEquipmentReady(player))
++                return;
++            state->Pending = false;
++            if (Learn(player, *state, 80, state->Automatic))
++            {
++                if (state->Automatic)
++                    AscensionFreePick::LearnAvailableRanks(player);
++                if (state->Draft && !player->GetPlayerSetting("core.area52.draft_progress", 2).value
++                    && !AscensionMysticEnchant::ApplyDraftEnchants(player, state->Plan.Enchants))
++                {
++                    state->Pending = true;
++                    state->NextRequest = Clock::now() + std::chrono::seconds(2);
++                    return;
++                }
++            }
++            else if (state->Draft)
++            {
++                state->Pending = true;
++                state->NextRequest = Clock::now() + std::chrono::seconds(2);
++                return;
++            }
++        }
++        DeliverFeaturedRewards(player, *state);
++        if (state->Busy)
++            return;
++        if (state->Draft && state->Loaded && !state->Pending)
++        {
++            std::uint64_t build = 0;
++            ParseId(state->Plan.Id, build);
++            DraftLifecycle progress{build, state->Revision,
++                player->GetPlayerSetting("core.area52.draft_progress", 0).value != 0,
++                player->GetPlayerSetting("core.area52.draft_progress", 1).value != 0,
++                player->GetPlayerSetting("core.area52.draft_progress", 2).value != 0};
++            if (DraftRewardDue(progress, player->GetLevel(), sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
++                && AscensionMysticEnchant::GrantDraftReward(player, build, state->Revision, state->Plan.Enchants))
++                state->NextRequest = Clock::now() + std::chrono::seconds(2);
++        }
++        WorldPacket packet;
++        {
++            std::lock_guard lock(InboxLock);
++            auto it = Inboxes.find(player->GetSession());
++            if (it == Inboxes.end() || it->second.empty())
++                return;
++            packet = std::move(it->second.front());
++            it->second.pop_front();
++        }
++        state->NextRequest = Clock::now() + std::chrono::seconds(2);
++        Reader input(std::span(packet.contents(), packet.size()));
++        std::string id;
++        std::uint8_t automatic = 0, secondary = 0;
++        bool const activate = packet.GetOpcode() == 0x5C2;
++        std::uint64_t numericId = 0;
++        if (!input.Text(id, 64) || !ParseId(id, numericId)
++            || (activate && (!input.Number(automatic) || !input.Number(secondary) || automatic > 1 || secondary > 1))
++            || !input.Finished() || !Safe(player))
++        {
++            Reply(player, activate, "ACTIVATE_BUILD_NOT_AVAILABLE");
++            return;
++        }
++        if (activate && id == state->Plan.Id && state->Draft && player->GetLevel() < 10)
++        {
++            Fetch(player, numericId, 0, true, false);
++            return;
++        }
++        if (id == state->Plan.Id)
++        {
++            if (!activate && state->Draft && !BeforeManualDraftChange(player))
++            {
++                Reply(player, false, "ACTIVATE_BUILD_NOT_AVAILABLE");
++                return;
++            }
++            state->Automatic = activate && (state->Draft || automatic);
++            state->Pending = activate;
++            if (!activate)
++            {
++                state->Plan = {};
++                state->Revision = 0;
++            }
++            Store(player, *state);
++            player->SaveToDB(false, false);
++            SendState(player, *state);
++            Reply(player, activate, activate ? "ACTIVATE_BUILD_OK" : "DEACTIVATE_BUILD_OK");
++        }
++        else if (activate)
++            Fetch(player, numericId, 0, automatic != 0, false);
++        else
++            Reply(player, false, "DEACTIVATE_BUILD_NOT_FOUND");
++    }
++};
++}
++
++std::uint32_t Train(Player* player, Creature* trainer, std::uint32_t maximumLevel)
++{
++    if (!Applies(player) || !trainer || !trainer->IsAlive() || !player->IsWithinDistInMap(trainer, 10.0f)
++        || !player->HaveAtClient(trainer))
++        return 0;
++    auto* state = player->CustomData.Get<State>(StateKey);
++    if (!state || !state->Loaded || state->Busy || state->Plan.Id.empty() || Clock::now() < state->NextRequest)
++        return 0;
++    state->NextRequest = Clock::now() + std::chrono::seconds(2);
++    auto const before = AscensionFreePick::KnownEntries(player);
++    if (!Learn(player, *state, maximumLevel))
++        return 0;
++    return AscensionFreePick::SameSelection(before, AscensionFreePick::KnownEntries(player)) ? 0 : 1;
++}
++
++bool CanSwitchSpecialization(Player* player)
++{
++    auto const* state = player->CustomData.Get<State>(StateKey);
++    return !Applies(player) || (state && state->Loaded && !state->Busy);
++}
++
++void RestoreSpecialization(Player* player)
++{
++    if (!Applies(player))
++        return;
++    {
++        std::lock_guard lock(InboxLock);
++        Inboxes[player->GetSession()].clear();
++    }
++    auto* state = player->CustomData.GetDefault<State>(StateKey);
++    *state = State{};
++    std::uint64_t const id = std::uint64_t(player->GetPlayerSetting(Setting, 0).value)
++        | (std::uint64_t(player->GetPlayerSetting(Setting, 1).value) << 32);
++    if (id)
++        Fetch(player, id, player->GetPlayerSetting(Setting, 2).value,
++            player->GetPlayerSetting(Setting, 3).value != 0, true);
++    else
++    {
++        state->Loaded = true;
++        SendState(player, *state);
++    }
++}
++
++bool IsFeaturedDraft(Player* player)
++{
++    auto const* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
++    return Applies(player) && state && state->Draft;
++}
++
++bool BeforeManualDraftChange(Player* player)
++{
++    if (!Applies(player))
++        return true;
++    auto* state = player->CustomData.Get<State>(StateKey);
++    if (!state || state->InternalSelection || !state->Draft)
++        return true;
++    if (state->Busy || !Safe(player) || !AscensionMysticEnchant::ClearDraftEnchants(player))
++        return false;
++    player->UpdatePlayerSetting("core.area52.draft_progress", 0, 1);
++    player->UpdatePlayerSetting("core.area52.draft_progress", 2, 1);
++    for (std::uint32_t spec = 0; spec < AscensionFreePick::SpecializationSpells.size(); ++spec)
++    {
++        auto const key = "core.area52.spec." + std::to_string(spec) + ".active_build";
++        if (player->GetPlayerSetting(key, 4).value)
++            for (std::uint32_t index = 0; index < 5; ++index)
++                player->UpdatePlayerSetting(key, index, 0);
++    }
++    state->Draft = false;
++    state->Automatic = false;
++    state->Pending = false;
++    state->Plan = {};
++    state->Revision = 0;
++    Store(player, *state);
++    player->SaveToDB(false, false);
++    SendState(player, *state);
++    return true;
++}
++
++void PauseAutoLearnForReset(Player* player)
++{
++    if (!Applies(player))
++        return;
++    auto* state = player->CustomData.Get<State>(StateKey);
++    if (!state)
++        return;
++    state->Generation = NextGeneration.fetch_add(1);
++    state->Automatic = false;
++    state->Pending = false;
++    state->Busy = false;
++    state->Loaded = true;
++    Store(player, *state);
++    SendState(player, *state);
++}
++}
++
++void AddArea52ActiveBuildScripts()
++{
++    RegisterAscensionClientConfig([](AscensionClientConfig& config)
++        { config.Booleans.emplace_back("CONFIG_AREA52_ACTIVE_BUILDS_ENABLED", Area52Build::Enabled.load()); });
++    AscensionCompatOpcodes::Claim(0x5C2, &Area52Build::Handle);
++    AscensionCompatOpcodes::Claim(0x5C4, &Area52Build::Handle);
++    new Area52Build::ActiveWorld();
++    new Area52Build::ActivePlayer();
++    new Area52Build::ActiveTrainer();
++}
+--- a/src/server/coa/Area52ArchetypeVanityData.h
++++ b/src/server/coa/Area52ArchetypeVanityData.h
+@@ -1,126 +1,126 @@
+-#ifndef AREA52_ARCHETYPE_VANITY_DATA_H
+-#define AREA52_ARCHETYPE_VANITY_DATA_H
+-#include <map>
+-#include <vector>
+-namespace Area52ArchetypeVanity
+-{
+-inline std::map<uint32, std::vector<uint32>> const Bundles =
+-{
+-    {9901001, {7283, 18876, 46204, 46205, 46206, 46207, 46208, 46209, 46210, 900501}},
+-    {9901002, {10013, 46274, 46275, 46276, 46277, 46278, 46279, 46280, 46281, 900502}},
+-    {9901003, {1640, 1641, 1662, 1663, 1766, 1775, 1778, 1779, 14806, 900503}},
+-    {9901006, {28248, 28249, 28250, 28251, 28252, 28253, 28254, 28255, 28256, 900506, 900706}},
+-    {9901007, {13446, 23077, 23078, 23079, 23080, 23081, 23082, 23083, 23084, 23085, 900507}},
+-    {9901010, {7721, 43204, 43205, 43207, 43208, 43209, 43210, 43211, 43212, 900510}},
+-    {9901012, {18756, 46097, 46098, 46099, 46100, 46101, 46102, 46103, 900512, 900712}},
+-    {9901013, {12804, 13436, 13437, 13438, 13463, 21216, 33663, 900106, 900513}},
+-    {9901014, {47652, 51071, 51076, 51084, 51092, 51097, 51105, 51113, 51118, 51123, 900514}},
+-    {9901015, {9285, 21733, 28728, 29002, 29365, 42198, 42199, 42201, 900101, 900515}},
+-    {9901016, {15063, 28221, 28222, 28223, 28224, 28225, 28226, 28227, 28228, 28229, 900516}},
+-    {9901017, {323, 7542, 9295, 47248, 47249, 47256, 47260, 900517}},
+-    {9901018, {11509, 11510, 11511, 11512, 11513, 11514, 11516, 11517, 11518, 22568, 900518}},
+-    {9901019, {19196, 45558, 45559, 45560, 45561, 45562, 45563, 45564, 45565, 45566, 900519, 900719}},
+-    {9901020, {9159, 41402, 51182, 51183, 51184, 51185, 51186, 51187, 51188, 51189, 51190, 900520}},
+-    {9901021, {46153, 46154, 46155, 46156, 46157, 46158, 46159, 46161, 180395, 900113, 900521}},
+-    {9901022, {1667, 1713, 6988, 9198, 17271, 17306, 17312, 17313, 23359, 33863, 900522}},
+-    {9901024, {23131, 23132, 23133, 23134, 23135, 23136, 23137, 23138, 23832, 900524}},
+-    {9901025, {6543, 6544, 6546, 6547, 6645, 6646, 6647, 6819, 12509, 28565, 47445, 900525}},
+-    {9901026, {11154, 11155, 11157, 11159, 11418, 11904, 12291, 51205, 900526}},
+-    {9901027, {23737, 23751, 46380, 46381, 46382, 46383, 46384, 46385, 46386, 46387, 900527}},
+-    {9901029, {3220, 5394, 12603, 13799, 27524, 29527, 46275, 46277, 46278, 46279, 46281, 900529}},
+-    {9901030, {9293, 13441, 13462, 14787, 15029, 33967, 33969, 900105, 900530}},
+-    {9901031, {13436, 13437, 13438, 13439, 13440, 13463, 13467, 14786, 40952, 41072, 900531}},
+-    {9901032, {822, 9220, 9221, 9222, 9223, 9225, 9226, 9227, 9229, 9230, 900532}},
+-    {9901033, {11418, 26569, 46410, 46411, 46412, 46413, 46415, 46418, 47557, 900533}},
+-    {9901034, {47559, 179649, 179650, 179651, 179652, 179653, 179654, 179655, 179656, 179688, 900534}},
+-    {9901073, {12179, 59, 60, 61, 64, 65, 66, 67, 68, 2558, 21230, 22254, 45160, 45163, 46220, 180078, 180080, 180081, 180082, 180083, 180184, 180185, 900573, 900773}},
+-    {9901074, {46663, 179930, 179931, 179932, 179933, 179934, 179935, 179936, 179937, 179938, 900574}},
+-    {9901075, {18273, 23434, 27283, 27616, 27617, 47577, 900575}},
+-    {9901077, {15254, 23139, 23140, 23141, 23142, 23143, 23144, 23145, 23146, 47103, 900577}},
+-    {9901078, {6386, 45943, 45944, 45945, 45946, 45947, 45948, 45949, 45950, 900107, 900578}},
+-    {9901079, {25605, 25606, 25607, 25608, 25609, 25610, 25611, 25612, 25613, 900108, 900579}},
+-    {9901080, {12630, 42177, 42178, 42179, 42180, 42181, 42182, 42183, 42184, 42185, 900109, 900580}},
+-    {9901082, {2268, 2269, 2271, 2272, 2273, 2274, 2277, 2278, 2280, 17894, 900582}},
+-    {9901084, {17951, 24349, 24350, 24351, 24352, 24353, 24354, 24355, 24356, 900584}},
+-    {9901085, {6092, 6093, 6094, 6095, 6096, 6097, 6098, 6099, 7361, 900585}},
+-    {9901086, {3226, 32104, 46158, 900100, 900104, 900112, 900114, 900115, 900116, 900586}},
+-    {9901088, {8269, 43196, 43197, 43198, 43199, 43200, 43201, 43202, 43203, 900102, 900588}},
+-    {9901090, {12935, 21197, 21198, 21199, 21200, 21201, 21203, 21204, 21218, 900590}},
+-    {9901095, {12814, 31000, 31001, 31002, 31003, 31004, 31005, 31006, 31007, 31008, 900103, 900595}},
+-    {9901097, {40, 53, 12911, 24858, 24859, 24983, 24984, 24985, 24986, 25033, 900597}},
+-    {9901101, {5496, 22020, 22145, 22148, 22151, 22154, 22158, 22161, 22224, 23066, 900601}},
+-    {9901104, {6748, 13441, 13442, 13443, 13444, 13462, 13466, 14787, 19476, 900604}},
+-    {9901129, {5600, 15021, 23387, 23388, 23389, 23390, 23391, 45983, 45984, 900110, 900629, 900829}},
+-    {9901131, {475, 45198, 45200, 45201, 45202, 45203, 45293, 46544, 47579, 900631}},
+-    {9901132, {5488, 5499, 23005, 23006, 23007, 23008, 23009, 23010, 23011, 23062, 900632}},
+-    {9901133, {18125, 23392, 23393, 23394, 23395, 23396, 23397, 23398, 23399, 23400, 900633}},
+-    {9901134, {1701, 1707, 1713, 1719, 1725, 1731, 1743, 1749, 1755, 1761, 8389, 15245, 900634}},
+-    {9901136, {6534, 6535, 6536, 6537, 6538, 6640, 6641, 6642, 13284, 900636}},
+-    {9901139, {7875, 46113, 46114, 46115, 46116, 46117, 46118, 46119, 46120, 900639}},
+-    {9901140, {524, 525, 526, 527, 528, 530, 532, 533, 534, 28555, 900640}},
+-    {9901141, {17235, 179665, 179666, 179667, 179668, 179669, 179670, 179671, 179672, 179691, 900111, 900641}},
+-    {9901142, {7810, 22715, 22716, 22717, 22718, 22719, 22721, 22777, 22778, 46218, 900642}},
+-    {9901143, {23359, 23360, 23361, 23362, 23363, 23364, 23365, 23366, 23367, 45402, 900643}},
+-    {9901144, {11148, 11149, 11152, 11153, 11425, 11432, 12290, 45991, 900644}},
+-};
+-inline std::map<uint32, std::vector<uint32>> const Items =
+-{
+-    {9901001, {165200, 499641, 499642, 499643, 499644, 499645, 499646, 499647, 9910019}},
+-    {9901002, {151172, 499550, 499551, 499552, 499553, 499554, 499555, 499556, 499557}},
+-    {9901003, {128868, 483278, 483279, 483280, 483281, 483282, 483283, 483284, 483285}},
+-    {9901006, {909377, 909383, 909389, 909395, 909401, 909407, 909413, 909419, 909425}},
+-    {9901007, {107579, 579403, 579404, 579405, 579406, 579407, 579408, 579409, 579410, 579411}},
+-    {9901010, {117551, 667201, 667202, 667203, 667205, 667208, 667209, 667210, 667211}},
+-    {9901012, {163956, 499773, 499774, 499775, 499776, 499778, 499779, 499780}},
+-    {9901013, {105918, 135656, 135657, 135660, 135661, 150566, 171942, 179626}},
+-    {9901014, {218222, 218223, 218224, 218225, 218226, 218227, 218229, 218231, 218232}},
+-    {9901015, {69564, 140585, 732617, 732618, 732620, 9910003, 9910011, 9910013, 9910014}},
+-    {9901016, {111834, 571950, 571951, 571952, 571953, 571954, 571955, 571956, 571957, 571958}},
+-    {9901017, {97264, 97265, 97266, 97267, 97273, 113134, 140684}},
+-    {9901018, {154134, 428833, 428834, 428835, 428836, 428837, 428838, 428839, 428840, 428841}},
+-    {9901019, {165602, 1560878, 1560879, 1560880, 1560881, 1560882, 1560883, 1560884, 1560885, 1560886}},
+-    {9901020, {52053, 118874, 625161, 625162, 625163, 625164, 625165, 625166, 625167, 625168, 625169}},
+-    {9901021, {375346, 499705, 499710, 499711, 499712, 499713, 499714, 499715, 499716, 612857}},
+-    {9901022, {101191, 101192, 101195, 101196, 107163, 119206, 259265, 487019, 509152, 9910016}},
+-    {9901024, {820113, 820114, 820115, 820116, 820117, 820118, 820119, 820120, 1777392}},
+-    {9901025, {71084, 97274, 97275, 97276, 97277, 97278, 97289, 97290, 97291, 97300, 9910000}},
+-    {9901026, {128947, 128954, 150771, 163227, 163229, 163230, 163231}},
+-    {9901027, {499393, 499394, 499395, 499396, 499397, 499398, 499399, 499400, 1777155, 1777176}},
+-    {9901029, {85066, 103870, 139622, 499550, 499552, 499553, 499554, 499556, 8210066, 9910008, 9910009}},
+-    {9901030, {111629, 140677, 141420, 141572, 141573, 150560, 150561, 9910015}},
+-    {9901031, {135655, 135656, 135657, 135658, 135659, 135660, 135661, 135662, 392246, 9910017}},
+-    {9901032, {140195, 140223, 140258, 140259, 140303, 140398, 140506, 140534, 140569}},
+-    {9901033, {150771, 499311, 499313, 499315, 499316, 499317, 499318, 9910010}},
+-    {9901034, {81865, 81866, 81867, 81868, 81869, 81870, 81871, 81872, 90127}},
+-    {9901073, {168665, 92818, 175249, 183606, 250816, 250818, 250819, 250820, 250821, 499681, 509517, 509518, 931452, 931455, 1001796, 1001797, 1001798, 1001799, 1001800, 1001801, 1001802, 1001803}},
+-    {9901074, {194235, 203865, 203866, 203867, 203868, 203869, 203870, 203871, 203872, 203873}},
+-    {9901075, {9910002, 9910004, 9910005, 9910006, 9910007}},
+-    {9901077, {137660, 820122, 820123, 820124, 820125, 820126, 820127, 820128, 820129, 967829}},
+-    {9901078, {103946, 499923, 499924, 499925, 499926, 499927, 499928, 499929, 499930, 612845}},
+-    {9901079, {499112, 499114, 499115, 499116, 499117, 499118, 499119, 499120, 499121, 612850}},
+-    {9901080, {104172, 612851, 732595, 732596, 732597, 732598, 732599, 732600, 732601, 732602, 732603}},
+-    {9901082, {279866, 279867, 279869, 279870, 279871, 279872, 279873, 279874, 279876, 8388602}},
+-    {9901084, {140544, 1005765, 1005766, 1005767, 1005768, 1005769, 1005770, 1005771, 1005772}},
+-    {9901085, {110037, 279451, 279452, 279453, 279454, 279455, 279456, 279457, 279458}},
+-    {9901086, {55844, 85064, 131509, 499715, 612854, 8210096, 8210097, 8210099, 9910001}},
+-    {9901088, {107910, 118401, 667101, 667102, 667103, 667105, 667108, 667109, 667110, 667111}},
+-    {9901090, {106097, 179624, 179654, 179661, 179665, 179671, 179677, 179680, 187673}},
+-    {9901095, {129754, 136858, 525409, 525410, 525411, 525412, 525413, 525414, 525415, 525416, 525417}},
+-    {9901097, {106075, 170002, 1001755, 1001756, 1001757, 1001758, 1001759, 1001760, 1001761, 1001762, 1001763}},
+-    {9901101, {50189, 178970, 179940, 179941, 179942, 179943, 179944, 179945, 179946, 179947}},
+-    {9901104, {104618, 141420, 141422, 141423, 141466, 141524, 141572, 141573, 168259}},
+-    {9901129, {111622, 346589, 487049, 487050, 487051, 487052, 487053, 499912, 499913, 612852}},
+-    {9901131, {498650, 498651, 498652, 498653, 498655, 498656, 498657, 498683}},
+-    {9901132, {175887, 175890, 175893, 175898, 175904, 175909, 175912, 175918, 8210170, 8210191}},
+-    {9901133, {174488, 487124, 487125, 487126, 487127, 487128, 487129, 487130, 487131, 487132}},
+-    {9901134, {111900, 113979, 259264, 259265, 259266, 259281, 259287, 259299, 259305, 259312, 259313, 299280}},
+-    {9901136, {97279, 97280, 97281, 97282, 97283, 97295, 97296, 97297, 97299}},
+-    {9901139, {115599, 499755, 499756, 499757, 499758, 499759, 499760, 499761, 499762}},
+-    {9901140, {211896, 211897, 211898, 211899, 211900, 211902, 211903, 211904, 211905, 9910012}},
+-    {9901141, {81881, 81882, 81883, 81884, 81885, 81886, 81887, 81888, 90129, 101213, 612853}},
+-    {9901142, {140547, 248587, 248588, 248589, 248590, 248591, 248592, 248593, 248594, 499683}},
+-    {9901143, {487019, 487020, 487021, 487022, 487023, 487024, 487025, 487026, 487027}},
+-    {9901144, {133313, 133314, 133317, 150935, 163236, 163239, 163240, 9910018}},
+-};
+-}
+-#endif
++#ifndef AREA52_ARCHETYPE_VANITY_DATA_H
++#define AREA52_ARCHETYPE_VANITY_DATA_H
++#include <map>
++#include <vector>
++namespace Area52ArchetypeVanity
++{
++inline std::map<uint32, std::vector<uint32>> const Bundles =
++{
++    {9901001, {7283, 18876, 46204, 46205, 46206, 46207, 46208, 46209, 46210, 900501}},
++    {9901002, {10013, 46274, 46275, 46276, 46277, 46278, 46279, 46280, 46281, 900502}},
++    {9901003, {1640, 1641, 1662, 1663, 1766, 1775, 1778, 1779, 14806, 900503}},
++    {9901006, {28248, 28249, 28250, 28251, 28252, 28253, 28254, 28255, 28256, 900506, 900706}},
++    {9901007, {13446, 23077, 23078, 23079, 23080, 23081, 23082, 23083, 23084, 23085, 900507}},
++    {9901010, {7721, 43204, 43205, 43207, 43208, 43209, 43210, 43211, 43212, 900510}},
++    {9901012, {18756, 46097, 46098, 46099, 46100, 46101, 46102, 46103, 900512, 900712}},
++    {9901013, {12911, 13436, 13437, 13438, 13463, 21216, 33663, 900106, 900513}},
++    {9901014, {47652, 51071, 51076, 51084, 51092, 51097, 51105, 51113, 51118, 51123, 900514}},
++    {9901015, {9285, 21733, 28728, 29002, 29365, 42198, 42199, 42201, 900101, 900515}},
++    {9901016, {15063, 28221, 28222, 28223, 28224, 28225, 28226, 28227, 28228, 28229, 900516}},
++    {9901017, {323, 7542, 9295, 47248, 47249, 47256, 47260, 900517}},
++    {9901018, {11509, 11510, 11511, 11512, 11513, 11514, 11516, 11517, 11518, 22568, 900518}},
++    {9901019, {19196, 45558, 45559, 45560, 45561, 45562, 45563, 45564, 45565, 45566, 900519, 900719}},
++    {9901020, {9159, 41402, 51182, 51183, 51184, 51185, 51186, 51187, 51188, 51189, 51190, 900520}},
++    {9901021, {46153, 46154, 46155, 46156, 46157, 46158, 46159, 46161, 180395, 900113, 900521}},
++    {9901022, {1667, 1713, 6988, 9198, 17271, 17306, 17312, 17313, 23359, 33863, 900522}},
++    {9901024, {23131, 23132, 23133, 23134, 23135, 23136, 23137, 23138, 23832, 900524}},
++    {9901025, {6543, 6544, 6546, 6547, 6645, 6646, 6647, 6819, 12509, 28565, 47445, 900525}},
++    {9901026, {11154, 11155, 11157, 11159, 11418, 11904, 12291, 51205, 900526}},
++    {9901027, {23737, 23751, 46380, 46381, 46382, 46383, 46384, 46385, 46386, 46387, 900527}},
++    {9901029, {3220, 5394, 12603, 13799, 27524, 29527, 46275, 46277, 46278, 46279, 46281, 900529}},
++    {9901030, {9293, 13441, 13462, 14787, 15029, 33967, 33969, 900105, 900530}},
++    {9901031, {13436, 13437, 13438, 13439, 13440, 13463, 13467, 14786, 40952, 41072, 900531}},
++    {9901032, {822, 9220, 9221, 9222, 9223, 9225, 9226, 9227, 9229, 9230, 900532}},
++    {9901033, {11418, 26569, 46410, 46411, 46412, 46413, 46415, 46418, 47557, 900533}},
++    {9901034, {47559, 179649, 179650, 179651, 179652, 179653, 179654, 179655, 179656, 179688, 900534}},
++    {9901073, {12179, 59, 60, 61, 64, 65, 66, 67, 68, 2558, 21230, 22254, 45160, 45163, 46220, 180078, 180080, 180081, 180082, 180083, 180184, 180185, 900573, 900773}},
++    {9901074, {46663, 179930, 179931, 179932, 179933, 179934, 179935, 179936, 179937, 179938, 900574}},
++    {9901075, {18273, 23434, 27283, 27616, 27617, 47577, 900575}},
++    {9901077, {15254, 23139, 23140, 23141, 23142, 23143, 23144, 23145, 23146, 47103, 900577}},
++    {9901078, {6386, 45943, 45944, 45945, 45946, 45947, 45948, 45949, 45950, 900107, 900578}},
++    {9901079, {25605, 25606, 25607, 25608, 25609, 25610, 25611, 25612, 25613, 900108, 900579}},
++    {9901080, {12630, 42177, 42178, 42179, 42180, 42181, 42182, 42183, 42184, 42185, 900109, 900580}},
++    {9901082, {2268, 2269, 2271, 2272, 2273, 2274, 2277, 2278, 2280, 17894, 900582}},
++    {9901084, {17951, 24349, 24350, 24351, 24352, 24353, 24354, 24355, 24356, 900584}},
++    {9901085, {6092, 6093, 6094, 6095, 6096, 6097, 6098, 6099, 7361, 900585}},
++    {9901086, {3226, 32104, 46158, 900100, 900104, 900112, 900114, 900115, 900116, 900586}},
++    {9901088, {8269, 43196, 43197, 43198, 43199, 43200, 43201, 43202, 43203, 900102, 900588}},
++    {9901090, {12935, 21197, 21198, 21199, 21200, 21201, 21203, 21204, 21218, 900590}},
++    {9901095, {12814, 31000, 31001, 31002, 31003, 31004, 31005, 31006, 31007, 31008, 900103, 900595}},
++    {9901097, {40, 53, 7712, 24858, 24859, 24983, 24984, 24985, 24986, 25033, 900597}},
++    {9901101, {5496, 22020, 22145, 22148, 22151, 22154, 22158, 22161, 22224, 23066, 900601}},
++    {9901104, {6748, 13441, 13442, 13443, 13444, 13462, 13466, 14787, 19476, 900604}},
++    {9901129, {5600, 15021, 23387, 23388, 23389, 23390, 23391, 45983, 45984, 900110, 900629, 900829}},
++    {9901131, {475, 45198, 45200, 45201, 45202, 45203, 45293, 46544, 47579, 900631}},
++    {9901132, {5488, 5499, 23005, 23006, 23007, 23008, 23009, 23010, 23011, 23062, 900632}},
++    {9901133, {18125, 23392, 23393, 23394, 23395, 23396, 23397, 23398, 23399, 23400, 900633}},
++    {9901134, {1701, 1707, 1713, 1719, 1725, 1731, 1743, 1749, 1755, 1761, 8389, 15245, 900634}},
++    {9901136, {6534, 6535, 6536, 6537, 6538, 6640, 6641, 6642, 13284, 900636}},
++    {9901139, {7875, 46113, 46114, 46115, 46116, 46117, 46118, 46119, 46120, 900639}},
++    {9901140, {524, 525, 526, 527, 528, 530, 532, 533, 534, 28555, 900640}},
++    {9901141, {17235, 179665, 179666, 179667, 179668, 179669, 179670, 179671, 179672, 179691, 900111, 900641}},
++    {9901142, {7810, 22715, 22716, 22717, 22718, 22719, 22721, 22777, 22778, 46218, 900642}},
++    {9901143, {23359, 23360, 23361, 23362, 23363, 23364, 23365, 23366, 23367, 45402, 900643}},
++    {9901144, {11148, 11149, 11152, 11153, 11425, 11432, 12290, 45991, 900644}},
++};
++inline std::map<uint32, std::vector<uint32>> const Items =
++{
++    {9901001, {165200, 499641, 499642, 499643, 499644, 499645, 499646, 499647, 9910019}},
++    {9901002, {151172, 499550, 499551, 499552, 499553, 499554, 499555, 499556, 499557}},
++    {9901003, {128868, 483278, 483279, 483280, 483281, 483282, 483283, 483284, 483285}},
++    {9901006, {909377, 909383, 909389, 909395, 909401, 909407, 909413, 909419, 909425}},
++    {9901007, {107579, 579403, 579404, 579405, 579406, 579407, 579408, 579409, 579410, 579411}},
++    {9901010, {117551, 667201, 667202, 667203, 667205, 667208, 667209, 667210, 667211}},
++    {9901012, {163956, 499773, 499774, 499775, 499776, 499778, 499779, 499780}},
++    {9901013, {106075, 135656, 135657, 135660, 135661, 150566, 171942, 179626}},
++    {9901014, {218222, 218223, 218224, 218225, 218226, 218227, 218229, 218231, 218232}},
++    {9901015, {69564, 140585, 732617, 732618, 732620, 9910003, 9910011, 9910013, 9910014}},
++    {9901016, {111834, 571950, 571951, 571952, 571953, 571954, 571955, 571956, 571957, 571958}},
++    {9901017, {97264, 97265, 97266, 97267, 97273, 113134, 140684}},
++    {9901018, {154134, 428833, 428834, 428835, 428836, 428837, 428838, 428839, 428840, 428841}},
++    {9901019, {165602, 1560878, 1560879, 1560880, 1560881, 1560882, 1560883, 1560884, 1560885, 1560886}},
++    {9901020, {52053, 118874, 625161, 625162, 625163, 625164, 625165, 625166, 625167, 625168, 625169}},
++    {9901021, {375346, 499705, 499710, 499711, 499712, 499713, 499714, 499715, 499716, 612857}},
++    {9901022, {101191, 101192, 101195, 101196, 107163, 119206, 259265, 487019, 509152, 9910016}},
++    {9901024, {820113, 820114, 820115, 820116, 820117, 820118, 820119, 820120, 1777392}},
++    {9901025, {71084, 97274, 97275, 97276, 97277, 97278, 97289, 97290, 97291, 97300, 9910000}},
++    {9901026, {128947, 128954, 150771, 163227, 163229, 163230, 163231}},
++    {9901027, {499393, 499394, 499395, 499396, 499397, 499398, 499399, 499400, 1777155, 1777176}},
++    {9901029, {85066, 103870, 139622, 499550, 499552, 499553, 499554, 499556, 8210066, 9910008, 9910009}},
++    {9901030, {111629, 140677, 141420, 141572, 141573, 150560, 150561, 9910015}},
++    {9901031, {135655, 135656, 135657, 135658, 135659, 135660, 135661, 135662, 392246, 9910017}},
++    {9901032, {140195, 140223, 140258, 140259, 140303, 140398, 140506, 140534, 140569}},
++    {9901033, {150771, 499311, 499313, 499315, 499316, 499317, 499318, 9910010}},
++    {9901034, {81865, 81866, 81867, 81868, 81869, 81870, 81871, 81872, 90127}},
++    {9901073, {168665, 92818, 175249, 183606, 250816, 250818, 250819, 250820, 250821, 499681, 509517, 509518, 931452, 931455, 1001796, 1001797, 1001798, 1001799, 1001800, 1001801, 1001802, 1001803}},
++    {9901074, {194235, 203865, 203866, 203867, 203868, 203869, 203870, 203871, 203872, 203873}},
++    {9901075, {9910002, 9910004, 9910005, 9910006, 9910007}},
++    {9901077, {137660, 820122, 820123, 820124, 820125, 820126, 820127, 820128, 820129, 967829}},
++    {9901078, {103946, 499923, 499924, 499925, 499926, 499927, 499928, 499929, 499930, 612845}},
++    {9901079, {499112, 499114, 499115, 499116, 499117, 499118, 499119, 499120, 499121, 612850}},
++    {9901080, {104172, 612851, 732595, 732596, 732597, 732598, 732599, 732600, 732601, 732602, 732603}},
++    {9901082, {279866, 279867, 279869, 279870, 279871, 279872, 279873, 279874, 279876, 8388602}},
++    {9901084, {140544, 1005765, 1005766, 1005767, 1005768, 1005769, 1005770, 1005771, 1005772}},
++    {9901085, {110037, 279451, 279452, 279453, 279454, 279455, 279456, 279457, 279458}},
++    {9901086, {55844, 85064, 131509, 499715, 612854, 8210096, 8210097, 8210099, 9910001}},
++    {9901088, {107910, 118401, 667101, 667102, 667103, 667105, 667108, 667109, 667110, 667111}},
++    {9901090, {106097, 179624, 179654, 179661, 179665, 179671, 179677, 179680, 187673}},
++    {9901095, {129754, 136858, 525409, 525410, 525411, 525412, 525413, 525414, 525415, 525416, 525417}},
++    {9901097, {116470, 170002, 1001755, 1001756, 1001757, 1001758, 1001759, 1001760, 1001761, 1001762, 1001763}},
++    {9901101, {50189, 178970, 179940, 179941, 179942, 179943, 179944, 179945, 179946, 179947}},
++    {9901104, {104618, 141420, 141422, 141423, 141466, 141524, 141572, 141573, 168259}},
++    {9901129, {111622, 346589, 487049, 487050, 487051, 487052, 487053, 499912, 499913, 612852}},
++    {9901131, {498650, 498651, 498652, 498653, 498655, 498656, 498657, 498683}},
++    {9901132, {175887, 175890, 175893, 175898, 175904, 175909, 175912, 175918, 8210170, 8210191}},
++    {9901133, {174488, 487124, 487125, 487126, 487127, 487128, 487129, 487130, 487131, 487132}},
++    {9901134, {111900, 113979, 259264, 259265, 259266, 259281, 259287, 259299, 259305, 259312, 259313, 299280}},
++    {9901136, {97279, 97280, 97281, 97282, 97283, 97295, 97296, 97297, 97299}},
++    {9901139, {115599, 499755, 499756, 499757, 499758, 499759, 499760, 499761, 499762}},
++    {9901140, {211896, 211897, 211898, 211899, 211900, 211902, 211903, 211904, 211905, 9910012}},
++    {9901141, {81881, 81882, 81883, 81884, 81885, 81886, 81887, 81888, 90129, 101213, 612853}},
++    {9901142, {140547, 248587, 248588, 248589, 248590, 248591, 248592, 248593, 248594, 499683}},
++    {9901143, {487019, 487020, 487021, 487022, 487023, 487024, 487025, 487026, 487027}},
++    {9901144, {133313, 133314, 133317, 150935, 163236, 163239, 163240, 9910018}},
++};
++}
++#endif
+--- a/src/server/coa/Area52BuildService.cpp
++++ b/src/server/coa/Area52BuildService.cpp
+@@ -1,5 +1,6 @@
+ #include "Area52BuildProtocol.h"
+ #include "Area52DraftAssignment.h"
++#include "Area52FeaturedRewardValidation.h"
+ #include "AscensionCompatOpcodes.h"
+ #include "AscensionFreePick.h"
+ #include "Config.h"
+@@ -281,6 +282,9 @@
+ 
+ char const* Validate(Entry const& entry)
+ {
++    FeaturedRewardItems vanity{};
++    if (entry.Category == FeaturedDraftCategory && !ValidateFeaturedRewards(entry.Description, vanity))
++        return "PUBLISH_BUILD_INVALID_FEATURED_VANITY";
+     if (entry.Name.empty())
+         return "PUBLISH_BUILD_NO_NAME";
+     if (entry.Spells.empty())
+--- a/src/server/coa/Area52DraftLifecycle.h
++++ b/src/server/coa/Area52DraftLifecycle.h
+@@ -1,39 +1,44 @@
+-#ifndef AREA52_DRAFT_LIFECYCLE_H
+-#define AREA52_DRAFT_LIFECYCLE_H
+-#include <cstdint>
+-namespace Area52Build
+-{
+-struct DraftLifecycle
+-{
+-    std::uint64_t Build = 0;
+-    std::uint32_t Revision = 0;
+-    bool Forfeited = false;
+-    bool Rewarded = false;
+-    bool EntitlementForfeited = false;
+-};
+-inline DraftLifecycle SwitchFeaturedDraft(DraftLifecycle state, std::uint32_t level,
+-    std::uint64_t build, std::uint32_t revision, bool featured)
+-{
+-    if (!featured || (level >= 10 && (state.Build != build || state.Revision != revision)))
+-        state.Forfeited = true;
+-    if (!featured)
+-        state.EntitlementForfeited = true;
+-    state.Build = featured ? build : 0;
+-    state.Revision = featured ? revision : 0;
+-    return state;
+-}
+-inline DraftLifecycle CustomizeDraft(DraftLifecycle state)
+-{
+-    state.Build = 0;
+-    state.Revision = 0;
+-    state.Forfeited = true;
+-    state.EntitlementForfeited = true;
+-    return state;
+-}
+-inline bool DraftRewardDue(DraftLifecycle const& state, std::uint32_t level, std::uint32_t maximum)
+-{
+-    return state.Build && state.Revision && !state.Forfeited && !state.Rewarded && !state.EntitlementForfeited
+-        && maximum >= 10 && level >= maximum;
+-}
+-}
+-#endif
++#ifndef AREA52_DRAFT_LIFECYCLE_H
++#define AREA52_DRAFT_LIFECYCLE_H
++#include <cstdint>
++namespace Area52Build
++{
++struct DraftLifecycle
++{
++    std::uint64_t Build = 0;
++    std::uint32_t Revision = 0;
++    bool Forfeited = false;
++    bool Rewarded = false;
++    bool EntitlementForfeited = false;
++};
++inline DraftLifecycle SwitchFeaturedDraft(DraftLifecycle state, std::uint32_t level,
++    std::uint64_t build, std::uint32_t revision, bool featured)
++{
++    if (featured && level < 10)
++    {
++        state.Forfeited = false;
++        state.EntitlementForfeited = false;
++    }
++    if (!featured || (level >= 10 && (state.Build != build || state.Revision != revision)))
++        state.Forfeited = true;
++    if (!featured)
++        state.EntitlementForfeited = true;
++    state.Build = featured ? build : 0;
++    state.Revision = featured ? revision : 0;
++    return state;
++}
++inline DraftLifecycle CustomizeDraft(DraftLifecycle state)
++{
++    state.Build = 0;
++    state.Revision = 0;
++    state.Forfeited = true;
++    state.EntitlementForfeited = true;
++    return state;
++}
++inline bool DraftRewardDue(DraftLifecycle const& state, std::uint32_t level, std::uint32_t maximum)
++{
++    return state.Build && state.Revision && !state.Forfeited && !state.Rewarded && !state.EntitlementForfeited
++        && maximum >= 10 && level >= maximum;
++}
++}
++#endif
+--- /dev/null
++++ b/src/server/coa/Area52FeaturedRewardMail.inc
+@@ -0,0 +1,132 @@
++struct FeaturedDelivery
++{
++    std::unique_ptr<Mail> Letter;
++    std::vector<std::unique_ptr<Item>> Items;
++};
++
++void DeliverFeaturedRewards(Player* player, State& state)
++{
++    if (!state.Draft || !state.Loaded || state.Pending || state.Busy || player->GetSession()->IsBot()
++        || player->GetPlayerSetting("core.area52.draft_progress", 0).value
++        || player->GetPlayerSetting("core.area52.draft_progress", 2).value)
++        return;
++    auto const now = Clock::now();
++    if (now < state.NextReward)
++        return;
++    state.NextReward = now + std::chrono::seconds(10);
++    FeaturedRewardItems items{};
++    if (!ValidateFeaturedRewards(state.Plan.Description, items))
++        return;
++    auto* session = player->GetSession();
++    auto const guid = player->GetGUID();
++    auto const generation = state.Generation;
++    if (!state.RewardsLoaded)
++    {
++        state.Busy = true;
++        auto* query = CharacterDatabase.GetPreparedStatement(CHAR_SEL_A52_FEATURED_MILESTONES);
++        query->SetData(0, guid.GetCounter());
++        session->GetQueryProcessor().AddCallback(CharacterDatabase.AsyncQuery(query).WithPreparedCallback(
++            [session, guid, generation](PreparedQueryResult rows)
++            {
++                auto* owner = session->GetPlayer();
++                auto* current = owner && owner->GetGUID() == guid ? owner->CustomData.Get<State>(StateKey) : nullptr;
++                if (!current || current->Generation != generation)
++                    return;
++                current->Busy = false;
++                current->RewardsLoaded = true;
++                if (rows)
++                    do
++                        current->RewardLevels.insert(rows->Fetch()[0].Get<std::uint32_t>());
++                    while (rows->NextRow());
++            }));
++        return;
++    }
++    std::uint32_t level = 0;
++    for (std::size_t i = 0; i < items.size(); ++i)
++        if (items[i] && FeaturedRewardLevels[i] <= player->GetLevel()
++            && !state.RewardLevels.contains(FeaturedRewardLevels[i])
++            && (!level || FeaturedRewardLevels[i] < level))
++            level = FeaturedRewardLevels[i];
++    if (!level)
++        return;
++    auto delivery = std::make_shared<FeaturedDelivery>();
++    delivery->Letter = std::make_unique<Mail>();
++    auto& mail = *delivery->Letter;
++    mail.messageID = sObjectMgr->GenerateMailID();
++    mail.messageType = MAIL_NORMAL;
++    mail.stationery = MAIL_STATIONERY_GM;
++    mail.receiver = guid.GetCounter();
++    mail.subject = state.Plan.Name + " - Level " + std::to_string(level) + " Vanity Reward";
++    mail.body = "Thank you for following your Featured Draft. Enjoy this milestone's assigned Vanity rewards.";
++    mail.deliver_time = GameTime::GetGameTime().count();
++    mail.expire_time = mail.deliver_time + 90 * DAY;
++    mail.state = MAIL_STATE_UNCHANGED;
++    for (std::size_t i = 0; i < items.size(); ++i)
++        if (items[i] && FeaturedRewardLevels[i] == level)
++        {
++            std::unique_ptr<Item> item(Item::CreateItem(items[i], 1, player));
++            if (!item)
++                return;
++            mail.AddItem(item->GetGUID().GetCounter(), item->GetEntry());
++            delivery->Items.push_back(std::move(item));
++        }
++    std::uint64_t build = 0;
++    if (!ParseId(state.Plan.Id, build))
++        return;
++    auto transaction = CharacterDatabase.BeginTransaction();
++    auto* claim = CharacterDatabase.GetPreparedStatement(CHAR_INS_A52_FEATURED_MILESTONE);
++    claim->SetData(0, guid.GetCounter());
++    claim->SetData(1, level);
++    claim->SetData(2, build);
++    claim->SetData(3, state.Revision);
++    claim->SetData(4, mail.messageID);
++    transaction->Append(claim);
++    for (auto const& item : delivery->Items)
++        item->SaveToDB(transaction);
++    auto* statement = CharacterDatabase.GetPreparedStatement(CHAR_INS_MAIL);
++    statement->SetData(0, mail.messageID);
++    statement->SetData(1, mail.messageType);
++    statement->SetData(2, mail.stationery);
++    statement->SetData(3, mail.mailTemplateId);
++    statement->SetData(4, mail.sender);
++    statement->SetData(5, mail.receiver);
++    statement->SetData(6, mail.subject);
++    statement->SetData(7, mail.body);
++    statement->SetData(8, true);
++    statement->SetData(9, std::uint32_t(mail.expire_time));
++    statement->SetData(10, std::uint32_t(mail.deliver_time));
++    statement->SetData(11, mail.money);
++    statement->SetData(12, mail.COD);
++    statement->SetData(13, mail.checked);
++    transaction->Append(statement);
++    for (auto const& item : mail.items)
++    {
++        statement = CharacterDatabase.GetPreparedStatement(CHAR_INS_MAIL_ITEM);
++        statement->SetData(0, mail.messageID);
++        statement->SetData(1, item.item_guid);
++        statement->SetData(2, mail.receiver);
++        transaction->Append(statement);
++    }
++    state.Busy = true;
++    session->AddTransactionCallback(CharacterDatabase.AsyncCommitTransaction(transaction)).AfterComplete(
++        [session, guid, generation, level, delivery](bool success)
++        {
++            if (success)
++                sMailMgr->OnMailSent(guid.GetCounter());
++            auto* owner = session->GetPlayer();
++            auto* current = owner && owner->GetGUID() == guid ? owner->CustomData.Get<State>(StateKey) : nullptr;
++            if (!current || current->Generation != generation)
++                return;
++            current->Busy = false;
++            if (!success)
++            {
++                current->RewardsLoaded = false;
++                return;
++            }
++            current->RewardLevels.insert(level);
++            owner->AddNewMailDeliverTime(delivery->Letter->deliver_time);
++            owner->AddMail(delivery->Letter.release());
++            for (auto& item : delivery->Items)
++                owner->AddMItem(item.release());
++        });
++}
+--- /dev/null
++++ b/src/server/coa/Area52FeaturedRewards.h
+@@ -0,0 +1,60 @@
++#ifndef AREA52_FEATURED_REWARDS_H
++#define AREA52_FEATURED_REWARDS_H
++
++#include <array>
++#include <charconv>
++#include <cstdint>
++#include <string_view>
++
++namespace Area52Build
++{
++constexpr std::array<std::uint32_t, 14> FeaturedRewardLevels{25, 10, 13, 16, 28, 36, 40, 45, 50, 22, 22, 22, 20, 60};
++using FeaturedRewardItems = std::array<std::uint32_t, 14>;
++
++inline bool ReadFeaturedRewards(std::string_view description, FeaturedRewardItems& items)
++{
++    items.fill(0);
++    constexpr std::string_view marker = "###AREA52_FEATURED_VANITY\n";
++    auto start = description.find(marker);
++    if (start == std::string_view::npos)
++        return true;
++    if ((start && description[start - 1] != '\n')
++        || description.find(marker, start + marker.size()) != std::string_view::npos)
++        return false;
++    start += marker.size();
++    auto end = description.find('\n', start);
++    auto const line = description.substr(start, end == std::string_view::npos ? end : end - start);
++    if (!line.starts_with("1:"))
++        return false;
++    auto values = line.substr(2);
++    for (std::size_t i = 0; i < items.size(); ++i)
++    {
++        auto const comma = values.find(',');
++        auto const value = values.substr(0, comma);
++        auto parsed = std::from_chars(value.data(), value.data() + value.size(), items[i]);
++        if (value.empty() || parsed.ec != std::errc{} || parsed.ptr != value.data() + value.size())
++            return false;
++        if (i + 1 == items.size())
++            return comma == std::string_view::npos;
++        if (comma == std::string_view::npos)
++            return false;
++        values.remove_prefix(comma + 1);
++    }
++    return false;
++}
++
++inline bool FeaturedSlotAccepts(std::size_t slot, std::uint32_t inventoryType)
++{
++    constexpr std::array<std::uint32_t, 9> armor{1, 3, 5, 10, 8, 9, 6, 16, 7};
++    if (slot < armor.size())
++        return inventoryType == armor[slot] || (slot == 2 && inventoryType == 20);
++    if (slot == 9)
++        return inventoryType == 13 || inventoryType == 17 || inventoryType == 21;
++    if (slot == 10)
++        return inventoryType == 13 || inventoryType == 14 || inventoryType == 22 || inventoryType == 23;
++    if (slot == 11)
++        return inventoryType == 15 || inventoryType == 25 || inventoryType == 26;
++    return slot < 14 && inventoryType == 0;
++}
++}
++#endif
+--- /dev/null
++++ b/src/server/coa/Area52FeaturedRewardValidation.h
+@@ -0,0 +1,53 @@
++#ifndef AREA52_FEATURED_REWARD_VALIDATION_H
++#define AREA52_FEATURED_REWARD_VALIDATION_H
++
++#include "Area52FeaturedRewards.h"
++#include "ObjectMgr.h"
++#include "SpellMgr.h"
++#include "SpellInfo.h"
++#include <set>
++
++namespace Area52Build
++{
++inline void FeaturedMountSpells(std::uint32_t id, std::set<std::uint32_t>& seen, bool& mount, bool& flying)
++{
++    if (!id || seen.size() >= 16 || !seen.insert(id).second)
++        return;
++    auto const* spell = sSpellMgr->GetSpellInfo(id);
++    if (!spell)
++        return;
++    for (auto const& effect : spell->Effects)
++    {
++        mount = mount || effect.ApplyAuraName == SPELL_AURA_MOUNTED;
++        flying = flying || effect.ApplyAuraName == SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED;
++        if (effect.Effect == SPELL_EFFECT_LEARN_SPELL || effect.Effect == SPELL_EFFECT_TRIGGER_SPELL)
++            FeaturedMountSpells(effect.TriggerSpell, seen, mount, flying);
++    }
++}
++
++inline bool ValidateFeaturedRewards(std::string_view description, FeaturedRewardItems& items)
++{
++    if (!ReadFeaturedRewards(description, items))
++        return false;
++    for (std::size_t slot = 0; slot < items.size(); ++slot)
++    {
++        if (!items[slot])
++            continue;
++        auto const* item = sObjectMgr->GetItemTemplate(items[slot]);
++        if (!item || !FeaturedSlotAccepts(slot, item->InventoryType))
++            return false;
++        if (slot >= 12)
++        {
++            bool mount = false, flying = false;
++            std::set<std::uint32_t> seen;
++            for (auto const& spell : item->Spells)
++                FeaturedMountSpells(spell.SpellId, seen, mount, flying);
++            if (!mount || flying != (slot == 13))
++                return false;
++        }
++    }
++    auto const* main = items[9] ? sObjectMgr->GetItemTemplate(items[9]) : nullptr;
++    return !main || main->InventoryType != INVTYPE_2HWEAPON || !items[10];
++}
++}
++#endif
+--- a/src/server/database/Database/Implementation/CharacterDatabase.cpp
++++ b/src/server/database/Database/Implementation/CharacterDatabase.cpp
+@@ -78,6 +78,11 @@
+         "FROM area52_build WHERE owner_account=?", CONNECTION_ASYNC);
+     PrepareStatement(CHAR_INS_A52_BUILD,
+         "INSERT INTO area52_build(id,owner_account) VALUES (?,?)", CONNECTION_ASYNC);
++    PrepareStatement(CHAR_SEL_A52_FEATURED_MILESTONES,
++        "SELECT level FROM area52_featured_milestones WHERE guid = ?", CONNECTION_ASYNC);
++    PrepareStatement(CHAR_INS_A52_FEATURED_MILESTONE,
++        "INSERT INTO area52_featured_milestones (guid, level, build_id, revision, mail_id) VALUES (?, ?, ?, ?, ?)",
++        CONNECTION_ASYNC);
+     PrepareStatement(CHAR_INS_A52_DRAFT_REWARD,
+         "INSERT IGNORE INTO area52_draft_reward(guid,account,build_id,revision) VALUES (?,?,?,?)",
+         CONNECTION_ASYNC);
+--- a/src/server/database/Database/Implementation/CharacterDatabase.h
++++ b/src/server/database/Database/Implementation/CharacterDatabase.h
+@@ -615,6 +615,9 @@
+     CHAR_INS_A52_LIBRARY_PUBLICATION,
+     CHAR_SEL_A52_LIBRARY_PUBLICATION,
+ 
++    CHAR_SEL_A52_FEATURED_MILESTONES,
++    CHAR_INS_A52_FEATURED_MILESTONE,
++
+     MAX_CHARACTERDATABASE_STATEMENTS
+ };
+ 
+--- a/Interface/FrameXML/Util/CharacterAdvancementUtil.lua
++++ b/Interface/FrameXML/Util/CharacterAdvancementUtil.lua
+@@ -626,11 +626,7 @@
+         StaticPopup_Show("CONFIRM_APPLY_PENDING_BUILD", costString)
+     else
+         --StaticPopup_Show("CONFIRM_APPLY_PENDING_BUILD_NO_COST")
+-        C_CharacterAdvancement.ApplyPendingBuild()
+-        if BuildCreatorUtil.GetPendingBuildID() then
+-            C_BuildCreator.ActivateBuild(BuildCreatorUtil.GetPendingBuildID(), true, true)
+-            BuildCreatorUtil.ClearPendingBuildID()
+-        end
++        CharacterAdvancementUtil.ApplyDraftCheckedPendingBuild(true)
+     end
+     return true
+ end
+@@ -1322,3 +1318,87 @@
+ end
+ BindReset(false)
+ BindReset(true)
++
++local draftChangeGeneration = 0
++local draftChangeEvents = CreateFrame("Frame")
++draftChangeEvents:RegisterEvent("CHARACTER_ADVANCEMENT_PENDING_BUILD_UPDATED")
++draftChangeEvents:SetScript("OnEvent", function()
++    draftChangeGeneration = draftChangeGeneration + 1
++end)
++local function CopyDraftChangeArgument(value)
++    if type(value) ~= "table" then return value end
++    local copy = {}
++    for key, item in pairs(value) do copy[key] = CopyDraftChangeArgument(item) end
++    return copy
++end
++
++function CharacterAdvancementUtil.ConfirmDraftChange(action)
++    if GetRealmName() ~= "Area 52 - Free-Pick" or BuildCreatorUtil.IsPickingSpells() then
++        return action()
++    end
++    local id = BuildCreatorUtil.GetActiveBuildID()
++    if not id then return action() end
++    local build = C_BuildCreator.GetBuild(id)
++    if not build then
++        C_BuildCreator.QueryBuild(id)
++        UIErrorsFrame:AddMessage("Checking your active build before changing abilities. Please try again when it has loaded.", 1, 0.8, 0)
++        return false
++    end
++    if build.Category ~= Enum.BuildCategory.BuildDraft then return action() end
++    draftChangeGeneration = draftChangeGeneration + 1
++    local data = {id = id, spec = SpecializationUtil.GetActiveSpecialization(),
++        generation = draftChangeGeneration, action = action}
++    local text = "Changing your abilities or talents will leave your Featured DRAFT BUILD, turn off automatic learning, remove ALL equipped Mystic Enchants, and forfeit this build's maximum-level Mystic Enchant rewards. Enchants already in your collection are kept."
++    if UnitLevel("player") < 10 then
++        text = text .. "\n\nBefore level 10, you may select a Featured Draft again. Only that selected build can earn rewards when you reach maximum level."
++    end
++    text = text .. "\n\nApply these changes?"
++    StaticPopup_Show("AREA52_DRAFT_ADVANCEMENT_CHANGE", text, nil, data)
++    return false
++end
++
++StaticPopupDialogs.AREA52_DRAFT_ADVANCEMENT_CHANGE = {
++    text = "%s", button1 = ACCEPT, button2 = CANCEL,
++    timeout = 0, whileDead = false, hideOnEscape = true,
++    OnAccept = function(_, data)
++        if not data or data.consumed or data.generation ~= draftChangeGeneration then return end
++        data.consumed = true
++        if GetRealmName() ~= "Area 52 - Free-Pick"
++            or BuildCreatorUtil.GetActiveBuildID() ~= data.id
++            or SpecializationUtil.GetActiveSpecialization() ~= data.spec then
++            UIErrorsFrame:AddMessage("Your active build changed. Review your changes and try again.", 1, 0.3, 0.3)
++            return
++        end
++        data.action()
++    end,
++    OnCancel = function(_, data)
++        if data then data.consumed = true end
++    end,
++}
++
++local originalDraftApply = C_CharacterAdvancement.ApplyPendingBuild
++function CharacterAdvancementUtil.ApplyDraftCheckedPendingBuild(activate)
++    local pendingID = BuildCreatorUtil.GetPendingBuildID()
++    return CharacterAdvancementUtil.ConfirmDraftChange(function()
++        if BuildCreatorUtil.GetPendingBuildID() ~= pendingID then
++            UIErrorsFrame:AddMessage("Your pending build changed. Review your changes and try again.", 1, 0.3, 0.3)
++            return false
++        end
++        local result = originalDraftApply()
++        if result ~= false and activate and pendingID then
++            C_BuildCreator.ActivateBuild(pendingID, true, true)
++            BuildCreatorUtil.ClearPendingBuildID()
++        end
++        return result
++    end)
++end
++
++for _, name in ipairs({"LearnID", "UnlearnID", "UnlearnAllTalents", "UnlearnAllSpells", "ApplyPendingBuild"}) do
++    local original = C_CharacterAdvancement[name]
++    C_CharacterAdvancement[name] = function(...)
++        local args, count = CopyDraftChangeArgument({...}), select("#", ...)
++        return CharacterAdvancementUtil.ConfirmDraftChange(function()
++            return original(unpack(args, 1, count))
++        end)
++    end
++end
+--- a/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
++++ b/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
+@@ -234,10 +234,11 @@
+     local categoryIndex = 1
+     for _, section in ipairs(content.sections) do
+         local text = section:Serialize(self.build)
+-        local shouldShowSection = section.category ~= "MYSTIC_ENCHANTS" or ShouldShowMysticEnchantSection()
++        local shouldShowSection = (section.category ~= "MYSTIC_ENCHANTS" or ShouldShowMysticEnchantSection())
++            and (not section.Area52FeaturedOnly or Area52FeaturedEditor.Applies())
+ 
+         if shouldShowSection then
+-            height = height + section:GetHeight()
++            height = height + section:GetHeight() + (section.Area52FeaturedOnly and 16 or 0)
+             self.categories[categoryIndex] = {
+                 header = section.category,
+                 offset = top - section:GetTop(),
+@@ -816,3 +817,2047 @@
+     if #failures==0 then failures={"AREA52_BUILD_VALIDATION_UNAVAILABLE"} end
+     return false,failures
+ end
++
++Area52FeaturedEditor = {}
++local F = Area52FeaturedEditor
++F.Slots = {
++    {"Head",25,1,1}, {"Shoulders",10,3,2}, {"Chest",13,5,4},
++    {"Gloves",16,10,8}, {"Boots",28,8,11}, {"Bracers",36,9,7},
++    {"Belt",40,6,9}, {"Back",45,16,3}, {"Legs",50,7,10},
++    {"Main hand",22,0,13}, {"Off hand / shield",22,0,14}, {"Ranged",22,0,12},
++    {"Ground mount",20}, {"Flying mount",60},
++}
++BUILDCREATOR_SECTION_AI_BOT_ROTATION = "AI Bot Rotation"
++BUILDCREATOR_SECTION_AREA52_FEATURED_VANITY = "Featured Vanity Rewards"
++BuildCreatorUtil.DescriptionSection.AIBotRotation = "AI_BOT_ROTATION"
++BuildCreatorUtil.DescriptionSectionInverted.AI_BOT_ROTATION = "AIBotRotation"
++BuildViewSectionMixin.CategoryIcons.AI_BOT_ROTATION = "Interface\\Icons\\inv_gizmo_02"
++BuildViewSectionMixin.CategoryIcons.AREA52_FEATURED_VANITY = "Interface\\Icons\\inv_chest_chain"
++
++function F.Applies()
++    return C_Player:IsGM() and Area52DraftSelector.Applies(C_BuildEditor.GetPendingBuild())
++end
++
++function F.Read(description)
++    local items = {}
++    for i=1,14 do items[i]=0 end
++    local raw = (description or ""):match("###AREA52_FEATURED_VANITY\n([^\n]*)")
++    if not raw then return items end
++    local _,count=(description or ""):gsub("###AREA52_FEATURED_VANITY\n","")
++    if count~=1 then return nil end
++    if not raw:match("^1:[%d,]+$") then return nil end
++    local index = 0
++    for token in (raw:sub(3)..","):gmatch("([^,]*),") do
++        index=index+1
++        local id=tonumber(token)
++        if index>14 or not id or id<0 or id>4294967295 then return nil end
++        items[index]=id
++    end
++    return index==14 and items or nil
++end
++
++function F.Accepts(slot, item)
++    if not item or item<=0 then return false end
++    if slot>=13 then
++        return F.MountKinds and F.MountKinds[item] == (slot==14 and "flying" or "ground")
++    end
++    local kind=GetItemInventoryType(item)
++    if slot<=9 then return kind==F.Slots[slot][3] or (slot==3 and kind==20) end
++    if slot==10 then return kind==13 or kind==17 or kind==21 end
++    if slot==11 then return kind==13 or kind==14 or kind==22 or kind==23 end
++    return kind==15 or kind==25 or kind==26
++end
++
++function F.Message(message)
++    UIErrorsFrame:AddMessage(message,1,0.3,0.2)
++end
++
++function F.ValidContext(context)
++    local build=C_BuildEditor.GetPendingBuild()
++    return context and C_Player:IsGM() and Area52DraftSelector.Applies(build)
++        and context.view.Area52FeaturedGeneration==context.generation
++        and context.id==build.ID and context.archetype==context.view.Area52ArchetypeID
++end
++
++function F.ClosePicker(returnToEditor)
++    local context=F.picker
++    F.picker=nil
++    if F.PickerBar then F.PickerBar:Hide() end
++    if context and context.wardrobe and AppearanceWardrobeFrame then
++        AppearanceWardrobeFrame.Collection.SearchBox:SetText(context.search or "")
++        AppearanceWardrobeFrame.Collection:RefreshCategory()
++    end
++    if context and context.store then
++        StoreCollectionFrame.SearchBox:SetText(context.search or "")
++        StoreCollectionFrame:RefreshFeaturedPicker()
++    end
++    if returnToEditor then Collections:GoToTab(Collections.Tabs.HeroArchitect) end
++end
++
++function F.Choose(items)
++    local context=F.picker
++    if not F.ValidContext(context) then F.ClosePicker(false); return false end
++    local view=context.view
++    view.Area52FeaturedItems=items
++    F.ClosePicker(true)
++    F.Refresh(view)
++    view:UpdatePendingBuild()
++    return true
++end
++
++function F.PickAppearance(appearance)
++    local context=F.picker
++    if not context then return false end
++    if not F.ValidContext(context) then F.ClosePicker(false); return true end
++    if context.slot>=13 then F.Message("Choose a mount from the Vanity tab."); return true end
++    if not appearance or appearance==0 then return true end
++    local displayType,id=C_Appearance.GetAppearanceDisplayInfo(appearance)
++    local items={unpack(context.view.Area52FeaturedItems)}
++    if context.slot==0 then
++        if displayType~="APPEARANCE_DISPLAY_TYPE_ITEM_SET" then F.Message("Choose an armor set from the Wardrobe Sets category."); return true end
++        local replacements={}
++        for _,member in pairs(C_ItemSet.GetAppearances(id) or {}) do
++            local kind,item
++            if member and member~=0 then kind,item=C_Appearance.GetAppearanceDisplayInfo(member) end
++            if kind=="APPEARANCE_DISPLAY_TYPE_ITEM" then
++                for slot=1,9 do
++                    if F.Accepts(slot,item) then
++                        if replacements[slot] and replacements[slot]~=item then F.Message("This set contains multiple choices for one slot. Select its pieces individually."); return true end
++                        replacements[slot]=item
++                    end
++                end
++            end
++        end
++        if not next(replacements) then F.Message("This set has no supported armor pieces."); return true end
++        for slot=1,9 do items[slot]=replacements[slot] or 0 end
++    else
++        if displayType~="APPEARANCE_DISPLAY_TYPE_ITEM" or not F.Accepts(context.slot,id) then
++            F.Message("Choose an item for "..F.Slots[context.slot][1].."."); return true
++        end
++        items[context.slot]=id
++        if context.slot==10 and GetItemInventoryType(id)==17 then items[11]=0 end
++        if context.slot==11 and items[10]>0 and GetItemInventoryType(items[10])==17 then
++            F.Message("Clear the two-handed weapon before selecting an off-hand item."); return true
++        end
++    end
++    F.Choose(items)
++    return true
++end
++
++function F.PickMount(item)
++    local context=F.picker
++    if not context then return false end
++    if not F.ValidContext(context) then F.ClosePicker(false); return true end
++    if context.slot<13 or not F.Accepts(context.slot,item) then
++        F.Message("Choose a supported "..(context.slot==14 and "flying" or "ground").." mount. This item cannot be assigned to that slot."); return true
++    end
++    local items={unpack(context.view.Area52FeaturedItems)}
++    items[context.slot]=item
++    F.Choose(items)
++    return true
++end
++
++local function Button(parent,text,width,click)
++    local button=CreateFrame("Button",nil,parent,"UIPanelButtonTemplate")
++    button:SetSize(width,24); button:SetText(text); button:SetScript("OnClick",click)
++    return button
++end
++
++function F.OpenPicker(view,slot)
++    if not F.Applies() then return end
++    F.ClosePicker(false)
++    local build=C_BuildEditor.GetPendingBuild()
++    local context={view=view,slot=slot,id=build.ID,archetype=view.Area52ArchetypeID,generation=view.Area52FeaturedGeneration}
++    if slot>=13 then
++        VanityCollection_LoadUI()
++        Collections:GoToTab(Collections.Tabs.Vanity)
++        context.store=true;context.search=StoreCollectionFrame.SearchBox:GetText()
++        StaticPopup_Hide("VANITY_PURCHASE");StaticPopup_Hide("VANITY_PURCHASE_MULTI")
++    else
++        AppearanceUI_LoadUI()
++        Collections:GoToTab(Collections.Tabs.Wardrobe)
++        context.wardrobe=true;context.search=AppearanceWardrobeFrame.Collection.SearchBox:GetText()
++    end
++    F.picker=context
++    if slot>=13 then
++        StoreCollectionFrame.SearchBox:SetText("");StoreCollectionFrame:RefreshFeaturedPicker()
++    else
++        if slot==0 then AppearanceUI.OpenToItemSet("")
++        else AppearanceUI.OpenCategory("APPEARANCE_TYPE_ITEM",F.Slots[slot][4]); AppearanceWardrobeFrame.Collection.SearchBox:SetText("") end
++        AppearanceWardrobeFrame.Collection:RefreshCategory()
++    end
++    if not F.PickerBar then
++        local bar=CreateFrame("Frame",nil,Collections)
++        bar:SetSize(650,40);bar:SetPoint("TOP",Collections,"TOP",0,-35);bar:SetFrameStrata("DIALOG")
++        bar.Text=bar:CreateFontString(nil,"OVERLAY","GameFontNormal")
++        bar.Text:SetPoint("LEFT",0,0)
++        bar.Cancel=Button(bar,"Cancel selection",140,function() F.ClosePicker(true) end)
++        bar.Cancel:SetPoint("RIGHT",0,0)
++        bar:SetScript("OnUpdate",function(self,elapsed)
++            self.checkElapsed=(self.checkElapsed or 0)+elapsed
++            if self.checkElapsed<0.25 then return end
++            self.checkElapsed=0
++            local context=F.picker
++            if context and (not F.ValidContext(context) or not Collections:IsShown()
++                or Collections:GetCurrentTabID()~=(context.store and Collections.Tabs.Vanity or Collections.Tabs.Wardrobe)) then F.ClosePicker(false) end
++        end)
++        Collections:HookScript("OnHide",function() F.ClosePicker(false) end)
++        F.PickerBar=bar
++    end
++    F.PickerBar.Text:SetText("Assign to Featured Draft: "..(slot==0 and "Full armor set" or F.Slots[slot][1]))
++    F.PickerBar:Show()
++end
++
++function F.Refresh(view,skipQuery)
++    local panel=view.Area52VanitySection
++    local items=view.Area52FeaturedItems
++    if not panel or not items then return end
++    if view.Area52PreviewCancel then view.Area52PreviewCancel();view.Area52PreviewCancel=nil end
++    view.Area52PreviewSerial=(view.Area52PreviewSerial or 0)+1
++    local serial=view.Area52PreviewSerial
++    local missing={}
++    panel.Model:SetUnit("player");panel.Model:Undress()
++    for slot,definition in ipairs(F.Slots) do
++        local id=items[slot] or 0
++        local itemName=id>0 and GetItemInfo(id)
++        if id>0 and not itemName then missing[#missing+1]=id end
++        local name=id>0 and (itemName or ("Item "..id)) or "Not assigned"
++        panel.Buttons[slot]:SetText(definition[1].." ("..definition[2].."): "..name)
++        if slot<=12 and id>0 then panel.Model:TryOn(id,AppearanceUtil.GetCategorySlotID(definition[4])) end
++    end
++    if not skipQuery and #missing>0 then
++        view.Area52PreviewCancel=ItemQueryListener:AddCancelableCallback(missing,function()
++            if view.Area52PreviewSerial~=serial then return end
++            view.Area52PreviewCancel=nil
++            F.Refresh(view,true)
++        end)
++    end
++end
++
++function F.Ensure(view)
++    if view.Area52VanitySection then return end
++    local content=view.MainFrame.ScrollFrame.Content
++    local ai=CreateFrame("Frame",view:GetName().."Area52AI",content,"EditableBuildViewSectionTemplate")
++    ai:SetSize(764,190);ai:SetCategory("AI_BOT_ROTATION");ai.Area52FeaturedOnly=true
++    ai.Text=CreateFrame("Button",ai:GetName().."Text",ai,"EditableBuildMultilineTextTemplate")
++    ai.Text:SetSize(648,128);ai.Text:SetPoint("TOPLEFT",58,-36);ai.Text:SetPoint("TOPRIGHT",-58,-36)
++    local panel=CreateFrame("Frame",view:GetName().."Area52Vanity",content,"EditableBuildViewSectionTemplate")
++    panel:SetSize(764,460);panel:SetCategory("AREA52_FEATURED_VANITY");panel.Area52FeaturedOnly=true
++    panel.Serialize=function() return nil end;panel.Deserialize=function() end
++    panel.Model=CreateFrame("DressUpModel",nil,panel)
++    panel.Model:SetSize(230,365);panel.Model:SetPoint("TOPLEFT",22,-45)
++    panel.Buttons={}
++    for slot=1,14 do
++        local index=slot
++        local button=Button(panel,"",400,function() F.OpenPicker(view,index) end)
++        button:SetPoint("TOPLEFT",260,-40-(slot-1)*27)
++        local clear=Button(panel,"X",25,function()
++            if not F.Applies() then return end
++            view.Area52FeaturedItems[index]=0;F.Refresh(view);view:UpdatePendingBuild()
++        end)
++        clear:SetPoint("LEFT",button,"RIGHT",4,0)
++        panel.Buttons[slot]=button
++    end
++    local full=Button(panel,"Choose full armor set",210,function() F.OpenPicker(view,0) end)
++    full:SetPoint("BOTTOMLEFT",26,12)
++    local help=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
++    help:SetPoint("BOTTOMLEFT",260,12);help:SetText("Mailed once at the displayed levels. No Vanity relics.")
++    local ordered={}
++    for _,section in ipairs(content.sections) do
++        if section~=ai and section~=panel then
++            ordered[#ordered+1]=section
++            if section==content.Rotation then ordered[#ordered+1]=ai;ordered[#ordered+1]=panel end
++        end
++    end
++    content.sections=ordered
++    view.Area52AISection=ai;view.Area52VanitySection=panel
++end
++
++function F.Before(view,deserialize)
++    if GetRealmName()~="Area 52 - Free-Pick" then return end
++    F.Ensure(view)
++    local build=C_BuildEditor.GetPendingBuild()
++    if deserialize or not view.Area52FeaturedItems or view.Area52FeaturedID~=build.ID then
++        view.Area52FeaturedGeneration=(view.Area52FeaturedGeneration or 0)+1
++        view.Area52FeaturedItems=F.Read(build.Description)
++        view.Area52FeaturedInvalid=not view.Area52FeaturedItems
++        view.Area52FeaturedItems=view.Area52FeaturedItems or F.Read("")
++        view.Area52FeaturedID=build.ID
++        F.Refresh(view)
++    end
++    local enabled=F.Applies()
++    view.Area52AISection:SetShown(enabled);view.Area52VanitySection:SetShown(enabled)
++    local content=view.MainFrame.ScrollFrame.Content
++    view.Area52AISection:ClearAllPoints();view.Area52AISection:SetPoint("TOPLEFT",content.Rotation,"BOTTOMLEFT",0,-16)
++    view.Area52VanitySection:ClearAllPoints();view.Area52VanitySection:SetPoint("TOPLEFT",view.Area52AISection,"BOTTOMLEFT",0,-16)
++    content.Consumables:ClearAllPoints()
++    content.Consumables:SetPoint("TOPLEFT",enabled and view.Area52VanitySection or content.Rotation,"BOTTOMLEFT",0,-16)
++end
++
++local oldDescription=Area52DraftSelector.Description
++function Area52DraftSelector.Description(view,description)
++    description=(description or ""):gsub("\n*###AREA52_FEATURED_VANITY[^#]*","")
++    if F.Applies() then description=description.."\n\n###AREA52_FEATURED_VANITY\n1:"..table.concat(view.Area52FeaturedItems,",") end
++    return oldDescription(view,description)
++end
++local oldUpdate=EditableBuildViewMixin.UpdatePendingBuild
++function EditableBuildViewMixin:UpdatePendingBuild(deserialize)
++    F.Before(self,deserialize)
++    oldUpdate(self,deserialize)
++    if F.Applies() and self.Area52FeaturedInvalid then
++        for _,button in ipairs({self.Controls.SaveBuild,self.Controls.PublishBuild}) do
++            button:Disable();button.tooltipTitle="Invalid Featured Vanity data"
++            button.tooltipText="The saved reward metadata is malformed. Reopen an intact saved build before editing."
++        end
++    end
++end
++
++local oldValidation=Area52CanPublishBuild
++function Area52CanPublishBuild(view)
++    if F.Applies() then
++        if view.Area52FeaturedInvalid then return false,{"Invalid Featured Vanity metadata. Reopen an intact saved build."} end
++        local items=view.Area52FeaturedItems
++        for slot=1,14 do
++            if items and items[slot]~=0 and not F.Accepts(slot,items[slot]) then
++                return false,{"Invalid "..F.Slots[slot][1].." reward. Choose another item or clear this slot."}
++            end
++        end
++        if items and items[10]>0 and GetItemInventoryType(items[10])==17 and items[11]>0 then
++            return false,{"A two-handed Vanity weapon cannot be combined with an off-hand reward."}
++        end
++        if #(C_BuildEditor.GetPendingBuild().Description or "")>8192 then
++            return false,{"Build description and Featured fields exceed 8,192 bytes. Shorten the text before saving."}
++        end
++    end
++    return oldValidation(view)
++end
++
++Area52FeaturedEditor.MountKinds = {
++    [1041]="ground",
++    [1132]="ground",
++    [1133]="ground",
++    [1134]="ground",
++    [2411]="ground",
++    [2413]="ground",
++    [2414]="ground",
++    [2415]="ground",
++    [5655]="ground",
++    [5656]="ground",
++    [5663]="ground",
++    [5665]="ground",
++    [5668]="ground",
++    [5864]="ground",
++    [5872]="ground",
++    [5873]="ground",
++    [5874]="ground",
++    [5875]="ground",
++    [8563]="ground",
++    [8583]="ground",
++    [8586]="ground",
++    [8588]="ground",
++    [8589]="ground",
++    [8590]="ground",
++    [8591]="ground",
++    [8592]="ground",
++    [8595]="ground",
++    [8627]="ground",
++    [8628]="ground",
++    [8629]="ground",
++    [8630]="ground",
++    [8631]="ground",
++    [8632]="ground",
++    [8633]="ground",
++    [10732]="flying",
++    [10733]="flying",
++    [10734]="flying",
++    [12145]="ground",
++    [12146]="ground",
++    [12147]="ground",
++    [12302]="ground",
++    [12303]="ground",
++    [12325]="ground",
++    [12326]="ground",
++    [12327]="ground",
++    [12330]="ground",
++    [12351]="ground",
++    [12353]="ground",
++    [12354]="ground",
++    [13086]="ground",
++    [13317]="ground",
++    [13321]="ground",
++    [13322]="ground",
++    [13323]="ground",
++    [13324]="ground",
++    [13325]="ground",
++    [13326]="ground",
++    [13327]="ground",
++    [13328]="ground",
++    [13329]="ground",
++    [13331]="ground",
++    [13332]="ground",
++    [13333]="ground",
++    [13334]="ground",
++    [13335]="ground",
++    [14062]="ground",
++    [15277]="ground",
++    [15290]="ground",
++    [15292]="ground",
++    [15293]="ground",
++    [16339]="ground",
++    [18241]="ground",
++    [18242]="ground",
++    [18243]="ground",
++    [18244]="ground",
++    [18245]="ground",
++    [18246]="ground",
++    [18247]="ground",
++    [18248]="ground",
++    [18766]="ground",
++    [18767]="ground",
++    [18768]="ground",
++    [18772]="ground",
++    [18773]="ground",
++    [18774]="ground",
++    [18776]="ground",
++    [18777]="ground",
++    [18778]="ground",
++    [18785]="ground",
++    [18786]="ground",
++    [18787]="ground",
++    [18788]="ground",
++    [18789]="ground",
++    [18790]="ground",
++    [18791]="ground",
++    [18793]="ground",
++    [18794]="ground",
++    [18795]="ground",
++    [18796]="ground",
++    [18797]="ground",
++    [18798]="ground",
++    [18902]="ground",
++    [19029]="ground",
++    [19030]="ground",
++    [19872]="ground",
++    [19902]="ground",
++    [21044]="ground",
++    [21176]="ground",
++    [21218]="ground",
++    [21321]="ground",
++    [21323]="ground",
++    [21324]="ground",
++    [23193]="ground",
++    [23720]="ground",
++    [25470]="ground",
++    [25471]="ground",
++    [25472]="ground",
++    [25473]="ground",
++    [25474]="ground",
++    [25475]="ground",
++    [25476]="ground",
++    [25477]="ground",
++    [25527]="ground",
++    [25528]="ground",
++    [25529]="ground",
++    [25531]="ground",
++    [25532]="ground",
++    [25533]="ground",
++    [25596]="flying",
++    [28481]="ground",
++    [28482]="ground",
++    [28915]="ground",
++    [28927]="ground",
++    [28936]="ground",
++    [29102]="ground",
++    [29103]="ground",
++    [29104]="ground",
++    [29105]="ground",
++    [29220]="ground",
++    [29221]="ground",
++    [29222]="ground",
++    [29223]="ground",
++    [29224]="ground",
++    [29225]="ground",
++    [29227]="ground",
++    [29228]="ground",
++    [29229]="ground",
++    [29230]="ground",
++    [29231]="ground",
++    [29465]="ground",
++    [29466]="ground",
++    [29467]="ground",
++    [29468]="ground",
++    [29469]="ground",
++    [29470]="ground",
++    [29471]="ground",
++    [29472]="ground",
++    [29743]="ground",
++    [29744]="ground",
++    [29745]="ground",
++    [29746]="ground",
++    [29747]="ground",
++    [30480]="ground",
++    [30609]="ground",
++    [31829]="ground",
++    [31830]="ground",
++    [31831]="ground",
++    [31832]="ground",
++    [31833]="ground",
++    [31834]="ground",
++    [31835]="ground",
++    [31836]="ground",
++    [32314]="ground",
++    [32316]="ground",
++    [32317]="ground",
++    [32318]="ground",
++    [32319]="ground",
++    [32458]="ground",
++    [32768]="ground",
++    [32857]="ground",
++    [32858]="ground",
++    [32859]="ground",
++    [32860]="ground",
++    [32861]="ground",
++    [32862]="ground",
++    [33176]="flying",
++    [33182]="flying",
++    [33183]="ground",
++    [33184]="flying",
++    [33189]="ground",
++    [33224]="ground",
++    [33225]="ground",
++    [33809]="ground",
++    [33976]="ground",
++    [33977]="ground",
++    [33999]="ground",
++    [34060]="ground",
++    [34061]="ground",
++    [34092]="ground",
++    [34129]="ground",
++    [35225]="ground",
++    [35226]="ground",
++    [35513]="ground",
++    [35906]="ground",
++    [37011]="ground",
++    [37012]="ground",
++    [37598]="ground",
++    [37676]="ground",
++    [37719]="ground",
++    [37827]="ground",
++    [37828]="ground",
++    [38265]="ground",
++    [38576]="ground",
++    [40775]="ground",
++    [40777]="ground",
++    [41508]="ground",
++    [43516]="ground",
++    [43599]="ground",
++    [43951]="flying",
++    [43952]="flying",
++    [43953]="flying",
++    [43954]="flying",
++    [43955]="flying",
++    [43956]="ground",
++    [43958]="ground",
++    [43959]="ground",
++    [43961]="ground",
++    [43962]="ground",
++    [43963]="ground",
++    [43964]="ground",
++    [43986]="flying",
++    [44077]="ground",
++    [44080]="ground",
++    [44083]="ground",
++    [44086]="ground",
++    [44151]="ground",
++    [44160]="flying",
++    [44164]="flying",
++    [44168]="flying",
++    [44175]="flying",
++    [44177]="ground",
++    [44178]="ground",
++    [44221]="flying",
++    [44223]="ground",
++    [44224]="ground",
++    [44225]="ground",
++    [44226]="ground",
++    [44229]="flying",
++    [44230]="ground",
++    [44231]="ground",
++    [44234]="ground",
++    [44235]="ground",
++    [44413]="ground",
++    [44554]="ground",
++    [44555]="ground",
++    [44556]="ground",
++    [44558]="ground",
++    [44689]="flying",
++    [44690]="flying",
++    [44707]="flying",
++    [44842]="ground",
++    [44843]="ground",
++    [45125]="ground",
++    [45586]="ground",
++    [45589]="ground",
++    [45590]="ground",
++    [45591]="ground",
++    [45592]="ground",
++    [45593]="ground",
++    [45595]="ground",
++    [45596]="ground",
++    [45597]="ground",
++    [45693]="flying",
++    [45725]="flying",
++    [45801]="flying",
++    [45802]="flying",
++    [46099]="ground",
++    [46100]="ground",
++    [46102]="ground",
++    [46109]="ground",
++    [46171]="flying",
++    [46308]="ground",
++    [46708]="flying",
++    [46743]="ground",
++    [46744]="ground",
++    [46745]="ground",
++    [46746]="ground",
++    [46747]="ground",
++    [46748]="ground",
++    [46749]="ground",
++    [46750]="ground",
++    [46751]="ground",
++    [46752]="ground",
++    [46755]="ground",
++    [46756]="ground",
++    [46757]="ground",
++    [46758]="ground",
++    [46759]="ground",
++    [46760]="ground",
++    [46761]="ground",
++    [46762]="ground",
++    [46763]="ground",
++    [46764]="ground",
++    [46778]="ground",
++    [46813]="flying",
++    [46814]="flying",
++    [46815]="ground",
++    [46816]="ground",
++    [47100]="ground",
++    [47101]="ground",
++    [47179]="ground",
++    [47180]="ground",
++    [47840]="flying",
++    [49044]="ground",
++    [49046]="ground",
++    [49093]="ground",
++    [49096]="ground",
++    [49098]="ground",
++    [49282]="ground",
++    [49283]="ground",
++    [49284]="ground",
++    [49285]="ground",
++    [49286]="ground",
++    [49288]="ground",
++    [49289]="ground",
++    [49290]="ground",
++    [49636]="ground",
++    [50250]="ground",
++    [50420]="ground",
++    [50435]="flying",
++    [50818]="ground",
++    [51954]="flying",
++    [51955]="flying",
++    [52200]="ground",
++    [54068]="ground",
++    [54069]="ground",
++    [54797]="flying",
++    [54811]="ground",
++    [54860]="ground",
++    [54862]="ground",
++    [54863]="ground",
++    [54864]="ground",
++    [61355]="ground",
++    [69228]="ground",
++    [71665]="ground",
++    [71718]="ground",
++    [74269]="ground",
++    [79177]="ground",
++    [79239]="ground",
++    [79243]="ground",
++    [79245]="ground",
++    [79247]="ground",
++    [79248]="ground",
++    [85262]="ground",
++    [87801]="ground",
++    [89362]="ground",
++    [89390]="ground",
++    [89391]="ground",
++    [89783]="ground",
++    [91010]="ground",
++    [91013]="ground",
++    [91014]="ground",
++    [91015]="ground",
++    [97321]="ground",
++    [97389]="ground",
++    [97390]="ground",
++    [97391]="ground",
++    [97392]="ground",
++    [97856]="ground",
++    [97857]="ground",
++    [97907]="ground",
++    [97908]="ground",
++    [97909]="ground",
++    [97910]="ground",
++    [98075]="ground",
++    [98467]="ground",
++    [98468]="ground",
++    [98470]="ground",
++    [98471]="ground",
++    [98472]="ground",
++    [98473]="ground",
++    [98475]="ground",
++    [98476]="ground",
++    [98477]="ground",
++    [98479]="ground",
++    [98480]="ground",
++    [98490]="ground",
++    [99477]="ground",
++    [99478]="ground",
++    [99479]="ground",
++    [99480]="ground",
++    [99481]="ground",
++    [99482]="ground",
++    [99483]="ground",
++    [99484]="ground",
++    [99485]="ground",
++    [99489]="ground",
++    [99490]="ground",
++    [99982]="ground",
++    [100140]="ground",
++    [101227]="ground",
++    [101255]="ground",
++    [101256]="ground",
++    [102107]="ground",
++    [102125]="ground",
++    [102126]="ground",
++    [102127]="ground",
++    [102128]="ground",
++    [110411]="ground",
++    [112456]="ground",
++    [116788]="ground",
++    [116789]="ground",
++    [120306]="ground",
++    [120307]="ground",
++    [120308]="ground",
++    [120599]="flying",
++    [121502]="ground",
++    [121503]="ground",
++    [121504]="ground",
++    [121505]="ground",
++    [121815]="ground",
++    [131024]="ground",
++    [131025]="ground",
++    [131026]="ground",
++    [134947]="ground",
++    [155653]="ground",
++    [155654]="ground",
++    [155655]="ground",
++    [157489]="ground",
++    [160592]="flying",
++    [170000]="ground",
++    [170001]="ground",
++    [170002]="ground",
++    [170003]="ground",
++    [170004]="ground",
++    [170005]="ground",
++    [170006]="ground",
++    [170007]="ground",
++    [170008]="ground",
++    [170009]="ground",
++    [173178]="ground",
++    [177567]="ground",
++    [177568]="ground",
++    [181260]="flying",
++    [181261]="flying",
++    [187322]="ground",
++    [187323]="ground",
++    [187324]="ground",
++    [187325]="ground",
++    [188777]="flying",
++    [190197]="flying",
++    [190198]="flying",
++    [190199]="flying",
++    [190200]="flying",
++    [190201]="flying",
++    [190301]="ground",
++    [191541]="ground",
++    [191542]="ground",
++    [191543]="ground",
++    [192632]="ground",
++    [192633]="ground",
++    [192634]="ground",
++    [192635]="ground",
++    [192636]="ground",
++    [193373]="ground",
++    [193374]="ground",
++    [193375]="ground",
++    [193376]="ground",
++    [193377]="ground",
++    [193698]="ground",
++    [196728]="ground",
++    [199156]="ground",
++    [199157]="ground",
++    [199158]="ground",
++    [199159]="ground",
++    [199160]="ground",
++    [199161]="ground",
++    [199658]="ground",
++    [199659]="ground",
++    [199660]="ground",
++    [199661]="ground",
++    [199662]="ground",
++    [199666]="ground",
++    [199667]="flying",
++    [199738]="flying",
++    [199739]="flying",
++    [199740]="flying",
++    [203079]="ground",
++    [203080]="ground",
++    [203081]="ground",
++    [203082]="ground",
++    [205628]="flying",
++    [205629]="flying",
++    [213209]="ground",
++    [218185]="ground",
++    [218186]="ground",
++    [218187]="ground",
++    [219575]="ground",
++    [223915]="flying",
++    [225859]="ground",
++    [225860]="ground",
++    [225861]="ground",
++    [225862]="ground",
++    [233000]="ground",
++    [233001]="ground",
++    [233002]="ground",
++    [233442]="ground",
++    [233443]="ground",
++    [233444]="ground",
++    [233445]="ground",
++    [236292]="ground",
++    [236293]="ground",
++    [236294]="ground",
++    [236295]="ground",
++    [236296]="ground",
++    [236310]="ground",
++    [236415]="ground",
++    [240140]="ground",
++    [240141]="ground",
++    [240142]="ground",
++    [240143]="ground",
++    [240144]="ground",
++    [240145]="ground",
++    [240146]="ground",
++    [240147]="ground",
++    [240545]="ground",
++    [246192]="ground",
++    [249038]="ground",
++    [250451]="ground",
++    [250452]="ground",
++    [250453]="ground",
++    [250454]="ground",
++    [250455]="ground",
++    [250456]="ground",
++    [250457]="ground",
++    [250458]="ground",
++    [250459]="ground",
++    [250460]="ground",
++    [250461]="ground",
++    [250462]="ground",
++    [252676]="ground",
++    [252677]="ground",
++    [252678]="ground",
++    [252679]="ground",
++    [252680]="ground",
++    [252681]="ground",
++    [254027]="ground",
++    [254028]="ground",
++    [259633]="ground",
++    [259654]="ground",
++    [259965]="ground",
++    [274111]="ground",
++    [274437]="flying",
++    [274438]="flying",
++    [274439]="flying",
++    [274440]="flying",
++    [274441]="flying",
++    [274442]="flying",
++    [278707]="ground",
++    [283039]="flying",
++    [283040]="flying",
++    [283041]="flying",
++    [283042]="flying",
++    [287390]="ground",
++    [287849]="flying",
++    [290291]="ground",
++    [291911]="flying",
++    [291912]="flying",
++    [291913]="flying",
++    [291914]="flying",
++    [291915]="flying",
++    [291938]="flying",
++    [291939]="flying",
++    [291940]="flying",
++    [291941]="flying",
++    [291942]="flying",
++    [291943]="flying",
++    [291944]="flying",
++    [291945]="flying",
++    [291946]="flying",
++    [291947]="flying",
++    [305685]="ground",
++    [311698]="flying",
++    [311699]="flying",
++    [311700]="flying",
++    [311701]="flying",
++    [311702]="flying",
++    [311703]="flying",
++    [311704]="flying",
++    [311705]="flying",
++    [311706]="flying",
++    [311707]="flying",
++    [311711]="flying",
++    [311712]="flying",
++    [311713]="flying",
++    [311714]="flying",
++    [311715]="flying",
++    [311716]="flying",
++    [313692]="ground",
++    [323660]="ground",
++    [323661]="ground",
++    [323662]="ground",
++    [333265]="ground",
++    [333534]="flying",
++    [333535]="flying",
++    [333536]="flying",
++    [333998]="ground",
++    [333999]="ground",
++    [334410]="ground",
++    [334411]="ground",
++    [334412]="ground",
++    [334413]="ground",
++    [334414]="ground",
++    [334415]="ground",
++    [334416]="ground",
++    [335191]="flying",
++    [335192]="flying",
++    [335193]="flying",
++    [338626]="ground",
++    [338696]="ground",
++    [339548]="ground",
++    [343204]="ground",
++    [343205]="ground",
++    [343206]="ground",
++    [343207]="ground",
++    [343208]="ground",
++    [343209]="ground",
++    [343210]="ground",
++    [343211]="ground",
++    [348726]="ground",
++    [348727]="ground",
++    [348728]="ground",
++    [348729]="ground",
++    [348730]="ground",
++    [348731]="ground",
++    [350183]="flying",
++    [350184]="flying",
++    [350185]="flying",
++    [350186]="flying",
++    [365954]="ground",
++    [366988]="ground",
++    [366989]="ground",
++    [366990]="ground",
++    [366991]="ground",
++    [369008]="flying",
++    [369009]="flying",
++    [369010]="flying",
++    [369011]="flying",
++    [393445]="ground",
++    [393446]="ground",
++    [393447]="ground",
++    [393448]="ground",
++    [393449]="flying",
++    [393450]="flying",
++    [398247]="flying",
++    [398248]="flying",
++    [398249]="flying",
++    [400013]="flying",
++    [400014]="flying",
++    [400015]="ground",
++    [400016]="flying",
++    [400017]="flying",
++    [400018]="flying",
++    [400019]="flying",
++    [400020]="flying",
++    [400021]="flying",
++    [400022]="flying",
++    [400023]="flying",
++    [400024]="ground",
++    [400025]="ground",
++    [400026]="ground",
++    [400027]="ground",
++    [400028]="ground",
++    [400029]="ground",
++    [400030]="ground",
++    [400031]="ground",
++    [400032]="flying",
++    [400033]="flying",
++    [400034]="flying",
++    [400035]="ground",
++    [400036]="ground",
++    [400037]="ground",
++    [400038]="ground",
++    [400039]="flying",
++    [400040]="flying",
++    [400041]="flying",
++    [400042]="flying",
++    [400043]="flying",
++    [400044]="flying",
++    [400045]="ground",
++    [400046]="flying",
++    [400047]="flying",
++    [400048]="ground",
++    [400049]="ground",
++    [400050]="ground",
++    [400051]="flying",
++    [400052]="flying",
++    [400053]="flying",
++    [400065]="flying",
++    [400066]="flying",
++    [400067]="flying",
++    [400068]="flying",
++    [400069]="flying",
++    [400082]="ground",
++    [400083]="ground",
++    [400124]="ground",
++    [400125]="ground",
++    [400126]="flying",
++    [400127]="flying",
++    [400128]="flying",
++    [400129]="flying",
++    [400130]="flying",
++    [400131]="flying",
++    [400132]="ground",
++    [400133]="ground",
++    [400134]="ground",
++    [400135]="ground",
++    [400136]="ground",
++    [400137]="ground",
++    [400138]="ground",
++    [400139]="ground",
++    [400140]="ground",
++    [400141]="ground",
++    [400142]="ground",
++    [400143]="flying",
++    [400144]="flying",
++    [400145]="flying",
++    [400146]="flying",
++    [400147]="flying",
++    [400148]="flying",
++    [400149]="flying",
++    [400150]="flying",
++    [400151]="flying",
++    [400152]="flying",
++    [400153]="flying",
++    [400166]="flying",
++    [400167]="flying",
++    [400209]="flying",
++    [400210]="flying",
++    [400251]="flying",
++    [400252]="flying",
++    [400253]="flying",
++    [400254]="flying",
++    [400255]="flying",
++    [400256]="flying",
++    [400257]="flying",
++    [400258]="ground",
++    [400259]="ground",
++    [400260]="ground",
++    [400262]="ground",
++    [400263]="ground",
++    [400264]="ground",
++    [400265]="ground",
++    [400266]="ground",
++    [400267]="ground",
++    [400268]="ground",
++    [400269]="ground",
++    [400270]="ground",
++    [400271]="ground",
++    [400272]="ground",
++    [400273]="ground",
++    [400274]="ground",
++    [400275]="ground",
++    [400563]="flying",
++    [416601]="ground",
++    [416602]="ground",
++    [420852]="flying",
++    [428234]="ground",
++    [428235]="ground",
++    [428236]="ground",
++    [428545]="ground",
++    [428546]="ground",
++    [439040]="ground",
++    [448724]="ground",
++    [448725]="ground",
++    [448726]="ground",
++    [448727]="ground",
++    [448728]="ground",
++    [498840]="ground",
++    [499181]="ground",
++    [499203]="ground",
++    [499304]="ground",
++    [499307]="ground",
++    [499308]="ground",
++    [499309]="ground",
++    [499363]="ground",
++    [499364]="ground",
++    [499367]="ground",
++    [499378]="ground",
++    [499379]="ground",
++    [499386]="ground",
++    [499387]="ground",
++    [499389]="ground",
++    [499391]="ground",
++    [499424]="ground",
++    [499425]="ground",
++    [499426]="ground",
++    [499427]="ground",
++    [499438]="ground",
++    [499475]="ground",
++    [499476]="ground",
++    [499477]="ground",
++    [499478]="ground",
++    [499479]="ground",
++    [499480]="ground",
++    [499481]="ground",
++    [499482]="ground",
++    [499483]="ground",
++    [499484]="ground",
++    [499485]="ground",
++    [499486]="ground",
++    [499487]="ground",
++    [499488]="ground",
++    [499489]="ground",
++    [499490]="ground",
++    [499539]="ground",
++    [499578]="ground",
++    [499579]="ground",
++    [499580]="ground",
++    [499581]="ground",
++    [499582]="ground",
++    [499583]="ground",
++    [499636]="ground",
++    [499638]="ground",
++    [499639]="ground",
++    [499659]="ground",
++    [499660]="ground",
++    [499661]="ground",
++    [499662]="ground",
++    [499663]="ground",
++    [499664]="ground",
++    [499674]="ground",
++    [499675]="ground",
++    [499676]="ground",
++    [499677]="ground",
++    [499678]="ground",
++    [499679]="ground",
++    [499869]="ground",
++    [499870]="ground",
++    [499871]="ground",
++    [499872]="ground",
++    [499873]="ground",
++    [499874]="ground",
++    [499875]="ground",
++    [499876]="ground",
++    [499877]="ground",
++    [499878]="ground",
++    [499879]="ground",
++    [499880]="ground",
++    [499881]="ground",
++    [499882]="ground",
++    [499883]="ground",
++    [499884]="ground",
++    [499885]="ground",
++    [499886]="ground",
++    [499887]="ground",
++    [499891]="ground",
++    [499892]="ground",
++    [499933]="ground",
++    [499937]="ground",
++    [499940]="ground",
++    [499942]="ground",
++    [499943]="ground",
++    [499944]="ground",
++    [499945]="ground",
++    [499984]="ground",
++    [499987]="ground",
++    [499990]="ground",
++    [499995]="ground",
++    [499998]="ground",
++    [500002]="ground",
++    [500005]="ground",
++    [500006]="flying",
++    [500648]="ground",
++    [500649]="ground",
++    [500650]="ground",
++    [500651]="ground",
++    [500652]="ground",
++    [501000]="ground",
++    [509884]="ground",
++    [509902]="ground",
++    [510004]="ground",
++    [510006]="ground",
++    [520006]="flying",
++    [532580]="ground",
++    [532581]="ground",
++    [532582]="ground",
++    [546725]="flying",
++    [546726]="flying",
++    [546727]="flying",
++    [546728]="flying",
++    [558600]="ground",
++    [558601]="ground",
++    [558602]="ground",
++    [558603]="ground",
++    [558604]="ground",
++    [558605]="ground",
++    [558606]="ground",
++    [558607]="ground",
++    [558608]="ground",
++    [558609]="ground",
++    [558610]="ground",
++    [558611]="ground",
++    [558612]="ground",
++    [558613]="ground",
++    [558614]="ground",
++    [558615]="ground",
++    [558616]="ground",
++    [558617]="ground",
++    [558618]="ground",
++    [558619]="ground",
++    [558620]="ground",
++    [558621]="ground",
++    [558622]="ground",
++    [558623]="ground",
++    [558624]="ground",
++    [558625]="ground",
++    [558626]="ground",
++    [558627]="ground",
++    [558628]="ground",
++    [558629]="ground",
++    [558630]="ground",
++    [558631]="ground",
++    [558632]="ground",
++    [558633]="ground",
++    [558634]="ground",
++    [558635]="ground",
++    [558636]="ground",
++    [558637]="ground",
++    [558638]="ground",
++    [558639]="ground",
++    [558640]="ground",
++    [558641]="ground",
++    [558642]="ground",
++    [558643]="ground",
++    [558644]="ground",
++    [558645]="ground",
++    [558646]="ground",
++    [558647]="ground",
++    [558648]="ground",
++    [558649]="ground",
++    [558650]="ground",
++    [558651]="ground",
++    [558652]="ground",
++    [558653]="ground",
++    [558654]="ground",
++    [558655]="ground",
++    [558656]="ground",
++    [558657]="ground",
++    [558658]="ground",
++    [558659]="ground",
++    [558660]="ground",
++    [558661]="ground",
++    [558662]="ground",
++    [558663]="ground",
++    [558664]="ground",
++    [558665]="ground",
++    [558666]="ground",
++    [558667]="ground",
++    [558668]="ground",
++    [558669]="ground",
++    [558670]="ground",
++    [558671]="ground",
++    [558672]="ground",
++    [558673]="ground",
++    [558674]="ground",
++    [558675]="ground",
++    [558676]="ground",
++    [558677]="ground",
++    [558678]="ground",
++    [558749]="ground",
++    [558750]="ground",
++    [558751]="ground",
++    [558752]="ground",
++    [558797]="ground",
++    [558798]="ground",
++    [558819]="ground",
++    [558822]="ground",
++    [559202]="ground",
++    [559203]="ground",
++    [559205]="ground",
++    [559206]="ground",
++    [559366]="ground",
++    [559367]="ground",
++    [559368]="ground",
++    [559369]="ground",
++    [559370]="ground",
++    [559371]="ground",
++    [559400]="ground",
++    [559401]="ground",
++    [559402]="ground",
++    [559403]="ground",
++    [559404]="ground",
++    [559405]="ground",
++    [559406]="ground",
++    [559411]="ground",
++    [559412]="ground",
++    [559413]="ground",
++    [559414]="ground",
++    [559415]="ground",
++    [559416]="ground",
++    [559417]="ground",
++    [559418]="ground",
++    [559419]="ground",
++    [559420]="ground",
++    [559421]="ground",
++    [559422]="ground",
++    [559423]="ground",
++    [559424]="ground",
++    [559425]="ground",
++    [559426]="ground",
++    [559427]="ground",
++    [559428]="ground",
++    [559429]="ground",
++    [559430]="ground",
++    [559431]="ground",
++    [559432]="ground",
++    [559433]="ground",
++    [559434]="ground",
++    [559435]="ground",
++    [559436]="ground",
++    [559437]="ground",
++    [559438]="ground",
++    [559439]="ground",
++    [559440]="ground",
++    [559441]="ground",
++    [559442]="ground",
++    [559443]="ground",
++    [559444]="ground",
++    [559445]="ground",
++    [559446]="ground",
++    [559447]="ground",
++    [559448]="ground",
++    [559449]="ground",
++    [559450]="ground",
++    [559451]="ground",
++    [559452]="ground",
++    [559453]="ground",
++    [559454]="ground",
++    [559455]="ground",
++    [559456]="ground",
++    [559457]="ground",
++    [559519]="ground",
++    [559520]="ground",
++    [559542]="ground",
++    [559546]="ground",
++    [559547]="ground",
++    [559548]="ground",
++    [559549]="ground",
++    [559550]="ground",
++    [559551]="ground",
++    [559579]="ground",
++    [559580]="ground",
++    [559581]="ground",
++    [559582]="ground",
++    [559583]="ground",
++    [559584]="ground",
++    [559585]="ground",
++    [559589]="ground",
++    [559590]="ground",
++    [559591]="ground",
++    [559592]="ground",
++    [559593]="ground",
++    [559594]="ground",
++    [559595]="ground",
++    [559598]="ground",
++    [559599]="ground",
++    [559774]="ground",
++    [559775]="ground",
++    [559776]="ground",
++    [559777]="ground",
++    [559778]="ground",
++    [559779]="ground",
++    [559780]="ground",
++    [559781]="ground",
++    [559782]="ground",
++    [559783]="ground",
++    [559784]="ground",
++    [559785]="ground",
++    [559786]="ground",
++    [559787]="ground",
++    [559788]="ground",
++    [559789]="ground",
++    [559790]="ground",
++    [559791]="ground",
++    [559792]="ground",
++    [559793]="ground",
++    [559794]="ground",
++    [559795]="ground",
++    [559796]="ground",
++    [559797]="ground",
++    [559798]="ground",
++    [559799]="ground",
++    [559800]="ground",
++    [559801]="ground",
++    [559802]="ground",
++    [559803]="ground",
++    [559804]="ground",
++    [559806]="ground",
++    [559807]="ground",
++    [559808]="ground",
++    [559809]="ground",
++    [559810]="ground",
++    [559811]="ground",
++    [559812]="ground",
++    [559813]="ground",
++    [559814]="ground",
++    [559815]="ground",
++    [559816]="ground",
++    [559817]="ground",
++    [559818]="ground",
++    [559819]="ground",
++    [559820]="ground",
++    [559821]="ground",
++    [559822]="ground",
++    [559823]="ground",
++    [559824]="ground",
++    [559825]="ground",
++    [559826]="ground",
++    [559827]="ground",
++    [559828]="ground",
++    [559829]="ground",
++    [559830]="ground",
++    [559831]="ground",
++    [559832]="ground",
++    [559833]="ground",
++    [559834]="ground",
++    [559835]="ground",
++    [559836]="ground",
++    [559837]="ground",
++    [559838]="ground",
++    [559839]="ground",
++    [559840]="ground",
++    [559841]="ground",
++    [559844]="ground",
++    [559846]="ground",
++    [559848]="ground",
++    [560100]="ground",
++    [560200]="ground",
++    [560201]="ground",
++    [560202]="ground",
++    [560203]="ground",
++    [560204]="ground",
++    [560205]="ground",
++    [560206]="ground",
++    [560207]="ground",
++    [560208]="ground",
++    [560209]="ground",
++    [560210]="ground",
++    [560211]="ground",
++    [560212]="ground",
++    [560213]="ground",
++    [560214]="ground",
++    [560215]="ground",
++    [560216]="ground",
++    [560217]="ground",
++    [560218]="ground",
++    [560219]="ground",
++    [560220]="ground",
++    [560221]="ground",
++    [560222]="ground",
++    [560223]="ground",
++    [560224]="ground",
++    [560225]="ground",
++    [560226]="ground",
++    [560227]="ground",
++    [560228]="ground",
++    [560229]="ground",
++    [560230]="ground",
++    [560231]="ground",
++    [560232]="ground",
++    [560233]="ground",
++    [560234]="ground",
++    [560235]="ground",
++    [560236]="ground",
++    [560237]="ground",
++    [560238]="ground",
++    [560239]="ground",
++    [560240]="ground",
++    [560241]="ground",
++    [560242]="ground",
++    [560243]="ground",
++    [560244]="ground",
++    [560245]="ground",
++    [560246]="ground",
++    [560247]="ground",
++    [560248]="ground",
++    [560249]="ground",
++    [560250]="ground",
++    [560251]="ground",
++    [560252]="ground",
++    [560253]="ground",
++    [560254]="ground",
++    [560255]="ground",
++    [560256]="ground",
++    [560257]="ground",
++    [560258]="ground",
++    [560259]="ground",
++    [560260]="ground",
++    [560261]="ground",
++    [560262]="ground",
++    [560263]="ground",
++    [560264]="ground",
++    [560265]="ground",
++    [560266]="ground",
++    [560267]="ground",
++    [560268]="ground",
++    [560269]="ground",
++    [560270]="ground",
++    [560271]="ground",
++    [560272]="ground",
++    [560273]="ground",
++    [560274]="ground",
++    [560275]="ground",
++    [560276]="ground",
++    [560277]="ground",
++    [560278]="ground",
++    [560279]="ground",
++    [560280]="ground",
++    [560281]="ground",
++    [560282]="ground",
++    [560283]="ground",
++    [560284]="ground",
++    [560285]="ground",
++    [560286]="ground",
++    [560287]="ground",
++    [560288]="ground",
++    [560289]="ground",
++    [560290]="ground",
++    [560291]="ground",
++    [560292]="ground",
++    [560293]="ground",
++    [560294]="ground",
++    [560295]="ground",
++    [560296]="ground",
++    [560297]="ground",
++    [560298]="ground",
++    [560299]="ground",
++    [560300]="ground",
++    [560301]="ground",
++    [560302]="ground",
++    [560303]="ground",
++    [560304]="ground",
++    [560305]="ground",
++    [560306]="ground",
++    [560307]="ground",
++    [560308]="ground",
++    [560309]="ground",
++    [560310]="ground",
++    [560311]="ground",
++    [560312]="ground",
++    [560313]="ground",
++    [560314]="ground",
++    [560315]="ground",
++    [560316]="ground",
++    [560317]="ground",
++    [560318]="ground",
++    [560319]="ground",
++    [560320]="ground",
++    [560321]="ground",
++    [560322]="ground",
++    [560323]="ground",
++    [560324]="ground",
++    [560325]="ground",
++    [560326]="ground",
++    [560327]="ground",
++    [560328]="ground",
++    [560329]="ground",
++    [560330]="ground",
++    [560331]="ground",
++    [560332]="ground",
++    [560333]="ground",
++    [560334]="ground",
++    [597601]="ground",
++    [603200]="ground",
++    [612826]="ground",
++    [612827]="ground",
++    [612828]="ground",
++    [612829]="ground",
++    [612830]="ground",
++    [612831]="ground",
++    [612832]="ground",
++    [612833]="ground",
++    [612849]="ground",
++    [612892]="flying",
++    [623923]="flying",
++    [699636]="ground",
++    [699637]="ground",
++    [699638]="ground",
++    [699639]="ground",
++    [699640]="flying",
++    [775001]="ground",
++    [815142]="ground",
++    [815143]="ground",
++    [815144]="ground",
++    [815145]="ground",
++    [820031]="flying",
++    [829139]="flying",
++    [829140]="flying",
++    [829141]="flying",
++    [829142]="flying",
++    [829143]="flying",
++    [900185]="ground",
++    [900186]="ground",
++    [900917]="ground",
++    [933183]="ground",
++    [933184]="ground",
++    [978310]="ground",
++    [978311]="ground",
++    [978312]="ground",
++    [978313]="ground",
++    [978314]="ground",
++    [978315]="ground",
++    [978316]="ground",
++    [978317]="ground",
++    [987412]="ground",
++    [1001619]="ground",
++    [1001620]="ground",
++    [1001621]="ground",
++    [1001622]="ground",
++    [1001627]="ground",
++    [1001628]="ground",
++    [1001629]="ground",
++    [1001630]="ground",
++    [1001680]="ground",
++    [1001681]="ground",
++    [1001682]="ground",
++    [1001683]="ground",
++    [1001684]="ground",
++    [1001690]="ground",
++    [1001846]="ground",
++    [1001847]="ground",
++    [1001848]="ground",
++    [1001849]="ground",
++    [1001850]="ground",
++    [1002011]="ground",
++    [1002012]="ground",
++    [1002013]="ground",
++    [1002014]="ground",
++    [1100449]="ground",
++    [1175625]="ground",
++    [1175634]="ground",
++    [1175635]="ground",
++    [1179128]="ground",
++    [1179129]="ground",
++    [1179130]="ground",
++    [1179131]="ground",
++    [1179132]="flying",
++    [1179133]="flying",
++    [1179134]="flying",
++    [1179135]="flying",
++    [1179136]="ground",
++    [1179137]="ground",
++    [1179138]="ground",
++    [1179139]="ground",
++    [1179140]="ground",
++    [1179141]="ground",
++    [1179142]="ground",
++    [1179143]="ground",
++    [1179144]="ground",
++    [1179145]="ground",
++    [1179146]="ground",
++    [1179147]="ground",
++    [1179148]="ground",
++    [1179149]="ground",
++    [1179150]="ground",
++    [1179151]="ground",
++    [1179152]="ground",
++    [1179153]="flying",
++    [1179154]="flying",
++    [1179155]="flying",
++    [1179156]="flying",
++    [1179157]="flying",
++    [1179158]="flying",
++    [1179159]="flying",
++    [1179160]="flying",
++    [1179161]="flying",
++    [1179162]="ground",
++    [1179163]="flying",
++    [1179164]="flying",
++    [1179165]="ground",
++    [1179166]="ground",
++    [1179167]="ground",
++    [1179168]="ground",
++    [1179169]="ground",
++    [1179170]="ground",
++    [1179171]="ground",
++    [1179172]="ground",
++    [1179173]="ground",
++    [1179174]="ground",
++    [1179175]="ground",
++    [1179176]="ground",
++    [1179177]="ground",
++    [1179178]="ground",
++    [1179179]="ground",
++    [1179180]="ground",
++    [1179181]="ground",
++    [1179182]="ground",
++    [1179183]="ground",
++    [1179184]="ground",
++    [1179185]="ground",
++    [1179186]="ground",
++    [1179187]="ground",
++    [1179188]="ground",
++    [1179189]="ground",
++    [1179190]="ground",
++    [1179191]="ground",
++    [1179192]="ground",
++    [1179193]="ground",
++    [1179194]="ground",
++    [1179195]="ground",
++    [1179196]="ground",
++    [1179197]="ground",
++    [1179198]="ground",
++    [1179199]="flying",
++    [1179200]="flying",
++    [1179201]="flying",
++    [1179202]="flying",
++    [1179203]="flying",
++    [1179204]="ground",
++    [1179205]="ground",
++    [1179206]="ground",
++    [1179207]="ground",
++    [1179208]="ground",
++    [1179209]="ground",
++    [1179210]="ground",
++    [1179211]="ground",
++    [1179212]="ground",
++    [1179213]="ground",
++    [1179217]="flying",
++    [1179218]="ground",
++    [1179219]="ground",
++    [1179220]="ground",
++    [1179221]="ground",
++    [1179222]="ground",
++    [1179223]="ground",
++    [1179224]="ground",
++    [1179225]="ground",
++    [1179226]="ground",
++    [1179227]="ground",
++    [1179228]="flying",
++    [1179229]="flying",
++    [1233809]="ground",
++    [1235071]="ground",
++    [1235072]="ground",
++    [1235073]="ground",
++    [1235074]="ground",
++    [1235075]="ground",
++    [1235076]="ground",
++    [1235077]="ground",
++    [1235078]="ground",
++    [1235079]="ground",
++    [1235080]="ground",
++    [1235081]="ground",
++    [1235082]="ground",
++    [1235083]="ground",
++    [1235084]="ground",
++    [1235085]="ground",
++    [1235086]="ground",
++    [1235087]="ground",
++    [1235088]="ground",
++    [1235089]="ground",
++    [1235090]="ground",
++    [1235091]="ground",
++    [1235092]="ground",
++    [1235093]="ground",
++    [1235094]="ground",
++    [1235095]="ground",
++    [1235096]="ground",
++    [1235097]="ground",
++    [1235098]="ground",
++    [1235099]="ground",
++    [1235100]="ground",
++    [1235101]="ground",
++    [1235102]="ground",
++    [1235103]="ground",
++    [1235104]="ground",
++    [1235105]="ground",
++    [1235106]="ground",
++    [1235107]="ground",
++    [1235108]="ground",
++    [1235109]="ground",
++    [1235110]="ground",
++    [1235111]="ground",
++    [1235112]="ground",
++    [1235113]="ground",
++    [1235114]="ground",
++    [1284998]="ground",
++    [1284999]="ground",
++    [1285000]="ground",
++    [1285001]="ground",
++    [1285002]="ground",
++    [1285003]="ground",
++    [1285004]="ground",
++    [1333809]="ground",
++    [1433809]="ground",
++    [1500000]="ground",
++    [1533809]="ground",
++    [1633809]="ground",
++    [1733809]="ground",
++    [1777035]="ground",
++    [1777038]="ground",
++    [1777039]="ground",
++    [1777040]="ground",
++    [1777041]="ground",
++    [1777060]="ground",
++    [1777068]="ground",
++    [1777069]="ground",
++    [1777071]="ground",
++    [1777077]="ground",
++    [1777078]="ground",
++    [1777317]="ground",
++    [1777318]="ground",
++    [1777319]="ground",
++    [1777320]="ground",
++    [1777321]="ground",
++    [1777322]="ground",
++    [1777323]="ground",
++    [1777324]="ground",
++    [1777325]="ground",
++    [1777326]="ground",
++    [1777327]="ground",
++    [1777328]="ground",
++    [1777329]="ground",
++    [1777330]="ground",
++    [1777331]="ground",
++    [1777332]="ground",
++    [1777333]="ground",
++    [1777334]="ground",
++    [1777335]="ground",
++    [1777336]="ground",
++    [1777338]="ground",
++    [1777339]="ground",
++    [1777340]="ground",
++    [1777341]="ground",
++    [1777342]="ground",
++    [1777360]="ground",
++    [1777361]="ground",
++    [1777362]="ground",
++    [1777363]="ground",
++    [1777364]="ground",
++    [1777365]="ground",
++    [1777366]="ground",
++    [1777367]="ground",
++    [1777368]="ground",
++    [1777369]="ground",
++    [1777370]="ground",
++    [1777371]="ground",
++    [1777372]="ground",
++    [1777373]="ground",
++    [1777374]="ground",
++    [1777375]="ground",
++    [1777376]="ground",
++    [1777377]="ground",
++    [1777413]="ground",
++    [1777414]="ground",
++    [1777415]="ground",
++    [1777416]="ground",
++    [1777417]="ground",
++    [1777429]="ground",
++    [1777430]="ground",
++    [1777431]="ground",
++    [1777432]="ground",
++    [1777433]="ground",
++    [1777434]="ground",
++    [1777435]="ground",
++    [1777436]="ground",
++    [1777437]="ground",
++    [1777438]="ground",
++    [1777439]="ground",
++    [1777440]="ground",
++    [1777441]="ground",
++    [1804703]="ground",
++    [1833809]="ground",
++    [1877071]="ground",
++    [8199945]="ground",
++    [8199946]="ground",
++    [8199947]="ground",
++    [8199948]="ground",
++    [8199949]="ground",
++    [8199950]="ground",
++    [8199951]="ground",
++    [8199952]="ground",
++    [8199953]="ground",
++    [8199954]="ground",
++    [8199955]="ground",
++    [8199956]="ground",
++    [8199957]="ground",
++    [8199958]="ground",
++    [8199959]="ground",
++    [8199960]="ground",
++    [8199961]="ground",
++    [8199962]="ground",
++    [8199963]="ground",
++    [8199964]="ground",
++    [8199965]="ground",
++    [8199966]="ground",
++    [8199967]="ground",
++    [8199968]="ground",
++    [8199969]="ground",
++    [8199970]="ground",
++    [8199971]="ground",
++    [8199972]="ground",
++    [8199973]="ground",
++    [8199974]="ground",
++    [8199975]="ground",
++    [8199976]="ground",
++    [8199977]="ground",
++    [8199978]="ground",
++    [8199979]="ground",
++    [8199980]="ground",
++    [8199981]="ground",
++    [8199982]="ground",
++    [8199983]="ground",
++    [8199984]="ground",
++    [8199985]="ground",
++    [8199986]="ground",
++    [8199987]="ground",
++    [8199988]="ground",
++    [8199989]="ground",
++    [8199990]="ground",
++    [8199991]="ground",
++    [8199992]="ground",
++    [8199993]="ground",
++    [8199994]="ground",
++    [8199995]="ground",
++    [8199996]="ground",
++    [8199997]="ground",
++    [8199998]="ground",
++    [8199999]="ground",
++    [8200000]="ground",
++    [8200001]="ground",
++    [8200002]="ground",
++    [8200003]="ground",
++    [8200004]="ground",
++    [8200005]="ground",
++    [8200006]="ground",
++    [8200007]="ground",
++    [8200008]="ground",
++    [8200018]="ground",
++    [8200019]="ground",
++    [8200026]="ground",
++    [8200027]="ground",
++    [8200028]="ground",
++    [8200029]="ground",
++    [8200030]="ground",
++    [8200031]="ground",
++    [8200032]="ground",
++    [8200038]="ground",
++    [8200039]="ground",
++    [8200040]="ground",
++    [8200041]="ground",
++    [8200043]="ground",
++    [8200044]="ground",
++    [8200045]="ground",
++    [8200046]="ground",
++    [8200047]="ground",
++    [8200048]="ground",
++    [8200049]="ground",
++    [8200050]="ground",
++    [8200051]="ground",
++    [8200052]="ground",
++    [8200053]="ground",
++    [8200054]="ground",
++    [8200055]="ground",
++    [8200056]="ground",
++    [8200057]="ground",
++    [8200058]="ground",
++    [8200059]="ground",
++    [8200060]="ground",
++    [8200061]="ground",
++    [8200062]="ground",
++    [8200067]="ground",
++    [8200068]="ground",
++    [8200069]="ground",
++    [8200070]="ground",
++    [8200071]="ground",
++    [8200072]="ground",
++    [8200073]="ground",
++    [8200074]="ground",
++    [8200075]="ground",
++    [8200076]="ground",
++    [8200077]="ground",
++    [8200080]="ground",
++    [8200081]="ground",
++    [8200082]="ground",
++    [8200083]="ground",
++    [8200084]="ground",
++    [8200085]="ground",
++    [8200086]="ground",
++    [8200087]="ground",
++    [8200094]="ground",
++    [8200095]="ground",
++    [8200096]="ground",
++    [8200097]="ground",
++    [8200098]="ground",
++    [8200099]="ground",
++    [8200100]="ground",
++    [8200112]="ground",
++    [8200113]="ground",
++    [8200114]="ground",
++    [8200115]="ground",
++    [8200116]="ground",
++    [8200117]="ground",
++    [8200126]="ground",
++    [8200127]="ground",
++    [8200128]="ground",
++    [8200129]="ground",
++    [8200130]="ground",
++    [8200177]="ground",
++    [8200178]="ground",
++    [8200179]="ground",
++    [8200180]="ground",
++    [8200181]="ground",
++    [8200182]="ground",
++    [8200183]="ground",
++    [8200185]="ground",
++    [8200186]="ground",
++    [8200188]="ground",
++    [8200204]="ground",
++    [8200205]="ground",
++    [8200211]="ground",
++    [8200212]="ground",
++    [8200213]="ground",
++    [8200214]="ground",
++    [8200215]="flying",
++    [8388604]="ground",
++}
+--- a/Interface/FrameXML/Util/BuildCreatorUtil.lua
++++ b/Interface/FrameXML/Util/BuildCreatorUtil.lua
+@@ -649,9 +649,11 @@
+     elseif draft then
+         text = "Activate this Featured Draft? This resets your ability and talent selections, enables automatic learning, and replaces your equipped Mystic Enchants with the Draft's enchants. Missing prerequisites keep their effects dormant. "
+         text = text .. (UnitLevel("player") < 10
+-            and "Switching between Featured Drafts before level 10 preserves existing reward eligibility."
++            and "Before level 10, this becomes your eligible Draft. Only this build's enchants can be earned by reaching maximum level without leaving or customizing it."
+             or "Switching at level 10 or later forfeits maximum-level collection rewards.")
+-        text = text .. " Previously forfeited rewards or automatic enchant grants are not restored."
++        if UnitLevel("player") >= 10 then
++            text = text .. " Previously forfeited rewards or automatic enchant grants are not restored."
++        end
+     else
+         text = "Activating this build resets your ability and talent selections. Normal reset costs apply. If you are leaving a Featured Draft, all equipped Mystic Enchants are removed and its maximum-level rewards are forfeited. Your collection is preserved. Ordinary builds do not automatically equip Mystic Enchants. Continue?"
+     end
+--- a/Interface/FrameXML/StaticPopup.lua
++++ b/Interface/FrameXML/StaticPopup.lua
+@@ -569,11 +569,7 @@
+ 	button2 = CANCEL,
+ 	hideOnEscape = true,
+ 	OnAccept = function()
+-		C_CharacterAdvancement.ApplyPendingBuild()
+-		if BuildCreatorUtil.GetPendingBuildID() then
+-			C_BuildCreator.ActivateBuild(BuildCreatorUtil.GetPendingBuildID(), true, true)
+-			BuildCreatorUtil.ClearPendingBuildID()
+-		end
++		CharacterAdvancementUtil.ApplyDraftCheckedPendingBuild(true)
+ 	end,
+ }
+ 
+@@ -583,11 +579,7 @@
+ 	button2 = CANCEL,
+ 	hideOnEscape = true,
+ 	OnAccept = function()
+-		C_CharacterAdvancement.ApplyPendingBuild()
+-		if BuildCreatorUtil.GetPendingBuildID() then
+-			C_BuildCreator.ActivateBuild(BuildCreatorUtil.GetPendingBuildID(), true, true)
+-			BuildCreatorUtil.ClearPendingBuildID()
+-		end
++		CharacterAdvancementUtil.ApplyDraftCheckedPendingBuild(true)
+ 	end,
+ }
+ 
+--- a/Interface/AddOns/Ascension_AppearanceUI/AppearanceModelMixin.lua
++++ b/Interface/AddOns/Ascension_AppearanceUI/AppearanceModelMixin.lua
+@@ -562,6 +562,7 @@
+ 
+ 
+ function AppearanceModelMixin:OnClick()
++    if Area52FeaturedEditor and Area52FeaturedEditor.PickAppearance(self.appearanceID) then return end
+     if self.appearanceID then
+         if IsControlKeyDown() and C_Player:IsGM() and not UnitExists("target") and not C_AppearanceCollection.IsAppearanceCollected(self.appearanceID) then
+             if self.displayType == "APPEARANCE_DISPLAY_TYPE_ITEM_SET" then
+--- a/Interface/AddOns/Ascension_AppearanceUI/AppearanceCollectionMixin.lua
++++ b/Interface/AddOns/Ascension_AppearanceUI/AppearanceCollectionMixin.lua
+@@ -272,6 +272,7 @@
+ 
+ function AppearanceCollectionMixin:RefreshCategory()
+     local filter = self.Filter:HasAnyFilters() and self.Filter:GetFilter() or DefaultFilter
++    if Area52FeaturedEditor and Area52FeaturedEditor.picker then filter = {} end
+     local sorting = self.Sorting:HasAnyFilters() and self.Sorting:GetFilter() or DefaultSorting
+     C_AppearanceCollection.ApplyCategoryFilter(self.categoryID, self.SearchBox:GetText():trim(), filter, sorting)
+     local collected, numAppearances = C_AppearanceCollection.GetCollectedCount(self.categoryID)
+--- a/Interface/AddOns/Ascension_AppearanceUI/AppearanceUI.xml
++++ b/Interface/AddOns/Ascension_AppearanceUI/AppearanceUI.xml
+@@ -63,6 +63,7 @@
+                         
+                         <Scripts>
+                             <OnClick>
++                                if Area52FeaturedEditor and Area52FeaturedEditor.picker then return end
+                                 PlaySound(SOUNDKIT.UI_TRANSMOGRIFY_APPLY)
+                                 self:Disable()
+                                 self:GetParent().CancelButton:Disable()
+--- a/Interface/AddOns/Ascension_VanityCollection/VanityStore.lua
++++ b/Interface/AddOns/Ascension_VanityCollection/VanityStore.lua
+@@ -347,6 +347,7 @@
+ end
+ 
+ local function GetStoreFilterFlags()
++	if Area52FeaturedEditor and Area52FeaturedEditor.picker then return 0 end
+ 	local filterFlags = 0
+ 	if Store.StoreTypeList.Known then
+ 		filterFlags = bit.bor(filterFlags, VanityFilterFlags.Owned)
+@@ -368,7 +369,7 @@
+ 	pagenumber = pagenumber or 1
+ 
+ 	local offset = (pagenumber - 1) * Store.MaxItemsPerPage
+-	local result = C_VanityCollection.QueryItems(Store.SearchBox:GetText() or "", Store.StoreTypeList.Flags, GetStoreFilterFlags(), 1, offset, Store.MaxItemsPerPage) or {}
++	local result = C_VanityCollection.QueryItems(Store.SearchBox:GetText() or "", (Area52FeaturedEditor and Area52FeaturedEditor.picker) and Enum.VanityCategory.Mounts or Store.StoreTypeList.Flags, GetStoreFilterFlags(), 1, offset, Store.MaxItemsPerPage) or {}
+ 
+ 	return result.total or 0, result.items or {}
+ end
+@@ -471,6 +472,8 @@
+ 	StoreCollectionHideModelPreview()
+ 	Store.SearchBox:SetText(text)
+ end
++
++function Store:RefreshFeaturedPicker() BuildStoreList() end
+ 
+ function VanityCollectionUtil.OpenToCategory(category, searchText)
+ 	Collections:GoToTab(Collections.Tabs.Vanity)
+@@ -714,6 +717,7 @@
+ end
+ 
+ local function ActivateItem(self)
++	if Area52FeaturedEditor and Area52FeaturedEditor.picker then return end
+ 	PlaySound("igMainMenuOptionCheckBoxOn")
+ 	if (Store.ItemSelected ~= 0) and (self:IsEnabled() == 1) then
+ 		C_VanityCollection.RequestDelivery(Store.ItemSelected)
+@@ -1290,6 +1294,7 @@
+ Store.BuyStoreButton:Disable()
+ Store.BuyStoreButton:SetMotionScriptsWhileDisabled(true)
+ Store.BuyStoreButton:SetScript("OnClick", function(self)
++	if Area52FeaturedEditor and Area52FeaturedEditor.picker then return end
+ 	if Store.ItemInternal and Store.ItemInternal ~= 0 then
+ 		local item = Item:CreateFromID(Store.ItemInternal)
+ 		
+@@ -1882,6 +1887,7 @@
+ 	extraCostText2:SetText("")
+ 
+ 	_G["StoreCollectionItemFrame" .. i .. ".Button"]:SetScript("OnClick", function(self)
++		if Area52FeaturedEditor and Area52FeaturedEditor.PickMount(_G["StoreCollectionItemFrame" .. i .. ".Button.ItemInternal"]) then return end
+ 		PlaySound("igMainMenuOptionCheckBoxOn")
+ 		StaticPopup_Hide("VANITY_PURCHASE")
+ 		StaticPopup_Hide("VANITY_PURCHASE_MULTI")
+@@ -2340,6 +2346,7 @@
+ --                     Disenchant Confirm Dialog Frame                       --
+ -------------------------------------------------------------------------------
+ function Store:TryPurchaseSelectedItem()
++	if Area52FeaturedEditor and Area52FeaturedEditor.picker then return end
+ 
+ 	local dpCost = C_VanityCollection.GetDPPrice(Store.ItemInternal)
+ 	local _, link = GetItemInfo(Store.ItemInternal)

@@ -1,0 +1,74 @@
+{
+  "data/sql/updates/pending_db_characters/2026_11_01_00_area52_featured_milestones.sql": {
+    "before_sha256": null,
+    "after_sha256": "b92d95a3a6b2404f452ebabdbdd6355a78561568b1b9342d94efbc4232af3a41"
+  },
+  "src/server/coa/Area52ActiveBuild.cpp": {
+    "before_sha256": "1da3c96ab4573a1108b2df18970f96c226db9552168c6f37a0ece0a9f84fa738",
+    "after_sha256": "149e3340f695d9aa7821b6e70a95290dce799706b5da04a2cb682f10ef2315b3"
+  },
+  "src/server/coa/Area52ArchetypeVanityData.h": {
+    "before_sha256": "0f3c6e41ec41b5631a70686c4789bf6b396e1e2d1aa81a6e5d7792226f3773f5",
+    "after_sha256": "0805d83334b5bc72d511237a1dc75f7cab0855d01a0646c962bb71b989b85b65"
+  },
+  "src/server/coa/Area52BuildService.cpp": {
+    "before_sha256": "ed8db1c2278d0eff01663c2a43e6083d03e13e1fc02a7d38fdecc0c813580928",
+    "after_sha256": "307afcba617fd080865f03a086042af78cfbca36de4ca686ce3fb244de7d113c"
+  },
+  "src/server/coa/Area52DraftLifecycle.h": {
+    "before_sha256": "f3f20c04a84ee99cbb8a4c5dc699cda85321935e6ef53eb781d9f84a6ffc38e4",
+    "after_sha256": "de6c02a6dd9b76f2378b544016ef2cced9a04a279f6ccb12ce95320fed4c5240"
+  },
+  "src/server/coa/Area52FeaturedRewardMail.inc": {
+    "before_sha256": null,
+    "after_sha256": "cc1d6b0a65aa8e44434419deb4ce230e96fe2ffebba80df22439996a1e052b19"
+  },
+  "src/server/coa/Area52FeaturedRewards.h": {
+    "before_sha256": null,
+    "after_sha256": "b61cc05c0c0d54151eb40166f35028bacc66d91a61e2f10f74e248a8e5b29109"
+  },
+  "src/server/coa/Area52FeaturedRewardValidation.h": {
+    "before_sha256": null,
+    "after_sha256": "b5e70687d3906f148c624c3a950fecc012444cb76ac08c63001814ec21514d3d"
+  },
+  "src/server/database/Database/Implementation/CharacterDatabase.cpp": {
+    "before_sha256": "33fc1e3fb9556a8bd4f42acd44d93729e65e19f591f72788b9799053d8ffd7d0",
+    "after_sha256": "69bb1d2b424e11e8b32e52bdeb577539d6278695531e67a9f818b4756f2f4986"
+  },
+  "src/server/database/Database/Implementation/CharacterDatabase.h": {
+    "before_sha256": "7cd6686228b39c69478f9fa023d4fdfe36262d07a99844ad974a4f9d847f2eb0",
+    "after_sha256": "0672381af51193197568d0d42bdfb1ebb8c48b5f3ee776e503fc90ca2dbd3998"
+  },
+  "Interface/FrameXML/Util/CharacterAdvancementUtil.lua": {
+    "before_sha256": "d9b34b7cd1426c93d168acb5a32c27729dff4aa106e76386b50bb8928b8ceb57",
+    "after_sha256": "38ff50a7e7241d1cbc38cde597726b026d6e6b18e8f4f1b096ada44e30d4bd94"
+  },
+  "Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua": {
+    "before_sha256": "98f25b882194c363f8129bf745439faace546bc63613444447b9bf995635054f",
+    "after_sha256": "b2cee686532d45166b790473c95abf4c6bf110a996d0cd0bf39a2621a0f6f355"
+  },
+  "Interface/FrameXML/Util/BuildCreatorUtil.lua": {
+    "before_sha256": "72d10f41292a6a315b6618314904edd0efc5e7999d0a84d3b6d28aae6d54b6d2",
+    "after_sha256": "eb04f28c3df3aaa4a8dc2aa3e9133d6d20fa5e52be9e43871010b9c0ed9d99cf"
+  },
+  "Interface/FrameXML/StaticPopup.lua": {
+    "before_sha256": "bc6edec0d41e368acabf8ccb58ebfdd1b4c525430e487008b05928ee821c3a60",
+    "after_sha256": "d2fdfde8396833d045364ae5570936dfeebb0506454277f9790dd877b7ae9d7f"
+  },
+  "Interface/AddOns/Ascension_AppearanceUI/AppearanceModelMixin.lua": {
+    "before_sha256": "8edc9876568c782e6573720649da6cde070f084bce2e69ef21a76b31c53f08f2",
+    "after_sha256": "2d1802daa29e36b22004db6c06dc16707a05f2fcffdf74f5fe127c9bcdc6615b"
+  },
+  "Interface/AddOns/Ascension_AppearanceUI/AppearanceCollectionMixin.lua": {
+    "before_sha256": "110ec8f14bd4a3f64280052d95706bb810dc288f69e1d0abdfd4c26782e38841",
+    "after_sha256": "65abeb8c8d9c3dea696dc91e91b910979ee6cd4365b126bb3ff30827826352fd"
+  },
+  "Interface/AddOns/Ascension_AppearanceUI/AppearanceUI.xml": {
+    "before_sha256": "f27b3ec45d5cb8c4526bb332e048526f42d4d89a48c1b0021f134f4a8ca892ac",
+    "after_sha256": "af52535696dfe6bf6c2a4723601c8440f69a1a1aa42f198af4d2f25e9eba5092"
+  },
+  "Interface/AddOns/Ascension_VanityCollection/VanityStore.lua": {
+    "before_sha256": "58e6477e85bbb1ab6ba5747e9b89b4ea5299e1bcb015b1cd834df4841e3055cd",
+    "after_sha256": "1a74437358a18c4d426a01b04efbc275a7ff5d6b9ba3c71e7c658d36bfffb68d"
+  }
+}
