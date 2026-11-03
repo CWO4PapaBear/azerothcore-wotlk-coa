@@ -1,0 +1,17 @@
+{
+  "build": "passed",
+  "runtime": "passed",
+  "binary_sha256": "53877fb43fe6e71f0fa62d86472fb88c8a78239a4ba027ce5f5a7c58ca9ce988",
+  "baseline": {
+    "binary": "3d103d7588ac648610dc903544d488cf670eaae89f9617bf0177f95a50533e9a",
+    "compose": "e1e2f430171e64209c19e9cfedcc8734d89c8ced751fc9c35160d86ece34a560",
+    "source": "42550bb05541e9f37bd30e6e6df4620b2fe2cce8084fc156f3bf2ea41c363c97",
+    "transaction": "area52-featured-vanity-catalog-bridge-20261102"
+  },
+  "source_sha256": {
+    "source/src/server/coa/Area52BuildService.cpp": "b89fff7fb6195bdb1901886deeeee2d3e630638c91b086efdfce070007f75fb9",
+    "source/src/server/coa/Area52FeaturedCatalogEvents.h": "ddfac3f7ade5816835826e383da366f01d6ac772573b46b12e7891a4d745d878"
+  },
+  "provenance_sha256": "dfd141bde23ee2917e551f65bc2cb4316c0507ebf92bc147d068538570d74e1f",
+  "limits": "Offline engineering verification; no live task replacement, activation or publication."
+}

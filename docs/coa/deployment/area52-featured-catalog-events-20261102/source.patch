@@ -1,0 +1,202 @@
+--- a/src/server/coa/Area52BuildService.cpp
++++ b/src/server/coa/Area52BuildService.cpp
+@@ -1,3 +1,6 @@
++#include "Area52FeaturedCatalogEvents.h"
++#include "AsyncCallbackProcessor.h"
++#include "Log.h"
+ #include "Area52FeaturedPets.h"
+ #include "Area52FeaturedIncarnations.h"
+ #include "Area52BuildProtocol.h"
+@@ -32,6 +35,9 @@
+ using namespace Area52Build;
+ using Clock = std::chrono::steady_clock;
+ std::atomic<bool> Enabled{false};
++AsyncCallbackProcessor<TransactionCallback> CatalogCommits;
++std::mutex CatalogCommitLock;
++CatalogSignal CatalogNotifications;
+ 
+ struct SessionState
+ {
+@@ -204,7 +210,7 @@
+ }
+ 
+ void Commit(WorldSession* session, std::shared_ptr<SessionState> state, uint16 opcode,
+-    Entry entry, uint64 id, uint32 previous)
++    Entry entry, uint64 id, uint32 previous, bool catalogChanged = true)
+ {
+     entry.Id = std::to_string(id);
+     entry.Class = 10;
+@@ -256,7 +262,20 @@
+         transaction->Append(featured);
+     }
+ 
+-    session->AddTransactionCallback(CharacterDatabase.AsyncCommitTransaction(transaction)).AfterComplete(
++    auto committed = CharacterDatabase.AsyncCommitTransaction(transaction);
++    if (entry.Category == FeaturedDraftCategory && catalogChanged)
++    {
++        auto completion = std::make_shared<TransactionPromise>();
++        std::lock_guard lock(CatalogCommitLock);
++        CatalogCommits.AddCallback(std::move(committed)).AfterComplete([completion](bool success)
++        {
++            if (success)
++                CatalogNotifications.Request();
++            completion->set_value(success);
++        });
++        committed = TransactionCallback(completion->get_future());
++    }
++    session->AddTransactionCallback(std::move(committed)).AfterComplete(
+         [session, state, opcode, entry, wire, id](bool success)
+         {
+             if (!Current(session, state))
+@@ -417,7 +436,9 @@
+             }
+             entry.Author = previous.Author;
+             entry.Created = previous.Created;
+-            Commit(session, state, Save, std::move(entry), id, rows->Fetch()[1].Get<uint32>());
++            bool const catalogChanged = rows->Fetch()[4].Get<uint32>() != DraftArchetype(entry)
++                || CatalogSelectionChanged(previous.Description, entry.Description);
++            Commit(session, state, Save, std::move(entry), id, rows->Fetch()[1].Get<uint32>(), catalogChanged);
+         }));
+ }
+ 
+@@ -504,7 +525,7 @@
+ class BuildWorld final : public WorldScript
+ {
+ public:
+-    BuildWorld() : WorldScript("Area52BuildWorld", { WORLDHOOK_ON_AFTER_CONFIG_LOAD }) { }
++    BuildWorld() : WorldScript("Area52BuildWorld", { WORLDHOOK_ON_AFTER_CONFIG_LOAD, WORLDHOOK_ON_STARTUP, WORLDHOOK_ON_UPDATE }) { }
+     void OnAfterConfigLoad(bool) override
+     {
+         Enabled = sConfigMgr->GetOption<bool>("CoA.FreePickBuilds.Enable", false)
+@@ -513,6 +534,24 @@
+             && sConfigMgr->GetOption<std::string>("CoA.RealmType", "live") == "live"
+             && sConfigMgr->GetOption<uint32>("CoA.GameModeMask", 0) == 0;
+         LibraryEnabled = Enabled && sConfigMgr->GetOption<bool>("CoA.BuildLibrary.Enable", false);
++        CatalogNotifications.Configure(Enabled && sConfigMgr->GetOption<bool>("CoA.FeaturedCatalog.Enable", true),
++            sConfigMgr->GetOption<std::string>("CoA.FeaturedCatalog.SignalPath", "/logs/area52-featured-catalog.signal"));
++    }
++
++    void OnStartup() override
++    {
++        CatalogNotifications.Start();
++    }
++
++    void OnUpdate(uint32) override
++    {
++        {
++            std::lock_guard lock(CatalogCommitLock);
++            CatalogCommits.ProcessReadyCallbacks();
++        }
++        auto const now = std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now().time_since_epoch()).count();
++        if (CatalogNotifications.Pump(now, WriteCatalogSignal) < 0)
++            LOG_ERROR("server", "Featured catalog notification could not be written; retry retained");
+     }
+ };
+ 
+--- /dev/null
++++ b/src/server/coa/Area52FeaturedCatalogEvents.h
+@@ -0,0 +1,104 @@
++#ifndef AREA52_FEATURED_CATALOG_EVENTS_H
++#define AREA52_FEATURED_CATALOG_EVENTS_H
++
++#include "Area52FeaturedIncarnations.h"
++#include "Area52FeaturedRewards.h"
++#include <chrono>
++#include <filesystem>
++#include <fstream>
++#include <string>
++
++namespace Area52Build
++{
++struct CatalogSelection
++{
++    FeaturedRewardItems Items{};
++    FeaturedPreviewEffects Preview{}, Incarnations{};
++    bool AssignedItems = false;
++    bool Valid = false;
++    bool operator==(CatalogSelection const&) const = default;
++};
++
++inline CatalogSelection ReadCatalogSelection(std::string_view description)
++{
++    CatalogSelection value;
++    value.AssignedItems = description.find("###AREA52_FEATURED_VANITY\n") != std::string_view::npos;
++    value.Valid = ReadFeaturedRewards(description, value.Items)
++        && ReadFeaturedPreview(description, value.Preview)
++        && ReadFeaturedIncarnations(description, value.Incarnations);
++    return value;
++}
++
++inline bool CatalogSelectionChanged(std::string_view before, std::string_view after)
++{
++    auto const left = ReadCatalogSelection(before);
++    auto const right = ReadCatalogSelection(after);
++    return !left.Valid || !right.Valid || left != right;
++}
++
++inline bool WriteCatalogSignal(std::filesystem::path const& path)
++{
++    static std::uint64_t sequence = 0;
++    auto temporary = path;
++    temporary += ".pending";
++    std::ofstream output(temporary, std::ios::trunc);
++    output << std::chrono::system_clock::now().time_since_epoch().count() << '-' << ++sequence << '\n';
++    output.flush();
++    bool const written = output.good();
++    output.close();
++    if (!written || output.fail())
++        return false;
++    std::error_code error;
++    std::filesystem::rename(temporary, path, error);
++    return !error;
++}
++
++class CatalogSignal
++{
++public:
++    void Configure(bool enabled, std::string path)
++    {
++        Enabled = enabled;
++        Path = std::move(path);
++        if (Ready && Enabled)
++            Request();
++    }
++
++    void Start()
++    {
++        if (!Ready)
++        {
++            Ready = true;
++            Request();
++        }
++    }
++
++    void Request()
++    {
++        if (Enabled)
++            Pending = true;
++    }
++
++    template<class Writer> int Pump(std::uint64_t now, Writer writer)
++    {
++        if (!Ready || !Enabled || !Pending || now < RetryAt)
++            return 0;
++        if (!writer(Path))
++        {
++            RetryAt = now + 60000;
++            return -1;
++        }
++        Pending = false;
++        RetryAt = 0;
++        return 1;
++    }
++
++private:
++    bool Ready = false;
++    bool Enabled = false;
++    bool Pending = false;
++    std::uint64_t RetryAt = 0;
++    std::string Path;
++};
++}
++#endif
