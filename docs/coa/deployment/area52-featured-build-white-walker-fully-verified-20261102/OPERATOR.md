@@ -1,0 +1,9 @@
+# Featured Build - White Walker - Fully Verified
+
+Prepared only. Activate from Administrator PowerShell using the stable entry point with the client closed. No DLL changes. The exact active Eldritch/editor/bot baseline is preserved. Native incremental build and unit checks, current spell/rank/login/collection checks, all 80 Featured progression levels, isolated MySQL apply/rollback, and real launcher validation passed. Existing Verified/Certified entries retain their historical evidence; this is engineering verification, not fresh live certification.
+
+Four custom-handler enchants join the existing automatic Verified collection path. Earned ownership and the deliberate normal-player test-account exclusion remain unchanged. Plague Strike, Blood Boil and Icy Talons gain Verified labels; existing certifications remain guarded. Icy Talons removes only unowned self-cast temporary haste. Login refreshes only mount item51955 query data.
+
+The guarded SQL creates White Walker revision2 from revision1, adds Icebound Frostbrood Vanquisher to its level60 flying reward slot, and changes only that item's RequiredLevel70 to60. Old immutable revision and existing character progress remain unchanged. Existing characters pinned to an older revision are not silently migrated. Apply and rollback reject conflicting edits.
+
+Client D/E and catalog worker baselines advance together. The task is disabled and only an idle listener stopped during activation; it stays stopped until integrated launcher/source/notes/Discord publication succeeds. Immutable worker jobs and receipts are preserved. Rebased delivery state prevents a duplicate startup publication. Publication failure requires reviewed ResumePublish, never reactivation. Rollback restores exact file/SQL baselines. Prepared feed includes both tooltip labels and the current complete Featured catalog, preserving the previously published GM catalog changes.

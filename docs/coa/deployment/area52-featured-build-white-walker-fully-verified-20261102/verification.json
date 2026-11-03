@@ -1,0 +1,24 @@
+{
+  "status": "offline_verified_pending_integration",
+  "source": [
+    {
+      "path": "src/server/coa/AscensionMysticEnchant.cpp",
+      "before_sha256": "90dd029c8b4fab4273a52fb6423f704855a99a25794a7dd93cbc70ab46068aa9",
+      "after_sha256": "17d5565b03ec5a568dc2de771e50be27f884372957e8c661b2f3aa07d671b5e9"
+    },
+    {
+      "path": "src/server/coa/AscensionWhiteWalkerSupport.cpp",
+      "before_sha256": "a0b834a00cbc256e48d09450500bf53d8dfe851e8983b1ba159895acc1906392",
+      "after_sha256": "36148b57fe58657110d0405a3e4aa6b250bf4444a6a3dd3e0b9362c3e39d3680"
+    }
+  ],
+  "binary_sha256": "8fe5120b35e1516ca5e3cef13736b506ac97a5d0304c72a35957bffd643cc01f",
+  "build_provenance_sha256": "b8695c6bb7b919cdd4608b99388872f58124b046fe464b501561c8b9a7ed662b",
+  "runtime_report": "final-r3/report.json",
+  "build_report": "build-r4/report.json",
+  "activation": false,
+  "publication": false,
+  "sql_changes": true,
+  "client_changes": true,
+  "limits": "Native offline adapters and incremental compile; not an in-game test; existing verified entries retain their historical evidence."
+}
