@@ -1,0 +1,20 @@
+--- a/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
++++ b/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
+@@ -831,8 +831,6 @@
+ BUILDCREATOR_SECTION_AREA52_FEATURED_VANITY = "Featured Vanity Rewards"
+ BuildCreatorUtil.DescriptionSection.AIBotRotation = "AI_BOT_ROTATION"
+ BuildCreatorUtil.DescriptionSectionInverted.AI_BOT_ROTATION = "AIBotRotation"
+-BuildViewSectionMixin.CategoryIcons.AI_BOT_ROTATION = "Interface\\Icons\\inv_gizmo_02"
+-BuildViewSectionMixin.CategoryIcons.AREA52_FEATURED_VANITY = "Interface\\Icons\\inv_chest_chain"
+ 
+ function F.Applies()
+     return C_Player:IsGM() and Area52DraftSelector.Applies(C_BuildEditor.GetPendingBuild())
+@@ -1035,6 +1033,8 @@
+ end
+ 
+ function F.Ensure(view)
++    BuildViewSectionMixin.CategoryIcons.AI_BOT_ROTATION = "Interface\\Icons\\inv_gizmo_02"
++    BuildViewSectionMixin.CategoryIcons.AREA52_FEATURED_VANITY = "Interface\\Icons\\inv_chest_chain"
+     if view.Area52VanitySection then return end
+     local content=view.MainFrame.ScrollFrame.Content
+     local ai=CreateFrame("Frame",view:GetName().."Area52AI",content,"EditableBuildViewSectionTemplate")
