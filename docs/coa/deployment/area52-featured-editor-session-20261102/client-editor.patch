@@ -1,0 +1,176 @@
+--- a/Interface/AddOns/Ascension_BuildCreator/BuildCreator.lua
++++ b/Interface/AddOns/Ascension_BuildCreator/BuildCreator.lua
+@@ -984,7 +984,7 @@
+ function Import.Apply(build)
+     local ok, copy=pcall(Import.Validate,build)
+     if not ok then showError(copy);return false end
+-    if not C_Player:IsGM() and BuildCreatorUtil.IsCategoryBuildDraft(copy.Category) then
++    if not Area52DraftSelector.CanEditFeatured() and BuildCreatorUtil.IsCategoryBuildDraft(copy.Category) then
+         copy.Category=Enum.BuildCategory.Leveling
+     end
+     StaticPopup_Show("AREA52_CONFIRM_BUILD_COPY",copy.Name,nil,copy)
+@@ -993,7 +993,7 @@
+ 
+ function Import.Commit(copy)
+     copy=Import.Validate(copy)
+-    if not C_Player:IsGM() and BuildCreatorUtil.IsCategoryBuildDraft(copy.Category) then copy.Category=Enum.BuildCategory.Leveling end
++    if not Area52DraftSelector.CanEditFeatured() and BuildCreatorUtil.IsCategoryBuildDraft(copy.Category) then copy.Category=Enum.BuildCategory.Leveling end
+     C_BuildEditor.DiscardPendingBuild()
+     for _, key in ipairs({"Name","Icon","Category","Description","Roles","PrimaryStat","DifficultyRating"}) do C_BuildEditor["Set"..key](copy[key]) end
+     for _, row in ipairs(copy.Spells) do C_BuildEditor.AddSpell(row) end
+--- a/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
++++ b/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
+@@ -156,6 +156,9 @@
+ end
+ 
+ function EditableBuildViewMixin:OnHide()
++    if self.Area52ImportCancel then self.Area52ImportCancel();self.Area52ImportCancel=nil end
++    self.Area52ImportSerial=(self.Area52ImportSerial or 0)+1
++    self.Area52ImportPending=false
+     BuildCreatorUtil.ReleaseHeldSpell()
+ end
+ 
+@@ -476,6 +479,10 @@
+ 
+ Area52DraftSelector = {}
+ local Selector = Area52DraftSelector
++function Selector.CanEditFeatured()
++    return C_AccountInfo and type(C_AccountInfo.GetGMLevel) == "function"
++        and (tonumber(C_AccountInfo.GetGMLevel()) or 0) > 0
++end
+ local byID = {}
+ for _, group in ipairs(Area52DraftArchetypes) do
+     for _, entry in ipairs(group.entries) do byID[entry.id] = entry end
+@@ -490,7 +497,7 @@
+ function Selector.Description(view, description)
+     if GetRealmName() ~= 'Area 52 - Free-Pick' then return description end
+     description = (description or ''):gsub('\n*###AREA52_ARCHETYPE_ID[^#]*','')
+-    if Selector.Applies(C_BuildEditor.GetPendingBuild()) and C_Player:IsGM() and byID[view.Area52ArchetypeID] then
++    if Selector.Applies(C_BuildEditor.GetPendingBuild()) and Area52DraftSelector.CanEditFeatured() and byID[view.Area52ArchetypeID] then
+         return description .. '\n\n###AREA52_ARCHETYPE_ID\n' .. view.Area52ArchetypeID
+     end
+     return description
+@@ -499,11 +506,11 @@
+     local build = C_BuildEditor.GetPendingBuild()
+     if not Selector.Applies(build) then return true end
+     local entry = byID[view.Area52ArchetypeID]
+-    return C_Player:IsGM() and entry and build.Name == entry.name
++    return Area52DraftSelector.CanEditFeatured() and entry and build.Name == entry.name
+         and Selector.ReadID(build.Description) == entry.id
+ end
+ function Selector.Choose(view, id)
+-    if not C_Player:IsGM() or not Selector.Applies(C_BuildEditor.GetPendingBuild()) or not byID[id] then return end
++    if not Area52DraftSelector.CanEditFeatured() or not Selector.Applies(C_BuildEditor.GetPendingBuild()) or not byID[id] then return end
+     view.Area52ArchetypeID = id
+     view.MainFrame.Name:SetText(byID[id].name)
+     C_BuildEditor.SetName(byID[id].name)
+@@ -511,7 +518,7 @@
+     CloseDropDownMenus()
+ end
+ function Selector.Menu(view, level, menuList)
+-    if not C_Player:IsGM() then return end
++    if not Area52DraftSelector.CanEditFeatured() then return end
+     if level == 1 then
+         for _, group in ipairs(Area52DraftArchetypes) do
+             local info = UIDropDownMenu_CreateInfo()
+@@ -556,7 +563,7 @@
+     if view.Area52ArchetypeDropdown then
+         view.Area52ArchetypeDropdown:SetShown(applies)
+         local dropdown=view.Area52ArchetypeDropdown
+-        local enabled=C_Player:IsGM()
++        local enabled=Area52DraftSelector.CanEditFeatured()
+         local color=enabled and HIGHLIGHT_FONT_COLOR or GRAY_FONT_COLOR
+         dropdown.Text:SetVertexColor(color.r,color.g,color.b)
+         if enabled then dropdown.Button:Enable() else dropdown.Button:Disable() end
+@@ -567,7 +574,9 @@
+     if applies and not Selector.Valid(view) then
+         view.Controls.PublishBuild:Disable()
+         view.Controls.PublishBuild.tooltipTitle='Select a character-creation archetype'
+-        view.Controls.PublishBuild.tooltipText='Only a GM may select an archetype for a Featured Draft.'
++        view.Controls.PublishBuild.tooltipText=not Selector.CanEditFeatured()
++            and 'Your account does not have Featured Build editing privileges.'
++            or 'Select a character-creation archetype whose name matches this Featured Build.' 
+     end
+ end
+ local originalUpdate=EditableBuildViewMixin.UpdatePendingBuild
+@@ -833,7 +842,7 @@
+ BuildCreatorUtil.DescriptionSectionInverted.AI_BOT_ROTATION = "AIBotRotation"
+ 
+ function F.Applies()
+-    return C_Player:IsGM() and Area52DraftSelector.Applies(C_BuildEditor.GetPendingBuild())
++    return Area52DraftSelector.CanEditFeatured() and Area52DraftSelector.Applies(C_BuildEditor.GetPendingBuild())
+ end
+ 
+ function F.Read(description)
+@@ -954,7 +963,7 @@
+ 
+ function F.ValidContext(context)
+     local build=C_BuildEditor.GetPendingBuild()
+-    return context and C_Player:IsGM() and Area52DraftSelector.Applies(build)
++    return context and Area52DraftSelector.CanEditFeatured() and Area52DraftSelector.Applies(build)
+         and context.view.Area52FeaturedGeneration==context.generation
+         and context.id==build.ID and context.archetype==context.view.Area52ArchetypeID
+ end
+@@ -1237,7 +1246,7 @@
+     else archetype=view.Area52ArchetypeID or Area52DraftSelector.ReadID(build.Description) end
+     if archetype and F.Applies() and view.Area52FeaturedImported~=archetype then
+         view.Area52ArchetypeID=archetype
+-        F.ImportAssigned(view,false)
++        view.Area52DeferredImport=true
+     end
+     local enabled=F.Applies()
+     view.Area52AISection:SetShown(enabled);view.Area52VanitySection:SetShown(enabled)
+@@ -3594,3 +3603,26 @@
+     F.Message("Choose a supported incarnation for this form category.")
+     return true
+ end
++
++local sessionUpdate=EditableBuildViewMixin.UpdatePendingBuild
++function EditableBuildViewMixin:UpdatePendingBuild(deserialize)
++    if self.Area52Updating then
++        self.Area52UpdateQueued=true
++        return
++    end
++    self.Area52Updating=true
++    self.Area52DeferredImport=nil
++    local ok,message=pcall(sessionUpdate,self,deserialize)
++    self.Area52Updating=nil
++    if not ok then
++        self.Area52UpdateQueued=nil
++        self.Area52DeferredImport=nil
++        error(message)
++    end
++    local import=self.Area52DeferredImport
++    local queued=self.Area52UpdateQueued
++    self.Area52DeferredImport=nil
++    self.Area52UpdateQueued=nil
++    if import then Area52FeaturedEditor.ImportAssigned(self,false)
++    elseif queued then sessionUpdate(self,false) end
++end
+--- a/Interface/FrameXML/Util/BuildCreatorUtil.lua
++++ b/Interface/FrameXML/Util/BuildCreatorUtil.lua
+@@ -100,7 +100,16 @@
+ 	end
+ end
+ 
++local function Area52VisibleDescription(description)
++    if GetRealmName() ~= "Area 52 - Free-Pick" then return description end
++    for _,key in ipairs({"ARCHETYPE_ID","FEATURED_VANITY","FEATURED_IMPORTED","FEATURED_PREVIEW","FEATURED_INCARNATIONS"}) do
++        description=description:gsub("\n*###AREA52_"..key.."[^#]*","")
++    end
++    return description
++end
++
+ function BuildCreatorUtil.UnpackDescription(description)
++	description=Area52VisibleDescription(description or "")
+ 	local sections = {}
+ 	for section in string.gmatch(description, "###%s*([^#]*)") do
+ 		if section then
+@@ -122,6 +131,7 @@
+ end
+ 
+ function BuildCreatorUtil.UnpackDescriptionByKeys(description)
++	description=Area52VisibleDescription(description or "")
+ 	local sections = {}
+ 	for section in string.gmatch(description, "###%s*([^#]*)") do
+ 		if section then

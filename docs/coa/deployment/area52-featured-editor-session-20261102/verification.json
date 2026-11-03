@@ -1,0 +1,10 @@
+{
+  "baseline": {
+    "carryover": true,
+    "gm_denied": true
+  },
+  "client": {
+    "carryover": false,
+    "gm_denied": false
+  }
+}
