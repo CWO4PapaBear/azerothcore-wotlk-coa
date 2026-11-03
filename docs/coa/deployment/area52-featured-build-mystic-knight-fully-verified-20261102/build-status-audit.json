@@ -1,0 +1,1519 @@
+{
+  "rows": [
+    {
+      "kind": "advancement",
+      "spell": 100,
+      "entries": [
+        {
+          "entry": 2663,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 465,
+      "entries": [
+        {
+          "entry": 2687,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 556,
+      "entries": [
+        {
+          "entry": 2698,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 697,
+      "entries": [
+        {
+          "entry": 2719,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 698,
+      "entries": [
+        {
+          "entry": 2720,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 1126,
+      "entries": [
+        {
+          "entry": 2754,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 1161,
+      "entries": [
+        {
+          "entry": 2758,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 1243,
+      "entries": [
+        {
+          "entry": 2759,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 1449,
+      "entries": [
+        {
+          "entry": 2760,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 1459,
+      "entries": [
+        {
+          "entry": 2762,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 2565,
+      "entries": [
+        {
+          "entry": 2809,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 2812,
+      "entries": [
+        {
+          "entry": 2815,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 3714,
+      "entries": [
+        {
+          "entry": 1154,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 4987,
+      "entries": [
+        {
+          "entry": 2835,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 5277,
+      "entries": [
+        {
+          "entry": 2850,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 5504,
+      "entries": [
+        {
+          "entry": 2856,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 6117,
+      "entries": [
+        {
+          "entry": 2864,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 12297,
+      "entries": [
+        {
+          "entry": 452,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 12298,
+      "entries": [
+        {
+          "entry": 766,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 12299,
+      "entries": [
+        {
+          "entry": 453,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 12724,
+      "entries": [
+        {
+          "entry": 766,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 12725,
+      "entries": [
+        {
+          "entry": 766,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 12750,
+      "entries": [
+        {
+          "entry": 452,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 12751,
+      "entries": [
+        {
+          "entry": 452,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 12752,
+      "entries": [
+        {
+          "entry": 452,
+          "rank": 4,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 12753,
+      "entries": [
+        {
+          "entry": 452,
+          "rank": 5,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 12761,
+      "entries": [
+        {
+          "entry": 453,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 12762,
+      "entries": [
+        {
+          "entry": 453,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 14749,
+      "entries": [
+        {
+          "entry": 520,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 14767,
+      "entries": [
+        {
+          "entry": 520,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 16538,
+      "entries": [
+        {
+          "entry": 593,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 16539,
+      "entries": [
+        {
+          "entry": 593,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 16540,
+      "entries": [
+        {
+          "entry": 593,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 16541,
+      "entries": [
+        {
+          "entry": 593,
+          "rank": 4,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 16542,
+      "entries": [
+        {
+          "entry": 593,
+          "rank": 5,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 18697,
+      "entries": [
+        {
+          "entry": 677,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 18698,
+      "entries": [
+        {
+          "entry": 677,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 18699,
+      "entries": [
+        {
+          "entry": 677,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 19028,
+      "entries": [
+        {
+          "entry": 3342,
+          "rank": 1,
+          "kind": "TalentAbility",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 19752,
+      "entries": [
+        {
+          "entry": 2941,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20096,
+      "entries": [
+        {
+          "entry": 774,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20097,
+      "entries": [
+        {
+          "entry": 774,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20098,
+      "entries": [
+        {
+          "entry": 774,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20099,
+      "entries": [
+        {
+          "entry": 774,
+          "rank": 4,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20100,
+      "entries": [
+        {
+          "entry": 774,
+          "rank": 5,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20101,
+      "entries": [
+        {
+          "entry": 732,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20102,
+      "entries": [
+        {
+          "entry": 732,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20103,
+      "entries": [
+        {
+          "entry": 732,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20127,
+      "entries": [
+        {
+          "entry": 735,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20130,
+      "entries": [
+        {
+          "entry": 735,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20135,
+      "entries": [
+        {
+          "entry": 735,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20166,
+      "entries": [
+        {
+          "entry": 2951,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20217,
+      "entries": [
+        {
+          "entry": 2952,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20243,
+      "entries": [
+        {
+          "entry": 3459,
+          "rank": 1,
+          "kind": "TalentAbility",
+          "status": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20252,
+      "entries": [
+        {
+          "entry": 2954,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20335,
+      "entries": [
+        {
+          "entry": 755,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20336,
+      "entries": [
+        {
+          "entry": 755,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20337,
+      "entries": [
+        {
+          "entry": 755,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 20911,
+      "entries": [
+        {
+          "entry": 3395,
+          "rank": 1,
+          "kind": "TalentAbility",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 23785,
+      "entries": [
+        {
+          "entry": 684,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 23822,
+      "entries": [
+        {
+          "entry": 684,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 23823,
+      "entries": [
+        {
+          "entry": 684,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 23824,
+      "entries": [
+        {
+          "entry": 684,
+          "rank": 4,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 23825,
+      "entries": [
+        {
+          "entry": 684,
+          "rank": 5,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 26573,
+      "entries": [
+        {
+          "entry": 2968,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 28574,
+      "entries": [
+        {
+          "entry": 432,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 30146,
+      "entries": [
+        {
+          "entry": 3465,
+          "rank": 1,
+          "kind": "TalentAbility",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 31785,
+      "entries": [
+        {
+          "entry": 1135,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 31789,
+      "entries": [
+        {
+          "entry": 2981,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 31850,
+      "entries": [
+        {
+          "entry": 876,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 31851,
+      "entries": [
+        {
+          "entry": 876,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 31852,
+      "entries": [
+        {
+          "entry": 876,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 33206,
+      "entries": [
+        {
+          "entry": 3549,
+          "rank": 1,
+          "kind": "TalentAbility",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 33592,
+      "entries": [
+        {
+          "entry": 902,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 33596,
+      "entries": [
+        {
+          "entry": 902,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 33776,
+      "entries": [
+        {
+          "entry": 1135,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 35512,
+      "entries": [
+        {
+          "entry": 10001,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 44425,
+      "entries": [
+        {
+          "entry": 3603,
+          "rank": 1,
+          "kind": "TalentAbility",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 47294,
+      "entries": [
+        {
+          "entry": 990,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 47295,
+      "entries": [
+        {
+          "entry": 990,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 47296,
+      "entries": [
+        {
+          "entry": 990,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 47476,
+      "entries": [
+        {
+          "entry": 1163,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 47585,
+      "entries": [
+        {
+          "entry": 3658,
+          "rank": 1,
+          "kind": "TalentAbility",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 49042,
+      "entries": [
+        {
+          "entry": 1236,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 49786,
+      "entries": [
+        {
+          "entry": 1236,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 49787,
+      "entries": [
+        {
+          "entry": 1236,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 49788,
+      "entries": [
+        {
+          "entry": 1236,
+          "rank": 4,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 49789,
+      "entries": [
+        {
+          "entry": 1236,
+          "rank": 5,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 53408,
+      "entries": [
+        {
+          "entry": 3020,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 53556,
+      "entries": [
+        {
+          "entry": 1087,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 53557,
+      "entries": [
+        {
+          "entry": 1087,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 54658,
+      "entries": [
+        {
+          "entry": 432,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 54659,
+      "entries": [
+        {
+          "entry": 432,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 57499,
+      "entries": [
+        {
+          "entry": 1112,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 91234,
+      "entries": [
+        {
+          "entry": 1189,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 92155,
+      "entries": [
+        {
+          "entry": 1312,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 92157,
+      "entries": [
+        {
+          "entry": 1314,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 92169,
+      "entries": [
+        {
+          "entry": 1324,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 410000,
+      "entries": [
+        {
+          "entry": 5950,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 410001,
+      "entries": [
+        {
+          "entry": 5950,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 410002,
+      "entries": [
+        {
+          "entry": 5950,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 701463,
+      "entries": [
+        {
+          "entry": 1300,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 760053,
+      "entries": [
+        {
+          "entry": 1632,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 760216,
+      "entries": [
+        {
+          "entry": 1648,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 812575,
+      "entries": [
+        {
+          "entry": 2425,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 812576,
+      "entries": [
+        {
+          "entry": 2425,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 812577,
+      "entries": [
+        {
+          "entry": 2425,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 828574,
+      "entries": [
+        {
+          "entry": 1301,
+          "rank": 1,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 828575,
+      "entries": [
+        {
+          "entry": 1301,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 828576,
+      "entries": [
+        {
+          "entry": 1301,
+          "rank": 3,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 857499,
+      "entries": [
+        {
+          "entry": 1112,
+          "rank": 2,
+          "kind": "Talent",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 954518,
+      "entries": [
+        {
+          "entry": 1198,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 954705,
+      "entries": [
+        {
+          "entry": 1364,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 954707,
+      "entries": [
+        {
+          "entry": 1366,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 954711,
+      "entries": [
+        {
+          "entry": 1369,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 955032,
+      "entries": [
+        {
+          "entry": 1617,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "advancement",
+      "spell": 986067,
+      "entries": [
+        {
+          "entry": 1302,
+          "rank": 1,
+          "kind": "Ability",
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "mystic",
+      "spell": 81116,
+      "entries": [
+        {
+          "entry": 81116,
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "mystic",
+      "spell": 92580,
+      "entries": [
+        {
+          "entry": 92580,
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "mystic",
+      "spell": 101278,
+      "entries": [
+        {
+          "entry": 101278,
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "mystic",
+      "spell": 500196,
+      "entries": [
+        {
+          "entry": 500196,
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "mystic",
+      "spell": 912298,
+      "entries": [
+        {
+          "entry": 912298,
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "mystic",
+      "spell": 913705,
+      "entries": [
+        {
+          "entry": 913705,
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "mystic",
+      "spell": 920127,
+      "entries": [
+        {
+          "entry": 920127,
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "mystic",
+      "spell": 926573,
+      "entries": [
+        {
+          "entry": 926573,
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "mystic",
+      "spell": 933592,
+      "entries": [
+        {
+          "entry": 933592,
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "mystic",
+      "spell": 954081,
+      "entries": [
+        {
+          "entry": 954081,
+          "status": "VERIFIED"
+        }
+      ]
+    },
+    {
+      "kind": "mystic",
+      "spell": 965377,
+      "entries": [
+        {
+          "entry": 965377,
+          "status": "VERIFIED"
+        }
+      ]
+    }
+  ],
+  "gaps": []
+}

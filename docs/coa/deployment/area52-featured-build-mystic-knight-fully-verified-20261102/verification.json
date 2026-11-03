@@ -1,0 +1,179 @@
+{
+  "mystic-four-20261102": {
+    "status": "Engineering verification passed; candidates staged only",
+    "ids": [
+      500196,
+      101278,
+      912298,
+      965377
+    ],
+    "checks": {
+      "native-complete": {
+        "report": "/mnt/c/Users/danie/Documents/Codex/2026-10-13/i-want-to-review-every-ability/mystic-four-20261102/native-complete/report.json",
+        "sha256": "c0a5fcf2fc91af35d5b008313b87d4346abf0f2984eda125e48c61e1450de7b9",
+        "stages": {
+          "source": "skipped",
+          "build": "skipped",
+          "unit": "skipped",
+          "harness": "passed",
+          "gameplay": "skipped"
+        }
+      },
+      "source-r2": {
+        "report": "/mnt/c/Users/danie/Documents/Codex/2026-10-13/i-want-to-review-every-ability/mystic-four-20261102/source-r2/report.json",
+        "sha256": "51dda4710de664fa2e0c889b4f5d542a9547450ff8846e8e657feec612dbd477",
+        "stages": {
+          "source": "passed",
+          "build": "skipped",
+          "unit": "skipped",
+          "harness": "skipped",
+          "gameplay": "skipped"
+        }
+      },
+      "full-build-r2": {
+        "report": "/mnt/c/Users/danie/Documents/Codex/2026-10-13/i-want-to-review-every-ability/mystic-four-20261102/full-build-r2/report.json",
+        "sha256": "ec59828d02f74a7b5c3bb8b1a4d5eced327b6adbadda11ffe9d4dbce26820c66",
+        "stages": {
+          "source": "skipped",
+          "build": "passed",
+          "unit": "passed",
+          "harness": "skipped",
+          "gameplay": "skipped"
+        }
+      },
+      "artifacts-r1": {
+        "report": "/mnt/c/Users/danie/Documents/Codex/2026-10-13/i-want-to-review-every-ability/mystic-four-20261102/artifacts-r1/report.json",
+        "sha256": "767e7c6a5822a3a072ed2d3adaca880fd4912b3aa465f29b62a5fcc25d800f0b",
+        "stages": {
+          "source": "skipped",
+          "build": "skipped",
+          "unit": "skipped",
+          "harness": "passed",
+          "gameplay": "skipped"
+        }
+      }
+    },
+    "source": {
+      "src/server/game/Combat/ThreatManager.cpp": {
+        "before": "37d477a708cd9d9371bbf48e680daaa73dbe47062a893dd6b0bd196e709e8b36",
+        "after": "c74ec896108ae82d77378759f2a25d7d7778e071db6f04af8e1a2f1c3e063033"
+      },
+      "src/server/game/Combat/ThreatManager.h": {
+        "before": "81d7eddcdadebf79322e5f6f3e0d4899335466980dbd491537130837e876563e",
+        "after": "c1058991cf90692a9b6d45052c04d8ededa104ec99439fc91ecdf7cbc667510f"
+      },
+      "src/server/game/Entities/Unit/Unit.cpp": {
+        "before": "f5529102c4fb2acacea96605c7a50470dd0f3e998883110d586b96073f189e77",
+        "after": "384613d3e80cf4e0ccc12db17d031bebc534499fef373638389d4dace300027c"
+      },
+      "src/server/game/Spells/SpellMgr.cpp": {
+        "before": "668ae995f14dd4a378b4b1326691a493b5026fe1b7f543d94fe7f1c35be0bdfc",
+        "after": "a50a7bcab82596ab327d71268abfef9c1877cb0c13848d7af217aeec2a4d7267"
+      }
+    },
+    "worldserver_sha256": "dde60d255b5a0fbe88d39f2613ff49c87593ff6e04a9a7dba694e9c758d84106",
+    "client_sha256": "0508c75ec29eeb75bd95444b094bceca18a082ac9b6f64f8697ad663b211c975",
+    "launcher_manifest_sha256": "8af6d783a653b3b92b95f3d751d81a8384af3ef2d28820ec2df3cd001ca9dbc6",
+    "activated": false,
+    "published": false,
+    "installed": false,
+    "certifications_changed": false,
+    "activation_package": "Not assembled; existing stable pending package preserved",
+    "limits": [
+      "Native engine/storage adapters, not gameplay certification",
+      "Source stage covered scoped boundaries/comment policy; no other source suite selected",
+      "No live database mutations; collection fixture models successful async persistence",
+      "Launcher candidate validated offline; remote upload/feed verification remains deployment scope"
+    ]
+  },
+  "utility-abilities-20261102": {
+    "status": "Offline engineering verification passed; staged only",
+    "abilities": {
+      "Strangulate": 47476,
+      "Righteous Defense": 31789,
+      "Divine Intervention": 19752
+    },
+    "advancement_entries": [
+      1163,
+      2981,
+      2941
+    ],
+    "checks": {
+      "native-r6": {
+        "sha256": "8f6d4878a6e131919b9f1e6a750ef37b28db4ad438889334da149affc781dce6",
+        "stages": {
+          "source": "skipped",
+          "build": "skipped",
+          "unit": "skipped",
+          "harness": "passed",
+          "gameplay": "skipped"
+        }
+      },
+      "source-r3": {
+        "sha256": "73f1d235ed2fd456b64c6dec58fd4a4e60975cd690e13fd58e5e9106ed8f0eeb",
+        "stages": {
+          "source": "passed",
+          "build": "skipped",
+          "unit": "skipped",
+          "harness": "skipped",
+          "gameplay": "skipped"
+        }
+      },
+      "full-build-r2": {
+        "sha256": "833d54ec6dd80865534e6c10ce159f2f85ec47052994379a789afea4e17e9ad5",
+        "stages": {
+          "source": "skipped",
+          "build": "passed",
+          "unit": "passed",
+          "harness": "skipped",
+          "gameplay": "skipped"
+        }
+      },
+      "artifacts-r2": {
+        "sha256": "ce30f327ebf6e9dab56ccc52459f0ed3f72123932cb12d9f714107323ce2753d",
+        "stages": {
+          "source": "skipped",
+          "build": "skipped",
+          "unit": "skipped",
+          "harness": "passed",
+          "gameplay": "skipped"
+        }
+      }
+    },
+    "worldserver_sha256": "99896bd203421f4e88f80e26a92dba1bc090759f319b8c8c3ee3e84ae2ee4f35",
+    "source_patch_sha256": "01430067d8d8b7fc3d20c61c2c944fd554258f7707c6efae038b202a1ebba2d3",
+    "pending_enchant_patch_sha256": "a4528517406b71f651afeb9575f69becdf1b84f37aaccd5b98e4442b42735da7",
+    "client_sha256": "26d563f3dc96a923985d463e6c7df80f65c951dbaa6f31b86f8e2379f1f92b2f",
+    "manifest_sha256": "a00ff67b306cc6f2cd9829d86b6d1aeb894ba88df173f4b9e191707d80ac8e5a",
+    "installed": false,
+    "activated": false,
+    "published": false,
+    "live_sql": false,
+    "certifications_changed": false,
+    "combined_binary_includes_pending_enchants": true,
+    "stable_package": {
+      "id": "area52-featured-native-wardrobe-20261101",
+      "sha256": "448d349463be57c6cc3471eec782499a7bef7e500eef66de19fa55386904c9f4"
+    },
+    "limits": [
+      "Engine/storage adapters, not gameplay certification",
+      "Source stage selected boundaries and comment policy only",
+      "No activation package assembled or stable CheckOnly for these changes",
+      "Remote upload/feed validation remains future explicitly authorized deployment scope"
+    ]
+  },
+  "featured_build": {
+    "baseline": {
+      "binary": "fe3ad9db677e8680ce734121fa68c69dedb99e68490532ed670acedb48b19065",
+      "compose": "39da2e27b88768718835bd6e6df4c4b4b58cdbdb37153d5b1b2ae2a92748971f",
+      "previous_progress": "/home/dml/games/ascension-freepick-test/private/deployments/area52-featured-native-wardrobe-20261101/publication/progress.json",
+      "stable_package": "area52-featured-native-wardrobe-20261101",
+      "stable_manifest_sha256": "448d349463be57c6cc3471eec782499a7bef7e500eef66de19fa55386904c9f4",
+      "stable_state": "complete",
+      "build_id": "5963282301920611991",
+      "revision": 7,
+      "wire_sha256": "fb3760c4df935eb6ea503bc7c05cdec1376d7b86e6791319e13c3bbe38de770b"
+    },
+    "progression_report_sha256": "2c87b0e1e7b1ae08c16170199328f4fca5fe60427ec5732e8ab5eee0b3975b6e"
+  }
+}
