@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "checks": [
+    "actual Hoplite saved selections and DBC costs: Epic 13/11 at level 80",
+    "retained baseline reproduction: over-budget Save dispatches",
+    "Save click and confirmation both refuse over budget",
+    "numeric disabled state and specific Save tooltip; re-enable transition",
+    "actual UI update disables Hoplite, removal restores Save at exact cap",
+    "all four rarity budgets at cap and one over",
+    "multiple ranks counted once",
+    "planned Mastery exemption; earlier overage remains blocked",
+    "missing data fails closed",
+    "other realm unchanged",
+    "Featured category cannot bypass rarity; identity unchanged",
+    "disabled Save receives hover events and tooltip handlers",
+    "confirmation rechecks after a valid prompt becomes over-budget",
+    "simultaneous rarity overruns all reported",
+    "missing quality cannot bypass budget",
+    "all validation failures block UI/prompt/confirmation",
+    "NON_TRAVERSIBLE aliases show level, point and spell/rank details",
+    "validator exceptions or missing reasons fail closed",
+    "contradictory success with failure reasons is rejected",
+    "hidden traversal detail remains blocking without invented cause",
+    "confirmation rechecks general validation after valid prompt",
+    "full Lua 5.1 syntax"
+  ],
+  "baseline_failure_reproduced": true,
+  "candidate_sha256": "cb04abe2638e3dee20b845573932dddb9cdad9b3bdcb075dbbebe405dec54642",
+  "preserved_members": 16,
+  "installed": false,
+  "limits": "Offline actual Lua methods with native API adapters and real Hoplite DBC fixture; no live client UI test."
+}
