@@ -1,0 +1,15 @@
+# Vanity Bazaar Token Purchases and GM Price Updates
+
+This combined package adds Bazaar Token purchasing to the existing Vanity menu and the in-game GM command `.vanityprice <itemID> [tokens]`. Zero disables a sale. The server rejects stale displayed prices without charging. Updated price displays are delivered through the existing event-driven launcher catalog worker.
+
+The package preserves the activated White Walker, bot, editor and prior gameplay fixes. It changes no Extensions.dll, Featured build assignment, earned collection row or Verified/Certified status. It seeds 11,274 catalog price records, with 7,353 nonzero prices after the Area52 compatibility exclusions. Existing owned consumables remain recorded but cannot be withdrawn indefinitely for free; purchases deliver individual bound items.
+
+Activation uses the established Activate-Area52.ps1 entry point. The local client must be closed. Administrator PowerShell is needed to pause and re-enable the existing catalog task. Before countdown the package checks current server/source/compose/client/DLL/runtime/catalog baselines, absence of the new pricing table, idle worker state and publication prerequisites. It stops only an idle catalog listener. No pending worker publication is discarded.
+
+After an announced restart, the exact candidate binary, source, pricing table, client archive and worker baseline are verified. Integrated publication includes the launcher manifest/feed, scoped GitHub source artifacts, patch notes and Discord notification. These steps are prepared, not authorized by preparation alone. Only successful publication enables the catalog task. Initial and repeated worker cycles have been verified not to publish the unchanged initial catalog again. Future successful GM price changes use the existing retry and publication locking behavior.
+
+Rollback restores backed-up files and removes only the package-created pricing table. It rejects conflicting file, schema or price changes. An interrupted empty-table creation is recoverable. No character/account collection table is rewritten by deployment. A publication failure after server readiness requires reviewed ResumePublish, not another activation or restart.
+
+Offline evidence includes incremental server build/unit checks, native purchase/dispatch adapters, isolated MySQL payment and migration checks using deployed schemas, Lua51 request execution, installed DLL registration emulation, real worker initial/repeated no-op checks, real launcher chunk/manifest validation, package hook failure/conflict recovery, current publication suites and actual private-WSL-to-Windows preflight bridging. These checks do not certify gameplay or emulate the full native network/inventory session. Core inventory checkpoint save semantics remain unchanged.
+
+The published source artifact is a byte-exact scoped patch against the reviewed active server, with the changed existing client UI and worker sources alongside it. It is not a merge to main or upstream. Source acceptance and integration remain separate from deployment.

@@ -1,0 +1,11 @@
+{
+  "build_report_sha256": "6b2611ebc1ca3620bf6a9afb7629a5c0f7ad60c7bb721a3c12fd7a692bb75340",
+  "runtime_report_sha256": "537c463d906d1b2364951021981ae281ddea890531e6c564ed000c6e0b562929",
+  "server_sha256": "4d0d339789c9913dd7263c0bab4eca7000d5de9b451e27f64cc42bb417ea8baf",
+  "pricing": {
+    "rows": 11274,
+    "priced": 7353
+  },
+  "dll_changed": false,
+  "scope": "Offline native adapters, isolated MySQL, Lua51, native DLL registration and real launcher validation; no gameplay certification"
+}
