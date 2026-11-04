@@ -1,0 +1,1775 @@
+{
+  "entries": [
+    {
+      "kind": "advancement",
+      "entry": 2678,
+      "name": "Healing Wave",
+      "status": "VERIFIED",
+      "selected_spells": [
+        331
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "healing-wave-r1",
+        "power-cost-r1",
+        "cast-time-r2",
+        "healing-ranks-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2698,
+      "name": "Astral Recall",
+      "status": "CERTIFIED",
+      "selected_spells": [
+        556
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "astral-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2733,
+      "name": "Disengage",
+      "status": "Needs Investigation",
+      "selected_spells": [
+        781
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "disengage-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2742,
+      "name": "Eyes of the Beast",
+      "status": "Needs Investigation",
+      "selected_spells": [
+        1002
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "pet-control-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2754,
+      "name": "Mark of the Wild",
+      "status": "VERIFIED",
+      "selected_spells": [
+        1126
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "mark-armor-r1",
+        "mark-group-load-r1",
+        "mysql-r5"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2755,
+      "name": "Hunter's Mark",
+      "status": "VERIFIED",
+      "selected_spells": [
+        1130
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "utility-lifecycle-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2767,
+      "name": "Freezing Trap",
+      "status": "VERIFIED",
+      "selected_spells": [
+        1499
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "freezing-duration-r2",
+        "freezing-hit-r1",
+        "slice-trap-r3"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2768,
+      "name": "Volley",
+      "status": "Needs Investigation",
+      "selected_spells": [
+        1510
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "preparation-volley-r1",
+        "build-r10"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2773,
+      "name": "Levitate",
+      "status": "VERIFIED",
+      "selected_spells": [
+        1706
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "utility-lifecycle-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2781,
+      "name": "Stealth",
+      "status": "VERIFIED",
+      "selected_spells": [
+        1784
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "stealth-lifecycle-r1",
+        "utility-startup-r2"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2787,
+      "name": "Vanish",
+      "status": "Structurally Connected, Unverified",
+      "selected_spells": [
+        1856
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "vanish-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2807,
+      "name": "Berserker Stance",
+      "status": "VERIFIED",
+      "selected_spells": [
+        2458
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "stance-mask-r1",
+        "stance-crit-r1"
+      ],
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "advancement",
+      "entry": 2811,
+      "name": "Multi-Shot",
+      "status": "VERIFIED",
+      "selected_spells": [
+        2643
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "damage-followup-r2"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2818,
+      "name": "Poisons",
+      "status": "VERIFIED",
+      "selected_spells": [
+        2842
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "poison-duration-r2",
+        "poison-chance-r1",
+        "poison-scaling-r1",
+        "poison-dispatch-r1",
+        "deadly-poison-r1",
+        "linked-grants-r2",
+        "utility-final-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2827,
+      "name": "Sprint",
+      "status": "VERIFIED",
+      "selected_spells": [
+        2983
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "utility-final-r1"
+      ],
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "advancement",
+      "entry": 2829,
+      "name": "Scorpid Sting",
+      "status": "VERIFIED",
+      "selected_spells": [
+        3043
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "scorpid-dispatch-r3",
+        "scorpid-stats-r1"
+      ],
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "advancement",
+      "entry": 2830,
+      "name": "Arcane Shot",
+      "status": "VERIFIED",
+      "selected_spells": [
+        3044
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "damage-formulas-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2831,
+      "name": "Rapid Fire",
+      "status": "VERIFIED",
+      "selected_spells": [
+        3045
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "rapid-fire-r1",
+        "rapid-fire-damage-r1",
+        "utility-startup-r2",
+        "ranged-haste-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2836,
+      "name": "Concussive Shot",
+      "status": "VERIFIED",
+      "selected_spells": [
+        5116
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "utility-final-r1"
+      ],
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "advancement",
+      "entry": 2840,
+      "name": "Slice and Dice",
+      "status": "VERIFIED",
+      "selected_spells": [
+        5171
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "compound-lifecycle-r1",
+        "slice-trap-r3",
+        "slice-restore-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2852,
+      "name": "Feign Death",
+      "status": "VERIFIED",
+      "selected_spells": [
+        5384
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "feign-r1",
+        "feign-lifecycle-r1",
+        "feign-periodic-r2",
+        "feign-regression-r1",
+        "build-r10"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2867,
+      "name": "Eagle Eye",
+      "status": "Needs Investigation",
+      "selected_spells": [
+        6197
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "eagle-eye-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2877,
+      "name": "Battle Shout",
+      "status": "VERIFIED",
+      "selected_spells": [
+        6673
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "utility-stats-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2910,
+      "name": "Ambush",
+      "status": "VERIFIED",
+      "selected_spells": [
+        8676
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "damage-followup-r2",
+        "damage-formulas-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2923,
+      "name": "Aspect of the Hawk",
+      "status": "VERIFIED",
+      "selected_spells": [
+        13165
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "utility-stats-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 489,
+      "name": "Master of Deception",
+      "status": "VERIFIED",
+      "selected_spells": [
+        13958,
+        13970,
+        13971
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "utility-startup-r2"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 491,
+      "name": "Camouflage",
+      "status": "VERIFIED",
+      "selected_spells": [
+        13975,
+        14062,
+        14063
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "camouflage-r2"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 945,
+      "name": "Improved Slice and Dice",
+      "status": "VERIFIED",
+      "selected_spells": [
+        14165,
+        14166
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "remaining-talent-modifiers-r1",
+        "compound-lifecycle-r1",
+        "slice-trap-r3",
+        "slice-restore-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 3165,
+      "name": "Preparation",
+      "status": "VERIFIED",
+      "selected_spells": [
+        14185
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "preparation-volley-r1",
+        "build-r10"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 704,
+      "name": "Efficiency",
+      "status": "VERIFIED",
+      "selected_spells": [
+        19416,
+        19417,
+        19418
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "remaining-talent-modifiers-r1",
+        "ranged-haste-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 3360,
+      "name": "Aimed Shot",
+      "status": "VERIFIED",
+      "selected_spells": [
+        19434
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "aimed-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 709,
+      "name": "Barrage",
+      "status": "VERIFIED",
+      "selected_spells": [
+        19461,
+        19462,
+        24691
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "remaining-talent-modifiers-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 711,
+      "name": "Mortal Shots",
+      "status": "VERIFIED",
+      "selected_spells": [
+        19485,
+        19487,
+        19488
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "mortal-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 715,
+      "name": "Ranged Weapon Specialization",
+      "status": "VERIFIED",
+      "selected_spells": [
+        19507,
+        19508,
+        19509
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "remaining-talent-modifiers-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 717,
+      "name": "Improved Aspect of the Hawk",
+      "status": "VERIFIED",
+      "selected_spells": [
+        19552,
+        19553,
+        19554,
+        19555,
+        19556
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "hawk-lifecycle-r1",
+        "hawk-modifiers-r1",
+        "hawk-sql-r1",
+        "ranged-haste-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2944,
+      "name": "Track Humanoids",
+      "status": "VERIFIED",
+      "selected_spells": [
+        19883
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "utility-lifecycle-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2945,
+      "name": "Track Hidden",
+      "status": "VERIFIED",
+      "selected_spells": [
+        19885
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "utility-lifecycle-r1",
+        "utility-startup-r2"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2952,
+      "name": "Blessing of Kings",
+      "status": "VERIFIED",
+      "selected_spells": [
+        20217
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "utility-stats-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 835,
+      "name": "Deadliness",
+      "status": "VERIFIED",
+      "selected_spells": [
+        30902
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "remaining-talent-modifiers-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 843,
+      "name": "Master of Subtlety",
+      "status": "Needs Investigation",
+      "selected_spells": [
+        31221,
+        31222,
+        31223
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "damage-followup-r2",
+        "hawk-lifecycle-r1",
+        "subtlety-r2",
+        "talent-helpers-r4"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2980,
+      "name": "Cloak of Shadows",
+      "status": "VERIFIED",
+      "selected_spells": [
+        31224
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "cloak-cleanse-r1",
+        "cloak-immunity-r2",
+        "cloak-resistance-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 2995,
+      "name": "Aspect of the Viper",
+      "status": "Structurally Connected, Unverified",
+      "selected_spells": [
+        34074
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "viper-r1",
+        "handler-r2",
+        "lifecycle-effects-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 921,
+      "name": "Serpent's Swiftness",
+      "status": "Needs Investigation",
+      "selected_spells": [
+        34466,
+        34467,
+        34468,
+        34469,
+        34470
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "serpent-r1",
+        "pet-passives-r1",
+        "pet-startup-r2"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 925,
+      "name": "Master Marksman",
+      "status": "VERIFIED",
+      "selected_spells": [
+        34485,
+        34486,
+        34487
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "remaining-talent-modifiers-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 3579,
+      "name": "Silencing Shot",
+      "status": "VERIFIED",
+      "selected_spells": [
+        34490
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "silencing-r1",
+        "silencing-dispatch-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 930,
+      "name": "Expose Weakness",
+      "status": "VERIFIED",
+      "selected_spells": [
+        34500,
+        34502,
+        34503
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "expose-r1",
+        "expose-stats-r2",
+        "hawk-sql-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 931,
+      "name": "Master Tactician",
+      "status": "Needs Investigation",
+      "selected_spells": [
+        34506,
+        34507,
+        34508
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "dispatch-r1",
+        "lifecycle-effects-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 939,
+      "name": "Improved Barrage",
+      "status": "VERIFIED",
+      "selected_spells": [
+        35104,
+        35110,
+        35111
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "remaining-talent-modifiers-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 1044,
+      "name": "Deadly Brew",
+      "status": "Structurally Connected, Unverified",
+      "selected_spells": [
+        51625,
+        51626
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "deadly-brew-r1",
+        "subtlety-r2"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 1048,
+      "name": "Cut to the Chase",
+      "status": "VERIFIED",
+      "selected_spells": [
+        51664,
+        51665,
+        51667
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "cut-to-chase-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 1056,
+      "name": "Honor Among Thieves",
+      "status": "VERIFIED",
+      "selected_spells": [
+        51698,
+        51700,
+        51701
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "handler-r2"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 1065,
+      "name": "Wild Quiver",
+      "status": "Needs Investigation",
+      "selected_spells": [
+        53215,
+        53216,
+        53217
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "proc-masks-r1",
+        "mysql-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 1066,
+      "name": "Improved Steady Shot",
+      "status": "VERIFIED",
+      "selected_spells": [
+        53221,
+        53222,
+        53224
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "steady-capstone-r1",
+        "chance-r1",
+        "steady-charges-r2",
+        "mysql-r2",
+        "lifecycle-effects-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 1063,
+      "name": "Piercing Shots",
+      "status": "Needs Investigation",
+      "selected_spells": [
+        53234,
+        53237,
+        53238
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "proc-masks-r1",
+        "piercing-r1",
+        "mysql-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 1067,
+      "name": "Marked for Death",
+      "status": "VERIFIED",
+      "selected_spells": [
+        53241,
+        53243,
+        53244,
+        53245,
+        53246
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "remaining-talent-modifiers-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 1076,
+      "name": "Sniper Training",
+      "status": "VERIFIED",
+      "selected_spells": [
+        53302,
+        53303,
+        53304
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "sniper-periodic-r1",
+        "sniper-stacks-r2"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 3018,
+      "name": "Kill Shot",
+      "status": "VERIFIED",
+      "selected_spells": [
+        53351
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "damage-followup-r2",
+        "damage-formulas-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 3026,
+      "name": "Steady Shot",
+      "status": "Needs Investigation",
+      "selected_spells": [
+        56641
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "steady-damage-r2"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 3031,
+      "name": "Aspect of the Dragonhawk",
+      "status": "VERIFIED",
+      "selected_spells": [
+        61846
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "utility-stats-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 1313,
+      "name": "Hunter Aspect Mastery",
+      "status": "CERTIFIED",
+      "selected_spells": [
+        92156
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "all-mechanics-r7"
+      ],
+      "scope_note": "Mastery prerequisite/acquisition entry, not independent combat behavior. Selected members use their individual rows; generic catalog selection and linked grants tested. Optional unselected members are outside this build.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "advancement",
+      "entry": 1320,
+      "name": "Advanced Trap Mastery",
+      "status": "Needs Investigation",
+      "selected_spells": [
+        92164
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "all-mechanics-r7"
+      ],
+      "scope_note": "Mastery prerequisite/acquisition entry, not independent combat behavior. Selected members use their individual rows; generic catalog selection and linked grants tested. Optional unselected members are outside this build.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "advancement",
+      "entry": 3042,
+      "name": "Tracking Mastery",
+      "status": "VERIFIED",
+      "selected_spells": [
+        801494
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "all-mechanics-r7"
+      ],
+      "scope_note": "Mastery prerequisite/acquisition entry, not independent combat behavior. Selected members use their individual rows; generic catalog selection and linked grants tested. Optional unselected members are outside this build.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "advancement",
+      "entry": 3043,
+      "name": "Portal Mastery",
+      "status": "VERIFIED",
+      "selected_spells": [
+        818045
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "all-mechanics-r7"
+      ],
+      "scope_note": "Mastery prerequisite/acquisition entry, not independent combat behavior. Selected members use their individual rows; generic catalog selection and linked grants tested. Optional unselected members are outside this build.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "advancement",
+      "entry": 1363,
+      "name": "Stance Mastery",
+      "status": "CERTIFIED",
+      "selected_spells": [
+        954704
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "all-mechanics-r7"
+      ],
+      "scope_note": "Mastery prerequisite/acquisition entry, not independent combat behavior. Selected members use their individual rows; generic catalog selection and linked grants tested. Optional unselected members are outside this build.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "advancement",
+      "entry": 1367,
+      "name": "Advanced Finishing Move Mastery",
+      "status": "VERIFIED",
+      "selected_spells": [
+        954708
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "all-mechanics-r7"
+      ],
+      "scope_note": "Mastery prerequisite/acquisition entry, not independent combat behavior. Selected members use their individual rows; generic catalog selection and linked grants tested. Optional unselected members are outside this build.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "advancement",
+      "entry": 1368,
+      "name": "Shout Mastery",
+      "status": "VERIFIED",
+      "selected_spells": [
+        954709
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "all-mechanics-r7"
+      ],
+      "scope_note": "Mastery prerequisite/acquisition entry, not independent combat behavior. Selected members use their individual rows; generic catalog selection and linked grants tested. Optional unselected members are outside this build.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "advancement",
+      "entry": 1369,
+      "name": "Blessing Mastery",
+      "status": "CERTIFIED",
+      "selected_spells": [
+        954711
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "all-mechanics-r7"
+      ],
+      "scope_note": "Mastery prerequisite/acquisition entry, not independent combat behavior. Selected members use their individual rows; generic catalog selection and linked grants tested. Optional unselected members are outside this build.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "advancement",
+      "entry": 3044,
+      "name": "Tame Beast Abilities",
+      "status": "VERIFIED",
+      "selected_spells": [
+        965200
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "pet-recovery-r1",
+        "linked-grants-r2",
+        "hero-pet-ownership-r1",
+        "pet-saved-restore-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "advancement",
+      "entry": 3045,
+      "name": "Auto shot",
+      "status": "Needs Investigation",
+      "selected_spells": [
+        965202
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "auto-shot-r1",
+        "ranged-haste-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "All80 progression levels/native catalog",
+        "Native selected talent rank and offline login restoration",
+        "Native ordinary unlearning and independent ownership",
+        "Captured rank/trigger/named modifier closure",
+        "Native resource/cast/metadata checks where applicable"
+      ]
+    },
+    {
+      "kind": "mystic",
+      "entry": 81166,
+      "name": "Sniper",
+      "status": "VERIFIED",
+      "selected_spells": [
+        81166
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "enchant-slots-r1",
+        "existing-marksman-r2",
+        "package-sql-dispatch-r1"
+      ],
+      "shared_gates": [
+        "Native catalog,ownership,copy limit and slot validation levels1\u201380",
+        "Named modifier masks and arithmetic; custom handler evidence where applicable",
+        "Existing grant/replacement mapping and cleanup"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "mystic",
+      "entry": 919461,
+      "name": "Barrage",
+      "status": "Needs Investigation",
+      "selected_spells": [
+        919461
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "enchant-slots-r1"
+      ],
+      "shared_gates": [
+        "Native catalog,ownership,copy limit and slot validation levels1\u201380",
+        "Named modifier masks and arithmetic; custom handler evidence where applicable",
+        "Existing grant/replacement mapping and cleanup"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "mystic",
+      "entry": 919485,
+      "name": "Mortal Shots",
+      "status": "VERIFIED",
+      "selected_spells": [
+        919485
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "enchant-slots-r1"
+      ],
+      "shared_gates": [
+        "Native catalog,ownership,copy limit and slot validation levels1\u201380",
+        "Named modifier masks and arithmetic; custom handler evidence where applicable",
+        "Existing grant/replacement mapping and cleanup"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "mystic",
+      "entry": 953221,
+      "name": "Improved Steady Shot",
+      "status": "Needs Investigation",
+      "selected_spells": [
+        953221
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "steady-capstone-r1",
+        "chance-r1",
+        "enchant-slots-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "Native catalog,ownership,copy limit and slot validation levels1\u201380",
+        "Named modifier masks and arithmetic; custom handler evidence where applicable",
+        "Existing grant/replacement mapping and cleanup"
+      ]
+    },
+    {
+      "kind": "mystic",
+      "entry": 975907,
+      "name": "Camouflage",
+      "status": "VERIFIED",
+      "selected_spells": [
+        975907
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "camouflage-r2",
+        "enchant-slots-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "Native catalog,ownership,copy limit and slot validation levels1\u201380",
+        "Named modifier masks and arithmetic; custom handler evidence where applicable",
+        "Existing grant/replacement mapping and cleanup"
+      ]
+    },
+    {
+      "kind": "mystic",
+      "entry": 978716,
+      "name": "Munitions Expert",
+      "status": "VERIFIED",
+      "selected_spells": [
+        978716
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "enchant-slots-r1",
+        "existing-marksman-r2",
+        "munitions-final-r1",
+        "cast-time-r2"
+      ],
+      "shared_gates": [
+        "Native catalog,ownership,copy limit and slot validation levels1\u201380",
+        "Named modifier masks and arithmetic; custom handler evidence where applicable",
+        "Existing grant/replacement mapping and cleanup"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    },
+    {
+      "kind": "mystic",
+      "entry": 979701,
+      "name": "Honor Among Thieves",
+      "status": "VERIFIED",
+      "selected_spells": [
+        979701
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "handler-r2",
+        "enchant-slots-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "Native catalog,ownership,copy limit and slot validation levels1\u201380",
+        "Named modifier masks and arithmetic; custom handler evidence where applicable",
+        "Existing grant/replacement mapping and cleanup"
+      ]
+    },
+    {
+      "kind": "mystic",
+      "entry": 979740,
+      "name": "Compound Power",
+      "status": "VERIFIED",
+      "selected_spells": [
+        979740
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "enchant-slots-r1",
+        "existing-marksman-r2",
+        "compound-lifecycle-r1",
+        "slice-restore-r1",
+        "existing-marksman-r6",
+        "package-sql-dispatch-r1"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim.",
+      "shared_gates": [
+        "Native catalog,ownership,copy limit and slot validation levels1\u201380",
+        "Named modifier masks and arithmetic; custom handler evidence where applicable",
+        "Existing grant/replacement mapping and cleanup"
+      ]
+    },
+    {
+      "kind": "mystic",
+      "entry": 982890,
+      "name": "Syndicate Sniper Shot",
+      "status": "VERIFIED",
+      "selected_spells": [
+        982890
+      ],
+      "engineering_review": "mechanics_reviewed_release_qualification_pending",
+      "evidence": [
+        "enchant-slots-r1",
+        "existing-marksman-r2"
+      ],
+      "shared_gates": [
+        "Native catalog,ownership,copy limit and slot validation levels1\u201380",
+        "Named modifier masks and arithmetic; custom handler evidence where applicable",
+        "Existing grant/replacement mapping and cleanup"
+      ],
+      "remaining": "Final package source reconstruction,client/status preservation,hook rollback,publication staging and stable CheckOnly; no live certification claim."
+    }
+  ],
+  "dependency_records": 543,
+  "missing_references": [],
+  "scope": {
+    "build": "8475870877469036987",
+    "revision": 25,
+    "advancement": 69,
+    "mystic": 9,
+    "record_count": 543
+  },
+  "reports": [
+    "build-r27",
+    "all-mechanics-r7",
+    "package-sql-dispatch-r1",
+    "munitions-final-r1",
+    "existing-marksman-r6"
+  ],
+  "limits": "Offline native-function and isolated SQL tests use explicit map,storage,network and clock adapters described in each harness. No gameplay/client was run. Existing Certified rows stay authoritative. Partial adapter coverage is not a claim of live certification."
+}

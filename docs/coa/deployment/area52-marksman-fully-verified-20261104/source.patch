@@ -1,0 +1,1200 @@
+diff --git a/data/sql/updates/pending_db_world/rev_20261103_marksman_expose_weakness.sql b/data/sql/updates/pending_db_world/rev_20261103_marksman_expose_weakness.sql
+new file mode 100644
+index 0000000..73844ca
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261103_marksman_expose_weakness.sql
+@@ -0,0 +1,8 @@
++UPDATE `spell_proc` SET `ProcFlags` = 272
++WHERE `SpellId` = -34500 AND `ProcFlags` = 0 AND `SpellFamilyName` = 0
++  AND `SpellTypeMask` = 1 AND `SpellPhaseMask` = 2 AND `HitMask` = 2;
++
++DELETE FROM `spell_script_names`
++WHERE `spell_id` = -34500 AND `ScriptName` = 'spell_hun_area52_expose_weakness';
++INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
++(-34500, 'spell_hun_area52_expose_weakness');
+diff --git a/data/sql/updates/pending_db_world/rev_20261103_marksman_hawk_auto_attacks.sql b/data/sql/updates/pending_db_world/rev_20261103_marksman_hawk_auto_attacks.sql
+new file mode 100644
+index 0000000..f7b2286
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261103_marksman_hawk_auto_attacks.sql
+@@ -0,0 +1,3 @@
++UPDATE `spell_proc` SET `ProcFlags` = 68
++WHERE `SpellId` IN (-13165, -61846) AND `ProcFlags` = 64
++  AND `SpellFamilyName` = 0 AND `SpellTypeMask` = 0 AND `SpellPhaseMask` = 2 AND `HitMask` = 0;
+diff --git a/data/sql/updates/pending_db_world/rev_20261103_marksman_mark_armor.sql b/data/sql/updates/pending_db_world/rev_20261103_marksman_mark_armor.sql
+new file mode 100644
+index 0000000..e305d75
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261103_marksman_mark_armor.sql
+@@ -0,0 +1,8 @@
++INSERT IGNORE INTO `spell_group_stack_rules` (`group_id`, `stack_rule`)
++SELECT 1078, 3
++WHERE NOT EXISTS (SELECT 1 FROM `spell_group_stack_rules` WHERE `group_id` = 1078)
++    AND EXISTS (SELECT 1 FROM `spell_group` WHERE `id` = 1078 AND `spell_id` = 1126)
++    AND EXISTS (SELECT 1 FROM `spell_group` WHERE `id` = 1078 AND `spell_id` = 523478)
++    AND EXISTS (SELECT 1 FROM `spell_group` WHERE `id` = 1078 AND `spell_id` = 523495)
++    AND NOT EXISTS (SELECT 1 FROM `spell_group`
++        WHERE `id` = 1078 AND `spell_id` NOT IN (1126, 523478, 523495));
+diff --git a/data/sql/updates/pending_db_world/rev_20261103_marksman_proc_masks.sql b/data/sql/updates/pending_db_world/rev_20261103_marksman_proc_masks.sql
+new file mode 100644
+index 0000000..6232d8c
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261103_marksman_proc_masks.sql
+@@ -0,0 +1,7 @@
++UPDATE `spell_proc` SET `SpellFamilyMask1` = 1
++WHERE `SpellId` = -53215 AND `SpellFamilyName` = 9
++  AND `SpellFamilyMask0` = 1 AND `SpellFamilyMask1` = 0 AND `SpellFamilyMask2` = 0;
++
++UPDATE `spell_proc` SET `SpellFamilyMask0` = 137216, `SpellFamilyMask1` = 8388609
++WHERE `SpellId` = -53234 AND `SpellFamilyName` = 9
++  AND `SpellFamilyMask0` = 131072 AND `SpellFamilyMask1` = 1 AND `SpellFamilyMask2` = 1;
+diff --git a/data/sql/updates/pending_db_world/rev_20261103_marksman_steady_capstone.sql b/data/sql/updates/pending_db_world/rev_20261103_marksman_steady_capstone.sql
+new file mode 100644
+index 0000000..7256773
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261103_marksman_steady_capstone.sql
+@@ -0,0 +1,3 @@
++DELETE FROM `spell_script_names` WHERE `spell_id` = -53221 AND `ScriptName` = 'spell_hun_area52_improved_steady_shot';
++INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
++(-53221, 'spell_hun_area52_improved_steady_shot');
+diff --git a/src/server/coa/Area52Dependencies.inc b/src/server/coa/Area52Dependencies.inc
+index bb4d2ef..352df15 100644
+--- a/src/server/coa/Area52Dependencies.inc
++++ b/src/server/coa/Area52Dependencies.inc
+@@ -192,6 +192,7 @@ class spell_area52_mana_barrier : public AuraScript
+ 
+     void Apply(AuraEffect const*, AuraEffectHandleModes)
+     {
++        GetTarget()->RemoveAurasDueToSpell(34074);
+         for (uint32 spell : {78102u, 701464u, 701467u})
+             GetTarget()->CastSpell(GetTarget(), spell, true);
+     }
+diff --git a/src/server/coa/Area52FeignDeath.h b/src/server/coa/Area52FeignDeath.h
+new file mode 100644
+index 0000000..1c571c3
+--- /dev/null
++++ b/src/server/coa/Area52FeignDeath.h
+@@ -0,0 +1,25 @@
++#ifndef AREA52_FEIGN_DEATH_H
++#define AREA52_FEIGN_DEATH_H
++
++#include "AscensionFreePick.h"
++#include "Creature.h"
++#include "Map.h"
++#include "Player.h"
++
++namespace Area52FeignDeath
++{
++inline bool IsRaidBossException(Unit const* attacker, Unit const* target)
++{
++    Creature const* boss = attacker ? attacker->ToCreature() : nullptr;
++    return boss && target && AscensionFreePick::Applies(target->ToPlayer()) &&
++        boss->GetMap() && boss->GetMap()->IsRaid() && !boss->GetCharmerOrOwnerGUID().IsPlayer() &&
++        (boss->isWorldBoss() || boss->IsDungeonBoss());
++}
++
++inline bool SeesThrough(Unit const* attacker, Unit const* target)
++{
++    return target && target->HasAura(5384) && IsRaidBossException(attacker, target);
++}
++}
++
++#endif
+diff --git a/src/server/coa/Area52Marksman.inc b/src/server/coa/Area52Marksman.inc
+index 0875cbe..e7e9408 100644
+--- a/src/server/coa/Area52Marksman.inc
++++ b/src/server/coa/Area52Marksman.inc
+@@ -113,7 +113,10 @@ class spell_area52_compound_power_slice_and_dice : public AuraScript
+     {
+         Unit* owner = GetUnitOwner();
+         if (!owner || !owner->HasAura(Area52Marksman::CompoundPower))
++        {
++            amount = 0;
+             return;
++        }
+         if (AuraEffect const* melee = GetAura()->GetEffect(EFFECT_1))
+             amount = melee->GetAmount();
+         else
+@@ -167,6 +170,79 @@ class spell_area52_sniper : public AuraScript
+     std::uint32_t _still = 0;
+ };
+ 
++void RefreshArea52MarksmanTalentHelpers(Player* player)
++{
++    if (!AscensionFreePick::Applies(player) || !player->IsInWorld())
++        return;
++    for (uint32 id : {5171u, 6774u})
++        if (Aura* slice = player->GetAura(id, player->GetGUID()))
++            for (SpellEffIndex index : {EFFECT_1, EFFECT_2})
++                if (AuraEffect* haste = slice->GetEffect(index))
++                    haste->RecalculateAmount();
++    if (!player->HasSpell(31665))
++    {
++        Aura* subtlety = player->GetAura(31665, player->GetGUID());
++        AuraEffect const* rank = player->GetAuraEffectOfRankedSpell(31221, EFFECT_0, player->GetGUID());
++        if (!rank)
++        {
++            player->RemoveAurasDueToSpell(31665, player->GetGUID());
++            player->RemoveAurasDueToSpell(31666, player->GetGUID());
++        }
++        else
++        {
++            bool const stealthed = player->HasAuraType(SPELL_AURA_MOD_STEALTH);
++            if (!subtlety && stealthed)
++            {
++                int32 amount = rank->GetAmount();
++                player->CastCustomSpell(player, 31665, &amount, nullptr, nullptr, true);
++                subtlety = player->GetAura(31665, player->GetGUID());
++            }
++            if (subtlety)
++            {
++                if (AuraEffect* damage = subtlety->GetEffect(EFFECT_0); damage && damage->GetAmount() != rank->GetAmount())
++                    damage->ChangeAmount(rank->GetAmount());
++                if (stealthed && subtlety->GetMaxDuration() >= 0)
++                {
++                    subtlety->SetMaxDuration(-1);
++                    subtlety->SetDuration(-1);
++                }
++                else if (!stealthed && subtlety->GetMaxDuration() < 0)
++                {
++                    subtlety->SetMaxDuration(10000);
++                    subtlety->SetDuration(10000);
++                }
++            }
++        }
++    }
++    if (!player->HasSpell(6150))
++        if (Aura* quickShots = player->GetAura(6150, player->GetGUID()))
++        {
++            if (!player->GetAuraEffectOfRankedSpell(19552, EFFECT_1, player->GetGUID()))
++                player->RemoveAurasDueToSpell(6150, player->GetGUID());
++            else if (AuraEffect* haste = quickShots->GetEffect(EFFECT_0))
++                haste->RecalculateAmount();
++        }
++    for (uint32 rank : {34506u, 34507u, 34508u, 34500u, 34502u, 34503u})
++    {
++        if (player->HasAura(rank))
++            continue;
++        if (SpellInfo const* info = sSpellMgr->GetSpellInfo(rank))
++            if (uint32 helper = info->Effects[EFFECT_0].TriggerSpell; helper && !player->HasSpell(helper))
++                player->RemoveAurasDueToSpell(helper, player->GetGUID());
++    }
++    Aura* steady = player->GetAura(53220, player->GetGUID());
++    if (!steady || player->HasSpell(53220))
++        return;
++    if (!player->HasAura(53221) && !player->HasAura(53222) && !player->HasAura(53224))
++    {
++        player->RemoveAurasDueToSpell(53220, player->GetGUID());
++        return;
++    }
++    if (!player->HasAura(53224))
++        if (AuraEffect* armor = steady->GetEffect(EFFECT_2); armor && armor->GetAmount())
++            armor->ChangeAmount(0);
++}
++
+ class aura_area52_archetype_cleanup : public AuraScript
+ {
+     PrepareAuraScript(aura_area52_archetype_cleanup);
+@@ -184,7 +260,8 @@ class aura_area52_archetype_cleanup : public AuraScript
+         Unit* owner = GetTarget();
+         if (!owner)
+             return;
+-        for (AuraEffect* effect : owner->GetAuraEffectsByType(SPELL_AURA_MOD_RANGED_HASTE))
++        auto const effects = owner->GetAuraEffectsByType(SPELL_AURA_MOD_RANGED_HASTE);
++        for (AuraEffect* effect : effects)
+             if (sSpellMgr->GetFirstSpellInChain(effect->GetId()) == Area52Marksman::SliceAndDice)
+                 effect->RecalculateAmount();
+     }
+diff --git a/src/server/coa/Area52TemporaryPhysicalDamage.h b/src/server/coa/Area52TemporaryPhysicalDamage.h
+new file mode 100644
+index 0000000..9bd9253
+--- /dev/null
++++ b/src/server/coa/Area52TemporaryPhysicalDamage.h
+@@ -0,0 +1,38 @@
++#pragma once
++
++#include <algorithm>
++
++namespace Area52TemporaryPhysicalDamage
++{
++inline bool IsExclusiveBonus(unsigned spellId)
++{
++    switch (spellId)
++    {
++        case 31665:
++        case 19574:
++        case 277875:
++        case 886395:
++        case 992391:
++        case 1436395:
++            return true;
++        default:
++            return false;
++    }
++}
++
++template<class Range, class Predicate>
++float Normalization(Range const& effects, Predicate const& eligible)
++{
++    float product = 1.0f;
++    float strongest = 1.0f;
++    for (auto const* effect : effects)
++    {
++        if (!IsExclusiveBonus(effect->GetId()) || effect->GetAmount() <= 0 || !eligible(effect))
++            continue;
++        float const multiplier = 1.0f + float(effect->GetAmount()) / 100.0f;
++        product *= multiplier;
++        strongest = std::max(strongest, multiplier);
++    }
++    return strongest / product;
++}
++}
+diff --git a/src/server/coa/AscensionConditionalCombat.cpp b/src/server/coa/AscensionConditionalCombat.cpp
+index 09c7b9d..93b5dfb 100644
+--- a/src/server/coa/AscensionConditionalCombat.cpp
++++ b/src/server/coa/AscensionConditionalCombat.cpp
+@@ -38,6 +38,7 @@ void ApplyFrozenPowerDamageContract(SpellInfo* spellInfo)
+ void ApplyArea52TargetDamageContracts(SpellInfo* spellInfo)
+ {
+     if (!spellInfo || !((spellInfo->Id == 979053 && spellInfo->SpellFamilyName == 3) ||
++        (spellInfo->Id == 3045 && spellInfo->SpellFamilyName == 9) ||
+         ((spellInfo->Id == 979011 || spellInfo->Id == 530921) && spellInfo->SpellFamilyName == 8)))
+         return;
+     for (uint8 index = 0; index < (spellInfo->Id == 979053 ? 1 : 2); ++index)
+diff --git a/src/server/coa/AscensionHeroPets.cpp b/src/server/coa/AscensionHeroPets.cpp
+index 1fb60cd..0061578 100644
+--- a/src/server/coa/AscensionHeroPets.cpp
++++ b/src/server/coa/AscensionHeroPets.cpp
+@@ -40,6 +40,13 @@ void Grant(Player* player)
+         if (player->HasSpell(spell))
+             player->removeSpell(spell, SPEC_MASK_ALL, false);
+     AscensionRemovedSpellActionBars::Reconcile(player, {6991, 1106991, 1356991});
++#if __has_include("AscensionFreePick.h")
++    if (AscensionFreePick::Applies(player))
++    {
++        AscensionFreePick::SynchronizeLinkedSpells(player);
++        return;
++    }
++#endif
+     std::set<uint32> spells;
+     for (PetPackage const& package : Packages)
+         if (player->HasSpell(package.Parent))
+@@ -92,9 +99,18 @@ public:
+             return;
+         for (PetPackage const& package : Packages)
+             if (package.Parent == spell)
++            {
++#if __has_include("AscensionFreePick.h")
++                if (AscensionFreePick::Applies(player))
++                {
++                    AscensionFreePick::SynchronizeLinkedSpells(player);
++                    return;
++                }
++#endif
+                 for (uint32 child : package.Children)
+                     if (child)
+                         player->removeSpell(child, SPEC_MASK_ALL, false);
++            }
+     }
+ 
+     Optional<bool> OnPlayerIsClass(Player const* player, Classes playerClass, ClassContext context) override
+diff --git a/src/server/coa/AscensionMysticEnchant.cpp b/src/server/coa/AscensionMysticEnchant.cpp
+index 282b4a6..448d5ed 100644
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -1055,13 +1055,18 @@ public:
+     void OnPlayerLogin(Player* player) override
+     {
+         Load(player);
++        RefreshArea52MarksmanTalentHelpers(player);
+         if (Applies(player))
+         {
+             SendScrollProgress(player);
+             SendSpecLinks(player);
+         }
+     }
+-    void OnPlayerUpdate(Player* player, uint32) override { ProcessScrollRequests(player); }
++    void OnPlayerUpdate(Player* player, uint32) override
++    {
++        ProcessScrollRequests(player);
++        RefreshArea52MarksmanTalentHelpers(player);
++    }
+     void OnPlayerLogout(Player* player) override
+     {
+         std::lock_guard<std::mutex> lock(ScrollRequestLock);
+diff --git a/src/server/coa/AscensionPerforatingShots.cpp b/src/server/coa/AscensionPerforatingShots.cpp
+index a0ffb43..35d0598 100644
+--- a/src/server/coa/AscensionPerforatingShots.cpp
++++ b/src/server/coa/AscensionPerforatingShots.cpp
+@@ -1,5 +1,7 @@
+ /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
+ 
++#include "AscensionFreePick.h"
++#include "Player.h"
+ #include "ScriptMgr.h"
+ #include "SpellAuraEffects.h"
+ #include "SpellInfo.h"
+@@ -10,6 +12,9 @@ namespace
+ {
+ enum PerforatingShotsSpells : uint32
+ {
++    SPELL_PIERCING_SHOTS_R1 = 53234,
++    SPELL_PIERCING_SHOTS_R2 = 53237,
++    SPELL_PIERCING_SHOTS_R3 = 53238,
+     SPELL_PERFORATING_SHOTS_R1 = 853236,
+     SPELL_PERFORATING_SHOTS_R2 = 853237,
+     SPELL_PERFORATING_SHOTS_R3 = 853238
+@@ -20,6 +25,24 @@ class aura_ascension_perforating_shots : public AuraScript
+ {
+     PrepareAuraScript(aura_ascension_perforating_shots);
+ 
++    void CalculateReduction(AuraEffect const*, int32& amount, bool& canBeRecalculated)
++    {
++        Unit* caster = GetCaster();
++        if (!caster || !caster->ToPlayer() || !AscensionFreePick::Applies(caster->ToPlayer()))
++            return;
++
++        canBeRecalculated = false;
++        amount = 0;
++        for (uint32 talent : { SPELL_PIERCING_SHOTS_R3, SPELL_PIERCING_SHOTS_R2, SPELL_PIERCING_SHOTS_R1 })
++        {
++            AuraEffect const* rank = caster->GetAuraEffect(talent, EFFECT_0);
++            if (!rank)
++                continue;
++            amount = rank->GetSpellInfo()->Effects[EFFECT_1].CalcValue(caster);
++            return;
++        }
++    }
++
+     void HandleApply(AuraEffect const*, AuraEffectHandleModes)
+     {
+         Unit* caster = GetCaster();
+@@ -39,6 +62,10 @@ class aura_ascension_perforating_shots : public AuraScript
+ 
+     void Register() override
+     {
++        DoEffectCalcAmount += AuraEffectCalcAmountFn(aura_ascension_perforating_shots::CalculateReduction,
++            EFFECT_1, SPELL_AURA_ASCENSION_MOD_ABSORB_AMOUNT_PCT);
++        DoEffectCalcAmount += AuraEffectCalcAmountFn(aura_ascension_perforating_shots::CalculateReduction,
++            EFFECT_2, SPELL_AURA_MOD_HOT_PCT);
+         AfterEffectApply += AuraEffectApplyFn(aura_ascension_perforating_shots::HandleApply, EFFECT_0,
+             SPELL_AURA_PERIODIC_DAMAGE, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+     }
+diff --git a/src/server/game/Entities/Creature/Creature.cpp b/src/server/game/Entities/Creature/Creature.cpp
+index ed56b64..bfd58c4 100644
+--- a/src/server/game/Entities/Creature/Creature.cpp
++++ b/src/server/game/Entities/Creature/Creature.cpp
+@@ -1,3 +1,4 @@
++#include "../../../coa/Area52FeignDeath.h"
+ /*
+  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
+  *
+@@ -2689,7 +2690,7 @@ bool Creature::_IsTargetAcceptable(Unit const* target) const
+     if (target->HasUnitState(UNIT_STATE_DIED))
+     {
+         // some creatures can detect fake death
+-        if (CanIgnoreFeignDeath() && target->HasUnitFlag2(UNIT_FLAG2_FEIGN_DEATH))
++        if ((CanIgnoreFeignDeath() || Area52FeignDeath::SeesThrough(this, target)) && target->HasUnitFlag2(UNIT_FLAG2_FEIGN_DEATH))
+             return true;
+         else
+             return false;
+@@ -2781,7 +2782,8 @@ bool Creature::CanCreatureAttack(Unit const* victim, bool skipDistCheck) const
+     }
+ 
+     // if victim is in FD and we can't see that
+-    if (victim->HasUnitFlag2(UNIT_FLAG2_FEIGN_DEATH) && !CanIgnoreFeignDeath())
++    if (victim->HasUnitFlag2(UNIT_FLAG2_FEIGN_DEATH) && !CanIgnoreFeignDeath() &&
++        !Area52FeignDeath::SeesThrough(this, victim))
+     {
+         return false;
+     }
+diff --git a/src/server/game/Entities/Unit/Unit.cpp b/src/server/game/Entities/Unit/Unit.cpp
+index 538b008..8f16b41 100644
+--- a/src/server/game/Entities/Unit/Unit.cpp
++++ b/src/server/game/Entities/Unit/Unit.cpp
+@@ -1,3 +1,5 @@
++#include "../../../coa/Area52FeignDeath.h"
++#include "../../../coa/Area52TemporaryPhysicalDamage.h"
+ /*
+  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
+  *
+@@ -3891,6 +3893,14 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit* victim, SpellInfo const* spellInfo
+         return SPELL_MISS_NONE;
+     }
+ 
++    if (AscensionFreePick::Applies(ToPlayer()) && spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER &&
++        (spellInfo->Id == 3355 || spellInfo->Id == 14308 || spellInfo->Id == 14309))
++        return SPELL_MISS_NONE;
++
++    if (AscensionFreePick::Applies(victim->ToPlayer()) && victim->HasAura(31224) &&
++        !spellInfo->IsPositive() && (spellInfo->GetSchoolMask() & SPELL_SCHOOL_MASK_MAGIC))
++        return SPELL_MISS_RESIST;
++
+     SpellSchoolMask schoolMask = spellInfo->GetSchoolMask();
+     int32 thisLevel = getLevelForTarget(victim);
+     if (IsCreature() && ToCreature()->IsTrigger())
+@@ -9158,7 +9168,7 @@ float Unit::SpellPctDamageModsDone(Unit* victim, SpellInfo const* spellProto, Da
+         (spellProto->SpellFamilyFlags & flag96(4176, 4194592, 263168)) && HasAura(806583))
+         AddPct(DoneTotalMod, player->GetFloatValue(PLAYER_PARRY_PERCENTAGE));
+ 
+-    DoneTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, [spellProto, this, damagetype](AuraEffect const* aurEff)
++    auto const damagePercentEligible = [spellProto, this, damagetype](AuraEffect const* aurEff)
+     {
+         // prevent apply mods from weapon specific case to non weapon specific spells (Example: thunder clap and two-handed weapon specialization)
+         if (spellProto->EquippedItemClass == -1 && aurEff->GetSpellInfo()->EquippedItemClass != -1 &&
+@@ -9180,7 +9190,11 @@ float Unit::SpellPctDamageModsDone(Unit* victim, SpellInfo const* spellProto, Da
+                 return true;
+         }
+         return false;
+-    });
++    };
++    DoneTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, damagePercentEligible);
++    if (AscensionFreePick::Applies(ToPlayer()) && (spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_NORMAL))
++        DoneTotalMod *= Area52TemporaryPhysicalDamage::Normalization(
++            GetAuraEffectsByType(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE), damagePercentEligible);
+ 
+     uint32 creatureTypeMask = victim->GetCreatureTypeMask();
+     DoneTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_DAMAGE_DONE_VERSUS, [creatureTypeMask, spellProto, damagetype, this](AuraEffect const* aurEff)
+@@ -9974,18 +9988,36 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
+         if (damagetype == DOT)
+         {
+             coeff = bonus->dot_damage;
+-            if (bonus->ap_dot_bonus > 0)
++            float apDotCoeff = bonus->ap_dot_bonus;
++            if (AscensionFreePick::Applies(ToPlayer()) &&
++                sSpellMgr->GetFirstSpellInChain(spellProto->Id) == 2818 &&
++                spellProto->Id != 57969 && spellProto->Id != 57970)
++                apDotCoeff = 0.015f;
++            if (apDotCoeff > 0)
+             {
+                 WeaponAttackType attType = (spellProto->UseRangedAttackPowerForDamage || (spellProto->IsRangedWeaponSpell() && spellProto->DmgClass != SPELL_DAMAGE_CLASS_MELEE)) ? RANGED_ATTACK : BASE_ATTACK;
+                 float APbonus = float(victim->GetTotalAuraModifier(attType == BASE_ATTACK ? SPELL_AURA_MELEE_ATTACK_POWER_ATTACKER_BONUS : SPELL_AURA_RANGED_ATTACK_POWER_ATTACKER_BONUS));
+                 APbonus += GetTotalAttackPowerValue(attType);
+-                DoneTotal += int32(bonus->ap_dot_bonus * stack * ApCoeffMod * APbonus);
++                DoneTotal += int32(apDotCoeff * stack * ApCoeffMod * APbonus);
+             }
+         }
+         else
+         {
+             coeff = bonus->direct_damage;
+-            float const apCoeff = bonus->ap_bonus + GetSpellAttackPowerCoefficientFlatBonus(spellProto);
++            float baseApCoeff = bonus->ap_bonus;
++            if (AscensionFreePick::Applies(ToPlayer()))
++            {
++                uint32 const root = sSpellMgr->GetFirstSpellInChain(spellProto->Id);
++                if (root == 42243)
++                    baseApCoeff = 0.1f;
++                else if (root == 3044)
++                    baseApCoeff = 0.3f;
++                else if (root == 8680)
++                    baseApCoeff = 0.06f;
++                else if (root == 13218)
++                    baseApCoeff = 0.012f;
++            }
++            float const apCoeff = baseApCoeff + GetSpellAttackPowerCoefficientFlatBonus(spellProto);
+             if (apCoeff > 0)
+             {
+                 WeaponAttackType attType = (spellProto->UseRangedAttackPowerForDamage || (spellProto->IsRangedWeaponSpell() && spellProto->DmgClass != SPELL_DAMAGE_CLASS_MELEE)) ? RANGED_ATTACK : BASE_ATTACK;
+@@ -12365,7 +12397,8 @@ bool Unit::isTargetableForAttack(bool checkFakeDeath, Unit const* byWho) const
+     if (IsPlayer() && ToPlayer()->IsGameMaster())
+         return false;
+ 
+-    return !HasUnitState(UNIT_STATE_UNATTACKABLE) && (!checkFakeDeath || !HasUnitState(UNIT_STATE_DIED));
++    return !HasUnitState(UNIT_STATE_UNATTACKABLE) && (!checkFakeDeath ||
++        !HasUnitState(UNIT_STATE_DIED) || Area52FeignDeath::SeesThrough(byWho, this));
+ }
+ 
+ bool Unit::IsValidAttackTarget(Unit const* target, SpellInfo const* bySpell) const
+@@ -13916,13 +13949,17 @@ void Unit::UpdateDamagePctDoneMods(WeaponAttackType attackType)
+             break;
+     }
+ 
+-    factor *= GetTotalAuraMultiplier(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, [attackType, this](AuraEffect const* aurEff) -> bool
++    auto const damagePercentEligible = [attackType, this](AuraEffect const* aurEff) -> bool
+     {
+         if (!(aurEff->GetMiscValue() & SPELL_SCHOOL_MASK_NORMAL))
+             return false;
+ 
+         return CheckAttackFitToAuraRequirement(attackType, aurEff);
+-    });
++    };
++    factor *= GetTotalAuraMultiplier(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, damagePercentEligible);
++    if (AscensionFreePick::Applies(ToPlayer()))
++        factor *= Area52TemporaryPhysicalDamage::Normalization(
++            GetAuraEffectsByType(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE), damagePercentEligible);
+ 
+     if (attackType == OFF_ATTACK)
+         factor *= GetTotalAuraMultiplier(SPELL_AURA_MOD_OFFHAND_DAMAGE_PCT, std::bind(&Unit::CheckAttackFitToAuraRequirement, this, attackType, std::placeholders::_1));
+diff --git a/src/server/game/Spells/Auras/SpellAuraEffects.cpp b/src/server/game/Spells/Auras/SpellAuraEffects.cpp
+index b902c26..74682ba 100644
+--- a/src/server/game/Spells/Auras/SpellAuraEffects.cpp
++++ b/src/server/game/Spells/Auras/SpellAuraEffects.cpp
+@@ -1,3 +1,4 @@
++#include "../../../coa/Area52FeignDeath.h"
+ #include "../../../coa/Area52HolyContracts.h"
+ /*
+  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
+@@ -1762,7 +1763,7 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
+         }
+ 
+         // Use the new aura to see on what stance the target will be
+-        uint32 newStance = (1 << ((newAura ? newAura->GetMiscValue() : 0) - 1));
++        uint32 newStance = newAura ? (uint32(1) << (newAura->GetMiscValue() - 1)) : 0;
+ 
+         Unit::AuraApplicationMap& tAuras = target->GetAppliedAuras();
+         for (Unit::AuraApplicationMap::iterator itr = tAuras.begin(); itr != tAuras.end();)
+@@ -1950,6 +1951,12 @@ void AuraEffect::HandleModStealth(AuraApplication const* aurApp, uint8 mode, boo
+     {
+         // drop flag at stealth in bg
+         target->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_IMMUNE_OR_LOST_SELECTION);
++        if (Player* player = target->ToPlayer(); AscensionFreePick::Applies(player) &&
++            player->MatchesSpellInteraction(GetId(), 1784))
++        {
++            target->RemoveAurasByType(SPELL_AURA_SCHOOL_IMMUNITY);
++            target->RemoveAurasByType(SPELL_AURA_DAMAGE_IMMUNITY);
++        }
+     }
+ 
+     target->UpdateObjectVisibility(target->IsPlayer() || target->GetOwnerGUID().IsPlayer() || target->GetMap()->Instanceable(), true);
+@@ -3151,10 +3158,17 @@ void AuraEffect::HandleFeignDeath(AuraApplication const* aurApp, uint8 mode, boo
+             }
+         }
+ 
++        bool retainsRaidBossThreat = false;
+         for (auto& pair : target->GetThreatMgr().GetThreatenedByMeList())
+-            pair.second->ScaleThreat(0.0f);
++        {
++            if (GetId() == 5384 && Area52FeignDeath::IsRaidBossException(pair.second->GetOwner(), target))
++                retainsRaidBossThreat = true;
++            else
++                pair.second->ScaleThreat(0.0f);
++        }
+ 
+-        if (target->GetInstanceScript() && target->GetInstanceScript()->IsEncounterInProgress())
++        if (retainsRaidBossThreat ||
++            (target->GetInstanceScript() && target->GetInstanceScript()->IsEncounterInProgress()))
+         {
+             target->AttackStop();
+             if (Player* targetPlayer = target->ToPlayer())
+diff --git a/src/server/game/Spells/Auras/SpellAuras.cpp b/src/server/game/Spells/Auras/SpellAuras.cpp
+index b8536a1..235f734 100644
+--- a/src/server/game/Spells/Auras/SpellAuras.cpp
++++ b/src/server/game/Spells/Auras/SpellAuras.cpp
+@@ -2129,7 +2129,17 @@ void Aura::AddProcCooldown(TimePoint cooldownEnd)
+ 
+ void Aura::AddProcCooldown(SpellProcEntry const* procEntry, TimePoint now)
+ {
+-    AddProcCooldown(now + procEntry->Cooldown);
++    constexpr uint32 HonorAmongThievesCapstone = 51701;
++    constexpr uint32 HonorAmongThievesTrigger = 51699;
++    Milliseconds cooldown = procEntry->Cooldown;
++    if (GetId() == HonorAmongThievesCapstone && GetType() == UNIT_AURA_TYPE)
++        if (Player* player = GetUnitOwner()->ToPlayer(); AscensionFreePick::Applies(player))
++        {
++            int32 modified = int32(cooldown.count());
++            player->ApplySpellMod(HonorAmongThievesTrigger, SPELLMOD_DURATION, modified);
++            cooldown = Milliseconds(std::max(0, modified));
++        }
++    AddProcCooldown(now + cooldown);
+ }
+ 
+ void Aura::ResetProcCooldown()
+@@ -2155,7 +2165,7 @@ void Aura::PrepareProcToTrigger(AuraApplication* aurApp, ProcEventInfo& eventInf
+     ASSERT(procEntry);
+ 
+     // cooldowns should be added to the whole aura (see 51698 area aura)
+-    AddProcCooldown(now + procEntry->Cooldown);
++    AddProcCooldown(procEntry, now);
+ }
+ 
+ uint8 Aura::GetProcEffectMask(AuraApplication* aurApp, ProcEventInfo& eventInfo, TimePoint now) const
+@@ -2329,6 +2339,13 @@ float Aura::CalcProcChance(SpellProcEntry const& procEntry, ProcEventInfo& event
+             modOwner->ApplySpellMod(GetId(), SPELLMOD_CHANCE_OF_SUCCESS, chance);
+     }
+ 
++    constexpr uint32 ImprovedSteadyShotCapstone = 53224;
++    if (GetId() == ImprovedSteadyShotCapstone)
++        if (Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr;
++            AscensionFreePick::Applies(player) && eventInfo.GetProcSpell() &&
++            eventInfo.GetProcSpell()->WasStationaryDuringCast())
++            chance = 100.0f;
++
+     // proc chance is reduced by an additional 3.333% per level past 60
+     if ((procEntry.AttributesMask & PROC_ATTR_REDUCE_PROC_60) && eventInfo.GetActor()->GetLevel() > 60)
+         chance = std::max(0.f, (1.f - ((eventInfo.GetActor()->GetLevel() - 60) * 1.f / 30.f)) * chance);
+diff --git a/src/server/game/Spells/Spell.cpp b/src/server/game/Spells/Spell.cpp
+index 792de89..43ecaa4 100644
+--- a/src/server/game/Spells/Spell.cpp
++++ b/src/server/game/Spells/Spell.cpp
+@@ -3503,6 +3503,7 @@ bool Spell::UpdateChanneledTargetList()
+ 
+ SpellCastResult Spell::prepare(SpellCastTargets const* targets, AuraEffect const* triggeredByAura)
+ {
++    m_stationaryDuringCast = !m_caster->isMoving();
+     if (m_CastItem)
+     {
+         m_castItemGUID = m_CastItem->GetGUID();
+@@ -3841,6 +3842,7 @@ void Spell::cancel(bool bySelf)
+ 
+ void Spell::cast(bool skipCheck)
+ {
++    m_stationaryDuringCast = m_stationaryDuringCast && !m_caster->isMoving();
+     Player* modOwner = m_caster->GetSpellModOwner();
+     Spell* lastMod = nullptr;
+     if (modOwner)
+@@ -4505,6 +4507,9 @@ void Spell::update(uint32 difftime)
+         return;
+     }
+ 
++    if (m_spellState == SPELL_STATE_PREPARING && m_caster->isMoving())
++        m_stationaryDuringCast = false;
++
+     // check if the player caster has moved before the spell finished
+     // xinef: added preparing state (real cast, skip channels as they have other flags for this)
+     if ((m_caster->IsPlayer() && m_timer != 0) &&
+@@ -5798,6 +5803,11 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* /*param1*/, uint32* /*para
+ 
+     constexpr uint32 DivineIntervention = 19752;
+     constexpr uint32 HighRiskMode = 1004019;
++    constexpr uint32 EagleEye = 6197;
++    if (m_spellInfo->Id == EagleEye && AscensionFreePick::Applies(m_caster->ToPlayer()) &&
++        m_caster->HasAura(HighRiskMode))
++        return SPELL_FAILED_NOT_HERE;
++
+     if (m_spellInfo->Id == DivineIntervention && AscensionFreePick::Applies(m_caster->ToPlayer()))
+     {
+         Unit* target = m_targets.GetUnitTarget();
+diff --git a/src/server/game/Spells/Spell.h b/src/server/game/Spells/Spell.h
+index 7b49fbe..0fe26da 100644
+--- a/src/server/game/Spells/Spell.h
++++ b/src/server/game/Spells/Spell.h
+@@ -577,6 +577,7 @@ public:
+     int32 m_area52FavorHealingPct = 0;
+ 
+     int32 GetCastTime() const { return m_casttime; }
++    bool WasStationaryDuringCast() const { return m_stationaryDuringCast; }
+     bool IsAutoRepeat() const { return m_autoRepeat; }
+     void SetAutoRepeat(bool rep) { m_autoRepeat = rep; }
+     void ReSetTimer() { m_timer = m_casttime > 0 ? m_casttime : 0; }
+@@ -692,6 +693,7 @@ public:
+     int32 m_scriptDamageEchoPercent = 0;
+     uint32 m_scriptExtraPowerSpent = 0;
+     int32 m_powerCost;                                  // Calculated spell cost     initialized only in Spell::prepare
++    bool m_stationaryDuringCast = true;
+     int32 m_casttime;                                   // Calculated spell cast time initialized only in Spell::prepare
+     int32 m_channeledDuration;                          // Calculated channeled spell duration in order to calculate correct pushback.
+     bool m_canReflect;                                  // can reflect this spell?
+diff --git a/src/server/game/Spells/SpellEffects.cpp b/src/server/game/Spells/SpellEffects.cpp
+index dc36571..4ed3617 100644
+--- a/src/server/game/Spells/SpellEffects.cpp
++++ b/src/server/game/Spells/SpellEffects.cpp
+@@ -686,6 +686,11 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
+     if (effectHandleMode != SPELL_EFFECT_HANDLE_LAUNCH_TARGET)
+         return;
+ 
++    if (AscensionFreePick::Applies(m_caster->ToPlayer()) &&
++        sSpellMgr->GetFirstSpellInChain(m_spellInfo->Id) == 56641 &&
++        m_spellInfo->Effects[EFFECT_2].Effect == SPELL_EFFECT_WEAPON_PERCENT_DAMAGE)
++        return;
++
+     if (unitTarget && unitTarget->IsAlive())
+     {
+         bool apply_direct_bonus = true;
+@@ -1232,8 +1237,10 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
+                         // remove all harmful spells on you...
+                         SpellInfo const* spell = iter->second->GetBase()->GetSpellInfo();
+ 
+-                        // Pounce Bleed shouldn't be removed by Cloak of Shadows.
+-                        if (spell->GetAllEffectsMechanicMask() & (1ULL << MECHANIC_BLEED))
++                        bool const bleed = spell->GetAllEffectsMechanicMask() & (1ULL << MECHANIC_BLEED);
++                        bool const area52Cloak = m_spellInfo->Id == 31224 &&
++                            AscensionFreePick::Applies(m_caster->ToPlayer());
++                        if (bleed && !area52Cloak)
+                             return;
+ 
+                         bool dmgClassNone = false;
+@@ -1251,7 +1258,8 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
+                                 dmgClassNone = true;
+                             }
+ 
+-                        if ((spell->DmgClass == SPELL_DAMAGE_CLASS_MAGIC || (spell->GetDispelMask() & dispelMask) || dmgClassNone) &&
++                        if ((spell->DmgClass == SPELL_DAMAGE_CLASS_MAGIC || (spell->GetDispelMask() & dispelMask) ||
++                                dmgClassNone || (area52Cloak && bleed)) &&
+                                 // ignore positive and passive auras
+                                 !iter->second->IsPositive() && !iter->second->GetBase()->IsPassive() &&
+                                 // Xinef: Ignore NPC spells having INVULNERABILITY attribute
+@@ -3525,6 +3533,23 @@ void Spell::EffectEnchantItemTmp(SpellEffIndex effIndex)
+         }
+     }
+ 
++    if (AscensionFreePick::Applies(p_caster))
++    {
++        switch (m_spellInfo->Id)
++        {
++            case 208679:
++            case 203408:
++            case 205761:
++            case 202823:
++            case 2013219:
++            case 2026785:
++                duration = 7200;
++                break;
++            default:
++                break;
++        }
++    }
++
+     // item can be in trade slot and have owner diff. from caster
+     Player* item_owner = itemTarget->GetOwner();
+     if (!item_owner)
+@@ -3803,6 +3828,10 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
+     float totalDamagePercentMod  = 100.0f;                  // applied to final bonus+weapon damage
+     int32 spell_bonus = 0;                                  // bonus specific for spell
+     bool normalized = false;
++    bool const area52AimedShot = AscensionFreePick::Applies(m_caster->ToPlayer()) &&
++        sSpellMgr->GetFirstSpellInChain(m_spellInfo->Id) == 19434 &&
++        m_spellInfo->Effects[EFFECT_0].Effect == SPELL_EFFECT_NORMALIZED_WEAPON_DMG &&
++        m_spellInfo->Effects[EFFECT_2].Effect == SPELL_EFFECT_WEAPON_PERCENT_DAMAGE;
+ 
+     switch (m_spellInfo->SpellFamilyName)
+     {
+@@ -3937,6 +3966,15 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
+             }
+         case SPELLFAMILY_HUNTER:
+             {
++                if (area52AimedShot)
++                    spell_bonus += int32(m_caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.2f);
++
++                if (AscensionFreePick::Applies(m_caster->ToPlayer()) &&
++                    sSpellMgr->GetFirstSpellInChain(m_spellInfo->Id) == 56641 &&
++                    m_spellInfo->Effects[EFFECT_2].Effect == SPELL_EFFECT_WEAPON_PERCENT_DAMAGE &&
++                    unitTarget->HasDecreaseSpeedAura())
++                    spell_bonus += CalculateSpellDamage(EFFECT_1, unitTarget);
++
+                 // Kill Shot
+                 if (m_spellInfo->SpellFamilyFlags[1] & 0x800000)
+                 {
+@@ -4088,13 +4126,30 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
+         m_spellInfo->Effects[EFFECT_0].Effect == SPELL_EFFECT_NORMALIZED_WEAPON_DMG &&
+         m_spellInfo->Effects[EFFECT_1].Effect == SPELL_EFFECT_WEAPON_PERCENT_DAMAGE;
+ 
+-    // Crusader Strike adds its flat bonus after its weapon percentage, as described by its tooltip.
++    uint32 const area52WeaponRoot = AscensionFreePick::Applies(m_caster->ToPlayer()) ?
++        sSpellMgr->GetFirstSpellInChain(m_spellInfo->Id) : 0;
++    bool const area52FlatAfterPercent = (area52WeaponRoot == 2643 || area52WeaponRoot == 8676 ||
++        area52WeaponRoot == 53351) &&
++        (m_spellInfo->Effects[EFFECT_0].Effect == SPELL_EFFECT_NORMALIZED_WEAPON_DMG ||
++            m_spellInfo->Effects[EFFECT_0].Effect == SPELL_EFFECT_WEAPON_DAMAGE_NOSCHOOL) &&
++        m_spellInfo->Effects[EFFECT_1].Effect == SPELL_EFFECT_WEAPON_PERCENT_DAMAGE;
++    if (area52FlatAfterPercent)
++    {
++        if (area52WeaponRoot == 8676)
++            fixed_bonus = int32(fixed_bonus * 2.75f);
++        else if (area52WeaponRoot == 53351)
++            fixed_bonus *= 2;
++    }
++
++    // These Area52 tooltips add their flat bonus after their weapon percentage.
+     // Preserve the authored effect indices for spell modifiers and other spells.
+     for (int j = 0; j < MAX_SPELL_EFFECTS; ++j)
+     {
+         // We assume that a spell have at most one fixed_bonus
+         // and at most one weaponDamagePercentMod
+-        switch (m_spellInfo->Effects[area52CrusaderStrike && j < 2 ? 1 - j : j].Effect)
++        uint32 const effectIndex = area52AimedShot && j != 1 ? 2 - j :
++            (area52CrusaderStrike || area52FlatAfterPercent) && j < 2 ? 1 - j : j;
++        switch (m_spellInfo->Effects[effectIndex].Effect)
+         {
+             case SPELL_EFFECT_WEAPON_DAMAGE:
+             case SPELL_EFFECT_WEAPON_DAMAGE_NOSCHOOL:
+@@ -4181,6 +4236,10 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
+     if (!unitTarget || !unitTarget->IsAlive())
+         return;
+ 
++    bool const area52SilencingShot = m_spellInfo->Id == 34490 && AscensionFreePick::Applies(m_caster->ToPlayer());
++    if (m_spellInfo->Id == 34490 && (!area52SilencingShot || unitTarget->IsPlayer()))
++        return;
++
+     /// @todo: not all spells that used this effect apply cooldown at school spells
+     // also exist case: apply cooldown to interrupted cast only and to all spells
+     // there is no CURRENT_AUTOREPEAT_SPELL spells that can be interrupted
+@@ -4203,7 +4262,8 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
+             {
+                 if (m_originalCaster)
+                 {
+-                    int32 duration = m_originalCaster->ModSpellDuration(m_spellInfo, unitTarget, m_originalCaster->CalcSpellDuration(m_spellInfo), false, 1 << effIndex);
++                    int32 const baseDuration = area52SilencingShot ? 3000 : m_originalCaster->CalcSpellDuration(m_spellInfo);
++                    int32 duration = m_originalCaster->ModSpellDuration(m_spellInfo, unitTarget, baseDuration, false, 1 << effIndex);
+                     sScriptMgr->OnSpellInterruptDuration(this, unitTarget, duration);
+                     unitTarget->ProhibitSpellSchool(curSpellInfo->GetSchoolMask(), uint32(std::max(0, duration)));
+                 }
+@@ -4437,8 +4497,9 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
+                             Aura* mos = unitTarget->GetAura(31665);
+                             if (mos)
+                             {
+-                                mos->SetMaxDuration(6000);
+-                                mos->SetDuration(6000, true);
++                                int32 duration = AscensionFreePick::Applies(unitTarget->ToPlayer()) ? 10000 : 6000;
++                                mos->SetMaxDuration(duration);
++                                mos->SetDuration(duration, true);
+                             }
+ 
+                             break;
+diff --git a/src/server/game/Spells/SpellInfo.cpp b/src/server/game/Spells/SpellInfo.cpp
+index 2a19024..11fec64 100644
+--- a/src/server/game/Spells/SpellInfo.cpp
++++ b/src/server/game/Spells/SpellInfo.cpp
+@@ -1520,6 +1520,16 @@ bool SpellInfo::IsAffectedBySpellMod(SpellModifier const* mod) const
+     if (mod->targetSpellId && mod->targetSpellId != Id)
+         return false;
+ 
++    bool const camouflage = mod->spellId == 13975 || mod->spellId == 14062 ||
++        mod->spellId == 14063 || mod->spellId == 975907;
++    uint32 const camouflageRoot = camouflage ? sSpellMgr->GetFirstSpellInChain(Id) : 0;
++    bool const camouflageProwl = camouflageRoot == 5215 || camouflageRoot == 6783 || camouflageRoot == 9913;
++    if (camouflage && mod->op == SPELLMOD_EFFECT2)
++        return AscensionFreePick::Enabled() && camouflageProwl;
++    if (camouflage && mod->op == SPELLMOD_COOLDOWN && AscensionFreePick::Enabled() &&
++        camouflageProwl)
++        return true;
++
+     if (AscensionFreePick::Enabled())
+     {
+         if (mod->spellId == 965983 && mod->op == SPELLMOD_CRITICAL_CHANCE)
+diff --git a/src/server/game/Spells/SpellInfoCorrections.cpp b/src/server/game/Spells/SpellInfoCorrections.cpp
+index 978adec..0db7c45 100644
+--- a/src/server/game/Spells/SpellInfoCorrections.cpp
++++ b/src/server/game/Spells/SpellInfoCorrections.cpp
+@@ -700,6 +700,30 @@ void SpellMgr::LoadSpellInfoCorrections()
+         spellInfo->Speed = 0.0f;
+     });
+ 
++    ApplySpellFix({ 34490 }, [](SpellInfo* spellInfo)
++    {
++        if (spellInfo->Effects[EFFECT_0].Effect != SPELL_EFFECT_WEAPON_DAMAGE ||
++            spellInfo->Effects[EFFECT_1].TriggerSpell != 834491)
++            return;
++        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_WEAPON_PERCENT_DAMAGE;
++        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_INTERRUPT_CAST;
++        spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
++        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ENEMY);
++        spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_TRIGGER_SPELL;
++        spellInfo->Effects[EFFECT_2].TriggerSpell = 834491;
++        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ENEMY);
++        spellInfo->AttributesEx3 |= SPELL_ATTR3_ALWAYS_HIT | SPELL_ATTR3_SUPPRESS_CASTER_PROCS;
++        spellInfo->AttributesEx4 |= SPELL_ATTR4_SUPPRESS_WEAPON_PROCS;
++    });
++
++    ApplySpellFix({ 834491 }, [](SpellInfo* spellInfo)
++    {
++        if (spellInfo->Effects[EFFECT_0].ApplyAuraName != SPELL_AURA_MOD_SILENCE)
++            return;
++        spellInfo->AttributesEx3 |= SPELL_ATTR3_ALWAYS_HIT | SPELL_ATTR3_SUPPRESS_CASTER_PROCS;
++        spellInfo->AttributesEx4 |= SPELL_ATTR4_SUPPRESS_WEAPON_PROCS;
++    });
++
+     // Monstrous Bite
+     ApplySpellFix({ 54680, 55495, 55496, 55497, 55498, 55499 }, [](SpellInfo* spellInfo)
+     {
+@@ -1389,9 +1413,68 @@ void SpellMgr::LoadSpellInfoCorrections()
+         spellInfo->TargetCreatureType = 0;
+     });
+ 
++    ApplySpellFix({ 53220 }, [](SpellInfo* spellInfo)
++    {
++        if (spellInfo->Effects[EFFECT_0].SpellClassMask == flag96(137216, 0, 1))
++        {
++            spellInfo->ProcCharges = 1;
++            spellInfo->Effects[EFFECT_1].SpellClassMask = spellInfo->Effects[EFFECT_0].SpellClassMask;
++            spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
++            spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
++            spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
++            spellInfo->Effects[EFFECT_2].MiscValue = SPELLMOD_IGNORE_ARMOR;
++            spellInfo->Effects[EFFECT_2].BasePoints = -1;
++            spellInfo->Effects[EFFECT_2].DieSides = 1;
++            spellInfo->Effects[EFFECT_2].SpellClassMask = spellInfo->Effects[EFFECT_0].SpellClassMask;
++        }
++    });
++
++    ApplySpellFix({ 31224 }, [](SpellInfo* spellInfo)
++    {
++        if (spellInfo->Effects[EFFECT_2].ApplyAuraName == SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN &&
++            spellInfo->Effects[EFFECT_2].BasePoints == -1 && spellInfo->Effects[EFFECT_2].DieSides == 1)
++        {
++            spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MECHANIC_IMMUNITY_MASK;
++            spellInfo->Effects[EFFECT_2].MiscValue = 65;
++        }
++    });
++
++    ApplySpellFix({ 49048 }, [](SpellInfo* spellInfo)
++    {
++        if (spellInfo->Effects[EFFECT_0].Effect == SPELL_EFFECT_NORMALIZED_WEAPON_DMG &&
++            spellInfo->Effects[EFFECT_1].Effect == SPELL_EFFECT_APPLY_AURA &&
++            spellInfo->Effects[EFFECT_1].ApplyAuraName == 0)
++            spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_WEAPON_PERCENT_DAMAGE;
++    });
++
++    ApplySpellFix({ 965202 }, [](SpellInfo* spellInfo)
++    {
++        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
++        spellInfo->Effects[EFFECT_0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
++        spellInfo->Effects[EFFECT_0].TargetB = SpellImplicitTargetInfo(0);
++        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_RANGED_HASTE;
++        spellInfo->Effects[EFFECT_0].BasePoints = 32;
++        spellInfo->Effects[EFFECT_0].DieSides = 1;
++    });
++
++    ApplySpellFix({ 13975, 14062, 14063, 975907 }, [](SpellInfo* spellInfo)
++    {
++        SpellEffIndex const index = spellInfo->Id == 975907 ? EFFECT_1 : EFFECT_2;
++        spellInfo->Effects[index].Effect = SPELL_EFFECT_APPLY_AURA;
++        spellInfo->Effects[index].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
++        spellInfo->Effects[index].ApplyAuraName = SPELL_AURA_ADD_FLAT_MODIFIER;
++        spellInfo->Effects[index].MiscValue = SPELLMOD_EFFECT2;
++        spellInfo->Effects[index].BasePoints = spellInfo->Effects[EFFECT_0].BasePoints;
++        spellInfo->Effects[index].DieSides = spellInfo->Effects[EFFECT_0].DieSides;
++        spellInfo->Effects[index].SpellClassMask = flag96(16384, 0, 0);
++    });
++
+     // Aspect of the Viper
+     ApplySpellFix({ 34074 }, [](SpellInfo* spellInfo)
+     {
++        if (spellInfo->Effects[EFFECT_2].IsAura(SPELL_AURA_MOD_HEALING_DONE_PERCENT))
++            return;
++
+         spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+         spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(1);
+         spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_DUMMY;
+@@ -4044,6 +4127,18 @@ void SpellMgr::LoadSpellInfoCorrections()
+     {
+         spellInfo->Effects[EFFECT_0].SpellClassMask[0] |= 0x00004000;
+         spellInfo->Effects[EFFECT_1].Effect = 0;
++        uint32 const rank = spellInfo->Id == 19485 ? 1 : spellInfo->Id == 19487 ? 2 : spellInfo->Id == 19488 ? 3 : 0;
++        int32 const criticalBonus = rank == 3 ? 20 : int32(rank * 7);
++        if (rank && spellInfo->Effects[EFFECT_0].CalcValue() == criticalBonus)
++        {
++            spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
++            spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
++            spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_FLAT_MODIFIER;
++            spellInfo->Effects[EFFECT_1].MiscValue = SPELLMOD_DURATION;
++            spellInfo->Effects[EFFECT_1].BasePoints = int32(rank * IN_MILLISECONDS) - 1;
++            spellInfo->Effects[EFFECT_1].DieSides = 1;
++            spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(131072, 0, 0);
++        }
+     });
+ 
+     // Item - Death Knight T9 Melee 4P Bonus
+diff --git a/src/server/game/Spells/SpellMgr.cpp b/src/server/game/Spells/SpellMgr.cpp
+index a8b7b03..4b36cef 100644
+--- a/src/server/game/Spells/SpellMgr.cpp
++++ b/src/server/game/Spells/SpellMgr.cpp
+@@ -340,6 +340,10 @@ int32 GetDiminishingReturnsLimitDuration(DiminishingGroup group, SpellInfo const
+     if (AscensionFreePick::Enabled() && spellproto->Id == 954507)
+         return 6 * IN_MILLISECONDS;
+ 
++    if (AscensionFreePick::Enabled() && spellproto->SpellFamilyName == SPELLFAMILY_HUNTER &&
++        (spellproto->Id == 3355 || spellproto->Id == 14308 || spellproto->Id == 14309))
++        return 6 * IN_MILLISECONDS;
++
+     // Stone Grip's active tooltip specifies eight seconds against players, before diminishing returns.
+     if (spellproto->SpellFamilyName == 37 && spellproto->Id == 800145)
+         return 8 * IN_MILLISECONDS;
+diff --git a/src/server/scripts/Spells/spell_hunter.cpp b/src/server/scripts/Spells/spell_hunter.cpp
+index 05960ec..44145f5 100644
+--- a/src/server/scripts/Spells/spell_hunter.cpp
++++ b/src/server/scripts/Spells/spell_hunter.cpp
+@@ -20,6 +20,7 @@
+ #include "CellImpl.h"
+ #include "GridNotifiers.h"
+ #include "Pet.h"
++#include "Spell.h"
+ #include "SpellAuraEffects.h"
+ #include "SpellAuras.h"
+ #include "SpellMgr.h"
+@@ -436,6 +437,8 @@ class spell_hun_ascpect_of_the_viper : public AuraScript
+     void OnApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+     {
+         // Hunter T7 4P Bonus
++        if (AscensionFreePick::Applies(GetTarget()->ToPlayer()))
++            GetTarget()->RemoveAurasDueToSpell(701463);
+         if (GetTarget()->HasAura(SPELL_HUNTER_VIPER_ATTACK_SPEED))
+             GetTarget()->CastSpell(GetTarget(), SPELL_HUNTER_VICIOUS_VIPER, true, nullptr, aurEff);
+     }
+@@ -450,7 +453,12 @@ class spell_hun_ascpect_of_the_viper : public AuraScript
+     void Register() override
+     {
+         DoCheckProc += AuraCheckProcFn(spell_hun_ascpect_of_the_viper::CheckProc);
+-        OnEffectProc += AuraEffectProcFn(spell_hun_ascpect_of_the_viper::HandleProc, EFFECT_2, SPELL_AURA_DUMMY);
++        AuraType const procAura = sSpellMgr->AssertSpellInfo(m_scriptSpellId)->Effects[EFFECT_2].ApplyAuraName;
++        if (procAura == SPELL_AURA_MOD_HEALING_DONE_PERCENT)
++            OnEffectProc += AuraEffectProcFn(spell_hun_ascpect_of_the_viper::HandleProc,
++                EFFECT_2, SPELL_AURA_MOD_HEALING_DONE_PERCENT);
++        else
++            OnEffectProc += AuraEffectProcFn(spell_hun_ascpect_of_the_viper::HandleProc, EFFECT_2, SPELL_AURA_DUMMY);
+         AfterEffectApply += AuraEffectApplyFn(spell_hun_ascpect_of_the_viper::OnApply, EFFECT_0, SPELL_AURA_OBS_MOD_POWER, AURA_EFFECT_HANDLE_REAL);
+         AfterEffectRemove += AuraEffectRemoveFn(spell_hun_ascpect_of_the_viper::OnRemove, EFFECT_0, SPELL_AURA_OBS_MOD_POWER, AURA_EFFECT_HANDLE_REAL);
+     }
+@@ -1628,6 +1636,54 @@ class spell_hun_rapid_recuperation_trigger : public AuraScript
+     }
+ };
+ 
++class spell_hun_area52_improved_steady_shot : public AuraScript
++{
++    PrepareAuraScript(spell_hun_area52_improved_steady_shot);
++
++    enum Spells : uint32
++    {
++        SteadyShot = 56641,
++        Capstone = 53224,
++        Empowerment = 53220
++    };
++
++    bool Load() override
++    {
++        return AscensionFreePick::Applies(GetUnitOwner()->ToPlayer());
++    }
++
++    bool Validate(SpellInfo const*) override
++    {
++        return ValidateSpellInfo({Empowerment});
++    }
++
++    bool CheckProc(ProcEventInfo& event)
++    {
++        Player* player = GetTarget()->ToPlayer();
++        SpellInfo const* spell = event.GetSpellInfo();
++        return player && event.GetActor() == player && spell && event.GetDamageInfo() &&
++            event.GetDamageInfo()->GetDamage() &&
++            !(event.GetTypeMask() & (PROC_FLAG_DONE_PERIODIC | PROC_FLAG_TAKEN_PERIODIC)) &&
++            player->MatchesSpellInteraction(spell->Id, SteadyShot);
++    }
++
++    void HandleProc(AuraEffect const* effect, ProcEventInfo& event)
++    {
++        PreventDefaultAction();
++        int32 armor = GetId() == Capstone && event.GetProcSpell() &&
++            event.GetProcSpell()->WasStationaryDuringCast() ? -30 : 0;
++        GetTarget()->CastCustomSpell(Empowerment, SPELLVALUE_BASE_POINT2, armor,
++            GetTarget(), true, nullptr, effect);
++    }
++
++    void Register() override
++    {
++        DoCheckProc += AuraCheckProcFn(spell_hun_area52_improved_steady_shot::CheckProc);
++        OnEffectProc += AuraEffectProcFn(spell_hun_area52_improved_steady_shot::HandleProc,
++            EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
++    }
++};
++
+ // -53234 - Piercing Shots
+ class spell_hun_piercing_shots : public AuraScript
+ {
+@@ -1700,6 +1756,34 @@ class spell_hun_t9_4p_bonus : public AuraScript
+     }
+ };
+ 
++class spell_hun_area52_expose_weakness : public AuraScript
++{
++    PrepareAuraScript(spell_hun_area52_expose_weakness);
++
++    bool Load() override
++    {
++        return AscensionFreePick::Applies(GetUnitOwner()->ToPlayer());
++    }
++
++    bool CheckProc(ProcEventInfo& event)
++    {
++        Player* player = GetTarget()->ToPlayer();
++        SpellInfo const* spell = event.GetSpellInfo();
++        if (!player || event.GetActor() != player || !spell ||
++            !(event.GetHitMask() & PROC_HIT_CRITICAL) ||
++            (event.GetTypeMask() & (PROC_FLAG_DONE_PERIODIC | PROC_FLAG_TAKEN_PERIODIC)))
++            return false;
++        return (event.GetTypeMask() & PROC_FLAG_DONE_SPELL_RANGED_DMG_CLASS) ||
++            player->MatchesSpellInteraction(spell->Id, 1495) ||
++            player->MatchesSpellInteraction(spell->Id, 19306);
++    }
++
++    void Register() override
++    {
++        DoCheckProc += AuraCheckProcFn(spell_hun_area52_expose_weakness::CheckProc);
++    }
++};
++
+ void AddSC_hunter_spell_scripts()
+ {
+     RegisterSpellScript(spell_hun_check_pet_los);
+@@ -1741,6 +1825,8 @@ void AddSC_hunter_spell_scripts()
+     RegisterSpellScript(spell_hun_rapid_recuperation);
+     RegisterSpellScript(spell_hun_kill_command);
+     RegisterSpellScript(spell_hun_kill_command_pet);
++    RegisterSpellScript(spell_hun_area52_improved_steady_shot);
++    RegisterSpellScript(spell_hun_area52_expose_weakness);
+     RegisterSpellScript(spell_hun_piercing_shots);
+     RegisterSpellScript(spell_hun_rapid_recuperation_trigger);
+     RegisterSpellScript(spell_hun_t9_4p_bonus);
+diff --git a/src/server/scripts/Spells/spell_rogue.cpp b/src/server/scripts/Spells/spell_rogue.cpp
+index c24e90b..5bdf7c1 100644
+--- a/src/server/scripts/Spells/spell_rogue.cpp
++++ b/src/server/scripts/Spells/spell_rogue.cpp
+@@ -47,6 +47,7 @@ enum RogueSpells
+     SPELL_ROGUE_TRICKS_OF_THE_TRADE_PROC        = 59628,
+     // Proc system spells
+     SPELL_ROGUE_MASTER_OF_SUBTLETY_DAMAGE       = 31665,
++    SPELL_ROGUE_DEADLY_BREW_R1                  = 51625,
+     SPELL_ROGUE_DEADLY_BREW_POISON              = 3409,
+     SPELL_ROGUE_QUICK_RECOVERY_ENERGY           = 31663,
+     SPELL_ROGUE_TURN_THE_TABLES_R1              = 52910,
+@@ -485,10 +486,17 @@ class spell_rog_preparation : public SpellScript
+         for (PlayerSpellMap::const_iterator itr = spellMap.begin(); itr != spellMap.end(); ++itr)
+         {
+             SpellInfo const* spellInfo = sSpellMgr->AssertSpellInfo(itr->first);
+-            if (spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE)
++            bool const area52 = AscensionFreePick::Applies(caster);
++            bool const area52Reset = area52 &&
++                (caster->MatchesSpellInteraction(spellInfo->Id, 5277) ||
++                    caster->MatchesSpellInteraction(spellInfo->Id, 1856) ||
++                    caster->MatchesSpellInteraction(spellInfo->Id, 14177) ||
++                    caster->MatchesSpellInteraction(spellInfo->Id, 36554));
++            if (area52Reset || spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE)
+             {
+-                if (spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_COLDB_SHADOWSTEP ||      // Cold Blood, Shadowstep
+-                        spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_VAN_EVAS_SPRINT)           // Vanish, Evasion, Sprint
++                if (area52 ? area52Reset :
++                    (spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_COLDB_SHADOWSTEP ||      // Cold Blood, Shadowstep
++                        spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_VAN_EVAS_SPRINT))           // Vanish, Evasion, Sprint
+                 {
+                     SpellCooldowns::iterator citr = caster->GetSpellCooldownMap().find(spellInfo->Id);
+                     if (citr != caster->GetSpellCooldownMap().end() && citr->second.needSendToClient)
+@@ -922,16 +930,31 @@ class spell_rog_deadly_brew : public AuraScript
+         return ValidateSpellInfo({ SPELL_ROGUE_DEADLY_BREW_POISON });
+     }
+ 
++    bool CheckProc(ProcEventInfo& eventInfo)
++    {
++        Player* player = GetTarget()->ToPlayer();
++        if (!player || !AscensionFreePick::Applies(player))
++            return true;
++        Unit* target = eventInfo.GetActionTarget();
++        return target && player->IsWithinDistInMap(target, 20.0f)
++            && !player->HasSpellCooldown(SPELL_ROGUE_DEADLY_BREW_R1);
++    }
++
+     void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+     {
+         PreventDefaultAction();
+         Unit* target = eventInfo.GetActionTarget();
+         if (target)
++        {
+             GetTarget()->CastSpell(target, SPELL_ROGUE_DEADLY_BREW_POISON, true, nullptr, aurEff);
++            if (Player* player = GetTarget()->ToPlayer(); player && AscensionFreePick::Applies(player))
++                player->AddSpellCooldown(SPELL_ROGUE_DEADLY_BREW_R1, 0, 4000);
++        }
+     }
+ 
+     void Register() override
+     {
++        DoCheckProc += AuraCheckProcFn(spell_rog_deadly_brew::CheckProc);
+         OnEffectProc += AuraEffectProcFn(spell_rog_deadly_brew::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+     }
+ };
