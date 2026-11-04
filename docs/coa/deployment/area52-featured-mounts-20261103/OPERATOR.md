@@ -1,0 +1,11 @@
+# Featured mounts correction — owner activation package
+
+Prepared scope: all344 Vanity flying-labelled mounts eligible for flying reward selection; dual-purpose mounts retain ground eligibility; remove1595 mount item level gates while preserving riding and other required skills/spells. Mystic Knight keeps Mystic Runesaber (99482) as ground reward and changes flying reward to Archmage's Prismatic Disc: Arcane (155655). Featured mail levels20/60 remain unchanged.
+
+The guarded maintenance edit changes only the current Mystic Knight revision's Vanity metadata. Revision and build IDs are retained to preserve existing Draft eligibility; original wire is backed up and rollback rejects later edits. No player spell, collection, mail or certification records are changed. World item updates, build metadata and cache18-to19 commit atomically. The normal login protocol refreshes client item caches. Five mounts' flight mechanics remain outside this selection/level correction; their existing flying labels are honored without changing movement behavior.
+
+Activation requires Administrator PowerShell, Ascension closed, and explicit owner action. Uses existing tools/deployment/Activate-Area52.ps1 and package/package.json. It will announce/restart the realm, apply guarded SQL/source/client/worker updates and then publish scoped source artifacts, launcher client assets/feed and Discord patch notes. Preparation and CheckOnly do none of those operations. Extensions.dll is excluded.
+
+The catalog worker remains paused until integrated publication succeeds; preserve its pending jobs and use reviewed ResumePublish after a publication-only failure. Do not rerun activation for publication recovery. No old deployment is modified. Current source/client/SQL/catalog/price drift blocks rather than discarding newer work. The previous stable Vanity Bazaar package is preserved separately.
+
+Publication includes the newer public ItemSet, creation-details and Vanity catalogs that were ahead of the local client. Only the editor Lua and the requested Mystic Knight Vanity reward differ from that public archive. Approved client inventory and Certified labels remain intact. The worker's curated archive, reward classification input and baseline advance together; no immediate duplicate catalog publication should occur.

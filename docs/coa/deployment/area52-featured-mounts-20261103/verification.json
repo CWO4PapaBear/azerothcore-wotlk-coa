@@ -1,0 +1,10 @@
+{
+  "server_sha256": "8b73546183d7b17b9831920edb0c1cc8621484004692a8a98a7471b273ea30e9",
+  "flying_labels": 344,
+  "mount_items": 1727,
+  "level_updates": 1595,
+  "dll_changed": false,
+  "build": "build-package-r2",
+  "offline_report_sha256": "58a173a8c31beb08d459fccb4f28e79253f96d2ab5badcb12e986fd661f6e9e7",
+  "scope": "Offline native/Lua/worker/production-schema SQL; no gameplay certification"
+}

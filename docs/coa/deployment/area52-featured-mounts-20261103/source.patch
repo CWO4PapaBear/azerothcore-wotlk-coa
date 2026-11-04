@@ -1,0 +1,1851 @@
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261103_mount_cache.sql
+@@ -0,0 +1 @@
++UPDATE `version` SET `cache_id` = 19 WHERE `cache_id` = 18;
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261103_mount_item_levels.sql
+@@ -0,0 +1,1595 @@
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1041 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1132 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1133 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1134 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 2411 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 2413 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 2414 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 2415 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 5655 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 5656 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 5663 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 5665 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 5668 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 5864 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 5872 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 5873 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 5874 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 5875 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8563 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8583 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8586 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8588 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8589 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8590 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8591 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8592 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8595 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8627 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8628 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8629 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8630 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8631 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8632 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8633 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 10732 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 10733 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 10734 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 12145 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 12146 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 12147 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 12302 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 12303 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 12325 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 12326 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 12327 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 12330 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 12351 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 12353 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 12354 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13086 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13317 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13321 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13322 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13323 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13324 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13325 AND `RequiredLevel` = 30;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13326 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13327 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13328 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13329 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13331 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13332 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13333 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13334 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 13335 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 14062 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 15277 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 15290 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 15292 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 15293 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 16339 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18241 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18242 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18243 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18244 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18245 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18246 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18247 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18248 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18766 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18767 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18768 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18772 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18773 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18774 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18776 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18777 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18778 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18785 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18786 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18787 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18788 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18789 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18790 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18791 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18793 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18794 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18795 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18796 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18797 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18798 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 18902 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 19029 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 19030 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 19872 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 19902 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 21044 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 21176 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 21218 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 21321 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 21323 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 21324 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 23193 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 23720 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 25470 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 25471 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 25472 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 25473 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 25474 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 25475 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 25476 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 25477 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 25527 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 25528 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 25529 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 25531 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 25532 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 25533 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 25596 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 28481 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 28482 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 28915 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 28927 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 28936 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29102 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29103 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29104 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29105 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29220 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29221 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29222 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29223 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29224 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29225 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29227 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29228 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29229 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29230 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29231 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29465 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29466 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29467 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29468 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29469 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29470 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29471 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29472 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29743 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29744 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29745 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29746 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 29747 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 30480 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 30609 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 31829 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 31830 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 31831 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 31832 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 31833 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 31834 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 31835 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 31836 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 32314 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 32316 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 32317 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 32318 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 32319 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 32458 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 32768 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 32857 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 32858 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 32859 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 32860 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 32861 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 32862 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 33176 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 33182 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 33183 AND `RequiredLevel` = 10;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 33184 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 33189 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 33224 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 33225 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 33809 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 33976 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 33977 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 33999 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 34060 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 34061 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 34092 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 34129 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 35225 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 35226 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 35513 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 35906 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 37011 AND `RequiredLevel` = 10;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 37012 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 37598 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 37676 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 37719 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 37827 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 37828 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 38265 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 40775 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 40777 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 41508 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 43516 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 43599 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 43951 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 43952 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 43953 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 43954 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 43955 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 43956 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 43958 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 43959 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 43961 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 43962 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 43963 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 43964 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 43986 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44077 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44080 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44083 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44086 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44151 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44160 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44164 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44168 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44175 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44177 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44178 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44221 AND `RequiredLevel` = 77;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44223 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44224 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44225 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44226 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44229 AND `RequiredLevel` = 77;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44230 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44231 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44234 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44235 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44413 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44554 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44555 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44556 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44558 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44689 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44690 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44707 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44842 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 44843 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 45125 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 45586 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 45589 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 45590 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 45591 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 45592 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 45593 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 45595 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 45596 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 45597 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 45693 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 45725 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 45801 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 45802 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46099 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46100 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46102 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46109 AND `RequiredLevel` = 58;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46171 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46308 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46708 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46743 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46744 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46745 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46746 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46747 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46748 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46749 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46750 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46751 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46752 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46755 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46756 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46757 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46758 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46759 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46760 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46761 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46762 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46763 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46764 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46778 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46813 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46814 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46815 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 46816 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 47100 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 47101 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 47179 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 47180 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 47840 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 49044 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 49046 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 49093 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 49096 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 49098 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 49282 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 49283 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 49284 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 49285 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 49286 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 49288 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 49289 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 49290 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 49636 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 50250 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 50420 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 50435 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 50818 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 51954 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 51955 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 52200 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 54068 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 54069 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 54797 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 54811 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 54860 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 54862 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 54863 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 54864 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 61355 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 69228 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 71665 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 71718 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 74269 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 79177 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 79239 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 79243 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 79245 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 79247 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 79248 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 85262 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 87801 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 89362 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 89390 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 89391 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 89783 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 91010 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 91013 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 91014 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 91015 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 97321 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 97856 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 97857 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 97907 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 97908 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 97909 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 97910 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 98075 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 98467 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 98468 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 98472 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 98473 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 98476 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 98477 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 98479 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 99477 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 99478 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 99479 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 99480 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 99481 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 99482 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 99483 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 99484 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 99485 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 99489 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 99490 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 99982 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 100140 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 101227 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 101255 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 101256 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 102107 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 102125 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 102126 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 102127 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 102128 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 110411 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 112456 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 116788 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 116789 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 120306 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 120307 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 120308 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 120599 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 121502 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 121503 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 121504 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 121505 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 121815 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 131024 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 131025 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 131026 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 134947 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 155653 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 155654 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 155655 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 157489 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 160592 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 170000 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 170001 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 170002 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 170003 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 170004 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 170005 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 170006 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 170007 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 170008 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 170009 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 173178 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 177567 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 177568 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 181260 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 181261 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 187322 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 187323 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 187324 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 187325 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 190301 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 191541 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 191542 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 191543 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 193373 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 193374 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 193375 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 193376 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 193377 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199156 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199157 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199158 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199159 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199160 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199161 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199658 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199659 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199660 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199661 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199662 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199666 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199667 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199738 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199739 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 199740 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 203079 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 203080 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 203081 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 203082 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 205628 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 205629 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 213209 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 218185 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 218186 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 218187 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 219575 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 223915 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 225859 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 225860 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 225861 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 225862 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 233000 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 233001 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 233002 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 233442 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 233443 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 233444 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 233445 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 236292 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 236293 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 236294 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 236295 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 236296 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 236310 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 236415 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 240140 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 240141 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 240142 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 240143 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 240144 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 240145 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 240146 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 240147 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 240545 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 246192 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 249038 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 250451 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 250452 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 250453 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 250454 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 250455 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 250456 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 250457 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 250458 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 250459 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 250460 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 250461 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 250462 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 254027 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 254028 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 259633 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 259654 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 259965 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 274111 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 274437 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 274438 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 274439 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 274440 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 274441 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 274442 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 278707 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 283039 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 283040 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 283041 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 283042 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 287390 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 287849 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 290291 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 291911 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 291912 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 291913 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 291914 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 291915 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 291938 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 291939 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 291940 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 291941 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 291942 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 291943 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 291944 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 291945 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 291946 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 291947 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 305685 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311698 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311699 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311700 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311701 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311702 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311703 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311704 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311705 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311706 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311707 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311711 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311712 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311713 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311714 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311715 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 311716 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 313692 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 323660 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 323661 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 323662 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 333265 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 333534 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 333535 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 333536 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 333998 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 333999 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 334410 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 334411 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 334412 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 334413 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 334414 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 334415 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 334416 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 335191 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 335192 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 335193 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 338626 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 338696 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 339548 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 343204 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 343205 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 343206 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 343207 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 343208 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 343209 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 343210 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 343211 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 348726 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 348727 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 348728 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 348729 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 348730 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 348731 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 365954 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 366988 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 366989 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 366990 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 366991 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 369008 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 369009 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 369010 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 369011 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 393449 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 398247 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 398248 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 398249 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400013 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400014 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400015 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400016 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400017 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400018 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400019 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400020 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400021 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400022 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400023 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400024 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400025 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400026 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400027 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400028 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400029 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400030 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400031 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400032 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400033 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400034 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400035 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400036 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400037 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400038 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400039 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400040 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400041 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400042 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400043 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400044 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400045 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400046 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400047 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400048 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400049 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400050 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400051 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400052 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400053 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400065 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400066 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400067 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400068 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400069 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400082 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400083 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400124 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400125 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400126 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400127 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400128 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400129 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400130 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400131 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400132 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400133 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400134 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400135 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400136 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400137 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400138 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400139 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400140 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400141 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400142 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400143 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400144 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400145 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400146 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400147 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400148 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400149 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400150 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400151 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400152 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400153 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400166 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400167 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400209 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400210 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400251 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400252 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400253 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400254 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400255 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400256 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400257 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400258 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400259 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400260 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400262 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400263 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400264 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400265 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400266 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400267 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400268 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400269 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400270 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400271 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400272 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400273 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400274 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 400275 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 416601 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 416602 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 420852 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 428234 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 428235 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 428236 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 428545 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 428546 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 439040 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 448724 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 448725 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 448726 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 448727 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 448728 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499181 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499203 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499304 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499307 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499308 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499309 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499363 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499364 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499367 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499378 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499379 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499386 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499387 AND `RequiredLevel` = 60;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499389 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499391 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499475 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499476 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499477 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499478 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499479 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499480 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499481 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499482 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499483 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499484 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499485 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499486 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499487 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499488 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499489 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499490 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499539 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499578 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499579 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499580 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499581 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499582 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499583 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499636 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499638 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499639 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499659 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499660 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499661 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499662 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499663 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499664 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499674 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499675 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499676 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499677 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499678 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499679 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499869 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499870 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499871 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499872 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499873 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499874 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499875 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499876 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499877 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499878 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499879 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499880 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499881 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499882 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499883 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499884 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499885 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499886 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499887 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499891 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499892 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499933 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499937 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499940 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499942 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499943 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499944 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499945 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499984 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499987 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499990 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499995 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 499998 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 500002 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 500005 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 500006 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 500648 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 500649 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 500650 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 500651 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 500652 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 501000 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 509884 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 509902 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 510004 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 510006 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 520006 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 532580 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 532581 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 532582 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 546725 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 546726 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 546727 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 546728 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558600 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558601 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558602 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558603 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558604 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558605 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558606 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558607 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558608 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558609 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558610 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558611 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558612 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558613 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558614 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558615 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558616 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558617 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558618 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558619 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558620 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558621 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558622 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558623 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558624 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558625 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558626 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558627 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558628 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558629 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558630 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558631 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558632 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558633 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558634 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558635 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558636 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558637 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558638 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558639 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558640 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558641 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558642 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558643 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558644 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558645 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558646 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558647 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558648 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558649 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558650 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558651 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558652 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558653 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558654 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558655 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558656 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558657 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558658 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558659 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558660 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558661 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558662 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558663 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558664 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558665 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558666 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558667 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558668 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558669 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558670 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558671 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558672 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558673 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558674 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558675 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558676 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558677 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558678 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558749 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558750 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558751 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558752 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558797 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558798 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558819 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 558822 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559202 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559203 AND `RequiredLevel` = 40;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559205 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559206 AND `RequiredLevel` = 20;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559366 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559367 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559368 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559369 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559370 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559371 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559400 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559401 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559402 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559403 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559404 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559405 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559406 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559411 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559412 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559413 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559414 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559415 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559416 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559417 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559418 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559419 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559420 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559421 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559422 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559423 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559424 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559425 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559426 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559427 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559428 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559429 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559430 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559431 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559432 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559433 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559434 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559435 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559436 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559437 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559438 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559439 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559440 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559441 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559442 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559443 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559444 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559445 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559446 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559447 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559448 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559449 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559450 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559451 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559452 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559453 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559454 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559455 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559456 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559457 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559519 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559520 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559542 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559546 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559547 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559548 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559549 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559550 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559551 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559579 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559580 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559581 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559582 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559583 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559584 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559585 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559589 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559590 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559591 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559592 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559593 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559594 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559595 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559598 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559599 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559774 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559775 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559776 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559777 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559778 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559779 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559780 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559781 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559782 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559783 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559784 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559785 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559786 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559787 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559788 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559789 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559790 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559791 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559792 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559793 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559794 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559795 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559796 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559797 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559798 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559799 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559800 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559801 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559802 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559803 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559804 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559806 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559807 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559808 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559809 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559810 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559811 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559812 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559813 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559814 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559815 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559816 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559817 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559818 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559819 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559820 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559821 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559822 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559823 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559824 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559825 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559826 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559827 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559828 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559829 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559830 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559831 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559832 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559833 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559834 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559835 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559836 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559837 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559838 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559839 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559840 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559841 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559844 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559846 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 559848 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560100 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560200 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560201 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560202 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560203 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560204 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560205 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560206 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560207 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560208 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560209 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560210 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560211 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560212 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560213 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560214 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560215 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560216 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560217 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560218 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560219 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560220 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560221 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560222 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560223 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560224 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560225 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560226 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560227 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560228 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560229 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560230 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560231 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560232 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560233 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560234 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560235 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560236 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560237 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560238 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560239 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560240 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560241 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560242 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560243 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560244 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560245 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560246 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560247 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560248 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560249 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560250 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560251 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560252 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560253 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560254 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560255 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560256 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560257 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560258 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560259 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560260 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560261 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560262 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560263 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560264 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560265 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560266 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560267 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560268 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560269 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560270 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560271 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560272 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560273 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560274 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560275 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560276 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560277 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560278 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560279 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560280 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560281 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560282 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560283 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560284 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560285 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560286 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560287 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560288 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560289 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560290 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560291 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560292 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560293 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560294 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560295 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560296 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560297 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560298 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560299 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560300 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560301 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560302 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560303 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560304 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560305 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560306 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560307 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560308 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560309 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560310 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560311 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560312 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560313 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560314 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560315 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560316 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560317 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560318 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560319 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560320 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560321 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560322 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560323 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560324 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560325 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560326 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560327 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560328 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560329 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560330 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560331 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560332 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560333 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 560334 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 597601 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 603200 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 612826 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 612827 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 612828 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 612829 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 612830 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 612831 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 612832 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 612833 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 612849 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 612892 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 623923 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 699636 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 699637 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 699638 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 699639 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 699640 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 775001 AND `RequiredLevel` = 28;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 815142 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 815143 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 815144 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 815145 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 820031 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 829139 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 829140 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 829141 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 829142 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 829143 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 900185 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 900186 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 900917 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 933183 AND `RequiredLevel` = 10;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 933184 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 978310 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 978311 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 978312 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 978313 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 978314 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 978315 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 978316 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 978317 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 987412 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001619 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001620 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001621 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001622 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001627 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001628 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001629 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001630 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001680 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001681 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001682 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001683 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001684 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001690 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001846 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001847 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001848 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001849 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1001850 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1002011 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1002012 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1002013 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1002014 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1100449 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1175625 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1175634 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1175635 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1179132 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1179147 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1179148 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1179149 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1179150 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1179151 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1179152 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1179173 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1179174 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1179176 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1179177 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1179180 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1179183 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1233809 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235071 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235072 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235073 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235074 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235075 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235076 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235077 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235078 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235079 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235080 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235081 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235082 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235083 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235084 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235085 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235086 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235087 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235088 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235089 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235090 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235091 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235092 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235093 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235094 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235095 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235096 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235097 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235098 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235099 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235100 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235101 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235102 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235103 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235104 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235105 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235106 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235107 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235108 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235109 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235110 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235111 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235112 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235113 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1235114 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1284998 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1284999 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1285000 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1285001 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1285002 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1285003 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1285004 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1333809 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1433809 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1500000 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1533809 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1633809 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1733809 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777035 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777038 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777039 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777040 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777041 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777060 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777068 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777069 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777071 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777077 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777078 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777317 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777318 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777319 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777320 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777321 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777322 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777323 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777324 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777325 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777326 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777327 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777328 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777329 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777330 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777331 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777332 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777333 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777334 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777335 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777336 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777338 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777339 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777340 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777341 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777342 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777360 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777361 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777362 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777363 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777364 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777365 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777366 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777367 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777368 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777369 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777370 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777371 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777372 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777373 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777374 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777375 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777376 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777377 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777413 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777414 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777415 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777416 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777417 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777429 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777430 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777431 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777432 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777433 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777434 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777435 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777436 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777437 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777438 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777439 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777440 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1777441 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1804703 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1833809 AND `RequiredLevel` = 70;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 1877071 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199945 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199946 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199947 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199948 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199949 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199950 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199951 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199952 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199953 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199954 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199955 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199956 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199957 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199958 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199959 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199960 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199961 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199962 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199963 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199964 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199965 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199966 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199967 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199968 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199969 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199970 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199971 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199972 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199973 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199974 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199975 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199976 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199977 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199978 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199979 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199980 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199981 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199982 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199983 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199984 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199985 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199986 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199987 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199988 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199989 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199990 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199991 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199992 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199993 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199994 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199995 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199996 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199997 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199998 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8199999 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200000 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200001 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200002 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200003 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200004 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200005 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200006 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200007 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200008 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200018 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200019 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200026 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200027 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200028 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200029 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200030 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200031 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200032 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200038 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200039 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200040 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200041 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200043 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200044 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200045 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200046 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200047 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200048 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200049 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200050 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200051 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200052 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200053 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200054 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200055 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200056 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200057 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200058 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200059 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200060 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200061 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200062 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200067 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200068 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200069 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200070 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200071 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200072 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200073 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200074 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200075 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200076 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200077 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200080 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200081 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200082 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200083 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200084 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200085 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200086 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200087 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200094 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200095 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200096 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200097 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200098 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200099 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200100 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200112 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200113 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200114 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200115 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200116 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200117 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200126 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200127 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200128 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200129 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200130 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200177 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200178 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200179 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200180 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200181 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200182 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200183 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200185 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200186 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200188 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200204 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200205 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200211 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200212 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200213 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200214 AND `RequiredLevel` = 1;
++UPDATE `item_template` SET `RequiredLevel` = 0 WHERE `entry` = 8200215 AND `RequiredLevel` = 1;
+--- /dev/null
++++ b/src/server/coa/Area52FeaturedFlyingMounts.h
+@@ -0,0 +1,201 @@
++#ifndef AREA52_FEATURED_FLYING_MOUNTS_H
++#define AREA52_FEATURED_FLYING_MOUNTS_H
++
++#include <array>
++#include <cstdint>
++
++namespace Area52Build
++{
++inline constexpr std::array<std::uint32_t, 344> FeaturedVanityFlyingItems{{
++    10732, 10733, 10734, 30609, 32314, 32316, 32317, 32318, 32319, 32458,
++    32857, 32858, 32859, 32860, 32861, 32862, 33999, 34060, 34061, 34092,
++    37012, 37676, 43516, 44177, 44178, 44554, 44842, 44843, 49636, 50250,
++    54811, 97321, 98473, 99478, 99481, 99482, 99484, 99485, 99982, 100140,
++    101227, 102107, 120599, 155655, 170002, 173178, 181260, 181261, 187322, 187323,
++    187324, 187325, 190197, 196728, 199667, 203079, 203080, 203081, 203082, 205629,
++    236415, 246192, 252676, 252677, 252678, 252679, 254028, 274437, 274438, 274440,
++    274441, 274442, 283039, 283040, 283041, 287849, 291912, 291913, 291914, 291915,
++    291938, 291939, 291940, 291941, 291942, 291946, 305685, 311704, 333534, 333536,
++    334410, 334411, 334412, 334413, 334414, 334415, 334416, 343204, 343205, 343206,
++    343207, 343208, 343209, 343210, 343211, 348731, 350183, 350185, 350186, 393445,
++    393449, 393450, 398247, 398248, 398249, 400016, 400017, 400018, 400020, 400021,
++    400022, 400023, 400032, 400033, 400034, 400040, 400044, 400046, 400047, 400051,
++    400066, 400067, 400068, 400130, 400131, 400256, 400257, 400563, 420852, 428545,
++    428546, 448726, 499203, 499304, 499308, 499309, 499363, 499364, 499367, 499378,
++    499379, 499386, 499387, 499389, 499391, 499424, 499425, 499426, 499438, 499583,
++    499636, 499638, 499664, 499870, 499871, 499872, 499879, 499933, 499942, 499990,
++    500002, 500005, 500006, 510004, 510006, 546725, 546726, 546728, 558600, 558611,
++    558612, 558613, 558614, 558615, 558616, 558617, 558618, 558619, 558624, 558625,
++    558626, 558627, 558628, 558629, 558630, 558631, 558632, 558633, 558634, 558638,
++    558639, 558640, 558652, 558653, 558654, 558655, 558656, 558657, 558658, 558749,
++    558750, 558751, 558752, 558797, 558798, 559421, 559422, 559423, 559424, 559427,
++    559428, 559429, 559432, 559433, 559434, 559435, 559436, 559437, 559438, 559439,
++    559440, 559441, 559442, 559443, 559444, 559445, 559446, 559447, 559448, 559453,
++    559454, 559455, 559456, 559457, 559519, 559520, 559585, 559589, 559590, 559591,
++    559592, 559593, 559594, 559595, 559599, 559848, 612830, 612831, 612892, 623923,
++    699639, 815143, 815145, 820031, 829140, 829141, 829142, 829143, 978310, 978311,
++    978312, 978313, 978314, 978315, 978317, 1001619, 1001620, 1001621, 1001622, 1001627,
++    1001628, 1001629, 1001630, 1175625, 1179132, 1179133, 1179134, 1179164, 1179209, 1179210,
++    1179212, 1777060, 1777077, 1777338, 1777360, 1777361, 1777362, 1777413, 1777414, 1777415,
++    1777416, 8199945, 8199979, 8199980, 8199981, 8199982, 8199983, 8200000, 8200001, 8200002,
++    8200004, 8200005, 8200006, 8200008, 8200028, 8200038, 8200043, 8200044, 8200045, 8200046,
++    8200047, 8200048, 8200049, 8200051, 8200052, 8200053, 8200055, 8200056, 8200057, 8200080,
++    8200081, 8200082, 8200096, 8200097, 8200098, 8200100, 8200112, 8200113, 8200114, 8200116,
++    8200183, 8200204, 8200205, 8200215,
++}};
++inline constexpr std::array<std::uint32_t, 1516> FeaturedVanityGroundItems{{
++    1041, 1132, 1133, 1134, 2411, 2413, 2414, 2415, 5655, 5656,
++    5663, 5665, 5668, 5864, 5872, 5873, 5874, 5875, 8563, 8583,
++    8586, 8588, 8589, 8590, 8591, 8592, 8595, 8627, 8628, 8629,
++    8630, 8631, 8632, 8633, 12145, 12146, 12147, 12302, 12303, 12325,
++    12326, 12327, 12330, 12351, 12353, 12354, 13086, 13317, 13321, 13322,
++    13323, 13324, 13325, 13326, 13327, 13328, 13329, 13331, 13332, 13333,
++    13334, 13335, 14062, 15277, 15290, 15292, 15293, 16339, 18241, 18242,
++    18243, 18244, 18245, 18246, 18247, 18248, 18766, 18767, 18768, 18772,
++    18773, 18774, 18776, 18777, 18778, 18785, 18786, 18787, 18788, 18789,
++    18790, 18791, 18793, 18794, 18795, 18796, 18797, 18798, 18902, 19029,
++    19030, 19872, 19902, 21044, 21176, 21218, 21321, 21323, 21324, 23193,
++    23720, 25470, 25471, 25472, 25473, 25474, 25475, 25476, 25477, 25527,
++    25528, 25529, 25531, 25532, 25533, 28481, 28482, 28915, 28927, 28936,
++    29102, 29103, 29104, 29105, 29220, 29221, 29222, 29223, 29224, 29225,
++    29227, 29228, 29229, 29230, 29231, 29465, 29466, 29467, 29468, 29469,
++    29470, 29471, 29472, 29743, 29744, 29745, 29746, 29747, 30480, 30609,
++    31829, 31830, 31831, 31832, 31833, 31834, 31835, 31836, 32314, 32316,
++    32317, 32318, 32319, 32458, 32768, 32857, 32858, 32859, 32860, 32861,
++    32862, 33183, 33189, 33224, 33225, 33809, 33976, 33977, 33999, 34060,
++    34061, 34092, 34129, 35225, 35226, 35513, 35906, 37011, 37012, 37598,
++    37676, 37719, 37827, 37828, 38265, 38576, 40775, 40777, 41508, 43516,
++    43599, 43956, 43958, 43959, 43961, 43962, 43963, 43964, 44077, 44080,
++    44083, 44086, 44151, 44177, 44178, 44223, 44224, 44225, 44226, 44230,
++    44231, 44234, 44235, 44413, 44554, 44555, 44556, 44558, 44842, 44843,
++    45125, 45586, 45589, 45590, 45591, 45592, 45593, 45595, 45596, 45597,
++    46099, 46100, 46102, 46109, 46308, 46743, 46744, 46745, 46746, 46747,
++    46748, 46749, 46750, 46751, 46752, 46755, 46756, 46757, 46758, 46759,
++    46760, 46761, 46762, 46763, 46764, 46778, 46815, 46816, 47100, 47101,
++    47179, 47180, 49044, 49046, 49093, 49096, 49098, 49282, 49283, 49284,
++    49285, 49286, 49288, 49289, 49290, 49636, 50250, 50420, 50818, 52200,
++    54068, 54069, 54811, 54860, 54862, 54863, 54864, 61355, 69228, 71665,
++    71718, 74269, 79177, 79239, 79243, 79245, 79247, 79248, 85262, 87801,
++    89362, 89390, 89391, 89783, 91010, 91013, 91014, 91015, 97321, 97389,
++    97390, 97391, 97392, 97856, 97857, 97907, 97908, 97909, 97910, 98075,
++    98467, 98468, 98470, 98471, 98472, 98473, 98475, 98476, 98477, 98479,
++    98480, 98490, 99477, 99478, 99479, 99480, 99481, 99482, 99483, 99484,
++    99485, 99489, 99490, 99982, 100140, 101227, 101255, 101256, 102107, 102125,
++    102126, 102127, 102128, 110411, 112456, 116788, 116789, 120306, 120307, 120308,
++    121502, 121503, 121504, 121505, 121815, 131024, 131025, 131026, 134947, 155653,
++    155654, 155655, 157489, 170000, 170001, 170002, 170003, 170004, 170005, 170006,
++    170007, 170008, 170009, 173178, 177567, 177568, 187322, 187323, 187324, 187325,
++    190301, 191541, 191542, 191543, 192632, 192633, 192634, 192635, 192636, 193373,
++    193374, 193375, 193376, 193377, 193698, 196728, 199156, 199157, 199158, 199159,
++    199160, 199161, 199658, 199659, 199660, 199661, 199662, 199666, 203079, 203080,
++    203081, 203082, 213209, 218185, 218186, 218187, 219575, 225859, 225860, 225861,
++    225862, 233000, 233001, 233002, 233442, 233443, 233444, 233445, 236292, 236293,
++    236294, 236295, 236296, 236310, 236415, 240140, 240141, 240142, 240143, 240144,
++    240145, 240146, 240147, 240545, 246192, 249038, 250451, 250452, 250453, 250454,
++    250455, 250456, 250457, 250458, 250459, 250460, 250461, 250462, 252676, 252677,
++    252678, 252679, 252680, 252681, 254027, 254028, 259633, 259654, 259965, 274111,
++    278707, 287390, 290291, 305685, 313692, 323660, 323661, 323662, 333265, 333998,
++    333999, 334410, 334411, 334412, 334413, 334414, 334415, 334416, 338626, 338696,
++    339548, 343204, 343205, 343206, 343207, 343208, 343209, 343210, 343211, 348726,
++    348727, 348728, 348729, 348730, 348731, 365954, 366988, 366989, 366990, 366991,
++    393445, 393446, 393447, 393448, 400015, 400024, 400025, 400026, 400027, 400028,
++    400029, 400030, 400031, 400035, 400036, 400037, 400038, 400045, 400048, 400049,
++    400050, 400082, 400083, 400124, 400125, 400132, 400133, 400134, 400135, 400136,
++    400137, 400138, 400139, 400140, 400141, 400142, 400258, 400259, 400260, 400262,
++    400263, 400264, 400265, 400266, 400267, 400268, 400269, 400270, 400271, 400272,
++    400273, 400274, 400275, 416601, 416602, 428234, 428235, 428236, 428545, 428546,
++    439040, 448724, 448725, 448726, 448727, 448728, 498840, 499181, 499203, 499304,
++    499307, 499308, 499309, 499363, 499364, 499367, 499378, 499379, 499386, 499387,
++    499389, 499391, 499424, 499425, 499426, 499427, 499438, 499475, 499476, 499477,
++    499478, 499479, 499480, 499481, 499482, 499483, 499484, 499485, 499486, 499487,
++    499488, 499489, 499490, 499539, 499578, 499579, 499580, 499581, 499582, 499583,
++    499636, 499638, 499639, 499659, 499660, 499661, 499662, 499663, 499664, 499674,
++    499675, 499676, 499677, 499678, 499679, 499869, 499870, 499871, 499872, 499873,
++    499874, 499875, 499876, 499877, 499878, 499879, 499880, 499881, 499882, 499883,
++    499884, 499885, 499886, 499887, 499891, 499892, 499933, 499937, 499940, 499942,
++    499943, 499944, 499945, 499984, 499987, 499990, 499995, 499998, 500002, 500005,
++    500648, 500649, 500650, 500651, 500652, 501000, 509884, 509902, 510004, 510006,
++    532580, 532581, 532582, 558600, 558601, 558602, 558603, 558604, 558605, 558606,
++    558607, 558608, 558609, 558610, 558611, 558612, 558613, 558614, 558615, 558616,
++    558617, 558618, 558619, 558620, 558621, 558622, 558623, 558624, 558625, 558626,
++    558627, 558628, 558629, 558630, 558631, 558632, 558633, 558634, 558635, 558636,
++    558637, 558638, 558639, 558640, 558641, 558642, 558643, 558644, 558645, 558646,
++    558647, 558648, 558649, 558650, 558651, 558652, 558653, 558654, 558655, 558656,
++    558657, 558658, 558659, 558660, 558661, 558662, 558663, 558664, 558665, 558666,
++    558667, 558668, 558669, 558670, 558671, 558672, 558673, 558674, 558675, 558676,
++    558677, 558678, 558749, 558750, 558751, 558752, 558797, 558798, 558819, 558822,
++    559202, 559203, 559205, 559206, 559366, 559367, 559368, 559369, 559370, 559371,
++    559400, 559401, 559402, 559403, 559404, 559405, 559406, 559411, 559412, 559413,
++    559414, 559415, 559416, 559417, 559418, 559419, 559420, 559421, 559422, 559423,
++    559424, 559425, 559426, 559427, 559428, 559429, 559430, 559431, 559432, 559433,
++    559434, 559435, 559436, 559437, 559438, 559439, 559440, 559441, 559442, 559443,
++    559444, 559445, 559446, 559447, 559448, 559449, 559450, 559451, 559452, 559453,
++    559454, 559455, 559456, 559457, 559519, 559520, 559542, 559546, 559547, 559548,
++    559549, 559550, 559551, 559579, 559580, 559581, 559582, 559583, 559584, 559585,
++    559589, 559590, 559591, 559592, 559593, 559594, 559595, 559598, 559599, 559774,
++    559775, 559776, 559777, 559778, 559779, 559780, 559781, 559782, 559783, 559784,
++    559785, 559786, 559787, 559788, 559789, 559790, 559791, 559792, 559793, 559794,
++    559795, 559796, 559797, 559798, 559799, 559800, 559801, 559802, 559803, 559804,
++    559806, 559807, 559808, 559809, 559810, 559811, 559812, 559813, 559814, 559815,
++    559816, 559817, 559818, 559819, 559820, 559821, 559822, 559823, 559824, 559825,
++    559826, 559827, 559828, 559829, 559830, 559831, 559832, 559833, 559834, 559835,
++    559836, 559837, 559838, 559839, 559840, 559841, 559844, 559846, 559848, 560100,
++    560200, 560201, 560202, 560203, 560204, 560205, 560206, 560207, 560208, 560209,
++    560210, 560211, 560212, 560213, 560214, 560215, 560216, 560217, 560218, 560219,
++    560220, 560221, 560222, 560223, 560224, 560225, 560226, 560227, 560228, 560229,
++    560230, 560231, 560232, 560233, 560234, 560235, 560236, 560237, 560238, 560239,
++    560240, 560241, 560242, 560243, 560244, 560245, 560246, 560247, 560248, 560249,
++    560250, 560251, 560252, 560253, 560254, 560255, 560256, 560257, 560258, 560259,
++    560260, 560261, 560262, 560263, 560264, 560265, 560266, 560267, 560268, 560269,
++    560270, 560271, 560272, 560273, 560274, 560275, 560276, 560277, 560278, 560279,
++    560280, 560281, 560282, 560283, 560284, 560285, 560286, 560287, 560288, 560289,
++    560290, 560291, 560292, 560293, 560294, 560295, 560296, 560297, 560298, 560299,
++    560300, 560301, 560302, 560303, 560304, 560305, 560306, 560307, 560308, 560309,
++    560310, 560311, 560312, 560313, 560314, 560315, 560316, 560317, 560318, 560319,
++    560320, 560321, 560322, 560323, 560324, 560325, 560326, 560327, 560328, 560329,
++    560330, 560331, 560332, 560333, 560334, 597601, 603200, 612826, 612827, 612828,
++    612829, 612830, 612831, 612832, 612833, 612849, 699636, 699637, 699638, 699639,
++    775001, 815142, 815143, 815144, 815145, 900185, 900186, 900917, 933183, 933184,
++    978310, 978311, 978312, 978313, 978314, 978315, 978316, 978317, 987412, 1001619,
++    1001620, 1001621, 1001622, 1001627, 1001628, 1001629, 1001630, 1001680, 1001681, 1001682,
++    1001683, 1001684, 1001690, 1001846, 1001847, 1001848, 1001849, 1001850, 1002011, 1002012,
++    1002013, 1002014, 1100449, 1175625, 1175634, 1175635, 1179128, 1179129, 1179130, 1179131,
++    1179136, 1179137, 1179138, 1179139, 1179140, 1179141, 1179142, 1179143, 1179144, 1179145,
++    1179146, 1179147, 1179148, 1179149, 1179150, 1179151, 1179152, 1179162, 1179165, 1179166,
++    1179167, 1179168, 1179169, 1179170, 1179171, 1179172, 1179173, 1179174, 1179175, 1179176,
++    1179177, 1179178, 1179179, 1179180, 1179181, 1179182, 1179183, 1179184, 1179185, 1179186,
++    1179187, 1179188, 1179189, 1179190, 1179191, 1179192, 1179193, 1179194, 1179195, 1179196,
++    1179197, 1179198, 1179204, 1179205, 1179206, 1179207, 1179208, 1179209, 1179210, 1179211,
++    1179212, 1179213, 1179218, 1179219, 1179220, 1179221, 1179222, 1179223, 1179224, 1179225,
++    1179226, 1179227, 1233809, 1235071, 1235072, 1235073, 1235074, 1235075, 1235076, 1235077,
++    1235078, 1235079, 1235080, 1235081, 1235082, 1235083, 1235084, 1235085, 1235086, 1235087,
++    1235088, 1235089, 1235090, 1235091, 1235092, 1235093, 1235094, 1235095, 1235096, 1235097,
++    1235098, 1235099, 1235100, 1235101, 1235102, 1235103, 1235104, 1235105, 1235106, 1235107,
++    1235108, 1235109, 1235110, 1235111, 1235112, 1235113, 1235114, 1284998, 1284999, 1285000,
++    1285001, 1285002, 1285003, 1285004, 1333809, 1433809, 1500000, 1533809, 1633809, 1733809,
++    1777035, 1777038, 1777039, 1777040, 1777041, 1777060, 1777068, 1777069, 1777071, 1777077,
++    1777078, 1777317, 1777318, 1777319, 1777320, 1777321, 1777322, 1777323, 1777324, 1777325,
++    1777326, 1777327, 1777328, 1777329, 1777330, 1777331, 1777332, 1777333, 1777334, 1777335,
++    1777336, 1777338, 1777339, 1777340, 1777341, 1777342, 1777360, 1777361, 1777362, 1777363,
++    1777364, 1777365, 1777366, 1777367, 1777368, 1777369, 1777370, 1777371, 1777372, 1777373,
++    1777374, 1777375, 1777376, 1777377, 1777413, 1777414, 1777415, 1777416, 1777417, 1777429,
++    1777430, 1777431, 1777432, 1777433, 1777434, 1777435, 1777436, 1777437, 1777438, 1777439,
++    1777440, 1777441, 1804703, 1833809, 1877071, 8199945, 8199946, 8199947, 8199948, 8199949,
++    8199950, 8199951, 8199952, 8199953, 8199954, 8199955, 8199956, 8199957, 8199958, 8199959,
++    8199960, 8199961, 8199962, 8199963, 8199964, 8199965, 8199966, 8199967, 8199968, 8199969,
++    8199970, 8199971, 8199972, 8199973, 8199974, 8199975, 8199976, 8199977, 8199978, 8199979,
++    8199980, 8199981, 8199982, 8199983, 8199984, 8199985, 8199986, 8199987, 8199988, 8199989,
++    8199990, 8199991, 8199992, 8199993, 8199994, 8199995, 8199996, 8199997, 8199998, 8199999,
++    8200000, 8200001, 8200002, 8200003, 8200004, 8200005, 8200006, 8200007, 8200008, 8200018,
++    8200019, 8200026, 8200027, 8200028, 8200029, 8200030, 8200031, 8200032, 8200038, 8200039,
++    8200040, 8200041, 8200043, 8200044, 8200045, 8200046, 8200047, 8200048, 8200049, 8200050,
++    8200051, 8200052, 8200053, 8200054, 8200055, 8200056, 8200057, 8200058, 8200059, 8200060,
++    8200061, 8200062, 8200067, 8200068, 8200069, 8200070, 8200071, 8200072, 8200073, 8200074,
++    8200075, 8200076, 8200077, 8200080, 8200081, 8200082, 8200083, 8200084, 8200085, 8200086,
++    8200087, 8200094, 8200095, 8200096, 8200097, 8200098, 8200099, 8200100, 8200112, 8200113,
++    8200114, 8200115, 8200116, 8200117, 8200126, 8200127, 8200128, 8200129, 8200130, 8200177,
++    8200178, 8200179, 8200180, 8200181, 8200182, 8200183, 8200185, 8200186, 8200188, 8200204,
++    8200205, 8200211, 8200212, 8200213, 8200214, 8388604,
++}};
++}
++#endif
+--- a/src/server/coa/Area52FeaturedRewardValidation.h
++++ b/src/server/coa/Area52FeaturedRewardValidation.h
+@@ -2,6 +2,9 @@
+ #define AREA52_FEATURED_REWARD_VALIDATION_H
+ 
+ #include "Area52FeaturedRewards.h"
++#include "Area52FeaturedFlyingMounts.h"
++#include "AscensionCollectibleSpellData.h"
++#include <algorithm>
+ #include "ObjectMgr.h"
+ #include "SpellMgr.h"
+ #include "SpellInfo.h"
+@@ -11,11 +14,18 @@
+ {
+ inline void FeaturedMountSpells(std::uint32_t id, std::set<std::uint32_t>& seen, bool& mount, bool& flying)
+ {
+-    if (!id || seen.size() >= 16 || !seen.insert(id).second)
++    if (!id || seen.size() >= 64 || !seen.insert(id).second)
+         return;
+     auto const* spell = sSpellMgr->GetSpellInfo(id);
+     if (!spell)
+         return;
++    auto const& wrappers = AscensionCollectibles::MountWrappers;
++    auto wrapper = std::lower_bound(wrappers.begin(), wrappers.end(), id,
++        [](auto const& entry, std::uint32_t value) { return entry.SpellId < value; });
++    if (wrapper != wrappers.end() && wrapper->SpellId == id)
++        for (auto child : {wrapper->Ground60, wrapper->Ground100, wrapper->Flying150,
++            wrapper->Flying280, wrapper->Flying310})
++            FeaturedMountSpells(child, seen, mount, flying);
+     for (auto const& effect : spell->Effects)
+     {
+         mount = mount || effect.ApplyAuraName == SPELL_AURA_MOUNTED;
+@@ -42,7 +52,11 @@
+             std::set<std::uint32_t> seen;
+             for (auto const& spell : item->Spells)
+                 FeaturedMountSpells(spell.SpellId, seen, mount, flying);
+-            if (!mount || flying != (slot == 13))
++            flying = flying || std::binary_search(FeaturedVanityFlyingItems.begin(),
++                FeaturedVanityFlyingItems.end(), items[slot]);
++            bool ground = !flying || std::binary_search(FeaturedVanityGroundItems.begin(),
++                FeaturedVanityGroundItems.end(), items[slot]);
++            if (!mount || (slot == 13 ? !flying : !ground))
+                 return false;
+         }
+     }
