@@ -1,0 +1,6 @@
+{
+  "identity": "59c3cd6e0d191d94cb500536b2d5b02bf1dc743db252b2d370420ad222b5cfb5",
+  "candidate_matches_next_render": true,
+  "binary_sha256": "814e25a9beb7df9b2396646a547a2f6b19c35d181c7f58a0d371778cc569c66c",
+  "only_source_change": "Area52TesterSupplies.cpp"
+}

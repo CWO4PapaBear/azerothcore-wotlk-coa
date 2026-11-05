@@ -1,0 +1,14 @@
+START TRANSACTION;
+CREATE TEMPORARY TABLE luna_guard (ok INT NOT NULL CHECK(ok=1)) ENGINE=InnoDB;
+SELECT entry FROM acore_world.item_template WHERE entry=1999401 FOR UPDATE;
+INSERT INTO luna_guard SELECT COUNT(*)=1 FROM acore_world.item_template WHERE entry=1999401 AND HEX(name)='43656C65737469616C20547572746C65277320536164646C65';
+UPDATE acore_world.item_template SET name=CONVERT(0x4c756e612c20546865204368726f6e69636c65722773204361726170616365 USING utf8mb4) WHERE entry=1999401;
+SELECT entry FROM acore_world.creature_template WHERE entry=1999401 FOR UPDATE;
+INSERT INTO luna_guard SELECT COUNT(*)=1 FROM acore_world.creature_template WHERE entry=1999401 AND HEX(name)='43656C65737469616C20547572746C65';
+UPDATE acore_world.creature_template SET name=CONVERT(0x4c756e612c20546865204368726f6e69636c65722773204361726170616365 USING utf8mb4) WHERE entry=1999401;
+SELECT cache_id FROM acore_world.version FOR UPDATE;
+INSERT INTO luna_guard SELECT COUNT(*)=1 FROM acore_world.version WHERE cache_id=19;
+UPDATE acore_world.version SET cache_id=20;
+INSERT INTO luna_guard SELECT COUNT(*)=0 FROM acore_characters.area52_account_gift_campaign WHERE id=1999401;
+INSERT INTO acore_characters.area52_account_gift_campaign(id,enabled) VALUES(1999401,1);
+COMMIT;

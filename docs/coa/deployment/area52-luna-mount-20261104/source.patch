@@ -1,0 +1,72 @@
+--- a/src/server/coa/Area52TesterSupplies.cpp
++++ b/src/server/coa/Area52TesterSupplies.cpp
+@@ -180,18 +180,18 @@
+     }
+ };
+ 
+-void DeliverWarchest(Player* player)
++void DeliverAccountGift(Player* player, uint32 campaign, std::string const& subject, std::string const& body)
+ {
+     if (!AscensionFreePick::Applies(player) || player->GetSession()->IsBot())
+         return;
+-    player->GetSession()->SendItemQuerySingleResponse(657112);
++    player->GetSession()->SendItemQuerySingleResponse(campaign);
+     uint32 const account = player->GetSession()->GetAccountId();
+-    if (!CharacterDatabase.Query("SELECT id FROM area52_account_gift_campaign WHERE id = 657112 AND enabled = 1"))
++    if (!CharacterDatabase.Query("SELECT id FROM area52_account_gift_campaign WHERE id = {} AND enabled = 1", campaign))
+         return;
+     if (CharacterDatabase.Query("SELECT account FROM area52_account_gift_delivery "
+-        "WHERE campaign = 657112 AND account = {}", account))
+-        return;
+-    std::unique_ptr<Item> item(Item::CreateItem(657112, 1, player));
++        "WHERE campaign = {} AND account = {}", campaign, account))
++        return;
++    std::unique_ptr<Item> item(Item::CreateItem(campaign, 1, player));
+     if (!item)
+         return;
+     uint32 const guid = player->GetGUID().GetCounter();
+@@ -199,12 +199,10 @@
+     uint32 const mailId = sObjectMgr->GenerateMailID();
+     uint32 const now = uint32(GameTime::GetGameTime().count());
+     uint32 const expires = now + 90 * DAY;
+-    std::string const subject = "Fel Enchanted Warchest";
+-    std::string const body = "A gift for your Area 52 account. Enjoy your Fel Enchanted Warchest!";
+     CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+     trans->Append("INSERT INTO area52_account_gift_delivery "
+-        "(campaign, account, receiver, item_guid, mail_id, delivered_at) VALUES (657112, {}, {}, {}, {}, {})",
+-        account, guid, itemGuid, mailId, now);
++        "(campaign, account, receiver, item_guid, mail_id, delivered_at) VALUES ({}, {}, {}, {}, {}, {})",
++        campaign, account, guid, itemGuid, mailId, now);
+     item->SaveToDB(trans);
+     auto* mail = CharacterDatabase.GetPreparedStatement(CHAR_INS_MAIL);
+     mail->SetData(0, mailId);
+@@ -231,7 +229,7 @@
+     if (!result.m_future.get())
+         return;
+     if (!CharacterDatabase.Query("SELECT account FROM area52_account_gift_delivery "
+-        "WHERE campaign = 657112 AND account = {} AND item_guid = {} AND mail_id = {}", account, itemGuid, mailId))
++        "WHERE campaign = {} AND account = {} AND item_guid = {} AND mail_id = {}", campaign, account, itemGuid, mailId))
+         return;
+     auto delivered = std::make_unique<Mail>();
+     delivered->messageID = mailId;
+@@ -248,7 +246,7 @@
+     delivered->COD = 0;
+     delivered->checked = MAIL_CHECK_MASK_HAS_BODY;
+     delivered->state = MAIL_STATE_UNCHANGED;
+-    delivered->AddItem(itemGuid, 657112);
++    delivered->AddItem(itemGuid, campaign);
+     sMailMgr->OnMailSent(guid);
+     player->AddNewMailDeliverTime(now);
+     player->AddMail(delivered.release());
+@@ -262,7 +260,10 @@
+ 
+     void OnPlayerLogin(Player* player) override
+     {
+-        DeliverWarchest(player);
++        DeliverAccountGift(player, 657112, "Fel Enchanted Warchest",
++            "A gift for your Area 52 account. Enjoy your Fel Enchanted Warchest!");
++        DeliverAccountGift(player, 1999401, "Luna, The Chronicler's Carapace",
++            "Thank you for helping shape Area 52. Please enjoy Luna, The Chronicler's Carapace, a mount for your collection.");
+         if (!AscensionFreePick::Applies(player) || player->GetSession()->IsBot() ||
+             !sConfigMgr->GetOption<bool>("Area52.TesterCache.Enabled", false))
+             return;
