@@ -1,0 +1,81 @@
+diff --git a/Interface/FrameXML/BonusActionBarFrame.lua b/Interface/FrameXML/BonusActionBarFrame.lua
+index a81941c..f39a32e 100755
+--- a/Interface/FrameXML/BonusActionBarFrame.lua
++++ b/Interface/FrameXML/BonusActionBarFrame.lua
+@@ -234,7 +234,7 @@ function ShapeshiftBar_ChangeForm (id)
+ 	local _, name, isActive = GetShapeshiftFormInfo(id);
+ 	if GetRealmName() == "Area 52 - Free-Pick" and isActive and name and
+ 		(name == GetSpellInfo(2457) or name == GetSpellInfo(71) or name == GetSpellInfo(2458)) then
+-		CancelShapeshiftForm();
++		CancelUnitBuff("player", name);
+ 		return;
+ 	end
+ 	CastShapeshiftForm(id);
+diff --git a/src/server/game/Spells/Auras/SpellAuraEffects.cpp b/src/server/game/Spells/Auras/SpellAuraEffects.cpp
+index 74682ba..5233983 100755
+--- a/src/server/game/Spells/Auras/SpellAuraEffects.cpp
++++ b/src/server/game/Spells/Auras/SpellAuraEffects.cpp
+@@ -1488,6 +1488,32 @@ void AuraEffect::CleanupTriggeredSpells(Unit* target)
+     target->RemoveAurasDueToSpell(tSpellId, GetCasterGUID());
+ }
+ 
++static ShapeshiftForm RemainingWarriorStanceAfterStealth(Unit* target, AuraEffect const* leaving)
++{
++    if (leaving->GetMiscValue() != FORM_STEALTH || !AscensionFreePick::Applies(target->ToPlayer()))
++        return FORM_NONE;
++
++    ShapeshiftForm stance = FORM_NONE;
++    for (AuraEffect const* effect : target->GetAuraEffectsByType(SPELL_AURA_MOD_SHAPESHIFT))
++    {
++        if (effect == leaving)
++            continue;
++        if (stance != FORM_NONE || effect->GetCasterGUID() != target->GetGUID())
++            return FORM_NONE;
++        switch (effect->GetMiscValue())
++        {
++            case FORM_BATTLESTANCE:
++            case FORM_DEFENSIVESTANCE:
++            case FORM_BERSERKERSTANCE:
++                stance = ShapeshiftForm(effect->GetMiscValue());
++                break;
++            default:
++                return FORM_NONE;
++        }
++    }
++    return stance;
++}
++
+ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
+ {
+     uint32 spellId = 0;
+@@ -1765,12 +1791,15 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
+         // Use the new aura to see on what stance the target will be
+         uint32 newStance = newAura ? (uint32(1) << (newAura->GetMiscValue() - 1)) : 0;
+ 
++        ShapeshiftForm const remaining = RemainingWarriorStanceAfterStealth(target, this);
++        bool const retainingStance = remaining != FORM_NONE && remaining == target->GetShapeshiftForm();
++
+         Unit::AuraApplicationMap& tAuras = target->GetAppliedAuras();
+         for (Unit::AuraApplicationMap::iterator itr = tAuras.begin(); itr != tAuras.end();)
+         {
+             // If the stances are not compatible with the spell, remove it
+             // Xinef: Remove all passive auras, they will be added if needed
+-            if (itr->second->GetBase()->IsRemovedOnShapeLost(target) && (!(itr->second->GetBase()->GetSpellInfo()->Stances & newStance) || itr->second->GetBase()->IsPassive()))
++            if (itr->second->GetBase()->IsRemovedOnShapeLost(target) && (!(itr->second->GetBase()->GetSpellInfo()->Stances & newStance) || (!retainingStance && itr->second->GetBase()->IsPassive())))
+                 target->RemoveAura(itr);
+             else
+                 ++itr;
+@@ -2329,6 +2358,13 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
+             }
+         }
+ 
++        else if (target->GetShapeshiftForm() == FORM_STEALTH)
++        {
++            ShapeshiftForm const stance = RemainingWarriorStanceAfterStealth(target, this);
++            if (stance != FORM_NONE)
++                target->SetShapeshiftForm(stance);
++        }
++
+         if (modelid > 0)
+             target->RestoreDisplayId();
+ 
