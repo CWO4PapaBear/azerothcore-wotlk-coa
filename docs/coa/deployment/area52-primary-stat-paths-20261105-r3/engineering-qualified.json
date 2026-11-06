@@ -1,0 +1,48 @@
+{
+  "status": "passed",
+  "verified_entries": [
+    1149,
+    1150,
+    1151,
+    1152
+  ],
+  "binary_sha256": "adeeb2920565e59ccd7e43adfb2ea235bf3b3fccaf16faf54172887411a36fa4",
+  "build": {
+    "path": "build-r18/report.json",
+    "sha256": "48dae02642cac13e43ced086155249d3c189780c2aecc80d40198d3686280faa"
+  },
+  "checks": {
+    "path": "final-offline-r4/report.json",
+    "sha256": "4b9eb4f0e99f7931f99774a375de8c564b5763ecc25bc89ac332c8a5bc021881",
+    "count": 30
+  },
+  "candidate_hashes": {
+    "candidate/Spell.dbc": "da68294b4bae6971134e61217210911a89e5d8329d8805ed29b49a4d109a2e2e",
+    "candidate/SpellItemEnchantment.dbc": "72ae2617fdce6d0b1be36f2ab73deb1f85601dfecb4089e35c6835472235860f",
+    "candidate/src/server/coa/AscensionBlademaster.cpp": "45794d7ea8acdf690d8180e3cf0906bc047834036936bc6c97268f03fc2ba243",
+    "candidate/src/server/coa/AscensionBulwark.cpp": "268784942800ba078bdef2bec537dfd767d932d4b4b750ea4cfc2d54abfd9b0b",
+    "candidate/src/server/coa/AscensionFreePick.h": "3a210c03e62652744db1aab51b24a5da30590139494fbdb0ed73fa6eb82af44d",
+    "candidate/src/server/coa/AscensionFreePickLinkedSpells.h": "68247e2d7fc8cb693c81de7254b504128f440c0c98393ba32a8738e2ef688a6c",
+    "candidate/src/server/coa/AscensionHoplite.cpp": "95a9697ccf602505ce624cc69c4373f9b97e5767d920fe977c70612c2adaa53e",
+    "candidate/src/server/coa/AscensionMysticKnightEpics.cpp": "68a3b9aed4f3b135d601fa82c44fc03c817e2ee05c61d7d0365e77884e9b548e",
+    "candidate/src/server/scripts/Spells/spell_druid.cpp": "15c89ed7bc41ec866d473d7c5d888a39dd080911e9d22c8cad39059ea92f1bfd",
+    "candidate/src/server/scripts/Spells/spell_rogue.cpp": "b89eccaf7ef83ea1ff67e6a48cc5bbcc76b8362cf2d913b20e38394fea4f94d9",
+    "candidate/src/server/scripts/Spells/spell_warrior.cpp": "70f9284e2be004f9fcb0da1d4e1139d615fbcbb80f833524d5e79d7dfa6575d2",
+    "candidate/src/server/game/Spells/Spell.cpp": "e4fc18a87a0f221160c9b32d84a6c5b8ba19a020f8ca3bee24311380eccf8fb5",
+    "candidate/src/server/game/Spells/Spell.h": "c58508e5aa31f2794e808dd8755937c43c2f4dece218b71707e27a9bd19e5583",
+    "candidate/src/server/game/Spells/SpellDefines.h": "e2d2300272071164bf28a770439ec20ff3c09541ddfbff466cb6a4f065114644",
+    "candidate/src/server/game/Spells/SpellEffects.cpp": "64b61cd8a1aa652caec579c605698ed7fd5aaaba57828c3de54cb79955a95c13",
+    "candidate/src/server/game/Spells/SpellInfo.cpp": "3b7e403053a4b613901d51f20d1d1aeaa824376088b0762a9c7a2565cd7b7c41",
+    "candidate/src/server/game/Spells/Auras/SpellAuraEffects.cpp": "c92ed523c8248583ac7e8b1380b4b0e92d42f77f476a192de498dd555a6bece4",
+    "candidate/src/server/game/Spells/Auras/SpellAuraEffects.h": "8e7a19b1547b3048a2aee38ac9bd1aa556d866cf08a9485b75e7df5fd07450d7",
+    "candidate/src/server/game/Spells/Auras/SpellAuras.cpp": "bb2f2bb72413df15dbd70d44e34dc29bc647e634e813d6b9877df3838b1f6bbf",
+    "candidate/src/server/game/Entities/Player/Player.cpp": "c8702de7065a6978c4e7dda6941242fb96ce633830ba76e87cf7adae05ff6bcc",
+    "candidate/src/server/game/Entities/Player/Player.h": "fd9c374fdce978c36be321c3c24d9eb1a86ec16dc592704d19e187e5add085cc",
+    "candidate/src/server/game/Entities/Player/PlayerStorage.cpp": "1c1871bcd61a8a0c03c7357adbd4c7e3580d8cb7bee52b0fd0a9e64015d88c85",
+    "candidate/src/server/game/Entities/Player/PlayerUpdates.cpp": "2ce23dd2fde3991f4f26a70b4c0e6d53a3c8f69d586092af2c90a112af5e6cd9",
+    "candidate/src/server/game/Entities/Unit/StatSystem.cpp": "4e673618570fd515eacaf27266c29b9ac9bb3d2feca0fb166020a14414d337a8",
+    "candidate/src/server/game/Entities/Unit/Unit.cpp": "56b62f5eb4ca4196db8d5a706e6554a179c1b269a1a80ce439ea83c692de38c0",
+    "candidate/src/server/game/Entities/Unit/Unit.h": "29d614bb70b161a515507273afca85f8fcb9d9c0dc45ec9732a0d6eb39ab7e33"
+  },
+  "limits": "Offline engineering qualification. No live gameplay certification, activation or final wrapper preflight."
+}
