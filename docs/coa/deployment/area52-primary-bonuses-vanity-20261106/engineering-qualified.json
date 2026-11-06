@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "binary_sha256": "8969bbdd7a84fac3e381b8273e6b8cd5100431557814f02de91f51af2b9f3bad",
+  "reward_fix": "uint8 native prepared reader; catch-up/dedup regression",
+  "bonus_evidence": "primary-stat-weapon-bonuses/offline-r7",
+  "source": {
+    "candidate/src/server/coa/Area52FeaturedRewardMail.inc": "2882b63a26349c67e16ffce418ba328374677f9fe9f9c688b7773eae9e00f6c3"
+  },
+  "sql_changes": false
+}

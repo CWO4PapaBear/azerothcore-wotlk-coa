@@ -1,0 +1,11 @@
+--- a/src/server/coa/Area52FeaturedRewardMail.inc
++++ b/src/server/coa/Area52FeaturedRewardMail.inc
+@@ -36,7 +36,7 @@
+                 current->RewardsLoaded = true;
+                 if (rows)
+                     do
+-                        current->RewardLevels.insert(rows->Fetch()[0].Get<std::uint32_t>());
++                        current->RewardLevels.insert(rows->Fetch()[0].Get<std::uint8_t>());
+                     while (rows->NextRow());
+             }));
+         return;

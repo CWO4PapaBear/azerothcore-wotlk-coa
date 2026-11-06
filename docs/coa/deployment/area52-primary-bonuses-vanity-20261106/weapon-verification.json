@@ -1,0 +1,113 @@
+{
+  "status": "engineering_verified",
+  "entries": [
+    {
+      "kind": "granted",
+      "id": 986203,
+      "ranks": [
+        986203
+      ],
+      "status": "VERIFIED",
+      "certified": false,
+      "name": "Devastating Strikes",
+      "parent": 1149,
+      "hand": "one_handed"
+    },
+    {
+      "kind": "granted",
+      "id": 986202,
+      "ranks": [
+        986202
+      ],
+      "status": "VERIFIED",
+      "certified": false,
+      "name": "Heavy Swings",
+      "parent": 1149,
+      "hand": "two_handed"
+    },
+    {
+      "kind": "granted",
+      "id": 986201,
+      "ranks": [
+        986201
+      ],
+      "status": "VERIFIED",
+      "certified": false,
+      "name": "Agile Strikes",
+      "parent": 1150,
+      "hand": "one_handed"
+    },
+    {
+      "kind": "granted",
+      "id": 986200,
+      "ranks": [
+        986200
+      ],
+      "status": "VERIFIED",
+      "certified": false,
+      "name": "Fatal Wounds",
+      "parent": 1150,
+      "hand": "two_handed"
+    },
+    {
+      "kind": "granted",
+      "id": 92840,
+      "ranks": [
+        92840
+      ],
+      "status": "VERIFIED",
+      "certified": false,
+      "name": "Devastating Spells",
+      "parent": 1151,
+      "hand": "one_handed"
+    },
+    {
+      "kind": "granted",
+      "id": 92839,
+      "ranks": [
+        92839
+      ],
+      "status": "VERIFIED",
+      "certified": false,
+      "name": "Magic Acceleration",
+      "parent": 1151,
+      "hand": "two_handed"
+    },
+    {
+      "kind": "granted",
+      "id": 92843,
+      "ranks": [
+        92843
+      ],
+      "status": "VERIFIED",
+      "certified": false,
+      "name": "Empowered Mending",
+      "parent": 1152,
+      "hand": "one_handed"
+    },
+    {
+      "kind": "granted",
+      "id": 92842,
+      "ranks": [
+        92842
+      ],
+      "status": "VERIFIED",
+      "certified": false,
+      "name": "Spiritual Acceleration",
+      "parent": 1152,
+      "hand": "two_handed"
+    }
+  ],
+  "server_changes": "none; exact deployed source qualified",
+  "certification_ui": "candidate/TesterCertification.lua and GrantedAbilityCatalog.lua; existing granted namespace/ownership checks",
+  "distribution": "pending package preparation and separately authorized activation/publication",
+  "certified": "No records promoted; existing records byte-semantically preserved",
+  "hashes": {
+    "candidate\\certification-ledger.json": "601a2ef7ca1b0031e8bd3a4844bf3afbd80172ef41f0ef5a3c9b141bb3c12fad",
+    "candidate\\GrantedAbilityCatalog.lua": "3030ec3d2b1177924dff3eb22d2bf7416b922184e23031e09649f03c674500a5",
+    "candidate\\test-access-status.json": "6584fab3bb53af0cf895b26c17d9c6b89ccd3986c1a361a703b060652c797426",
+    "candidate\\TesterCertification.lua": "dce9ebfb168dbe0702dc1392b0e56e13c5694dd90c0f3e90c55f1882395e5a54"
+  },
+  "final_report": "offline-r7/report.json",
+  "final_report_sha256": "dda8c8e9525772a10464c059b448176d9268bdc3e171dfa1e889f90998ee7082"
+}
