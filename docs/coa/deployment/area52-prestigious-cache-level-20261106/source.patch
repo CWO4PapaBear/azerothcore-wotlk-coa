@@ -1,0 +1,22 @@
+--- a/src/server/game/Handlers/ItemHandler.cpp
++++ b/src/server/game/Handlers/ItemHandler.cpp
+@@ -25,6 +25,7 @@
+ #include "ScriptMgr.h"
+ #include "SpellInfo.h"
+ #include "SpellMgr.h"
++#include "World.h"
+ #include "WorldPacket.h"
+ #include "WorldSession.h"
+ #include <cmath>
+@@ -434,7 +435,10 @@
+         queryData << pProto->AllowableClass;
+         queryData << pProto->AllowableRace;
+         queryData << pProto->ItemLevel;
+-        queryData << pProto->RequiredLevel;
++        uint32 const requiredLevel = pProto->ScriptId != 0 &&
++            pProto->ScriptId == sObjectMgr->GetScriptId("item_ascension_prestigious_cache")
++            ? uint32(sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL)) : pProto->RequiredLevel;
++        queryData << requiredLevel;
+         queryData << pProto->RequiredSkill;
+         queryData << pProto->RequiredSkillRank;
+         queryData << pProto->RequiredSpell;
