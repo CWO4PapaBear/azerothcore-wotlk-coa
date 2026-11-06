@@ -1,0 +1,11 @@
+{
+  "scope": "Bank access, tab offers, split counts and soulbound protection; upstream scaling excluded",
+  "source_commit": "76a82930b0628767044adf9a9acac86f1d983adf",
+  "server_sha256": "6ca1b2d17769b8c3c882f5e5c11fadb56358fca3af5b7411d72827ce9b785cd0",
+  "evidence": {
+    "build-r2": "c28b465ba7e3d4d3dcb8ff9738c71729fbca0098b385aade9addff2d221e5c50",
+    "offline-r2": "239525636349902e61fbdf0762d36c73830b9a7e0db15cc1aa6780feb92554b3",
+    "native-r3": "6eaaee417c599c0d155f4d81975fd1fb412e1bf27be764e881567510c81bf43d"
+  },
+  "no_gameplay_run": true
+}
