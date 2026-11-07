@@ -1,0 +1,15 @@
+{
+  "id": "area52-shield-finesse-20261107",
+  "preserved_deployment": "area52-callboard-progression-20261106-r4",
+  "binary_sha256": "882075b816bc0ace5c60879a2d5e7090beb488e4fd9f6858600098799d294125",
+  "baseline_sha256": "abdbfd37858050d592e3357cc509393de598534e313233cdde837d0b20da2ab6",
+  "source_sha256": "52aa8dc41bea29b6298ab8687f5b01bb3bcf6d77324b529e055a2d988f1811ee",
+  "reports": {
+    "build-baseline": "8ff7920def543ef116719697eff6e93eb731e97b23fefbf188e7d97531cb63c1",
+    "build-candidate": "747a921bd5362a209af4aefcf9162fcad8f14f25f99bc35c345d904d7b66e729",
+    "package-registration": "493b0aa86f2ac301d4661e21714b139eeffe01228d50da0bbb2a7a0c8a961a36",
+    "package-startup-final": "59afb5a1eb8b1bfae9b3e9f86954e7436d50cf572afb6dbd40a1853aeeb8a69a"
+  },
+  "gameplay_run": false,
+  "client_update": false
+}

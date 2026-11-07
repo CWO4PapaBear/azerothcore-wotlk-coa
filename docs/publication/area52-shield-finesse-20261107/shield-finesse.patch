@@ -1,0 +1,49 @@
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -23,6 +23,7 @@
+ #include "ObjectAccessor.h"
+ #include "Player.h"
+ #include "ScriptMgr.h"
++#include "SpellScriptLoader.h"
+ #include "SpellAuraEffects.h"
+ #include "SpellAuras.h"
+ #include "SpellInfo.h"
+@@ -659,6 +660,25 @@
+     return expected.empty();
+ }
+ 
++bool HasShieldFinesseHandlers()
++{
++    // This enchant reacts to casts through spell_area52_shield_tools.
++    auto hasBinding = [](uint32 spell, uint32 script)
++    {
++        auto [first, last] = sObjectMgr->GetSpellScriptsBounds(spell);
++        return script && ScriptRegistry<SpellScriptLoader>::GetScriptById(script) &&
++            std::any_of(first, last, [script](auto const& binding) { return binding.second == script; });
++    };
++    auto const tools = sObjectMgr->GetScriptId("spell_area52_shield_tools");
++    if (!sSpellMgr->GetSpellInfo(986126) || !hasBinding(986125, sObjectMgr->GetScriptId("aura_area52_bulwark_cleanup")) ||
++        !hasBinding(871, tools) || !hasBinding(2565, tools))
++        return false;
++    for (uint32 rank = 23922; rank; rank = sSpellMgr->GetNextSpellInChain(rank))
++        if (!hasBinding(rank, tools))
++            return false;
++    return true;
++}
++
+ bool HasSeedOfLifeHandlers()
+ {
+     if (!sSpellMgr->GetSpellProcEntry(965937) || !sSpellMgr->GetSpellInfo(944827) ||
+@@ -803,6 +823,12 @@
+         if (entry.Quality < 2 || entry.Quality > 5 || !info || !info->IsPassive() ||
+             info->HasAttribute(SPELL_ATTR0_CU_FORCE_AURA_SAVING))
+             continue;
++        if (spell == 986125)
++        {
++            if (HasShieldFinesseHandlers())
++                Connected.emplace(spell, 1);
++            continue;
++        }
+         if (Area52Worldforged::Find(spell))
+         {
+             if (HasArea52EpicEquipmentHandlers(spell))
