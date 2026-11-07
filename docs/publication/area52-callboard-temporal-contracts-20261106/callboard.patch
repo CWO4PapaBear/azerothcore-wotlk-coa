@@ -1,0 +1,1566 @@
+--- /dev/null
++++ b/data/sql/updates/pending_db_characters/rev_20261103_111_character_callboard_contract.sql
+@@ -0,0 +1,8 @@
++-- Call Board Temporal Contracts: completions of every contract type per character in the current reset week.
++CREATE TABLE IF NOT EXISTS `character_callboard_contract` (
++  `guid` int unsigned NOT NULL,
++  `contract_type` varchar(64) NOT NULL,
++  `week_start` int unsigned NOT NULL,
++  `completions` int unsigned NOT NULL DEFAULT 0,
++  PRIMARY KEY (`guid`, `contract_type`)
++) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261026_44_warchiefs_command_tracker_text.sql
+@@ -0,0 +1,4 @@
++-- The quest tracker text of two Warchief's Command call board quests still named their Cataclysm destinations.
++-- It now matches the quest log text and the NPC that ends each quest.
++UPDATE `quest_template` SET `QuestCompletionLog` = 'Report to Mitsuwa at Zoram''gar Outpost in Ashenvale.' WHERE `ID` = 14231;
++UPDATE `quest_template` SET `QuestCompletionLog` = 'Report to Mebok Mizzyrix at Ratchet in the Barrens.' WHERE `ID` = 14233;
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261029_01_hero_call_board_plague_pests_sort.sql
+@@ -0,0 +1 @@
++UPDATE `quest_template` SET `QuestSortID` = -542 WHERE `ID` = 18030;
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261103_10_callboard_dailies_bazaar_tokens.sql
+@@ -0,0 +1,18 @@
++-- The 44 Call Board dailies also pay Bazaar Tokens (975001): twice the quest's Callboard Cache points
++-- (`ascension_callboard_quest_points`), so 25 points pay 50 tokens, 20 points 40 and 15 points 30.
++-- This is a CoA choice: no live quest paid Bazaar Tokens (SUB dump 2026-10-04). High-Risk quests are not included.
++-- Heroic and Mythic Dungeon Diving keep their Callboard Cache in the second slot and take the tokens in the third.
++
++UPDATE `quest_template` SET `RewardItem2` = 975001, `RewardAmount2` = 50
++WHERE `ID` IN (18034, 18036, 18104, 18109);
++
++UPDATE `quest_template` SET `RewardItem2` = 975001, `RewardAmount2` = 40
++WHERE `ID` IN (17838, 17926, 18017, 18018, 18019, 18030, 18044, 18045, 18046, 18054, 18055, 18056, 18089, 18090,
++    18091, 18105, 18106, 18110, 18111, 80651, 81260);
++
++UPDATE `quest_template` SET `RewardItem2` = 975001, `RewardAmount2` = 30
++WHERE `ID` IN (26035, 26053, 81244, 1005092, 1005124, 1005170, 1005259, 1005301, 1005468, 1005474, 1005647, 1005660,
++    1005664, 1007453, 1007496, 1038797, 1038884);
++
++UPDATE `quest_template` SET `RewardItem3` = 975001, `RewardAmount3` = 30
++WHERE `ID` IN (81245, 81246);
+--- /dev/null
++++ b/data/sql/updates/pending_db_world/rev_20261103_110_coa_callboard_contracts.sql
+@@ -0,0 +1,53 @@
++-- Call Board Temporal Contracts: the contract type and Call Board content type of every typed quest.
++CREATE TABLE IF NOT EXISTS `ascension_callboard_contract` (
++  `QuestId` int unsigned NOT NULL,
++  `ContractType` varchar(64) NOT NULL,
++  `ContentType` varchar(16) NOT NULL,
++  PRIMARY KEY (`QuestId`)
++) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
++
++DELETE FROM `ascension_callboard_contract` WHERE `QuestId` IN (17926, 18017, 18018, 18019, 18030, 18034, 18036, 18044, 18045, 18046, 18054, 18055, 18056, 18089, 18090, 18091, 18104, 18105, 18106, 18109, 18110, 18111, 26035, 26053, 80651, 81244, 81245, 81246, 81260, 1005092, 1005124, 1005170, 1005259, 1005301, 1005468, 1005474, 1005647, 1005660, 1005664, 1007453, 1007496, 1038797, 1038884);
++INSERT INTO `ascension_callboard_contract` (`QuestId`, `ContractType`, `ContentType`) VALUES
++(17926, 'OpenWorldVanillaZoneKill1', 'PvE'),
++(18017, 'OpenWorldVanillaZoneKill1', 'PvE'),
++(18018, 'OpenWorldVanillaZoneKill2', 'PvE'),
++(18019, 'OpenWorldVanillaZoneKill3', 'PvE'),
++(18030, 'OpenWorldVanillaZoneKill3', 'PvE'),
++(18034, 'OpenWorldVanillaZoneKill1', 'PvE'),
++(18036, 'OpenWorldVanillaZoneKill3', 'PvE'),
++(18044, 'OpenWorldVanillaZoneKill1', 'PvE'),
++(18045, 'OpenWorldVanillaZoneKill2', 'PvE'),
++(18046, 'OpenWorldVanillaZoneKill3', 'PvE'),
++(18054, 'OpenWorldVanillaZoneKill1', 'PvE'),
++(18055, 'OpenWorldVanillaZoneKill2', 'PvE'),
++(18056, 'OpenWorldVanillaZoneKill3', 'PvE'),
++(18089, 'OpenWorldVanillaZoneKill1', 'PvE'),
++(18090, 'OpenWorldVanillaZoneKill2', 'PvE'),
++(18091, 'OpenWorldVanillaZoneKill3', 'PvE'),
++(18104, 'OpenWorldVanillaZoneKill1', 'PvE'),
++(18105, 'OpenWorldVanillaZoneKill2', 'PvE'),
++(18106, 'OpenWorldVanillaZoneKill3', 'PvE'),
++(18109, 'OpenWorldVanillaZoneKill1', 'PvE'),
++(18110, 'OpenWorldVanillaZoneKill2', 'PvE'),
++(18111, 'OpenWorldVanillaZoneKill3', 'PvE'),
++(26035, 'TBCSecondaryProfessions', 'Profession'),
++(26053, 'TBCGatheringProfessions', 'Profession'),
++(80651, 'Duel', 'PvP'),
++(81244, 'VanillaNormalDungeonCrawling', 'PvE'),
++(81245, 'VanillaHeroicDungeonCrawling', 'PvE'),
++(81246, 'VanillaMythicDungeonCrawling', 'PvE'),
++(81260, 'CallToArms', 'PvP'),
++(1005092, 'VanillaGatheringADelicateSituation', 'Profession'),
++(1005124, 'VanillaGatheringADelicateSituation', 'Profession'),
++(1005170, 'VanillaGatheringADelicateSituation', 'Profession'),
++(1005259, 'VanillaGatheringADelicateSituation', 'Profession'),
++(1005301, 'VanillaCraftingShortOnSupplies', 'Profession'),
++(1005468, 'VanillaCraftingShortOnSupplies', 'Profession'),
++(1005474, 'VanillaCraftingShortOnSupplies', 'Profession'),
++(1005647, 'VanillaSecondaryProfessions', 'Profession'),
++(1005660, 'VanillaSecondaryProfessions', 'Profession'),
++(1005664, 'VanillaSecondaryProfessions', 'Profession'),
++(1007453, 'TBCOutlandCraftingProfessions', 'Profession'),
++(1007496, 'TBCOutlandCraftingProfessions', 'Profession'),
++(1038797, 'VanillaCraftingShortOnSupplies', 'Profession'),
++(1038884, 'VanillaCraftingShortOnSupplies', 'Profession');
+--- a/modules/mod-hero-call-board/src/HeroCallBoard.cpp
++++ b/modules/mod-hero-call-board/src/HeroCallBoard.cpp
+@@ -44,7 +44,9 @@
+     {
+         SortPvE = -380,
+         SortPvP = -381,
+-        SortProfessions = -382
++        SortProfessions = -382,
++        SortZoneSeriesFirst = -548,
++        SortZoneSeriesLast = -538
+     };
+ 
+     constexpr uint32 WorldStateWeeklyReset = 20002;
+@@ -88,6 +90,9 @@
+         if (sort > 0)
+             return CategoryPvE;
+ 
++        if (sort >= SortZoneSeriesFirst && sort <= SortZoneSeriesLast)
++            return CategoryPvE;
++
+         switch (sort)
+         {
+             case SortPvE: return CategoryPvE;
+--- a/src/server/coa/AscensionCallboardCache.cpp
++++ b/src/server/coa/AscensionCallboardCache.cpp
+@@ -1,5 +1,6 @@
+ /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
+ #include "AscensionCacheRewards.h"
++#include "AscensionCallboardContracts.h"
+ #include "Area52CacheRuntime.h"
+ #include "Area52CacheItemLevel.h"
+ #include "AscensionCompatOpcodes.h"
+@@ -415,12 +416,14 @@
+     if (!item)
+         return false;
+ 
+-    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
++    CharacterDatabaseTransaction trans = AscensionCallboardContracts::CurrentRewardTransaction();
++    bool const ownTransaction = !trans;
++    if (ownTransaction) trans = CharacterDatabase.BeginTransaction();
+     item->SaveToDB(trans);
+     MailDraft("Callboard Cache", "Your bags were full, so your Callboard Cache was sent by mail.")
+         .AddItem(item)
+         .SendMailTo(trans, MailReceiver(player), MailSender(player));
+-    CharacterDatabase.CommitTransaction(trans);
++    if (ownTransaction) CharacterDatabase.CommitTransaction(trans);
+     return true;
+ }
+ 
+@@ -552,4 +555,3 @@
+     new ascension_callboard_cache_pools();
+     AscensionCompatOpcodes::Claim(CMSG_QUERY_CALLBOARD_QUEST_POINTS, &HandleQuestPointsQuery);
+ }
+-
+--- /dev/null
++++ b/src/server/coa/AscensionCallboardContracts.cpp
+@@ -0,0 +1,774 @@
++/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
++#include "AscensionCallboardContractsPolicy.h"
++#include "AscensionCallboardContracts.h"
++#include "Mail.h"
++#include "AscensionCompatOpcodes.h"
++#include "Chat.h"
++#include "Config.h"
++#include "DBCStores.h"
++#include "DisableMgr.h"
++#include "DatabaseEnv.h"
++#include "Item.h"
++#include "LocalLevelScaling.h"
++#include "Log.h"
++#include "ObjectMgr.h"
++#include "Player.h"
++#include "PlayerScript.h"
++#include "QuestDef.h"
++#include "ScriptMgr.h"
++#include "World.h"
++#include "WorldPacket.h"
++#include "WorldScript.h"
++#include "WorldSession.h"
++#include <algorithm>
++#include <atomic>
++#include <memory>
++#include <mutex>
++#include <optional>
++#include <string>
++#include <unordered_map>
++#include <utility>
++#include <vector>
++
++namespace
++{
++using namespace CallboardContracts;
++
++constexpr char LedgerKey[] = "ascension_callboard_contract_ledger";
++constexpr uint32 PruneIntervalMs = 1000;
++
++struct ContractType
++{
++    std::string type;
++    std::string contentType;
++    std::vector<uint32> quests;
++    uint32 minimumLevel = 0;
++};
++
++struct Catalogue
++{
++    std::vector<ContractType> types;
++    std::unordered_map<uint32, std::size_t> typeByQuest;
++    std::unordered_map<std::string, std::size_t> typeByName;
++    std::unordered_map<uint32, uint32> cachePoints;
++
++    [[nodiscard]] ContractType const* ForQuest(uint32 questId) const
++    {
++        auto const found = typeByQuest.find(questId);
++        return found == typeByQuest.end() ? nullptr : &types[found->second];
++    }
++
++    [[nodiscard]] ContractType const* ForName(std::string const& name) const
++    {
++        auto const found = typeByName.find(name);
++        return found == typeByName.end() ? nullptr : &types[found->second];
++    }
++};
++
++struct Settings
++{
++    uint32 dailyCompletions = 1;
++    double moneyCostMultiplier = 2.0;
++    uint32 minMoneyCost = 100000;
++    double tokenCostMultiplier = 2.0;
++    uint32 minTokenCost = 50;
++};
++
++struct LedgerData final : DataMap::Base
++{
++    WeekLedger ledger;
++    bool loaded = false;
++};
++
++std::atomic<bool> enabled{false};
++std::mutex stateMutex;
++std::shared_ptr<Catalogue const> catalogue = std::make_shared<Catalogue const>();
++Settings settings;
++PendingRequests pendingRequests;
++thread_local bool activating = false;
++thread_local CharacterDatabaseTransaction rewardTransaction;
++
++std::shared_ptr<Catalogue const> CurrentCatalogue()
++{
++    std::lock_guard lock(stateMutex);
++    return catalogue;
++}
++
++Settings CurrentSettings()
++{
++    std::lock_guard lock(stateMutex);
++    return settings;
++}
++
++void LoadSettings()
++{
++    auto const positive = [](char const* key, uint32 fallback)
++    {
++        return std::max<uint32>(1, sConfigMgr->GetOption<uint32>(key, fallback));
++    };
++
++    Settings loaded;
++    loaded.dailyCompletions = positive("CoA.CallboardContracts.DailyCompletions", 1);
++    loaded.moneyCostMultiplier = sConfigMgr->GetOption<float>("CoA.CallboardContracts.MoneyCostMultiplier", 2.0f);
++    loaded.minMoneyCost = positive("CoA.CallboardContracts.MinMoneyCost", 100000);
++    loaded.tokenCostMultiplier = sConfigMgr->GetOption<float>("CoA.CallboardContracts.TokenCostMultiplier", 2.0f);
++    loaded.minTokenCost = positive("CoA.CallboardContracts.MinTokenCost", 50);
++    {
++        std::lock_guard lock(stateMutex);
++        settings = loaded;
++    }
++    enabled.store(sConfigMgr->GetOption<bool>("CoA.CallboardContracts.Enable", true), std::memory_order_relaxed);
++}
++
++void LoadCatalogue()
++{
++    auto loaded = std::make_shared<Catalogue>();
++    uint32 skipped = 0;
++    if (QueryResult result = WorldDatabase.Query("SELECT c.`QuestId`, c.`ContractType`, c.`ContentType`, "
++        "COALESCE(p.`Points`, 0) FROM `ascension_callboard_contract` c LEFT JOIN `ascension_callboard_quest_points` p "
++        "ON p.`QuestId` = c.`QuestId` UNION ALL SELECT 0, '', '', 0 ORDER BY 2, 1"))
++    {
++        do
++        {
++            Field* fields = result->Fetch();
++            uint32 const questId = fields[0].Get<uint32>();
++            std::string const type = fields[1].Get<std::string>();
++            std::string const contentType = fields[2].Get<std::string>();
++            Quest const* quest = sObjectMgr->GetQuestTemplate(questId);
++            if (!quest || !IsValidTypeName(type) || !IsContentType(contentType) || loaded->typeByQuest.contains(questId))
++            {
++                ++skipped;
++                continue;
++            }
++
++            auto [found, inserted] = loaded->typeByName.try_emplace(type, loaded->types.size());
++            if (inserted)
++                loaded->types.push_back({ type, contentType, {}, quest->GetMinLevel() });
++
++            ContractType& contract = loaded->types[found->second];
++            if (contract.contentType != contentType)
++            {
++                ++skipped;
++                continue;
++            }
++
++            contract.quests.push_back(questId);
++            contract.minimumLevel = std::min(contract.minimumLevel, quest->GetMinLevel());
++            loaded->typeByQuest.emplace(questId, found->second);
++            if (uint32 const points = fields[3].Get<uint32>())
++                loaded->cachePoints.emplace(questId, points);
++        } while (result->NextRow());
++    }
++
++    else
++    {
++        LOG_ERROR("server.loading", "Call Board contract catalogue read failed; retaining the previous catalogue");
++        return;
++    }
++
++    LOG_INFO("server.loading", ">> Loaded {} Call Board contract types ({} quests, {} rows skipped)",
++        loaded->types.size(), loaded->typeByQuest.size(), skipped);
++
++    std::lock_guard lock(stateMutex);
++    catalogue = std::move(loaded);
++}
++
++bool IsBot(Player const* player)
++{
++    return !player->GetSession() || player->GetSession()->IsBot();
++}
++
++int64 CurrentWeekStart()
++{
++    return WeekStart(sWorld->GetNextWeeklyQuestsResetTime().count());
++}
++
++uint32 CurrentDaysBegun()
++{
++    return DaysBegun(sWorld->GetNextDailyQuestsResetTime().count(), sWorld->GetNextWeeklyQuestsResetTime().count());
++}
++
++uint32 CompletedThisWeek(Player const* player, ContractType const& contract)
++{
++    LedgerData const* data = player->CustomData.Get<LedgerData>(LedgerKey);
++    return data ? data->ledger.Completions(contract.type, CurrentWeekStart()) : 0;
++}
++
++bool LedgerLoaded(Player const* player)
++{
++    LedgerData const* data = player->CustomData.Get<LedgerData>(LedgerKey);
++    return data && data->loaded;
++}
++
++uint32 RemainingFor(Player const* player, ContractType const& contract, Settings const& current)
++{
++    if (!LedgerLoaded(player))
++        return 0;
++
++    return Remaining(CurrentDaysBegun(), current.dailyCompletions, CompletedThisWeek(player, contract));
++}
++
++uint32 InLog(Player const* player, Catalogue const& contracts, ContractType const& contract)
++{
++    uint32 count = 0;
++    for (uint16 slot = 0; slot < MAX_QUEST_LOG_SIZE; ++slot)
++        if (uint32 const questId = player->GetQuestSlotQuestId(slot))
++            if (contracts.ForQuest(questId) == &contract)
++                ++count;
++    return count;
++}
++
++uint32 SpareFor(Player const* player, Catalogue const& contracts, ContractType const& contract,
++    Settings const& current)
++{
++    return Spare(RemainingFor(player, contract, current), InLog(player, contracts, contract));
++}
++
++bool ContractAvailable(std::string const& type)
++{
++    int const difficulty = RequiredDungeonDifficulty(type);
++    if (difficulty < 0) return true;
++    for (uint32 index = 0; index < sMapStore.GetNumRows(); ++index)
++    {
++        auto const* map = sMapStore.LookupEntry(index);
++        if (map && map->IsDungeon() && !map->IsRaid() && map->Expansion() == 0
++            && sObjectMgr->GetInstanceTemplate(map->MapID)
++            && GetMapDifficultyData(map->MapID, Difficulty(difficulty))
++            && !DisableMgr::IsDisabledFor(DISABLE_TYPE_MAP, map->MapID, nullptr, uint8(difficulty)))
++            return true;
++    }
++    return false;
++}
++
++Quest const* ChooseQuest(Player* player, ContractType const& contract)
++{
++    if (!ContractAvailable(contract.type))
++        return nullptr;
++
++    for (uint32 const questId : contract.quests)
++        if (Quest const* quest = sObjectMgr->GetQuestTemplate(questId))
++            if (!DisableMgr::IsDisabledFor(DISABLE_TYPE_QUEST, questId, player)
++                && player->SatisfyQuestClass(quest, false) && player->SatisfyQuestRace(quest, false)
++                && player->SatisfyQuestLevel(quest, false) && player->SatisfyQuestSkill(quest, false)
++                && player->SatisfyQuestReputation(quest, false) && player->SatisfyQuestPreviousQuest(quest, false)
++                && player->SatisfyQuestConditions(quest, false))
++                return quest;
++    return nullptr;
++}
++
++uint32 RewardMoney(Player const* player, Quest const* quest)
++{
++    bool const scaling = LocalLevelScaling::QuestScalingEnabled(player);
++    int64 money = std::max<int32>(0, quest->GetRewOrReqMoney(player->GetLevel(), scaling));
++    if (player->GetLevel() >= sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
++        money += quest->GetRewMoneyMaxLevel(scaling);
++    return Saturate(uint64(money));
++}
++
++Reward RewardFor(Player const* player, Catalogue const& contracts, Quest const* quest)
++{
++    Reward reward;
++    reward.money = RewardMoney(player, quest);
++    reward.honor = quest->CalculateHonorGain(player->GetLevel());
++    reward.arenaPoints = uint32(std::max<int32>(0, quest->GetRewArenaPoints()));
++    if (auto const points = contracts.cachePoints.find(quest->GetQuestId()); points != contracts.cachePoints.end())
++        reward.cachePoints = DisplayedCachePoints(points->second);
++
++    for (uint32 i = 0; i < QUEST_REWARDS_COUNT; ++i)
++        if (quest->RewardItemId[i] && quest->RewardItemIdCount[i])
++            if (uint32 const itemId = quest->RewardItemId[i])
++                reward.items.push_back({ itemId, quest->RewardItemIdCount[i] });
++    return reward;
++}
++
++uint32 PriceFor(Player const* player, Catalogue const& contracts, Quest const* quest, Settings const& current,
++    bool payWithGold)
++{
++    Reward const reward = RewardFor(player, contracts, quest);
++    return payWithGold ? MoneyCost(reward.money, current.moneyCostMultiplier, current.minMoneyCost)
++        : TokenCost(reward.ItemAmount(BazaarToken), current.tokenCostMultiplier, current.minTokenCost);
++}
++
++void SendView(Player* player)
++{
++    std::shared_ptr<Catalogue const> const contracts = CurrentCatalogue();
++    Settings const current = CurrentSettings();
++    std::vector<Category> categories;
++    for (auto const& [key, name] : ContentTypes)
++    {
++        Category category{ std::string(key), std::string(name), {} };
++        for (ContractType const& contract : contracts->types)
++        {
++            if (contract.contentType != key)
++                continue;
++
++            SubCategory sub;
++            sub.type = contract.type;
++            sub.name = DisplayName(contract.type);
++            sub.minimumLevel = contract.minimumLevel;
++            if (Quest const* quest = ChooseQuest(player, contract))
++            {
++                sub.remaining = SpareFor(player, *contracts, contract, current);
++                sub.reward = RewardFor(player, *contracts, quest);
++                sub.moneyCost = MoneyCost(sub.reward.money, current.moneyCostMultiplier, current.minMoneyCost);
++                sub.tokenCost = TokenCost(sub.reward.ItemAmount(BazaarToken), current.tokenCostMultiplier,
++                    current.minTokenCost);
++            }
++            else
++            {
++                sub.moneyCost = current.minMoneyCost;
++                sub.tokenCost = current.minTokenCost;
++            }
++            category.subCategories.push_back(std::move(sub));
++        }
++        categories.push_back(std::move(category));
++    }
++
++    std::vector<uint8> const bytes = SerializeView(categories);
++    WorldPacket packet(ViewOpcode, bytes.size());
++    packet.append(bytes.data(), bytes.size());
++    player->GetSession()->SendPacket(&packet);
++}
++
++void CountCompletion(Player* player, ContractType const& contract)
++{
++    LedgerData* data = player->CustomData.GetDefault<LedgerData>(LedgerKey);
++    data->ledger.Roll(CurrentWeekStart());
++    data->ledger.Add(contract.type);
++}
++
++void ApplyStoredLedger(Player* player, PreparedQueryResult result, int64 weekStart)
++{
++    LedgerData* data = player->CustomData.GetDefault<LedgerData>(LedgerKey);
++    if (data->loaded || !result)
++        return;
++
++    WeekLedger stored;
++    stored.Roll(weekStart);
++    if (result)
++    {
++        do
++        {
++            Field* fields = result->Fetch();
++            std::string const type = fields[0].Get<std::string>();
++            if (!type.empty()) stored.Set(type, fields[1].Get<uint32>());
++        } while (result->NextRow());
++    }
++
++    data->ledger.Merge(stored);
++    data->loaded = true;
++}
++
++void LoadLedger(Player* player)
++{
++    int64 const weekStart = CurrentWeekStart();
++    ObjectGuid const owner = player->GetGUID();
++    player->CustomData.GetDefault<LedgerData>(LedgerKey)->ledger.Roll(weekStart);
++
++    CharacterDatabasePreparedStatement* cleanup =
++        CharacterDatabase.GetPreparedStatement(CHAR_DEL_COA_CALLBOARD_CONTRACT_OLD_WEEKS);
++    cleanup->SetData(0, owner.GetCounter());
++    cleanup->SetData(1, uint32(weekStart));
++    CharacterDatabase.Execute(cleanup);
++
++    CharacterDatabasePreparedStatement* select =
++        CharacterDatabase.GetPreparedStatement(CHAR_SEL_COA_CALLBOARD_CONTRACTS);
++    select->SetData(0, owner.GetCounter());
++    select->SetData(1, uint32(weekStart));
++    WorldSession* session = player->GetSession();
++    session->GetQueryProcessor().AddCallback(CharacterDatabase.AsyncQuery(select)
++        .WithPreparedCallback([session, owner, weekStart](PreparedQueryResult result)
++        {
++            Player* loaded = session->GetPlayer();
++            if (loaded && loaded->GetGUID() == owner)
++                ApplyStoredLedger(loaded, std::move(result), weekStart);
++        }));
++}
++
++using RewardItems = std::vector<std::unique_ptr<Item>>;
++
++bool PrepareRewardItems(Player* player, Quest const* quest, RewardItems& items)
++{
++    auto prepare = [&](uint32 rawItemId, uint32 remaining)
++    {
++        uint32 const itemId = rawItemId;
++        auto const* itemTemplate = sObjectMgr->GetItemTemplate(itemId);
++        if (!itemTemplate || !remaining) return false;
++        while (remaining)
++        {
++            uint32 const count = std::min(remaining, itemTemplate->GetMaxStackSize());
++            if (!count) return false;
++            std::unique_ptr<Item> item(Item::CreateItem(itemId, count, player));
++            if (!item) return false;
++            items.push_back(std::move(item));
++            remaining -= count;
++        }
++        return true;
++    };
++    for (uint32 i = 0; i < QUEST_REWARD_CHOICES_COUNT; ++i)
++        if (quest->RewardChoiceItemId[i])
++        {
++            if (!prepare(quest->RewardChoiceItemId[i], quest->RewardChoiceItemCount[i])) return false;
++            break;
++        }
++    for (uint32 i = 0; i < QUEST_REWARDS_COUNT; ++i)
++        if (quest->RewardItemId[i] && !prepare(quest->RewardItemId[i], quest->RewardItemIdCount[i])) return false;
++    return true;
++}
++
++void GrantRewards(Player* player, Quest const* quest, RewardItems& items)
++{
++    for (auto& prepared : items)
++    {
++        ItemPosCountVec dest;
++        uint32 const count = prepared->GetCount();
++        if (player->CanStoreItem(NULL_BAG, NULL_SLOT, dest, prepared.get(), false) == EQUIP_ERR_OK)
++        {
++            Item* item = player->StoreItem(dest, prepared.release(), true);
++            player->SendNewItem(item, count, true, false, false, false);
++            sScriptMgr->OnPlayerQuestRewardItem(player, item, count);
++        }
++        else
++        {
++            prepared->SaveToDB(rewardTransaction);
++            MailDraft draft("Temporal Contract Reward", "Your completed contract reward is enclosed.");
++            draft.AddItem(prepared.release());
++            draft.SendMailTo(rewardTransaction, MailReceiver(player, player->GetGUID().GetCounter()),
++                MailSender(MAIL_CREATURE, 34337));
++        }
++    }
++
++    player->RewardReputation(quest);
++
++    bool const scaling = LocalLevelScaling::QuestScalingEnabled(player);
++    uint32 xp = player->CalculateQuestRewardXP(quest);
++    sScriptMgr->OnPlayerQuestComputeXP(player, quest, xp);
++    int32 money = 0;
++    if (player->GetLevel() >= sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL)
++        || sScriptMgr->OnPlayerShouldBeRewardedWithMoneyInsteadOfExp(player))
++        money = quest->GetRewMoneyMaxLevel(scaling);
++    else
++    {
++        sScriptMgr->OnPlayerGiveXP(player, xp, nullptr, PlayerXPSource::XPSOURCE_QUEST);
++        player->GiveXP(xp, nullptr);
++    }
++
++    money += std::max<int32>(0, quest->GetRewOrReqMoney(player->GetLevel(), scaling));
++    if (player->HasPlayerFlag(PLAYER_FLAGS_NO_PLAY_TIME))
++        money = 0;
++    else if (player->HasPlayerFlag(PLAYER_FLAGS_PARTIAL_PLAY_TIME))
++        money /= 2;
++
++    if (money > 0)
++    {
++        player->ModifyMoney(money);
++        player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_MONEY_FROM_QUEST_REWARD, uint32(money));
++    }
++
++    if (uint32 const honor = quest->CalculateHonorGain(player->GetLevel()))
++        player->RewardHonor(nullptr, 0, honor);
++
++    if (quest->GetRewArenaPoints())
++        player->ModifyArenaPoints(quest->GetRewArenaPoints());
++
++    if (quest->IsDaily())
++    {
++        player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_DAILY_QUEST, quest->GetQuestId());
++        player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_DAILY_QUEST_DAILY, quest->GetQuestId());
++    }
++    player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_QUEST, quest->GetQuestId());
++
++    sScriptMgr->OnPlayerCompleteQuest(player, quest);
++}
++
++bool Charge(Player* player, uint32 price, bool payWithGold)
++{
++    if (payWithGold)
++        return player->HasEnoughMoney(price) && player->ModifyMoney(-int32(price));
++
++    if (!player->HasItemCount(BazaarToken, price, false))
++        return false;
++
++    player->DestroyItemCount(BazaarToken, price, true);
++    return true;
++}
++
++uint32 Activate(Player* player, Catalogue const& contracts, Settings const& current, Activation const& request)
++{
++    ChatHandler chat(player->GetSession());
++    ContractType const* contract = contracts.ForName(request.type);
++    if (!contract)
++        return 0;
++
++    std::string const name = DisplayName(contract->type);
++    Quest const* quest = ChooseQuest(player, *contract);
++    if (!quest)
++    {
++        chat.PSendSysMessage("You cannot complete {} contracts yet.", name);
++        return 0;
++    }
++
++    uint32 const spare = SpareFor(player, contracts, *contract, current);
++    if (!spare)
++    {
++        chat.PSendSysMessage("No {} completions remain. Finish or abandon the quest in your log first.", name);
++        return 0;
++    }
++
++    uint32 completed = 0;
++    uint32 const wanted = std::min(request.Completions(), spare);
++    activating = true;
++    for (; completed < wanted; ++completed)
++    {
++        RewardItems items;
++        if (!PrepareRewardItems(player, quest, items))
++        {
++            chat.PSendSysMessage("Unable to prepare {} rewards. No payment was taken.", name);
++            break;
++        }
++        uint32 const price = PriceFor(player, contracts, quest, current, request.payWithGold);
++        if (!Charge(player, price, request.payWithGold))
++        {
++            chat.PSendSysMessage(request.payWithGold ? "You do not have enough gold to complete {}."
++                : "You do not have enough Bazaar Tokens to complete {}.", name);
++            break;
++        }
++        GrantRewards(player, quest, items);
++    }
++    activating = false;
++
++    if (completed)
++        chat.PSendSysMessage("Temporal Contract complete: {} x{}.", name, completed);
++    return completed;
++}
++
++void ProcessRequests(Player* player)
++{
++    if (player->IsBeingTeleportedFar())
++        return;
++    WorldSession* session = player->GetSession();
++    if (!session)
++        return;
++
++    bool const active = enabled.load(std::memory_order_relaxed) && !IsBot(player);
++    if (active && !LedgerLoaded(player))
++        return;
++
++    Requests requests = pendingRequests.Take(session->GetAccountId(), PendingRequests::Clock::now());
++    if (!active)
++        return;
++
++    bool send = requests.view;
++    if (!requests.activations.empty())
++    {
++        std::shared_ptr<Catalogue const> const contracts = CurrentCatalogue();
++        Settings const current = CurrentSettings();
++        rewardTransaction = CharacterDatabase.BeginTransaction();
++        uint32 completed = 0;
++        for (Activation const& activation : requests.activations)
++            completed += Activate(player, *contracts, current, activation);
++
++        if (completed)
++        {
++            player->SaveToDB(rewardTransaction, false, false);
++            CharacterDatabase.CommitTransaction(rewardTransaction);
++        }
++        rewardTransaction.reset();
++        send = true;
++    }
++
++    if (send)
++        SendView(player);
++}
++
++bool AcceptsRequests(WorldSession* session)
++{
++    return session && session->GetPlayer() && enabled.load(std::memory_order_relaxed);
++}
++
++bool HandleRequestView(WorldSession* session, WorldPacket const&)
++{
++    if (AcceptsRequests(session))
++        pendingRequests.RequestView(session->GetAccountId(), PendingRequests::Clock::now());
++    return true;
++}
++
++bool HandleActivate(WorldSession* session, WorldPacket const& packet)
++{
++    if (!AcceptsRequests(session))
++        return true;
++
++    if (std::optional<Activation> activation = ParseActivationPacket(packet))
++        pendingRequests.Activate(session->GetAccountId(), std::move(*activation), PendingRequests::Clock::now());
++    return true;
++}
++
++std::optional<std::string> ExhaustedContractName(Player const* player, Quest const* quest)
++{
++    if (!enabled.load(std::memory_order_relaxed) || IsBot(player))
++        return std::nullopt;
++
++    std::shared_ptr<Catalogue const> const contracts = CurrentCatalogue();
++    ContractType const* contract = contracts->ForQuest(quest->GetQuestId());
++    if (!contract || (ContractAvailable(contract->type)
++        && RemainingFor(player, *contract, CurrentSettings()) > 0))
++        return std::nullopt;
++
++    return DisplayName(contract->type);
++}
++
++class ascension_callboard_contracts_player : public PlayerScript
++{
++public:
++    ascension_callboard_contracts_player()
++        : PlayerScript("ascension_callboard_contracts_player",
++              { PLAYERHOOK_ON_LOGIN, PLAYERHOOK_ON_LOGOUT, PLAYERHOOK_ON_UPDATE, PLAYERHOOK_CAN_TAKE_QUEST,
++                PLAYERHOOK_CAN_REWARD_QUEST, PLAYERHOOK_ON_QUEST_GIVER_CHOOSE_REWARD,
++                PLAYERHOOK_ON_PLAYER_COMPLETE_QUEST, PLAYERHOOK_ON_DELETE_FROM_DB }) { }
++
++    void OnPlayerLogin(Player* player) override
++    {
++        if (!IsBot(player))
++            LoadLedger(player);
++    }
++
++    void OnPlayerLogout(Player* player) override
++    {
++        if (WorldSession* session = player->GetSession())
++            static_cast<void>(pendingRequests.Take(session->GetAccountId(), PendingRequests::Clock::now()));
++    }
++
++    void OnPlayerUpdate(Player* player, uint32) override
++    {
++        if (pendingRequests.Size())
++            ProcessRequests(player);
++    }
++
++    [[nodiscard]] bool OnPlayerCanTakeQuest(Player const* player, Quest const* quest) override
++    {
++        if (!enabled.load(std::memory_order_relaxed) || IsBot(player))
++            return true;
++
++        std::shared_ptr<Catalogue const> const contracts = CurrentCatalogue();
++        ContractType const* contract = contracts->ForQuest(quest->GetQuestId());
++        return !contract || (ContractAvailable(contract->type)
++            && SpareFor(player, *contracts, *contract, CurrentSettings()) > 0);
++    }
++
++    [[nodiscard]] bool OnPlayerCanRewardQuest(Player const* player, Quest const* quest) override
++    {
++        return !ExhaustedContractName(player, quest);
++    }
++
++    [[nodiscard]] bool OnPlayerQuestGiverChooseReward(Player* player, Object*, Quest const* quest, uint32) override
++    {
++        std::optional<std::string> const exhausted = ExhaustedContractName(player, quest);
++        if (!exhausted)
++            return false;
++
++        ChatHandler(player->GetSession()).PSendSysMessage("No {} completions remain this week.", *exhausted);
++        return true;
++    }
++
++    void OnPlayerCompleteQuest(Player* player, Quest const* quest) override
++    {
++        if (!enabled.load(std::memory_order_relaxed) || IsBot(player))
++            return;
++
++        std::shared_ptr<Catalogue const> const contracts = CurrentCatalogue();
++        ContractType const* contract = contracts->ForQuest(quest->GetQuestId());
++        if (!contract)
++            return;
++
++        if (activating) CountCompletion(player, *contract);
++        if (!activating)
++            SendView(player);
++    }
++
++    void OnPlayerDeleteFromDB(CharacterDatabaseTransaction trans, uint32 guid) override
++    {
++        CharacterDatabasePreparedStatement* statement =
++            CharacterDatabase.GetPreparedStatement(CHAR_DEL_COA_CALLBOARD_CONTRACTS);
++        statement->SetData(0, guid);
++        trans->Append(statement);
++    }
++};
++
++class ascension_callboard_contracts_world : public WorldScript
++{
++public:
++    ascension_callboard_contracts_world()
++        : WorldScript("ascension_callboard_contracts_world",
++              { WORLDHOOK_ON_STARTUP, WORLDHOOK_ON_AFTER_CONFIG_LOAD, WORLDHOOK_ON_UPDATE })
++    { }
++
++    void OnStartup() override
++    {
++        LoadCatalogue();
++    }
++
++    void OnAfterConfigLoad(bool reload) override
++    {
++        LoadSettings();
++        if (reload)
++            LoadCatalogue();
++    }
++
++    void OnUpdate(uint32 diff) override
++    {
++        _sincePrune += diff;
++        if (_sincePrune < PruneIntervalMs)
++            return;
++
++        _sincePrune = 0;
++        pendingRequests.DropExpired(PendingRequests::Clock::now());
++    }
++
++private:
++    uint32 _sincePrune = 0;
++};
++}
++
++namespace AscensionCallboardContracts
++{
++CharacterDatabaseTransaction CurrentRewardTransaction()
++{
++    return rewardTransaction;
++}
++
++bool CanReward(Player const* player, Quest const* quest)
++{
++    return !ExhaustedContractName(player, quest);
++}
++
++void RecordReward(Player* player, Quest const* quest)
++{
++    if (!enabled.load(std::memory_order_relaxed) || IsBot(player)) return;
++    auto contracts = CurrentCatalogue();
++    if (auto const* contract = contracts->ForQuest(quest->GetQuestId())) CountCompletion(player, *contract);
++}
++
++void AppendSave(Player* player, CharacterDatabaseTransaction transaction)
++{
++    auto const* data = player->CustomData.Get<LedgerData>(LedgerKey);
++    if (!data || !data->loaded) return;
++    auto const week = data->ledger.WeekStartTime();
++    for (auto const& type : data->ledger.Types())
++    {
++        auto* statement = CharacterDatabase.GetPreparedStatement(CHAR_REP_COA_CALLBOARD_CONTRACT);
++        statement->SetData(0, player->GetGUID().GetCounter());
++        statement->SetData(1, type);
++        statement->SetData(2, uint32(week));
++        statement->SetData(3, data->ledger.Completions(type, week));
++        transaction->Append(statement);
++    }
++}
++}
++
++void AddSC_AscensionCallboardContracts()
++{
++    new ascension_callboard_contracts_player();
++    new ascension_callboard_contracts_world();
++    AscensionCompatOpcodes::Claim(RequestViewOpcode, &HandleRequestView);
++    AscensionCompatOpcodes::Claim(ActivateOpcode, &HandleActivate);
++}
+--- /dev/null
++++ b/src/server/coa/AscensionCallboardContractsPolicy.h
+@@ -0,0 +1,507 @@
++/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
++
++#ifndef COA_ASCENSION_CALLBOARD_CONTRACTS_POLICY_H
++#define COA_ASCENSION_CALLBOARD_CONTRACTS_POLICY_H
++
++#include <algorithm>
++#include <array>
++#include <atomic>
++#include <cctype>
++#include <chrono>
++#include <cmath>
++#include <cstddef>
++#include <cstdint>
++#include <limits>
++#include <mutex>
++#include <optional>
++#include <string>
++#include <string_view>
++#include <unordered_map>
++#include <vector>
++
++namespace CallboardContracts
++{
++constexpr std::uint16_t RequestViewOpcode = 0x055F;
++constexpr std::uint16_t ActivateOpcode = 0x055B;
++constexpr std::uint16_t ViewOpcode = 0x0589;
++constexpr std::uint32_t BazaarToken = 975001;
++constexpr std::int64_t DaySeconds = 86400;
++constexpr std::int64_t DaysPerWeek = 7;
++constexpr std::size_t MaxTypeNameLength = 64;
++constexpr std::uint32_t PointsPerDisplayedPoint = 10;
++constexpr std::uint32_t MaxMoneyCost = static_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::max());
++
++struct ContentType
++{
++    std::string_view key;
++    std::string_view name;
++};
++
++constexpr std::array<ContentType, 5> ContentTypes = {{
++    { "PvE", "PvE" },
++    { "PvP", "PvP" },
++    { "Profession", "Professions" },
++    { "HighRisk", "High-Risk" },
++    { "Misc", "Miscellaneous" },
++}};
++
++inline bool IsContentType(std::string_view key)
++{
++    return std::any_of(ContentTypes.begin(), ContentTypes.end(),
++        [key](ContentType const& type) { return type.key == key; });
++}
++
++inline std::uint32_t Saturate(std::uint64_t value)
++{
++    return static_cast<std::uint32_t>(std::min<std::uint64_t>(value, std::numeric_limits<std::uint32_t>::max()));
++}
++
++inline std::int64_t WeekStart(std::int64_t nextWeeklyReset)
++{
++    return nextWeeklyReset - DaysPerWeek * DaySeconds;
++}
++
++inline std::uint32_t DaysBegun(std::int64_t nextDailyReset, std::int64_t nextWeeklyReset)
++{
++    std::int64_t const untilWeekly = nextWeeklyReset - nextDailyReset;
++    if (untilWeekly < 0)
++        return DaysPerWeek;
++
++    std::int64_t const days = DaysPerWeek - untilWeekly / DaySeconds;
++    return static_cast<std::uint32_t>(std::clamp<std::int64_t>(days, 1, DaysPerWeek));
++}
++
++inline std::uint32_t Remaining(std::uint32_t daysBegun, std::uint32_t dailyCompletions, std::uint32_t done)
++{
++    std::uint64_t const earned = std::uint64_t(daysBegun) * dailyCompletions;
++    return earned > done ? Saturate(earned - done) : 0;
++}
++
++inline std::uint32_t Spare(std::uint32_t remaining, std::uint32_t inLog)
++{
++    return remaining > inLog ? remaining - inLog : 0;
++}
++
++inline std::uint32_t ScaledCost(std::uint32_t reward, double multiplier, std::uint32_t minimum, std::uint32_t maximum)
++{
++    if (!std::isfinite(multiplier)) multiplier = 2.0;
++    double const scaled = std::round(double(reward) * std::max(0.0, multiplier));
++    std::uint32_t const value = scaled >= double(maximum) ? maximum : static_cast<std::uint32_t>(scaled);
++    return std::clamp(value, std::clamp<std::uint32_t>(minimum, 1, maximum), maximum);
++}
++
++inline std::uint32_t MoneyCost(std::uint32_t rewardMoney, double multiplier, std::uint32_t minimum)
++{
++    return ScaledCost(rewardMoney, multiplier, minimum, MaxMoneyCost);
++}
++
++inline std::uint32_t TokenCost(std::uint32_t rewardTokens, double multiplier, std::uint32_t minimum)
++{
++    return ScaledCost(rewardTokens, multiplier, minimum, std::numeric_limits<std::uint32_t>::max());
++}
++
++inline std::uint32_t DisplayedCachePoints(std::uint32_t points)
++{
++    return (points + PointsPerDisplayedPoint - 1) / PointsPerDisplayedPoint;
++}
++
++inline bool IsValidTypeName(std::string_view name)
++{
++    return !name.empty() && name.size() <= MaxTypeNameLength && std::all_of(name.begin(), name.end(),
++        [](char c) { return std::isalnum(static_cast<unsigned char>(c)) != 0; });
++}
++
++[[nodiscard]] constexpr int RequiredDungeonDifficulty(std::string_view type)
++{
++    if (type == "VanillaHeroicDungeonCrawling") return 1;
++    if (type == "VanillaMythicDungeonCrawling") return 2;
++    return -1;
++}
++
++inline std::string DisplayName(std::string_view type)
++{
++    std::string name;
++    for (std::size_t i = 0; i < type.size(); ++i)
++    {
++        unsigned char const c = static_cast<unsigned char>(type[i]);
++        if (i && !name.empty() && name.back() != ' ')
++        {
++            unsigned char const previous = static_cast<unsigned char>(type[i - 1]);
++            bool const next = i + 1 < type.size() && std::islower(static_cast<unsigned char>(type[i + 1]));
++            bool const wordStart = std::isupper(c) && (std::islower(previous) || std::isdigit(previous)
++                || (std::isupper(previous) && next));
++            bool const numberStart = std::isdigit(c) && std::isalpha(previous);
++            if (wordStart || numberStart)
++                name.push_back(' ');
++        }
++        name.push_back(static_cast<char>(c));
++    }
++    return name;
++}
++
++struct RewardItem
++{
++    std::uint32_t itemId = 0;
++    std::uint32_t amount = 0;
++};
++
++struct Reward
++{
++    std::uint32_t money = 0;
++    std::uint32_t honor = 0;
++    std::uint32_t arenaPoints = 0;
++    std::uint32_t cachePoints = 0;
++    std::vector<RewardItem> items;
++
++    [[nodiscard]] std::uint32_t ItemAmount(std::uint32_t itemId) const
++    {
++        std::uint64_t amount = 0;
++        for (RewardItem const& item : items)
++            if (item.itemId == itemId)
++                amount += item.amount;
++        return Saturate(amount);
++    }
++};
++
++struct SubCategory
++{
++    std::string type;
++    std::string name;
++    std::uint32_t remaining = 0;
++    std::uint32_t moneyCost = 1;
++    std::uint32_t tokenCost = 1;
++    std::uint32_t minimumLevel = 0;
++    Reward reward;
++};
++
++struct Category
++{
++    std::string contentType;
++    std::string name;
++    std::vector<SubCategory> subCategories;
++};
++
++struct CategoryTotal
++{
++    std::uint32_t remaining = 0;
++    std::uint32_t moneyCost = 1;
++    std::uint32_t tokenCost = 1;
++    Reward reward;
++};
++
++inline CategoryTotal Summarize(Category const& category)
++{
++    std::uint64_t remaining = 0;
++    std::uint64_t money = 0;
++    std::uint64_t tokens = 0;
++    std::uint64_t rewardMoney = 0;
++    std::uint64_t honor = 0;
++    std::uint64_t arena = 0;
++    std::uint64_t cache = 0;
++    std::vector<std::pair<std::uint32_t, std::uint64_t>> items;
++    for (SubCategory const& sub : category.subCategories)
++    {
++        std::uint64_t const times = sub.remaining;
++        remaining += times;
++        money += times * sub.moneyCost;
++        tokens += times * sub.tokenCost;
++        rewardMoney += times * sub.reward.money;
++        honor += times * sub.reward.honor;
++        arena += times * sub.reward.arenaPoints;
++        cache += times * sub.reward.cachePoints;
++        if (!times)
++            continue;
++
++        for (RewardItem const& item : sub.reward.items)
++        {
++            auto found = std::find_if(items.begin(), items.end(),
++                [&item](auto const& entry) { return entry.first == item.itemId; });
++            if (found == items.end())
++                items.emplace_back(item.itemId, times * item.amount);
++            else
++                found->second += times * item.amount;
++        }
++    }
++
++    CategoryTotal total;
++    total.remaining = Saturate(remaining);
++    total.moneyCost = std::max<std::uint32_t>(1, Saturate(money));
++    total.tokenCost = std::max<std::uint32_t>(1, Saturate(tokens));
++    total.reward.money = Saturate(rewardMoney);
++    total.reward.honor = Saturate(honor);
++    total.reward.arenaPoints = Saturate(arena);
++    total.reward.cachePoints = Saturate(cache);
++    for (auto const& [itemId, amount] : items)
++        total.reward.items.push_back({ itemId, Saturate(amount) });
++    return total;
++}
++
++class Writer
++{
++public:
++    void U32(std::uint32_t value)
++    {
++        for (int shift = 0; shift < 32; shift += 8)
++            _bytes.push_back(static_cast<std::uint8_t>(value >> shift));
++    }
++
++    void CString(std::string_view text)
++    {
++        _bytes.insert(_bytes.end(), text.begin(), text.end());
++        _bytes.push_back(0);
++    }
++
++    void Rewards(Reward const& reward)
++    {
++        U32(reward.money);
++        U32(reward.honor);
++        U32(reward.arenaPoints);
++        U32(reward.cachePoints);
++        U32(static_cast<std::uint32_t>(reward.items.size()));
++        for (RewardItem const& item : reward.items)
++        {
++            U32(item.itemId);
++            U32(item.amount);
++        }
++    }
++
++    [[nodiscard]] std::vector<std::uint8_t> Take() { return std::move(_bytes); }
++
++private:
++    std::vector<std::uint8_t> _bytes;
++};
++
++inline std::vector<std::uint8_t> SerializeView(std::vector<Category> const& categories)
++{
++    Writer out;
++    out.U32(static_cast<std::uint32_t>(categories.size()));
++    for (Category const& category : categories)
++    {
++        CategoryTotal const total = Summarize(category);
++        out.CString(category.contentType);
++        out.CString(category.name);
++        out.U32(total.remaining);
++        out.U32(total.moneyCost);
++        out.U32(total.tokenCost);
++        out.Rewards(total.reward);
++        out.U32(static_cast<std::uint32_t>(category.subCategories.size()));
++        for (SubCategory const& sub : category.subCategories)
++        {
++            out.CString(sub.type);
++            out.CString(sub.name);
++            out.U32(sub.remaining);
++            out.U32(std::max<std::uint32_t>(1, sub.moneyCost));
++            out.U32(std::max<std::uint32_t>(1, sub.tokenCost));
++            out.U32(sub.minimumLevel);
++            out.Rewards(sub.reward);
++        }
++    }
++    return out.Take();
++}
++
++struct Activation
++{
++    std::string type;
++    bool payWithGold = false;
++    std::uint32_t count = 0;
++
++    [[nodiscard]] std::uint32_t Completions() const { return std::max<std::uint32_t>(1, count); }
++};
++
++inline std::uint32_t ReadU32(std::uint8_t const* data)
++{
++    return std::uint32_t(data[0]) | std::uint32_t(data[1]) << 8 | std::uint32_t(data[2]) << 16
++        | std::uint32_t(data[3]) << 24;
++}
++
++inline std::optional<Activation> ParseActivation(std::uint8_t const* data, std::size_t size)
++{
++    if (!data || size < sizeof(std::uint32_t))
++        return std::nullopt;
++
++    std::uint32_t const length = ReadU32(data);
++    if (length > MaxTypeNameLength || size != sizeof(std::uint32_t) + length + 1 + sizeof(std::uint32_t))
++        return std::nullopt;
++
++    Activation activation;
++    activation.type.assign(reinterpret_cast<char const*>(data + sizeof(std::uint32_t)), length);
++    if (!IsValidTypeName(activation.type))
++        return std::nullopt;
++
++    std::uint8_t const* tail = data + sizeof(std::uint32_t) + length;
++    if (tail[0] > 1) return std::nullopt;
++    activation.payWithGold = tail[0] != 0;
++    activation.count = ReadU32(tail + 1);
++    return activation;
++}
++
++template <typename Packet>
++std::optional<Activation> ParseActivationPacket(Packet const& packet)
++{
++    if (packet.empty())
++        return std::nullopt;
++
++    return ParseActivation(packet.contents(), packet.size());
++}
++
++struct Requests
++{
++    bool view = false;
++    std::vector<Activation> activations;
++};
++
++class PendingRequests
++{
++public:
++    using Clock = std::chrono::steady_clock;
++    static constexpr std::size_t MaxActivationsPerAccount = 64;
++    static constexpr std::chrono::seconds MaxAge{30};
++
++    void RequestView(std::uint32_t accountId, Clock::time_point now)
++    {
++        std::lock_guard lock(_mutex);
++        Requests& requests = EntryFor(accountId, now).requests;
++        if (requests.view)
++            return;
++
++        requests.view = true;
++        _pending.fetch_add(1, std::memory_order_release);
++    }
++
++    bool Activate(std::uint32_t accountId, Activation activation, Clock::time_point now)
++    {
++        std::lock_guard lock(_mutex);
++        Requests& requests = EntryFor(accountId, now).requests;
++        if (requests.activations.size() >= MaxActivationsPerAccount)
++            return false;
++
++        requests.activations.push_back(std::move(activation));
++        _pending.fetch_add(1, std::memory_order_release);
++        return true;
++    }
++
++    [[nodiscard]] Requests Take(std::uint32_t accountId, Clock::time_point now)
++    {
++        if (!_pending.load(std::memory_order_acquire))
++            return {};
++
++        std::lock_guard lock(_mutex);
++        auto const found = _requests.find(accountId);
++        if (found == _requests.end())
++            return {};
++
++        Entry entry = std::move(found->second);
++        _requests.erase(found);
++        _pending.fetch_sub(Count(entry.requests), std::memory_order_release);
++        return Expired(entry, now) ? Requests{} : std::move(entry.requests);
++    }
++
++    void DropExpired(Clock::time_point now)
++    {
++        if (!_pending.load(std::memory_order_acquire))
++            return;
++
++        std::lock_guard lock(_mutex);
++        for (auto entry = _requests.begin(); entry != _requests.end();)
++        {
++            if (!Expired(entry->second, now))
++            {
++                ++entry;
++                continue;
++            }
++
++            _pending.fetch_sub(Count(entry->second.requests), std::memory_order_release);
++            entry = _requests.erase(entry);
++        }
++    }
++
++    [[nodiscard]] std::size_t Size() const { return _pending.load(std::memory_order_acquire); }
++
++private:
++    struct Entry
++    {
++        Requests requests;
++        Clock::time_point queuedAt;
++    };
++
++    static std::size_t Count(Requests const& requests)
++    {
++        return requests.activations.size() + (requests.view ? 1 : 0);
++    }
++
++    static bool Expired(Entry const& entry, Clock::time_point now) { return now - entry.queuedAt > MaxAge; }
++
++    Entry& EntryFor(std::uint32_t accountId, Clock::time_point now)
++    {
++        auto [found, inserted] = _requests.try_emplace(accountId);
++        if (inserted)
++            found->second.queuedAt = now;
++        return found->second;
++    }
++
++    std::mutex _mutex;
++    std::unordered_map<std::uint32_t, Entry> _requests;
++    std::atomic<std::size_t> _pending{0};
++};
++
++class WeekLedger
++{
++public:
++    void Roll(std::int64_t weekStart)
++    {
++        if (weekStart == _weekStart)
++            return;
++
++        _weekStart = weekStart;
++        _completions.clear();
++    }
++
++    void Set(std::string const& type, std::uint32_t completions) { _completions[type] = completions; }
++
++    std::uint32_t Add(std::string const& type)
++    {
++        std::uint32_t& completions = _completions[type];
++        if (completions < std::numeric_limits<std::uint32_t>::max())
++            ++completions;
++        return completions;
++    }
++
++    [[nodiscard]] std::uint32_t Completions(std::string const& type, std::int64_t weekStart) const
++    {
++        if (weekStart != _weekStart)
++            return 0;
++
++        auto const found = _completions.find(type);
++        return found == _completions.end() ? 0 : found->second;
++    }
++
++    void Merge(WeekLedger const& stored)
++    {
++        if (stored._weekStart != _weekStart)
++            return;
++
++        for (auto const& [type, completions] : stored._completions)
++        {
++            std::uint32_t& current = _completions[type];
++            current = Saturate(std::uint64_t(current) + completions);
++        }
++    }
++
++    [[nodiscard]] std::vector<std::string> Types() const
++    {
++        std::vector<std::string> types;
++        types.reserve(_completions.size());
++        for (auto const& entry : _completions)
++            types.push_back(entry.first);
++        return types;
++    }
++
++    [[nodiscard]] std::int64_t WeekStartTime() const { return _weekStart; }
++
++private:
++    std::int64_t _weekStart = std::numeric_limits<std::int64_t>::min();
++    std::unordered_map<std::string, std::uint32_t> _completions;
++};
++}
++
++#endif
+--- a/src/server/coa/CoAScriptLoader.cpp
++++ b/src/server/coa/CoAScriptLoader.cpp
+@@ -281,6 +281,7 @@
+ void AddSC_AscensionProfessionRanks();
+ void AddSC_AscensionPrestigiousCache();
+ void AddSC_AscensionCallboardCache();
++void AddSC_AscensionCallboardContracts();
+ void AddSC_AscensionFeatherOfAncients();
+ void AddSC_AscensionVultureCultQuests();
+ void AddSC_AscensionCaravanCarts();
+@@ -558,6 +559,7 @@
+     AddSC_AscensionProfessionRanks();
+     AddSC_AscensionPrestigiousCache();
+     AddSC_AscensionCallboardCache();
++    AddSC_AscensionCallboardContracts();
+     AddSC_AscensionFeatherOfAncients();
+     AddSC_AscensionVultureCultQuests();
+     AddSC_AscensionCaravanCarts();
+--- a/src/server/coa/conf/coa.conf.dist
++++ b/src/server/coa/conf/coa.conf.dist
+@@ -296,3 +296,10 @@
+ XPHotspots.MaxContinent = 2
+ XPHotspots.ActiveCount = 3
+ XPHotspots.BuffSpell = 993945
++
++CoA.CallboardContracts.Enable = 1
++CoA.CallboardContracts.DailyCompletions = 1
++CoA.CallboardContracts.MoneyCostMultiplier = 2.0
++CoA.CallboardContracts.MinMoneyCost = 100000
++CoA.CallboardContracts.TokenCostMultiplier = 2.0
++CoA.CallboardContracts.MinTokenCost = 50
+--- a/src/server/database/Database/Implementation/CharacterDatabase.cpp
++++ b/src/server/database/Database/Implementation/CharacterDatabase.cpp
+@@ -867,6 +867,16 @@
+         CONNECTION_SYNCH);
+ 
+     PrepareStatement(CHAR_INS_PLAYER_ANTICHEAT_ALERT, "INSERT INTO player_anticheat_alert (account, guid, name, reason, details, size) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
++    PrepareStatement(CHAR_SEL_COA_CALLBOARD_CONTRACTS,
++        "SELECT contract_type, completions FROM character_callboard_contract WHERE guid = ? AND week_start = ? UNION ALL SELECT '', 0",
++        CONNECTION_ASYNC);
++    PrepareStatement(CHAR_REP_COA_CALLBOARD_CONTRACT,
++        "REPLACE INTO character_callboard_contract (guid, contract_type, week_start, completions) VALUES (?, ?, ?, ?)",
++        CONNECTION_ASYNC);
++    PrepareStatement(CHAR_DEL_COA_CALLBOARD_CONTRACT_OLD_WEEKS,
++        "DELETE FROM character_callboard_contract WHERE guid = ? AND week_start <> ?", CONNECTION_ASYNC);
++    PrepareStatement(CHAR_DEL_COA_CALLBOARD_CONTRACTS, "DELETE FROM character_callboard_contract WHERE guid = ?",
++        CONNECTION_ASYNC);
+ }
+ 
+ CharacterDatabaseConnection::CharacterDatabaseConnection(MySQLConnectionInfo& connInfo) : MySQLConnection(connInfo)
+--- a/src/server/database/Database/Implementation/CharacterDatabase.h
++++ b/src/server/database/Database/Implementation/CharacterDatabase.h
+@@ -626,6 +626,11 @@
+     CHAR_SEL_A52_FEATURED_MILESTONES,
+     CHAR_INS_A52_FEATURED_MILESTONE,
+ 
++    CHAR_SEL_COA_CALLBOARD_CONTRACTS,
++    CHAR_REP_COA_CALLBOARD_CONTRACT,
++    CHAR_DEL_COA_CALLBOARD_CONTRACT_OLD_WEEKS,
++    CHAR_DEL_COA_CALLBOARD_CONTRACTS,
++
+     MAX_CHARACTERDATABASE_STATEMENTS
+ };
+ 
+--- a/src/server/game/Entities/Player/PlayerQuest.cpp
++++ b/src/server/game/Entities/Player/PlayerQuest.cpp
+@@ -15,6 +15,7 @@
+  * with this program. If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
++#include "AscensionCallboardContracts.h"
+ #include "CreatureAI.h"
+ #include "../../../coa/AscensionFreePick.h"
+ #include "DisableMgr.h"
+@@ -710,6 +711,8 @@
+ 
+ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, bool announce, bool isLFGReward)
+ {
++    if (!AscensionCallboardContracts::CanReward(this, quest)) return;
++
+     //this THING should be here to protect code from quest, which cast on player far teleport as a reward
+     //should work fine, cause far teleport will be executed in Player::Update()
+     SetMustDelayTeleport(true);
+@@ -916,6 +919,7 @@
+     UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_QUEST_COUNT);
+     UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_QUEST, quest->GetQuestId());
+ 
++    AscensionCallboardContracts::RecordReward(this, quest);
+     // pussywizard: replaced partial save with full save
+     SaveToDB(false, false);
+ 
+--- a/src/server/game/Entities/Player/PlayerStorage.cpp
++++ b/src/server/game/Entities/Player/PlayerStorage.cpp
+@@ -15,6 +15,7 @@
+  * with this program. If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
++#include "AscensionCallboardContracts.h"
+ #include "AccountMgr.h"
+ #include "../../../coa/AscensionFreePick.h"
+ #include "AchievementMgr.h"
+@@ -7289,6 +7290,7 @@
+     if (!create)
+         sScriptMgr->OnPlayerSave(this);
+ 
++    AscensionCallboardContracts::AppendSave(this, trans);
+     _SaveCharacter(create, trans);
+ 
+     if (m_mailsUpdated)                                     //save mails only when needed
+--- /dev/null
++++ b/src/server/game/Miscellaneous/AscensionCallboardContracts.h
+@@ -0,0 +1,14 @@
++/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
++#ifndef COA_ASCENSION_CALLBOARD_CONTRACTS_H
++#define COA_ASCENSION_CALLBOARD_CONTRACTS_H
++#include "DatabaseEnv.h"
++class Player;
++class Quest;
++namespace AscensionCallboardContracts
++{
++CharacterDatabaseTransaction CurrentRewardTransaction();
++bool CanReward(Player const* player, Quest const* quest);
++void RecordReward(Player* player, Quest const* quest);
++void AppendSave(Player* player, CharacterDatabaseTransaction transaction);
++}
++#endif

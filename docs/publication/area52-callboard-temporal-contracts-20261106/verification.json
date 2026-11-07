@@ -1,0 +1,36 @@
+{
+  "scope": "Callboard Temporal Contracts",
+  "candidate_binary": "6a08097ee72ac820c5d7130426d0a49c41c768d6fed607e7f3bc0c5f36711ffe",
+  "baseline_binary": "b06ab2c049e2617a2a5fa04dbd7126b0b82bfa40c60c9d444e027030df0082a8",
+  "dll_compatibility_sha256": "25f6797ce80acc85e7a57efd81a3a667585d47cb11c0d63ce619eba8c680f9bf",
+  "scope_files": {
+    "data/sql/updates/pending_db_characters/rev_20261103_111_character_callboard_contract.sql": "924385782806ada239749782f2d36780a679ebcdea6c24692cb6ab3cd1ed3f9e",
+    "data/sql/updates/pending_db_world/rev_20261026_44_warchiefs_command_tracker_text.sql": "1308c47ac3168050dc4af9096243493e146fdb0b2d434826f35b53d1aef30701",
+    "data/sql/updates/pending_db_world/rev_20261029_01_hero_call_board_plague_pests_sort.sql": "74c2075ef8c820324336227d7862e7d2b9ffaa73fe2cadc2b14d137767a8630b",
+    "data/sql/updates/pending_db_world/rev_20261103_10_callboard_dailies_bazaar_tokens.sql": "74f8beb3c2eb7adce73971b321a3414ac43b14d315362dcde06a9d3e42c33748",
+    "data/sql/updates/pending_db_world/rev_20261103_110_coa_callboard_contracts.sql": "fed74f4c5dfa32847c17ad824f6c7ec75b26a901df1885158117d55e3b635eb7",
+    "modules/mod-hero-call-board/src/HeroCallBoard.cpp": "07616dcb640da47ad77a3ad1e71d8320a25668b59b6b702a1e422ae4c55f5a02",
+    "src/server/coa/AscensionCallboardCache.cpp": "668b626b412ac6039b3f9c796c21c7d7c864b20613b47b8e9cba09e4ddd37213",
+    "src/server/coa/AscensionCallboardContracts.cpp": "9b782a20bb2466fd4a1b1a6fe8176188137a6e8c2d1a6f57e7fc30c77b5cd42a",
+    "src/server/coa/AscensionCallboardContractsPolicy.h": "0f97eb9b7ddc73271a5b951161347819d6b04b8cc48c2669d907eff86f8ce802",
+    "src/server/coa/CoAScriptLoader.cpp": "ae81159fb4349bd3fb54cfa6fc3c9ceb005a6301313ccd33f9de38d22a10f8e8",
+    "src/server/coa/conf/coa.conf.dist": "932b36e072abad9f657f933ad3ad728dd375ff6ab6fcc536b88f67f133e9ff3d",
+    "src/server/database/Database/Implementation/CharacterDatabase.cpp": "cc7782136b258103b060b45db07681799e041e6be79c61d6f4eb932711850771",
+    "src/server/database/Database/Implementation/CharacterDatabase.h": "50360f4958716bf562f2f96073b7d45bbb080b9c573aa3b99edf11a3110c5e3d",
+    "src/server/game/Entities/Player/PlayerQuest.cpp": "a62ec3de1c9e2c741c03a1435a5475240d142088168656b1b75372de7c0f8b76",
+    "src/server/game/Entities/Player/PlayerStorage.cpp": "01c25cc5000118622c5b8f5e224b874ed7064d85b0121fee98f0816c8fc52693",
+    "src/server/game/Miscellaneous/AscensionCallboardContracts.h": "727340b185852cf244330067df19ee4cfe19a7280227b27dbc02231a8cbf8aef"
+  },
+  "offline_evidence": {
+    "build-r5": "d3dc451796f2f7b4a4c47e24f83c97ce24f52d17568b64eff26e58efafd2d7c6",
+    "final-focused": "09bab3602260052219988af8163cf2081259bd97572b33aec0bc30e7a7bc9356",
+    "flow-r1": "92b9e49ba2260d32c2c3d629a2c244b895d5cce6c3337962af0d546b3046f1b6",
+    "cache-r1": "bac4fa278704e0cf28fa96580a99b8bcd8e3bd6902fc7e8c9ffae8726158e1ec",
+    "sql-r3": "32e6f99bf568267d71e33ac8bf75c4b19650e9cfe4bdb9078732a46b49f5b4e3",
+    "artifact-r1": "a3f19e4445b77c8e4e3c18b0e1cf69314ca31ff5c729814395fc405ad8b11788",
+    "hook-r2": "70af66109d5178d71673e1706e5a7897320890c3cae045da82e6c10ac23ed0d7"
+  },
+  "gameplay_run": false,
+  "dll_or_client_update": false,
+  "historical_completions_imported": false
+}
