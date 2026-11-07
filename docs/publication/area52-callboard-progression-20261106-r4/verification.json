@@ -1,0 +1,83 @@
+{
+  "status": "offline_verified",
+  "source_baseline_sha256": "6a08097ee72ac820c5d7130426d0a49c41c768d6fed607e7f3bc0c5f36711ffe",
+  "candidate_binary_sha256": "abdbfd37858050d592e3357cc509393de598534e313233cdde837d0b20da2ab6",
+  "candidate_binary": "/home/dml/builds/area52-playerbots-20261026/build/src/server/apps/worldserver",
+  "files": {
+    "data/sql/updates/pending_db_world/rev_20261106_120_area52_callboard_tiers.sql": "ff85dd4d45ccc74edecd44e016477daa9c10959a7709e6ce6df1e55d587730f7",
+    "data/sql/updates/pending_db_world/rev_20261106_121_area52_callboard_bounties.sql": "ab41e47c09c4af9d9804bb2787c89484758882439c08fcec727549b503b39e41",
+    "modules/mod-hero-call-board/src/HeroCallBoard.cpp": "788f7922d63fc88176a706db41405b64cb9e1ef8704e0401557278afbace340a",
+    "src/server/coa/Area52CacheCatalog.inc": "b0d6387d3e91b2367229233c956a88bbfde286c0d6fd28a1e5d63915e2a447e1",
+    "src/server/coa/Area52CacheRuntime.inc": "73db53109459926bad48c5bdd3138587a1f404b0de3bddcbe3c4c06a41f5b6b7",
+    "src/server/coa/AscensionCacheRewards.cpp": "722acc94365b2144176a8133a2cda0e36b90b3f5e0acb3bf60a346c687130d0c",
+    "src/server/coa/AscensionCallboardCache.cpp": "875001dd5ca0088efd8ebe98f31882689d0729d79bb236f9f732190748dcb9cf",
+    "src/server/coa/AscensionCallboardContracts.cpp": "1552bcf8d7c647bbf59ddf67a8182c250fefcdf120cddfd6ea49e62e120097ca",
+    "src/server/coa/AscensionCallboardContractsPolicy.h": "da564b7352ee81504c5ffbbae906ed66b31b9557b3e93264ffba19cded7a4340",
+    "src/server/coa/CallboardDungeonDrops.inc": "ca954b2fc351bb2836dc6270867212d472a996785d2f80321be72f142af1baa1",
+    "src/server/game/Miscellaneous/CallboardHuntRotation.h": "4149229a679a07572a42d38e012fb489986e32387bbd6f35cb805f79d677277e",
+    "src/server/game/Miscellaneous/CallboardRealmTier.h": "74e6f229ebf973884ad68f6d7448a57ff71ede0cd78a2b5a16f2fe0e4365e3be"
+  },
+  "evidence": [
+    "build-wanted-final",
+    "wanted-final-menu",
+    "wanted-final-world",
+    "final-behavior",
+    "expanded-sql",
+    "receipt-r1"
+  ],
+  "pool_sizes_before_runtime_gates": {
+    "60": 484,
+    "70": 866,
+    "80": 2187
+  },
+  "source_assumption": "Tier is min(character level, realm maximum), with 60/70/80 thresholds. Shared PvP starts at 60.",
+  "quest_counts": {
+    "60": {
+      "hunts": 24,
+      "wanted": 18,
+      "deliveries": 12
+    },
+    "70": {
+      "hunts": 27,
+      "wanted": 16,
+      "deliveries": 15
+    },
+    "80": {
+      "wanted": 8,
+      "hunts": 22,
+      "deliveries": 12
+    }
+  },
+  "published_sources": [
+    {
+      "path": "published-quests.json",
+      "sha256": "fce023aa098b118f4f155d705d48e59eeace8a214868753e0d3c6328b8c2260f"
+    },
+    {
+      "path": "published-deliveries-extra.json",
+      "sha256": "d88f8072f35899ecdb8b8f3c73c8815754737c42046ad48c4cb46fddd1790609"
+    }
+  ],
+  "recorded_decisions": [
+    "Rare and epic equipment with a recorded direct dungeon or raid drop.",
+    "Northrend hunts and deliveries are authored Area 52 content.",
+    "Previously unopened caches have no gear reservation."
+  ],
+  "activated": false,
+  "published": false,
+  "gameplay_run": false,
+  "startup_recovery": {
+    "original_transaction": "area52-callboard-progression-20261106-r2",
+    "original_exit": 1,
+    "cause": "Bounty spawn IDs exceeded the native creature spawn allocator limit",
+    "native_startup_report_sha256": "a746bbc93333a11a43b666a50e4bfeec790ad2420874dda58a73f88274c97e6d",
+    "native_startup_log_sha256": "f98760448356f76ada4938bb6d42cdfc3583ea7de0629cfc4386edde00d88b4d",
+    "runner_sha256": "723d589d81477445b8eafed552364c5cd557c3e534c15ee9c027da5cab94cb2d",
+    "limits": "Native stop flag checked after startup callbacks at the first gameplay-loop boundary. No gameplay update executed.",
+    "spawn_ids": [
+      15979000,
+      15979041
+    ],
+    "corrected_world_sql_report_sha256": "186ff7300c4da3568b8af97889a173774ed80f89b3cbc0d6445e243e479f0235"
+  }
+}
