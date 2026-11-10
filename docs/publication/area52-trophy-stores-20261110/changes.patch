@@ -1,0 +1,1026 @@
+--- a/Interface/AddOns/Ascension_VanityCollection/VanityStore.lua
++++ b/Interface/AddOns/Ascension_VanityCollection/VanityStore.lua
+@@ -1,6 +1,206 @@
+ local Addon = select(2, ...)
+ local Store = CreateFrame("FRAME", "StoreCollectionFrame", Collections, nil)
+ Addon.Store = Store
++local masterOffers = {
++    [178358] = {1297306, 1},
++    [178363] = {1297306, 1},
++    [178383] = {1297306, 1},
++    [178369] = {1297306, 2},
++    [178377] = {1297306, 2},
++    [8210171] = {1297306, 2},
++    [8210068] = {1297306, 2},
++    [178352] = {1297306, 3},
++    [178355] = {1297306, 3},
++    [178374] = {1297306, 3},
++    [8210066] = {1297306, 3},
++    [8210061] = {1297306, 4},
++    [8210205] = {1297306, 4},
++    [500006] = {1297306, 8},
++    [8200049] = {1297306, 8},
++    [8200126] = {1297306, 8},
++    [8210180] = {1297306, 0, {178352, 178355, 178358, 178363, 178369, 178374, 178377, 178383, 8210171}},
++    [8210140] = {97751, 1},
++    [8210141] = {97751, 1},
++    [8210145] = {97751, 1},
++    [8210142] = {97751, 2},
++    [8210144] = {97751, 2},
++    [8210172] = {97751, 2},
++    [8210138] = {97751, 3},
++    [8210139] = {97751, 3},
++    [8210143] = {97751, 3},
++    [177805] = {97751, 4},
++    [178053] = {97751, 4},
++    [179329] = {97751, 4},
++    [180492] = {97751, 4},
++    [180955] = {97751, 4},
++    [183979] = {97751, 4},
++    [1179132] = {97751, 8},
++    [8199945] = {97751, 8},
++    [123162] = {97751, 3},
++    [123163] = {97751, 3},
++    [8210181] = {97751, 0, {8210138, 8210139, 8210140, 8210141, 8210142, 8210143, 8210144, 8210145, 8210172}},
++    [1339058] = {375250, 3600},
++    [1339059] = {375250, 3600},
++    [1339060] = {375250, 3600},
++    [1339061] = {375250, 3600},
++    [1339062] = {375250, 3600},
++    [1339063] = {375250, 3600},
++    [1339064] = {375250, 3600},
++    [1339084] = {375250, 500},
++    [1339085] = {375250, 500},
++    [1339086] = {375250, 500},
++    [1339087] = {375250, 500},
++    [1339088] = {375250, 500},
++    [1339089] = {375250, 500},
++    [1339090] = {375250, 500},
++    [1339092] = {375250, 500},
++    [1339093] = {375250, 500},
++    [1339094] = {375250, 500},
++    [1339095] = {375250, 500},
++    [1339096] = {375250, 500},
++    [1339097] = {375250, 500},
++    [1339098] = {375250, 500},
++    [1339099] = {375250, 500},
++    [1339100] = {375250, 500},
++    [1339101] = {375250, 500},
++    [1339102] = {375250, 500},
++    [1339103] = {375250, 500},
++    [1339104] = {375250, 500},
++    [1339105] = {375250, 500},
++    [1339106] = {375250, 500},
++    [1339107] = {375250, 500},
++    [1339108] = {375250, 500},
++    [1339109] = {375250, 500},
++    [1339110] = {375250, 500},
++    [1339111] = {375250, 500},
++    [1339112] = {375250, 500},
++    [1339113] = {375250, 500},
++    [1339114] = {375250, 500},
++    [1339115] = {375250, 500},
++    [1339116] = {375250, 500},
++    [1339117] = {375250, 500},
++    [1339118] = {375250, 500},
++    [1339119] = {375250, 500},
++    [1339120] = {375250, 500},
++    [1339121] = {375250, 500},
++    [1339122] = {375250, 500},
++    [1339123] = {375250, 500},
++    [1339124] = {375250, 500},
++    [1339125] = {375250, 500},
++    [1339126] = {375250, 500},
++    [1339127] = {375250, 500},
++    [1339128] = {375250, 500},
++    [1339129] = {375250, 500},
++    [1339130] = {375250, 500},
++    [1339131] = {375250, 500},
++    [1339132] = {375250, 500},
++    [1339133] = {375250, 500},
++    [1642896] = {375250, 500},
++    [1642897] = {375250, 500},
++    [1642898] = {375250, 500},
++    [1642899] = {375250, 500},
++    [1642900] = {375250, 500},
++    [1642901] = {375250, 500},
++    [1642949] = {375250, 500},
++    [1642950] = {375250, 500},
++    [1642951] = {375250, 500},
++    [1642952] = {375250, 500},
++    [1642984] = {375250, 500},
++    [1642985] = {375250, 500},
++    [1644099] = {375250, 500},
++    [1644100] = {375250, 500},
++    [1644101] = {375250, 500},
++    [1644102] = {375250, 500},
++    [1644103] = {375250, 500},
++    [1644105] = {375250, 500},
++    [1644107] = {375250, 500},
++    [1648677] = {375250, 500},
++    [1648683] = {375250, 500},
++    [1648685] = {375250, 500},
++    [1648687] = {375250, 500},
++    [1648689] = {375250, 500},
++    [1648691] = {375250, 500},
++    [3140350] = {375250, 500},
++    [3142949] = {375250, 500},
++    [3148335] = {375250, 500},
++    [3148685] = {375250, 500},
++    [1518202] = {375250, 1000},
++    [1518203] = {375250, 1000},
++    [1642846] = {375250, 1000},
++    [1642847] = {375250, 1000},
++    [1642902] = {375250, 1000},
++    [1642943] = {375250, 1000},
++    [1642944] = {375250, 1000},
++    [1642945] = {375250, 1000},
++    [1642946] = {375250, 1000},
++    [1642947] = {375250, 1000},
++    [1642948] = {375250, 1000},
++    [1642999] = {375250, 1000},
++    [1644091] = {375250, 1000},
++    [1644092] = {375250, 1000},
++    [1644093] = {375250, 1000},
++    [1644094] = {375250, 1000},
++    [1644095] = {375250, 1000},
++    [1644096] = {375250, 1000},
++    [1648716] = {375250, 1000},
++    [1648718] = {375250, 1000},
++    [3142943] = {375250, 1000},
++    [42991] = {375250, 1000},
++    [42992] = {375250, 1000},
++    [44097] = {375250, 1000},
++    [44098] = {375250, 1000},
++    [50255] = {375250, 1000},
++    [62035] = {375250, 1000},
++    [62036] = {375250, 1000},
++    [62037] = {375250, 1000},
++    [69891] = {375250, 1000},
++    [339075] = {375250, 1000},
++    [339076] = {375250, 1000},
++    [339100] = {375250, 1000},
++    [360254] = {375250, 1000},
++    [360267] = {375250, 1000},
++    [366243] = {375250, 1000},
++    [366256] = {375250, 1000},
++    [390799] = {375250, 1000},
++    [1339076] = {375250, 1000},
++    [1339077] = {375250, 1000},
++    [1339078] = {375250, 1000},
++    [1339079] = {375250, 1000},
++    [1339080] = {375250, 1000},
++    [1339081] = {375250, 1000},
++    [1339082] = {375250, 1000},
++    [1339083] = {375250, 1000},
++    [1642991] = {375250, 1000},
++    [1642992] = {375250, 1000},
++    [1644097] = {375250, 1000},
++    [1644098] = {375250, 1000},
++}
++local currencyNames = { [1297306]="Build Master's Trophy", [97751]="Trial Master's Trophy", [375250]="Runes of Descension" }
++local function masterPrice(item)
++    if GetRealmName() ~= "Area 52 - Free-Pick" then return end
++    local offer = masterOffers[item]
++    if not offer then return end
++    local price = offer[2]
++    for _, part in ipairs(offer[3] or {}) do
++        local appearance = C_Appearance.GetItemAppearanceID(part)
++        if not C_VanityCollection.IsCollectionItemOwned(part) and
++            not (appearance and appearance > 0 and C_AppearanceCollection.IsAppearanceCollected(appearance)) then
++            price = price + masterOffers[part][2]
++        end
++    end
++    return offer[1], price
++end
++local function showMasterPrice(item)
++    local currency, price = masterPrice(item)
++    if not currency then return end
++    Store.Paper.CostText:SetText(price .. " " .. currencyNames[currency])
++    Store.Paper.CostText:Show()
++    Store.Paper.CostIcon:Hide()
++    Store.Paper.CostIcon2:Hide()
++    Store.Paper.CostText2:Hide()
++    Store.BuyStoreButton:SetEnabled(not C_VanityCollection.IsCollectionItemOwned(item) and GetItemCount(currency) >= price)
++end
++
+ 
+ Store:Hide()
+ Store:SetScale(1.1)
+@@ -310,6 +510,7 @@
+ 		local ItemDPCost = GetVanityDPPrice(itemInfo)
+ 		local ItemSPCost = itemInfo.spCost
+ 		local ItemBTCost = itemInfo.btCost
++        if masterPrice(itemID) then ItemDPCost, ItemSPCost, ItemBTCost = 0, 0, 0 end
+ 
+ 		local _, _, _, QualityColor = GetItemQualityColor(itemInfo.quality)
+ 		local ItemName, _, _, _, _, _, _, _, _, texture = GetItemInfo(itemID)
+@@ -706,6 +907,7 @@
+ 		Store.ModelPreview_fake.SpendPoints.MainButton:Disable()
+ 	end
+ 
++	showMasterPrice(Store.Banner.Item)
+ 	if (StoreCollectionHasOptionToPreview(Store.Banner.Item)) then
+ 		Store.Preview_Current = StoreCollectionGetPreviewData(Store.Banner.Item)
+ 	else
+@@ -1995,6 +2197,7 @@
+ 			Store.BuyStoreButton:Disable()
+ 		end
+ 
++		showMasterPrice(itemInternal)
+ 		if (item ~= 0) and vanityItem then
+ 			Store.ItemSelected = item
+ 			local cannotDeliver = bit.contains(vanityItem.flags, Enum.VanityFlags.CannotBeDelivered)
+@@ -2361,6 +2564,24 @@
+ -------------------------------------------------------------------------------
+ function Store:TryPurchaseSelectedItem()
+ 	if Area52FeaturedEditor and Area52FeaturedEditor.picker then return end
++    local item = Store.ItemInternal
++    local currency, price = masterPrice(item)
++    if currency then
++        local label, link = GetItemInfo(item)
++        StaticPopup_Show("VANITY_PURCHASE", link or label, price .. " " .. currencyNames[currency], {
++            hasCurrency = GetItemCount(currency) >= price,
++            purchase = function()
++                local packet = CreatePacket(0x523)
++                if not packet then return end
++                packet:PutUInt32(0xA52B0002)
++                packet:PutUInt32(item)
++                packet:PutUInt32(currency)
++                packet:PutUInt32(price)
++                packet:Send()
++            end
++        })
++        return
++    end
+ 
+ 	local dpCost = C_VanityCollection.GetDPPrice(Store.ItemInternal)
+ 	local _, link = GetItemInfo(Store.ItemInternal)
+--- /dev/null
++++ b/characters.sql
+@@ -0,0 +1,9 @@
++CREATE TABLE IF NOT EXISTS area52_build_trophy_claim (
++    account INT UNSIGNED NOT NULL,
++    build_id BIGINT UNSIGNED NOT NULL,
++    completion_guid INT UNSIGNED NOT NULL,
++    completion_revision INT UNSIGNED NOT NULL,
++    mail_id INT UNSIGNED NOT NULL UNIQUE,
++    claimed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
++    PRIMARY KEY (account, build_id)
++) ENGINE=InnoDB;
+--- a/modules/mod-worldforged-upgrades/src/WorldforgedGuardian.cpp
++++ b/modules/mod-worldforged-upgrades/src/WorldforgedGuardian.cpp
+@@ -95,11 +95,11 @@
+             case ACTION_HEIRLOOMS:
+                 if (!Area52HeirloomShop(player))
+                     break;
+-                AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Armor (requires a max-level character on your account).",
++                AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Armor and Paladin Librams (requires a max-level character on your account).",
+                     GOSSIP_SENDER_MAIN, ACTION_HEIRLOOM_ARMOR);
+                 AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Weapons (requires a max-level character on your account).",
+                     GOSSIP_SENDER_MAIN, ACTION_HEIRLOOM_WEAPONS);
+-                AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Accessories (requires a max-level character on your account).",
++                AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Accessories and Heirloom Pendants (requires a max-level character on your account).",
+                     GOSSIP_SENDER_MAIN, ACTION_HEIRLOOM_ACCESSORIES);
+                 AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Back.", GOSSIP_SENDER_MAIN, ACTION_BACK);
+                 SendGossipMenuFor(player, Worldforged::GUARDIAN_ENTRY, creature->GetGUID());
+--- /dev/null
++++ b/src/server/coa/Area52MasterOffers.h
+@@ -0,0 +1,185 @@
++#pragma once
++#include <cstdint>
++#include <map>
++#include <vector>
++namespace Area52Master {
++struct Offer { std::uint32_t Store, Currency, Price; };
++inline const std::map<std::uint32_t, Offer> Offers = {
++    {42991, {0, 375250, 1000}},
++    {42992, {0, 375250, 1000}},
++    {44097, {0, 375250, 1000}},
++    {44098, {0, 375250, 1000}},
++    {50255, {0, 375250, 1000}},
++    {62035, {0, 375250, 1000}},
++    {62036, {0, 375250, 1000}},
++    {62037, {0, 375250, 1000}},
++    {69891, {0, 375250, 1000}},
++    {123162, {1, 97751, 3}},
++    {123163, {1, 97751, 3}},
++    {177805, {1, 97751, 4}},
++    {178053, {1, 97751, 4}},
++    {178352, {2, 1297306, 3}},
++    {178355, {2, 1297306, 3}},
++    {178358, {2, 1297306, 1}},
++    {178363, {2, 1297306, 1}},
++    {178369, {2, 1297306, 2}},
++    {178374, {2, 1297306, 3}},
++    {178377, {2, 1297306, 2}},
++    {178383, {2, 1297306, 1}},
++    {179329, {1, 97751, 4}},
++    {180492, {1, 97751, 4}},
++    {180955, {1, 97751, 4}},
++    {183979, {1, 97751, 4}},
++    {339075, {0, 375250, 1000}},
++    {339076, {0, 375250, 1000}},
++    {339100, {0, 375250, 1000}},
++    {360254, {0, 375250, 1000}},
++    {360267, {0, 375250, 1000}},
++    {366243, {0, 375250, 1000}},
++    {366256, {0, 375250, 1000}},
++    {390799, {0, 375250, 1000}},
++    {500006, {2, 1297306, 8}},
++    {1179132, {1, 97751, 8}},
++    {1339058, {0, 375250, 3600}},
++    {1339059, {0, 375250, 3600}},
++    {1339060, {0, 375250, 3600}},
++    {1339061, {0, 375250, 3600}},
++    {1339062, {0, 375250, 3600}},
++    {1339063, {0, 375250, 3600}},
++    {1339064, {0, 375250, 3600}},
++    {1339076, {0, 375250, 1000}},
++    {1339077, {0, 375250, 1000}},
++    {1339078, {0, 375250, 1000}},
++    {1339079, {0, 375250, 1000}},
++    {1339080, {0, 375250, 1000}},
++    {1339081, {0, 375250, 1000}},
++    {1339082, {0, 375250, 1000}},
++    {1339083, {0, 375250, 1000}},
++    {1339084, {0, 375250, 500}},
++    {1339085, {0, 375250, 500}},
++    {1339086, {0, 375250, 500}},
++    {1339087, {0, 375250, 500}},
++    {1339088, {0, 375250, 500}},
++    {1339089, {0, 375250, 500}},
++    {1339090, {0, 375250, 500}},
++    {1339092, {0, 375250, 500}},
++    {1339093, {0, 375250, 500}},
++    {1339094, {0, 375250, 500}},
++    {1339095, {0, 375250, 500}},
++    {1339096, {0, 375250, 500}},
++    {1339097, {0, 375250, 500}},
++    {1339098, {0, 375250, 500}},
++    {1339099, {0, 375250, 500}},
++    {1339100, {0, 375250, 500}},
++    {1339101, {0, 375250, 500}},
++    {1339102, {0, 375250, 500}},
++    {1339103, {0, 375250, 500}},
++    {1339104, {0, 375250, 500}},
++    {1339105, {0, 375250, 500}},
++    {1339106, {0, 375250, 500}},
++    {1339107, {0, 375250, 500}},
++    {1339108, {0, 375250, 500}},
++    {1339109, {0, 375250, 500}},
++    {1339110, {0, 375250, 500}},
++    {1339111, {0, 375250, 500}},
++    {1339112, {0, 375250, 500}},
++    {1339113, {0, 375250, 500}},
++    {1339114, {0, 375250, 500}},
++    {1339115, {0, 375250, 500}},
++    {1339116, {0, 375250, 500}},
++    {1339117, {0, 375250, 500}},
++    {1339118, {0, 375250, 500}},
++    {1339119, {0, 375250, 500}},
++    {1339120, {0, 375250, 500}},
++    {1339121, {0, 375250, 500}},
++    {1339122, {0, 375250, 500}},
++    {1339123, {0, 375250, 500}},
++    {1339124, {0, 375250, 500}},
++    {1339125, {0, 375250, 500}},
++    {1339126, {0, 375250, 500}},
++    {1339127, {0, 375250, 500}},
++    {1339128, {0, 375250, 500}},
++    {1339129, {0, 375250, 500}},
++    {1339130, {0, 375250, 500}},
++    {1339131, {0, 375250, 500}},
++    {1339132, {0, 375250, 500}},
++    {1339133, {0, 375250, 500}},
++    {1518202, {0, 375250, 1000}},
++    {1518203, {0, 375250, 1000}},
++    {1642846, {0, 375250, 1000}},
++    {1642847, {0, 375250, 1000}},
++    {1642896, {0, 375250, 500}},
++    {1642897, {0, 375250, 500}},
++    {1642898, {0, 375250, 500}},
++    {1642899, {0, 375250, 500}},
++    {1642900, {0, 375250, 500}},
++    {1642901, {0, 375250, 500}},
++    {1642902, {0, 375250, 1000}},
++    {1642943, {0, 375250, 1000}},
++    {1642944, {0, 375250, 1000}},
++    {1642945, {0, 375250, 1000}},
++    {1642946, {0, 375250, 1000}},
++    {1642947, {0, 375250, 1000}},
++    {1642948, {0, 375250, 1000}},
++    {1642949, {0, 375250, 500}},
++    {1642950, {0, 375250, 500}},
++    {1642951, {0, 375250, 500}},
++    {1642952, {0, 375250, 500}},
++    {1642984, {0, 375250, 500}},
++    {1642985, {0, 375250, 500}},
++    {1642991, {0, 375250, 1000}},
++    {1642992, {0, 375250, 1000}},
++    {1642999, {0, 375250, 1000}},
++    {1644091, {0, 375250, 1000}},
++    {1644092, {0, 375250, 1000}},
++    {1644093, {0, 375250, 1000}},
++    {1644094, {0, 375250, 1000}},
++    {1644095, {0, 375250, 1000}},
++    {1644096, {0, 375250, 1000}},
++    {1644097, {0, 375250, 1000}},
++    {1644098, {0, 375250, 1000}},
++    {1644099, {0, 375250, 500}},
++    {1644100, {0, 375250, 500}},
++    {1644101, {0, 375250, 500}},
++    {1644102, {0, 375250, 500}},
++    {1644103, {0, 375250, 500}},
++    {1644105, {0, 375250, 500}},
++    {1644107, {0, 375250, 500}},
++    {1648677, {0, 375250, 500}},
++    {1648683, {0, 375250, 500}},
++    {1648685, {0, 375250, 500}},
++    {1648687, {0, 375250, 500}},
++    {1648689, {0, 375250, 500}},
++    {1648691, {0, 375250, 500}},
++    {1648716, {0, 375250, 1000}},
++    {1648718, {0, 375250, 1000}},
++    {3140350, {0, 375250, 500}},
++    {3142943, {0, 375250, 1000}},
++    {3142949, {0, 375250, 500}},
++    {3148335, {0, 375250, 500}},
++    {3148685, {0, 375250, 500}},
++    {8199945, {1, 97751, 8}},
++    {8200049, {2, 1297306, 8}},
++    {8200126, {2, 1297306, 8}},
++    {8210061, {2, 1297306, 4}},
++    {8210066, {2, 1297306, 3}},
++    {8210068, {2, 1297306, 2}},
++    {8210138, {1, 97751, 3}},
++    {8210139, {1, 97751, 3}},
++    {8210140, {1, 97751, 1}},
++    {8210141, {1, 97751, 1}},
++    {8210142, {1, 97751, 2}},
++    {8210143, {1, 97751, 3}},
++    {8210144, {1, 97751, 2}},
++    {8210145, {1, 97751, 1}},
++    {8210171, {2, 1297306, 2}},
++    {8210172, {1, 97751, 2}},
++    {8210180, {2, 1297306, 0}},
++    {8210181, {1, 97751, 0}},
++    {8210205, {2, 1297306, 4}},
++};
++inline const std::map<std::uint32_t, std::vector<std::uint32_t>> Bundles = {
++    {8210180, {178352, 178355, 178358, 178363, 178369, 178374, 178377, 178383, 8210171}},
++    {8210181, {8210138, 8210139, 8210140, 8210141, 8210142, 8210143, 8210144, 8210145, 8210172}},
++};
++}
+--- /dev/null
++++ b/src/server/coa/Area52MasterStore.inc
+@@ -0,0 +1,94 @@
++    uint32 MasterQuote(PlayerCollectionState const& state, uint32 item, std::vector<uint32>& missing)
++    {
++        auto const bundle = Area52Master::Bundles.find(item);
++        if (bundle == Area52Master::Bundles.end())
++            return Area52Master::Offers.at(item).Price;
++        uint32 total = 0;
++        for (uint32 part : bundle->second)
++        {
++            auto appearance = _itemAppearances.find(part);
++            if (state.OwnedVanityItems.contains(part) || (appearance != _itemAppearances.end()
++                && state.CollectedAppearances.contains(appearance->second)))
++                continue;
++            missing.push_back(part);
++            total += Area52Master::Offers.at(part).Price;
++        }
++        return total;
++    }
++
++    bool BuyMasterOffer(Player* player, uint32 item, uint32 currency, uint32 price)
++    {
++        auto state = GetState(player);
++        auto offer = Area52Master::Offers.find(item);
++        if (!state || offer == Area52Master::Offers.end() || currency != offer->second.Currency
++            || !AscensionFreePick::Applies(player) || !sObjectMgr->GetItemTemplate(item)
++            || state->OwnedVanityItems.contains(item))
++            return false;
++        std::vector<uint32> missing;
++        if (MasterQuote(*state, item, missing) != price)
++            return false;
++        std::map<uint32,uint32> bundleAppearances;
++        if (auto bundle = Area52Master::Bundles.find(item); bundle != Area52Master::Bundles.end())
++            for (uint32 part : bundle->second)
++            {
++                auto appearance = _itemAppearances.find(part);
++                bundleAppearances.emplace(part, appearance == _itemAppearances.end() ? 0 : appearance->second);
++            }
++        if (!Area52Vanity::Purchase(player, item, price, false, currency, missing, bundleAppearances))
++            return false;
++        for (uint32 part : missing)
++            CollectItem(player, *state, part, true);
++        CollectItem(player, *state, item, true);
++        return true;
++    }
++
++    bool HandleMasterStore(Player* player, WorldPacket const& incoming)
++    {
++        if (!AscensionFreePick::Applies(player))
++            return false;
++        WorldPacket read(incoming);
++        uint32 key = 0;
++        read >> key;
++        if (incoming.GetOpcode() == CMSG_QUERY_CUSTOM_STORE)
++        {
++            if (key != 1 && key != 2)
++                return false;
++            auto state = GetState(player);
++            WorldPacket result(SMSG_QUERY_CUSTOM_STORE_RESULT, 1400);
++            result << "QUERY_CUSTOM_STORE_OK";
++            auto countAt = result.wpos();
++            uint32 count = 0;
++            result << count;
++            if (state)
++                for (auto const& [item, offer] : Area52Master::Offers)
++                {
++                    if (offer.Store != key || state->OwnedVanityItems.contains(item))
++                        continue;
++                    std::vector<uint32> missing;
++                    auto cost = MasterQuote(*state, item, missing);
++                    // Bind the price shown to the click, even if account ownership changes.
++                    uint32 quoteKey = 0x80000000u | (cost << 24) | item;
++                    result << quoteKey << key << item << uint32(0) << offer.Currency;
++                    for (unsigned i = 0; i < 4; ++i) result << uint32(0);
++                    result << cost;
++                    for (unsigned i = 0; i < 6; ++i) result << uint32(0);
++                    ++count;
++                }
++            result.put<uint32>(countAt, count);
++            player->SendDirectMessage(&result);
++            return true;
++        }
++        if (!(key & 0x80000000u))
++            return false;
++        uint32 item = key & 0xffffffu;
++        auto offer = Area52Master::Offers.find(item);
++        if (offer == Area52Master::Offers.end() || !offer->second.Store)
++            return false;
++        uint32 quantity = 0;
++        read >> quantity;
++        bool ok = quantity == 1 && BuyMasterOffer(player, item, offer->second.Currency, (key >> 24) & 127);
++        WorldPacket result(0x06BC, 64);
++        result << (ok ? "PURCHASE_CUSTOM_STORE_ITEM_OK" : "Purchase declined. Refresh the rewards menu.");
++        player->SendDirectMessage(&result);
++        return true;
++    }
+--- a/src/server/coa/Area52VanityBazaar.inc
++++ b/src/server/coa/Area52VanityBazaar.inc
+@@ -4,7 +4,7 @@
+         if (!handler->GetPlayer() || !AscensionFreePick::Applies(handler->GetPlayer()))
+             return false;
+         auto found = _vanityItems.find(itemId);
+-        if (itemId == Area52Vanity::Token || found == _vanityItems.end() || !sObjectMgr->GetItemTemplate(itemId))
++        if (Area52Master::Offers.contains(itemId) || itemId == Area52Vanity::Token || found == _vanityItems.end() || !sObjectMgr->GetItemTemplate(itemId))
+         {
+             handler->SendSysMessage("Unknown Vanity item or missing item template.");
+             return false;
+@@ -81,7 +81,7 @@
+             return;
+         ChatHandler handler(player->GetSession());
+         auto found = _vanityItems.find(itemId);
+-        if (itemId == Area52Vanity::Token || found == _vanityItems.end() || !sObjectMgr->GetItemTemplate(itemId)
++        if (Area52Master::Offers.contains(itemId) || itemId == Area52Vanity::Token || found == _vanityItems.end() || !sObjectMgr->GetItemTemplate(itemId)
+             || std::binary_search(AscensionCollectibles::SigilVanityItems.begin(),
+                 AscensionCollectibles::SigilVanityItems.end(), itemId)
+             || !IsVanityItemOffered(player, found->second))
+--- a/src/server/coa/Area52VanityPurchase.h
++++ b/src/server/coa/Area52VanityPurchase.h
+@@ -1,6 +1,7 @@
+ #ifndef AREA52_VANITY_PURCHASE_H
+ #define AREA52_VANITY_PURCHASE_H
+ 
++#include "Area52MasterOffers.h"
+ #include "Bag.h"
+ #include "DatabaseEnv.h"
+ #include "Item.h"
+@@ -25,12 +26,12 @@
+     return CharacterDatabase.AsyncCommitTransaction(transaction).m_future.get();
+ }
+ 
+-inline bool Purchase(Player* player, uint32 itemId, uint32 cost, bool consumable)
++inline bool Purchase(Player* player, uint32 itemId, uint32 cost, bool consumable, uint32 currency = Token, std::vector<uint32> const& pieces = {}, std::map<uint32, uint32> const& bundleAppearances = {})
+ {
+     ItemPosCountVec destinations;
+     std::unique_ptr<Item> reward;
+     Item* stack = nullptr;
+-    if (!cost || cost > MaximumPrice || !player->HasItemCount(Token, cost))
++    if ((!cost && !Area52Master::Bundles.contains(itemId)) || cost > MaximumPrice || (cost && !player->HasItemCount(currency, cost)))
+         return false;
+     if (consumable)
+     {
+@@ -48,7 +49,7 @@
+     uint32 remaining = cost;
+     auto add = [&](Item* item)
+     {
+-        if (!remaining || !item || item->GetEntry() != Token)
++        if (!remaining || !item || item->GetEntry() != currency)
+             return;
+         uint32 spent = std::min(remaining, item->GetCount());
+         debits.push_back({item->GetGUID().GetCounter(), item->GetCount(), spent});
+@@ -71,6 +72,14 @@
+     auto transaction = CharacterDatabase.BeginTransaction();
+     transaction->Append("DROP TEMPORARY TABLE IF EXISTS area52_vanity_guard");
+     transaction->Append("CREATE TEMPORARY TABLE area52_vanity_guard (ok TINYINT NOT NULL CHECK (ok = 1)) ENGINE=InnoDB");
++    for (auto const& [piece, appearance] : bundleAppearances)
++    {
++        bool missing = std::find(pieces.begin(), pieces.end(), piece) != pieces.end();
++        transaction->Append("INSERT INTO area52_vanity_guard SELECT IF((EXISTS(SELECT 1 FROM account_vanity_collection "
++            "WHERE account_id={} AND item_id={} FOR UPDATE) OR EXISTS(SELECT 1 FROM account_appearance_collection "
++            "WHERE account_id={} AND appearance_id={} FOR UPDATE))={},1,0)",
++            player->GetSession()->GetAccountId(), piece, player->GetSession()->GetAccountId(), appearance, missing ? 0 : 1);
++    }
+     for (Debit const& debit : debits)
+     {
+         transaction->Append("UPDATE item_instance SET count=count-{} WHERE guid={} AND owner_guid={} AND count={}",
+@@ -82,6 +91,9 @@
+             transaction->Append("DELETE FROM item_instance WHERE guid={} AND owner_guid={} AND count=0", debit.Guid, owner);
+         }
+     }
++    for (uint32 piece : pieces)
++        transaction->Append("INSERT INTO account_vanity_collection (account_id,item_id) VALUES ({},{})",
++            player->GetSession()->GetAccountId(), piece);
+     if (!consumable)
+         transaction->Append("INSERT INTO account_vanity_collection (account_id,item_id) VALUES ({},{})",
+             player->GetSession()->GetAccountId(), itemId);
+@@ -102,7 +114,8 @@
+     transaction->Append("DROP TEMPORARY TABLE area52_vanity_guard");
+     if (!Commit(transaction))
+         return false;
+-    player->DestroyItemCount(Token, cost, true);
++    if (cost)
++        player->DestroyItemCount(currency, cost, true);
+     if (consumable)
+     {
+         Item* bought = player->StoreItem(destinations, reward.release(), true);
+--- a/src/server/coa/AscensionCompat.cpp
++++ b/src/server/coa/AscensionCompat.cpp
+@@ -4252,7 +4252,7 @@
+     bool const entitled =
+         IsBankVanityItem(itemId)
+             ? OwnsBankVanityItem(player, *state, itemId)
+-            : (unlockAll || state->OwnedVanityItems.contains(itemId));
++            : ((unlockAll && !(AscensionFreePick::Applies(player) && Area52Master::Offers.contains(itemId))) || state->OwnedVanityItems.contains(itemId));
+     if (!entitled)
+     {
+       ChatHandler(player->GetSession())
+@@ -4743,8 +4743,8 @@
+     if (_vanityItems.contains(itemId))
+       sScriptMgr->OnPlayerCoAProgress(player, CoAProgressEvent::VanityCollected, itemId);
+ 
+-    if (!ascensionCompatConfig.GetConfigValue<bool>(
+-            AscensionCompatConfig::UNLOCK_ALL_VANITY) &&
++    if ((!ascensionCompatConfig.GetConfigValue<bool>(AscensionCompatConfig::UNLOCK_ALL_VANITY) ||
++        (AscensionFreePick::Applies(player) && Area52Master::Offers.contains(itemId))) &&
+         _vanityItems.contains(itemId) &&
+         (!AscensionFreePick::Applies(player) || !IsConsumableVanityItem(_vanityItems.at(itemId))) &&
+         state.OwnedVanityItems.insert(itemId).second) {
+@@ -4839,7 +4839,7 @@
+         break;
+       case CMSG_QUERY_CUSTOM_STORE:
+       case CMSG_PURCHASE_CUSTOM_STORE_ITEM:
+-        if (!AscensionCompatOpcodes::Dispatch(player->GetSession(), packet) &&
++        if (!HandleMasterStore(player, packet) && !AscensionCompatOpcodes::Dispatch(player->GetSession(), packet) &&
+             packet.GetOpcode() == CMSG_QUERY_CUSTOM_STORE)
+         {
+           WorldPacket empty(SMSG_QUERY_CUSTOM_STORE_RESULT, 32);
+@@ -4950,6 +4950,14 @@
+ 
+     void HandlePointSpendRequest(Player* player, WorldPacket& packet)
+     {
++        if (AscensionFreePick::Applies(player) && packet.size() == 4 * sizeof(uint32))
++        {
++            uint32 version, item, currency, cost;
++            packet >> version >> item >> currency >> cost;
++            if (version == 0xA52B0002 && !BuyMasterOffer(player, item, currency, cost))
++                ChatHandler(player->GetSession()).SendSysMessage("Purchase declined. Check your currency and refresh your collection.");
++            return;
++        }
+         if (AscensionFreePick::Applies(player) && packet.size() == 3 * sizeof(uint32))
+         {
+             uint32 version, itemId, cost;
+@@ -4967,6 +4975,8 @@
+         uint8 currency = 0;
+         uint32 itemId = 0;
+         packet >> currency >> itemId;
++        if (AscensionFreePick::Applies(player) && Area52Master::Offers.contains(itemId))
++            return;
+         if (currency == 3 && AscensionFreePick::Applies(player))
+         {
+             ChatHandler(player->GetSession()).SendSysMessage("Update through the launcher before using Bazaar Token purchases. No tokens were charged.");
+@@ -4982,6 +4992,7 @@
+         DeliverVanityItem(player, itemId);
+     }
+ 
++#include "Area52MasterStore.inc"
+ #include "Area52VanityBazaar.inc"
+ 
+   void SaveActiveAppearances(Player *player,
+@@ -5224,11 +5235,11 @@
+ 
+       vanityItems.erase(
+           std::remove_if(vanityItems.begin(), vanityItems.end(),
+-                         [](uint32 itemId) { return IsBankVanityItem(itemId); }),
++                         [player](uint32 itemId) { return IsBankVanityItem(itemId) || (AscensionFreePick::Applies(player) && Area52Master::Offers.contains(itemId)); }),
+           vanityItems.end());
+ 
+       for (uint32 itemId : state.OwnedVanityItems)
+-        if (IsBankVanityItem(itemId))
++        if (IsBankVanityItem(itemId) || (AscensionFreePick::Applies(player) && Area52Master::Offers.contains(itemId)))
+           vanityItems.push_back(itemId);
+     }
+     else
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -17,6 +17,8 @@
+ #include "DBCStores.h"
+ #include "GameObject.h"
+ #include "Item.h"
++#include "Mail.h"
++#include "MailMgr.h"
+ #include "LootMgr.h"
+ #include "Random.h"
+ #include "Log.h"
+@@ -1378,6 +1380,30 @@
+     claim->SetData(6, build);
+     claim->SetData(7, revision);
+     transaction->Append(claim);
++    auto trophy = std::make_shared<std::unique_ptr<Item>>(Item::CreateItem(1297306, 1, player));
++    if (!*trophy)
++        return false;
++    uint32 mailId = sObjectMgr->GenerateMailID();
++    uint32 itemGuid = (*trophy)->GetGUID().GetCounter();
++    uint32 now = GameTime::GetGameTime().count();
++    transaction->Append(
++        "INSERT INTO area52_build_trophy_claim (account, build_id, completion_guid, completion_revision, mail_id) "
++        "SELECT account, build_id, guid, revision, {} FROM area52_draft_reward "
++        "WHERE guid={} AND account={} AND build_id={} AND revision={} "
++        "ON DUPLICATE KEY UPDATE build_id=area52_build_trophy_claim.build_id",
++        mailId, guid.GetCounter(), account, build, revision);
++    // Item serialization and conditional delivery share the guarded completion transaction.
++    (*trophy)->SaveToDB(transaction);
++    transaction->Append("INSERT INTO mail (id,messageType,stationery,mailTemplateId,sender,receiver,subject,body,"
++        "has_items,expire_time,deliver_time,money,cod,checked) SELECT mail_id,0,{},0,0,completion_guid,"
++        "'Featured Draft completion','Your first completion of this Featured Draft earned one Build Master trophy.',"
++        "1,{},{},0,0,0 FROM area52_build_trophy_claim WHERE account={} AND build_id={} AND mail_id={}",
++        uint32(MAIL_STATIONERY_GM), now + 90 * DAY, now, account, build, mailId);
++    transaction->Append("INSERT INTO mail_items (mail_id,item_guid,receiver) SELECT mail_id,{},completion_guid "
++        "FROM area52_build_trophy_claim WHERE account={} AND build_id={} AND mail_id={}", itemGuid, account, build, mailId);
++    transaction->Append("DELETE FROM item_instance WHERE guid={} AND NOT EXISTS "
++        "(SELECT 1 FROM area52_build_trophy_claim WHERE account={} AND build_id={} AND mail_id={})",
++        itemGuid, account, build, mailId);
+     for (auto spell : spells)
+     {
+         auto* grant = CharacterDatabase.GetPreparedStatement(CHAR_INS_A52_DRAFT_REWARD_ENCHANT);
+@@ -1409,7 +1435,7 @@
+     }
+     state->Busy = true;
+     session->AddTransactionCallback(CharacterDatabase.AsyncCommitTransaction(transaction)).AfterComplete(
+-        [session, guid, account, generation, build, revision, spells, appearances](bool success)
++        [session, guid, account, generation, build, revision, spells, appearances, mailId, trophy, now](bool success)
+         {
+             auto* owner = session->GetPlayer();
+             auto* current = owner && owner->GetGUID() == guid ? owner->CustomData.Get<State>(StateKey) : nullptr;
+@@ -1419,6 +1445,26 @@
+             {
+                 current->Busy = false;
+                 return;
++            }
++            if (CharacterDatabase.Query("SELECT 1 FROM area52_build_trophy_claim WHERE mail_id={}", mailId))
++            {
++                sMailMgr->OnMailSent(guid.GetCounter());
++                auto letter = std::make_unique<Mail>();
++                letter->messageID = mailId;
++                letter->messageType = MAIL_NORMAL;
++                letter->stationery = MAIL_STATIONERY_GM;
++                letter->receiver = guid.GetCounter();
++                letter->subject = "Featured Draft completion";
++                letter->body = "Your first completion of this Featured Draft earned one Build Master trophy.";
++                letter->deliver_time = now;
++                letter->expire_time = now + 90 * DAY;
++                letter->state = MAIL_STATE_UNCHANGED;
++                letter->AddItem((*trophy)->GetGUID().GetCounter(), (*trophy)->GetEntry());
++                owner->AddNewMailDeliverTime(now);
++                if (!owner->GetMail(mailId))
++                    owner->AddMail(letter.release());
++                if (!owner->GetMItem((*trophy)->GetGUID().GetCounter()))
++                    owner->AddMItem(trophy->release());
+             }
+             auto* query = CharacterDatabase.GetPreparedStatement(CHAR_SEL_A52_DRAFT_REWARD);
+             query->SetData(0, guid.GetCounter());
+--- /dev/null
++++ b/world.sql
+@@ -0,0 +1,208 @@
++CREATE TABLE area52_master_offer (
++    item INT UNSIGNED PRIMARY KEY,
++    store_id TINYINT UNSIGNED NOT NULL,
++    currency INT UNSIGNED NOT NULL,
++    unit_price INT UNSIGNED NOT NULL
++) ENGINE=InnoDB;
++CREATE TABLE area52_master_bundle_member (
++    bundle INT UNSIGNED NOT NULL,
++    item INT UNSIGNED NOT NULL,
++    PRIMARY KEY (bundle,item),
++    FOREIGN KEY (bundle) REFERENCES area52_master_offer(item),
++    FOREIGN KEY (item) REFERENCES area52_master_offer(item)
++) ENGINE=InnoDB;
++INSERT INTO area52_master_offer VALUES
++(42991,0,375250,1000),
++(42992,0,375250,1000),
++(44097,0,375250,1000),
++(44098,0,375250,1000),
++(50255,0,375250,1000),
++(62035,0,375250,1000),
++(62036,0,375250,1000),
++(62037,0,375250,1000),
++(69891,0,375250,1000),
++(123162,1,97751,3),
++(123163,1,97751,3),
++(177805,1,97751,4),
++(178053,1,97751,4),
++(178352,2,1297306,3),
++(178355,2,1297306,3),
++(178358,2,1297306,1),
++(178363,2,1297306,1),
++(178369,2,1297306,2),
++(178374,2,1297306,3),
++(178377,2,1297306,2),
++(178383,2,1297306,1),
++(179329,1,97751,4),
++(180492,1,97751,4),
++(180955,1,97751,4),
++(183979,1,97751,4),
++(339075,0,375250,1000),
++(339076,0,375250,1000),
++(339100,0,375250,1000),
++(360254,0,375250,1000),
++(360267,0,375250,1000),
++(366243,0,375250,1000),
++(366256,0,375250,1000),
++(390799,0,375250,1000),
++(500006,2,1297306,8),
++(1179132,1,97751,8),
++(1339058,0,375250,3600),
++(1339059,0,375250,3600),
++(1339060,0,375250,3600),
++(1339061,0,375250,3600),
++(1339062,0,375250,3600),
++(1339063,0,375250,3600),
++(1339064,0,375250,3600),
++(1339076,0,375250,1000),
++(1339077,0,375250,1000),
++(1339078,0,375250,1000),
++(1339079,0,375250,1000),
++(1339080,0,375250,1000),
++(1339081,0,375250,1000),
++(1339082,0,375250,1000),
++(1339083,0,375250,1000),
++(1339084,0,375250,500),
++(1339085,0,375250,500),
++(1339086,0,375250,500),
++(1339087,0,375250,500),
++(1339088,0,375250,500),
++(1339089,0,375250,500),
++(1339090,0,375250,500),
++(1339092,0,375250,500),
++(1339093,0,375250,500),
++(1339094,0,375250,500),
++(1339095,0,375250,500),
++(1339096,0,375250,500),
++(1339097,0,375250,500),
++(1339098,0,375250,500),
++(1339099,0,375250,500),
++(1339100,0,375250,500),
++(1339101,0,375250,500),
++(1339102,0,375250,500),
++(1339103,0,375250,500),
++(1339104,0,375250,500),
++(1339105,0,375250,500),
++(1339106,0,375250,500),
++(1339107,0,375250,500),
++(1339108,0,375250,500),
++(1339109,0,375250,500),
++(1339110,0,375250,500),
++(1339111,0,375250,500),
++(1339112,0,375250,500),
++(1339113,0,375250,500),
++(1339114,0,375250,500),
++(1339115,0,375250,500),
++(1339116,0,375250,500),
++(1339117,0,375250,500),
++(1339118,0,375250,500),
++(1339119,0,375250,500),
++(1339120,0,375250,500),
++(1339121,0,375250,500),
++(1339122,0,375250,500),
++(1339123,0,375250,500),
++(1339124,0,375250,500),
++(1339125,0,375250,500),
++(1339126,0,375250,500),
++(1339127,0,375250,500),
++(1339128,0,375250,500),
++(1339129,0,375250,500),
++(1339130,0,375250,500),
++(1339131,0,375250,500),
++(1339132,0,375250,500),
++(1339133,0,375250,500),
++(1518202,0,375250,1000),
++(1518203,0,375250,1000),
++(1642846,0,375250,1000),
++(1642847,0,375250,1000),
++(1642896,0,375250,500),
++(1642897,0,375250,500),
++(1642898,0,375250,500),
++(1642899,0,375250,500),
++(1642900,0,375250,500),
++(1642901,0,375250,500),
++(1642902,0,375250,1000),
++(1642943,0,375250,1000),
++(1642944,0,375250,1000),
++(1642945,0,375250,1000),
++(1642946,0,375250,1000),
++(1642947,0,375250,1000),
++(1642948,0,375250,1000),
++(1642949,0,375250,500),
++(1642950,0,375250,500),
++(1642951,0,375250,500),
++(1642952,0,375250,500),
++(1642984,0,375250,500),
++(1642985,0,375250,500),
++(1642991,0,375250,1000),
++(1642992,0,375250,1000),
++(1642999,0,375250,1000),
++(1644091,0,375250,1000),
++(1644092,0,375250,1000),
++(1644093,0,375250,1000),
++(1644094,0,375250,1000),
++(1644095,0,375250,1000),
++(1644096,0,375250,1000),
++(1644097,0,375250,1000),
++(1644098,0,375250,1000),
++(1644099,0,375250,500),
++(1644100,0,375250,500),
++(1644101,0,375250,500),
++(1644102,0,375250,500),
++(1644103,0,375250,500),
++(1644105,0,375250,500),
++(1644107,0,375250,500),
++(1648677,0,375250,500),
++(1648683,0,375250,500),
++(1648685,0,375250,500),
++(1648687,0,375250,500),
++(1648689,0,375250,500),
++(1648691,0,375250,500),
++(1648716,0,375250,1000),
++(1648718,0,375250,1000),
++(3140350,0,375250,500),
++(3142943,0,375250,1000),
++(3142949,0,375250,500),
++(3148335,0,375250,500),
++(3148685,0,375250,500),
++(8199945,1,97751,8),
++(8200049,2,1297306,8),
++(8200126,2,1297306,8),
++(8210061,2,1297306,4),
++(8210066,2,1297306,3),
++(8210068,2,1297306,2),
++(8210138,1,97751,3),
++(8210139,1,97751,3),
++(8210140,1,97751,1),
++(8210141,1,97751,1),
++(8210142,1,97751,2),
++(8210143,1,97751,3),
++(8210144,1,97751,2),
++(8210145,1,97751,1),
++(8210171,2,1297306,2),
++(8210172,1,97751,2),
++(8210180,2,1297306,0),
++(8210181,1,97751,0),
++(8210205,2,1297306,4);
++INSERT INTO area52_master_bundle_member VALUES
++(8210180,178352),
++(8210180,178355),
++(8210180,178358),
++(8210180,178363),
++(8210180,178369),
++(8210180,178374),
++(8210180,178377),
++(8210180,178383),
++(8210180,8210171),
++(8210181,8210138),
++(8210181,8210139),
++(8210181,8210140),
++(8210181,8210141),
++(8210181,8210142),
++(8210181,8210143),
++(8210181,8210144),
++(8210181,8210145),
++(8210181,8210172);
++UPDATE coa_client_vanity_collection AS v
++JOIN area52_master_offer AS o ON o.item=v.ItemID
++SET v.DonationPointCost=0, v.SeasonalPointCost=0, v.BazaarTokenCost=0;

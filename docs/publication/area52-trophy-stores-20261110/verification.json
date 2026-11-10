@@ -1,0 +1,11 @@
+{
+  "id": "area52-trophy-stores-20261110",
+  "baseline": "area52-banner-party-draft-20261110",
+  "server_sha256": "96481fe49272850e0f75c37d1183a274f8ee8bf00f854489f8136b29327356e0",
+  "reports": {
+    "build-r1": "9779fefc564b23dd2c83a425bf6cf33774d714c26aa341a94cdbabb0720b6e7e",
+    "verification-r4": "4177e6fc13368ee93a6d20c45f3d229b8d36268dc7b956936580d472dc5bdb64"
+  },
+  "prices": "240f7c79b581ae32c6477cc7817e15d81e8e23ff2aa3c6ed8fbfbb387bcead72",
+  "client_archive": "501b8f4e3705ea88be8f8e52923065bc769434a69473b95cd27ae7a858d74f5d"
+}
