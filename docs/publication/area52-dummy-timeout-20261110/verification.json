@@ -1,0 +1,13 @@
+{
+  "id": "area52-dummy-timeout-20261110",
+  "baseline_deployment": "area52-trophy-stores-20261110",
+  "baseline_binary": "96481fe49272850e0f75c37d1183a274f8ee8bf00f854489f8136b29327356e0",
+  "candidate_binary": "103d503db738b265d8e16732ad73b51a94e5867766fb78e1039a8a6dd192fc45",
+  "reports": {
+    "dummy-timeout-20261110/timeout-r2": "d11abe95d8cc460060ee1240fa2e8c2a96739320907c2755718f525a93b271c1",
+    "dummy-timeout-20261110/build-r1": "f8204103ee315f42f996b7029bc6759ca40541c9d887db0e13045e338e984716"
+  },
+  "source_files": {
+    "src/server/scripts/World/npc_advanced_training_dummy.cpp": "a9021bc504b6a11763127888cc95aa369284a214421d8ff24744b6c43fd44ea0"
+  }
+}

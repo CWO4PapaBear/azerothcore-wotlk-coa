@@ -1,0 +1,11 @@
+--- a/src/server/scripts/World/npc_advanced_training_dummy.cpp
++++ b/src/server/scripts/World/npc_advanced_training_dummy.cpp
+@@ -314,7 +314,7 @@
+             Unit* unit = ObjectAccessor::GetUnit(*me, itr->first);
+             if (!unit || !unit->IsAlive() || !me->IsWithinDistInMap(unit, 60.0f)
+                 || (!(IsTank() && itr->first == _owner)
+-                    && getMSTimeDiff(itr->second, getMSTime()) >= 5000))
++                    && getMSTimeDiff(itr->second, getMSTime()) >= 15 * IN_MILLISECONDS))
+             {
+                 auto const& refs = me->GetCombatManager().GetPvECombatRefs();
+                 if (auto ref = refs.find(itr->first); ref != refs.end())
