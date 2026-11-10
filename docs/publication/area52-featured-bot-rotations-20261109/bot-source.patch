@@ -1,0 +1,1455 @@
+--- a/modules/mod-playerbots/src/Ai/Class/Coa/CoaSpecialization.cpp
++++ b/modules/mod-playerbots/src/Ai/Class/Coa/CoaSpecialization.cpp
+@@ -7,6 +7,7 @@
+ #include "CoaSpecialization.h"
+ #include "CoaLegendaryClasses.h"
+ #include "CoaDungeonPool.h"
++#include "Area52PilotProfiles.h"
+ #include "ObjectAccessor.h"
+ #include "CoaLevelBuildData.h"
+ #include "CoaSpecLookup.h"
+@@ -722,11 +723,16 @@
+         chosenFits = true;
+         if (classId && classId != CoaHeroClass)
+             return nullptr;
++        Player* fallback = nullptr;
+         for (auto const& [guid, bot] : sRandomPlayerbotMgr.GetAllBots())
+             if (CoaDungeonPool::RecruitAvailable(bot, master, PilotRole(role)) &&
+                 !RandomBotLevelMgr::IsHeld(guid) && !skip.contains(guid) && !CoaLfgOfferedToOther(bot, nullptr))
+-                return bot;
+-        return nullptr;
++            {
++                auto const* current = CoaDungeonPool::ProfileFor(bot);
++                if (current && current->role == PilotRole(role)) return bot;
++                if (!fallback) fallback = bot;
++            }
++        return fallback;
+     }
+     // A free random bot whose class can fill the role, preferably on the master's map (a
+     // dungeon instance has none, so any map will do), then one that already holds a
+@@ -836,7 +842,7 @@
+                        std::string& message)
+ {
+     if (sPlayerbotAIConfig.area52FixedPilot)
+-        return CoaDungeonPool::PrepareRecruit(chosen, master);
++        return CoaDungeonPool::PrepareRecruit(chosen, master, PilotRole(role));
+     // At the master's level, down as well as up. CoA scales every creature to the highest level
+     // player in its sight, so a level 42 tank beside a level 22 player turns every pull into a
+     // skull. The bot is rebuilt the way a random bot is - gear, talents and spells of that level -
+@@ -1183,7 +1189,7 @@
+     CoaRole role = CoaRole::Dps;
+ };
+ 
+-std::mutex LfgLock;
++auto& LfgLock = CoaDungeonPool::ClaimsLock();
+ CoaLfgSettings LfgSettings;
+ std::unordered_map<ObjectGuid, CoaLfgOffer> LfgOffers;  // by bot
+ std::map<std::pair<ObjectGuid, uint8>, time_t> LfgAsked;  // by player and role: when it last asked
+@@ -1196,7 +1202,7 @@
+         return false;
+     }
+     {
+-        std::lock_guard<std::mutex> guard(LfgLock);
++        std::lock_guard guard(LfgLock);
+         for (auto const& [guid, offer] : LfgOffers)
+             if (offer.player == master->GetGUID() && offer.role == role && offer.until >= time(nullptr))
+             {
+@@ -1211,7 +1217,12 @@
+         message = "No available bot of that role in your faction's fixed pool.";
+         return false;
+     }
+-    std::lock_guard<std::mutex> guard(LfgLock);
++    std::lock_guard guard(LfgLock);
++    if (CoaDungeonPool::Busy(bot->GetGUID()))
++    {
++        message = "That bot was reserved by Dungeon Finder. Please request another.";
++        return false;
++    }
+     if (auto existing = LfgOffers.find(bot->GetGUID());
+         existing != LfgOffers.end() && existing->second.until >= time(nullptr))
+     {
+@@ -1259,13 +1270,13 @@
+     settings.announceSeconds = sConfigMgr->GetOption<uint32>("AiPlayerbot.CoaLfgAnnounceMinutes", 10) * MINUTE;
+     settings.announce = sConfigMgr->GetOption<std::string>("AiPlayerbot.CoaLfgAnnounceText", "");
+ 
+-    std::lock_guard<std::mutex> guard(LfgLock);
++    std::lock_guard guard(LfgLock);
+     LfgSettings = settings;
+ }
+ 
+ CoaLfgSettings Settings()
+ {
+-    std::lock_guard<std::mutex> guard(LfgLock);
++    std::lock_guard guard(LfgLock);
+     return LfgSettings;
+ }
+ 
+@@ -1421,7 +1432,7 @@
+     std::set<ObjectGuid> skip;
+     std::vector<CoaRole> wanted;
+     {
+-        std::lock_guard<std::mutex> guard(LfgLock);
++        std::lock_guard guard(LfgLock);
+         // The wait is per role: asking for a tank and then for a healer works, asking twice for the
+         // same role in a row does not.
+         for (CoaRole const role : roles)
+@@ -1481,7 +1492,7 @@
+                 continue;
+ 
+             {
+-                std::lock_guard<std::mutex> guard(LfgLock);
++                std::lock_guard guard(LfgLock);
+                 LfgOffers[bot->GetGUID()] = { player->GetGUID(), now + time_t(settings.offerSeconds) };
+             }
+             classes.insert(bot->getClass());
+@@ -1500,7 +1511,7 @@
+ {
+     if (!bot)
+         return false;
+-    std::lock_guard<std::mutex> guard(LfgLock);
++    std::lock_guard guard(LfgLock);
+     auto const offer = LfgOffers.find(bot->GetGUID());
+     return offer != LfgOffers.end() && offer->second.until >= time(nullptr) &&
+            (!player || offer->second.player != player->GetGUID() || !offer->second.ready);
+@@ -1511,7 +1522,7 @@
+     if (!bot || !inviter)
+         return false;
+ 
+-    std::lock_guard<std::mutex> guard(LfgLock);
++    std::lock_guard guard(LfgLock);
+     auto const offer = LfgOffers.find(bot->GetGUID());
+     if (offer == LfgOffers.end() || offer->second.player != inviter->GetGUID() || offer->second.until < time(nullptr) ||
+         !offer->second.ready)
+@@ -1521,7 +1532,8 @@
+          bot->GetLevel() != offer->second.level || inviter->GetLevel() != offer->second.level ||
+          !bot->IsAlive() || bot->IsInCombat() || bot->duel || bot->IsBeingTeleported() || bot->IsInFlight() ||
+          bot->GetGroup() || bot->InBattleground() || bot->InBattlegroundQueue() ||
+-         sLFGMgr->GetState(bot->GetGUID()) != lfg::LFG_STATE_NONE || !CoaLegendaryClassReady(bot)))
++         sLFGMgr->GetState(bot->GetGUID()) != lfg::LFG_STATE_NONE ||
++         !CoaDungeonPool::ReadyForRole(bot, PilotRole(offer->second.role))))
+         return false;
+     LfgOffers.erase(offer);
+     return true;
+@@ -1546,11 +1558,15 @@
+             {
+                 sincePrepare = 0;
+                 std::vector<std::pair<ObjectGuid, CoaLfgOffer>> offers;
++                std::vector<ObjectGuid> expired;
+                 {
+-                    std::lock_guard<std::mutex> guard(LfgLock);
++                    std::lock_guard guard(LfgLock);
+                     for (auto it = LfgOffers.begin(); it != LfgOffers.end();)
+                         if (it->second.until < time(nullptr))
++                        {
++                            if (!it->second.ready) expired.push_back(it->second.player);
+                             it = LfgOffers.erase(it);
++                        }
+                         else
+                         {
+                             if (!it->second.ready)
+@@ -1558,6 +1574,9 @@
+                             ++it;
+                         }
+                 }
++                for (ObjectGuid guid : expired)
++                    if (Player* requester = ObjectAccessor::FindConnectedPlayer(guid))
++                        ChatHandler(requester->GetSession()).SendSysMessage("Your bot could not prepare the requested role. Its reservation expired; you can request another.");
+                 for (auto const& [guid, offer] : offers)
+                 {
+                     Player* bot = ObjectAccessor::FindConnectedPlayer(guid);
+@@ -1565,16 +1584,23 @@
+                     if (!CoaDungeonPool::RecruitAvailable(bot, master, PilotRole(offer.role)) ||
+                         master->GetLevel() != offer.level)
+                     {
+-                        std::lock_guard<std::mutex> guard(LfgLock);
+-                        LfgOffers.erase(guid);
++                        if (master)
++                            ChatHandler(master->GetSession()).SendSysMessage("Your bot is no longer available for this request. Its reservation was released.");
++                        std::lock_guard guard(LfgLock);
++                        auto found = LfgOffers.find(guid);
++                        if (found != LfgOffers.end() && found->second.player == offer.player &&
++                            found->second.role == offer.role && found->second.until == offer.until)
++                            LfgOffers.erase(found);
+                         continue;
+                     }
+-                    if (CoaDungeonPool::PrepareRecruit(bot, master))
++                    if (CoaDungeonPool::PrepareRecruit(bot, master, PilotRole(offer.role)))
+                     {
+                         {
+-                            std::lock_guard<std::mutex> guard(LfgLock);
++                            std::lock_guard guard(LfgLock);
+                             auto found = LfgOffers.find(guid);
+-                            if (found == LfgOffers.end() || found->second.player != offer.player)
++                            if (found == LfgOffers.end() || found->second.player != offer.player ||
++                                found->second.role != offer.role || found->second.until != offer.until ||
++                                found->second.until < time(nullptr))
+                                 continue;
+                             found->second.ready = true;
+                         }
+--- /dev/null
++++ b/modules/mod-playerbots/src/Ai/Coa/Area52BotFeaturedBuild.h
+@@ -0,0 +1,11 @@
++#ifndef AREA52_BOT_FEATURED_BUILD_H
++#define AREA52_BOT_FEATURED_BUILD_H
++#include <cstdint>
++#include <string>
++#include <utility>
++class Player;
++struct CoaLegendaryClass;
++using CoaFeaturedRevision = std::pair<std::uint64_t,std::uint32_t>;
++CoaFeaturedRevision CurrentCoaFeaturedRevision(unsigned archetype);
++bool ApplyCoaFeaturedRevision(Player*, CoaLegendaryClass const&, CoaFeaturedRevision, std::string&);
++#endif
+--- a/modules/mod-playerbots/src/Ai/Coa/Area52DungeonPool.h
++++ b/modules/mod-playerbots/src/Ai/Coa/Area52DungeonPool.h
+@@ -54,7 +54,11 @@
+ class Pool
+ {
+ public:
+-    std::map<Id, Request> reservations;
++    struct Reservation : Request
++    {
++        std::uint32_t assignedRole;
++    };
++    std::map<Id, Reservation> reservations;
+ 
+     std::vector<Id> Release(Id queue)
+     {
+@@ -92,22 +96,36 @@
+                 if (reservation != request)
+                     return false;
+                 auto bot = std::find_if(bots.begin(), bots.end(), [id](Bot const& value) { return value.id == id; });
+-                if (bot == bots.end() || bot->role < 1 || bot->role > 3 || !(*missing)[bot->role - 1])
++                if (bot == bots.end() || reservation.assignedRole < 1 || reservation.assignedRole > 3 ||
++                    !(*missing)[reservation.assignedRole - 1])
+                     return false;
+-                --(*missing)[bot->role - 1];
++                --(*missing)[reservation.assignedRole - 1];
+             }
+-        std::vector<Id> selected;
++        std::map<Id,std::uint32_t> selected;
+         for (Bot const& bot : bots)
+             if (bot.available && bot.faction == request.faction && bot.role >= 1 && bot.role <= 3 &&
+                 !reservations.contains(bot.id) && (*missing)[bot.role - 1])
+             {
+                 --(*missing)[bot.role - 1];
+-                selected.push_back(bot.id);
++                selected.emplace(bot.id,bot.role);
+             }
++        for (Bot const& bot : bots)
++        {
++            if (!bot.available || bot.faction != request.faction || bot.role < 1 || bot.role > 3 ||
++                reservations.contains(bot.id) || selected.contains(bot.id))
++                continue;
++            for (unsigned role = 1; role <= 3; ++role)
++                if ((*missing)[role - 1])
++                {
++                    --(*missing)[role - 1];
++                    selected.emplace(bot.id,role);
++                    break;
++                }
++        }
+         if ((*missing)[0] || (*missing)[1] || (*missing)[2] || reservations.size() + selected.size() > Capacity)
+             return false;
+-        for (Id id : selected)
+-            reservations.emplace(id, request);
++        for (auto const& [id, role] : selected)
++            reservations.emplace(id, Reservation{request, role});
+         return true;
+     }
+ 
+--- /dev/null
++++ b/modules/mod-playerbots/src/Ai/Coa/Area52PilotProfiles.h
+@@ -0,0 +1,63 @@
++#ifndef PLAYERBOTS_AREA52_PILOT_PROFILES_H
++#define PLAYERBOTS_AREA52_PILOT_PROFILES_H
++#include "Area52FixedEquipment.h"
++#include <array>
++#include <cstdint>
++#include <string_view>
++
++namespace Area52PilotProfiles
++{
++struct Profile
++{
++    unsigned archetype;
++    std::string_view spec;
++    std::uint32_t legendary;
++    unsigned role;
++    std::uint32_t vanity;
++    std::array<std::uint32_t,19> equipment;
++    bool recruitable = true;
++};
++
++inline constexpr std::array Profiles{
++    Profile{27,"mknight",81116,1,900527,Area52FixedEquipment::Profiles[0]},
++    Profile{1,"naturalist",965937,2,900501,Area52FixedEquipment::Profiles[1]},
++    Profile{73,"hoplite",978217,3,900573,Area52FixedEquipment::Profiles[2]},
++    Profile{20,"bulwark",978724,1,900520,
++        {1339126,1339078,3142949,0,3148685,1339098,1339119,1339105,1339112,1339133,
++         1339081,1339081,1642991,1642992,1339087,1644094,3148335,1642900,0}},
++    Profile{133,"white-walker",978202,3,900633,
++        {1339123,1339077,1642951,0,1648683,1339095,1339116,1339102,1339109,1339130,
++         1339080,1339080,1642992,1642991,1339090,1642947,0,1642901,0}},
++    Profile{82,"marksman",979740,3,900582,
++        {1339124,1339076,1642950,0,1648677,1339096,1339117,1339103,1339110,1339131,
++         1339082,1339079,1642991,1642992,1339084,3142943,0,1642946,0}}
++};
++
++inline Profile const* FindRegistered(std::uint32_t legendary)
++{
++    for (auto const& profile : Profiles)
++        if (profile.legendary == legendary)
++            return &profile;
++    return nullptr;
++}
++
++inline Profile const* Find(std::uint32_t legendary)
++{
++    auto profile = FindRegistered(legendary);
++    return profile && profile->recruitable ? profile : nullptr;
++}
++
++inline Profile const* Select(unsigned role, std::uint32_t current, std::uint64_t bot)
++{
++    auto existing = Find(current);
++    if (existing && existing->role == role)
++        return existing;
++    std::array<Profile const*,Profiles.size()> candidates{};
++    unsigned count = 0;
++    for (auto const& profile : Profiles)
++        if (profile.recruitable && profile.role == role)
++            candidates[count++] = &profile;
++    return count ? candidates[bot % count] : nullptr;
++}
++}
++#endif
+--- a/modules/mod-playerbots/src/Ai/Coa/CoaDungeonPool.cpp
++++ b/modules/mod-playerbots/src/Ai/Coa/CoaDungeonPool.cpp
+@@ -1,7 +1,8 @@
+ #include "CoaDungeonPool.h"
+ #include "Area52DungeonPool.h"
+ #include "Area52FixedPilot.h"
+-#include "Area52FixedEquipment.h"
++#include "Area52PilotProfiles.h"
++#include "Area52BotFeaturedBuild.h"
+ #include "ObjectMgr.h"
+ #include "Bag.h"
+ #include "CoaLegendaryClasses.h"
+@@ -18,6 +19,9 @@
+ #include "PlayerbotFactory.h"
+ #include "RandomPlayerbotMgr.h"
+ #include "World.h"
++#include "Chat.h"
++#include "CustomStrategy.h"
++#include <ctime>
+ 
+ bool ApplyArea52PilotVanity(Player* player);
+ 
+@@ -28,9 +32,11 @@
+ Area52DungeonPool::Pool Pool;
+ uint32 Elapsed = 0;
+ Area52DungeonPool::Id LastPrepared = 0;
+-std::map<Area52DungeonPool::Id, uint32> PreparedLevels;
+-
+-uint32 Role(Player const* bot)
++std::map<Area52DungeonPool::Id, std::tuple<uint32,uint32,CoaFeaturedRevision>> PreparedLevels;
++std::map<Area52DungeonPool::Id, std::time_t> PreparingSince;
++std::map<Area52DungeonPool::Id, Area52DungeonPool::Request> FailedRequests;
++
++uint32 HomeRole(Player const* bot)
+ {
+     auto const* settings = bot->FindPlayerSettings(Area52FixedPilot::Setting);
+     return settings && !settings->empty() ? settings->front().value : 0;
+@@ -80,23 +86,33 @@
+     return result;
+ }
+ 
+-bool Prepare(Player* bot, uint32 level)
++bool Prepare(Player* bot, uint32 level, unsigned role)
+ {
+     if (!Available(bot) || level < 15 || level > sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
+         return false;
+-    auto const* build = FindCoaLegendaryClass(Area52FixedPilot::Spec(Role(bot)));
++    auto const* current = ProfileFor(bot);
++    auto profile = Area52PilotProfiles::Select(role, current ? current->legendary : 0, bot->GetGUID().GetCounter());
++    auto const* build = profile ? FindCoaLegendaryClass(std::string(profile->spec)) : nullptr;
+     if (!build)
+         return false;
+     auto id = bot->GetGUID().GetRawValue();
+-    if (PreparedLevels[id] != level || bot->GetLevel() != level)
++    auto revision = CurrentCoaFeaturedRevision(profile->archetype);
++    auto key = std::make_tuple(level, build->legendary, revision);
++    if (PreparedLevels[id] != key || bot->GetLevel() != level || current != profile)
+     {
+         if (bot->IsMounted())
+             bot->Dismount();
+         bot->GiveLevel(level);
+         bot->InitStatsForLevel(true);
+         std::string error;
+-        if (!ApplyCoaLegendaryClass(bot, *build, error))
++        bot->UpdatePlayerSetting("core.area52.bot.assignment", 0, profile->legendary);
++        if (!ApplyCoaFeaturedRevision(bot, *build, revision, error))
++        {
++            bot->UpdatePlayerSetting("core.area52.bot.assignment", 0, current ? current->legendary : 0);
++            PreparedLevels.erase(id);
+             return false;
++        }
++        bot->UpdatePlayerSetting("core.area52.bot.assignment", 1, profile->vanity);
+         PlayerbotFactory factory(bot, level);
+         factory.InitSkills();
+         factory.InitAvailableSpells();
+@@ -105,33 +121,65 @@
+         factory.InitAmmo();
+         factory.InitPet();
+         bot->SaveToDB(false, false);
+-        PreparedLevels[id] = level;
++        PreparedLevels[id] = key;
+         return false;
+     }
+     EnsureCoaLegendaryClass(bot);
+     if (!EnsureEquipment(bot))
+         return false;
+-    if (!CoaLegendaryClassReady(bot))
++    if (GetCoaLegendaryClass(bot) != build || !CoaLegendaryClassReady(bot))
+         return false;
+     for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
+         if (Item* item = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot); item && bot->CanUseItem(item->GetTemplate()) != EQUIP_ERR_OK)
+             return false;
+-    return bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND) != nullptr;
+-}
++    if (!bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
++        return false;
++    if (PlayerbotAI* ai = GET_PLAYERBOT_AI(bot))
++        ai->ResetStrategies();
++    return ReadyForRole(bot, role);
++}
++}
++
++Area52PilotProfiles::Profile const* ProfileFor(Player const* bot)
++{
++    if (!bot || HomeRole(bot) < 1 || HomeRole(bot) > 3)
++        return nullptr;
++    auto const* saved = bot->FindPlayerSettings("core.area52.bot.assignment");
++    if (saved && !saved->empty() && saved->front().value)
++        return Area52PilotProfiles::Find(saved->front().value);
++    return Area52PilotProfiles::Select(HomeRole(bot), 0, bot->GetGUID().GetCounter());
+ }
+ 
+ bool IsPilot(Player* bot)
+ {
+     return sPlayerbotAIConfig.enabled && sPlayerbotAIConfig.area52FixedPilot &&
+         sPlayerbotAIConfig.area52DungeonPool && bot && IsCoaHero(bot) &&
+-        sRandomPlayerbotMgr.IsRandomBot(bot) && Role(bot) >= 1 && Role(bot) <= 3;
++        sRandomPlayerbotMgr.IsRandomBot(bot) && HomeRole(bot) >= 1 && HomeRole(bot) <= 3;
++}
++
++bool ReadyForRole(Player* bot, unsigned role)
++{
++    auto profile = ProfileFor(bot);
++    auto build = bot ? GetCoaLegendaryClass(bot) : nullptr;
++    auto ai = bot ? GET_PLAYERBOT_AI(bot) : nullptr;
++    if (!ai || !profile || profile->role != role || !build || build->legendary != profile->legendary ||
++        !CoaLegendaryClassReady(bot)) return false;
++    auto loaded = [&](std::string const& name, BotState state)
++    {
++        if (!ai->HasStrategy(name,state)) return false;
++        auto strategy = dynamic_cast<CustomStrategy*>(ai->GetAiObjectContext()->GetStrategy(name));
++        return strategy && strategy->HasValidatedPilotRules();
++    };
++    return loaded(build->combat,BOT_STATE_COMBAT) && loaded(build->nonCombat,BOT_STATE_NON_COMBAT);
+ }
+ 
+ bool EnsureEquipment(Player* bot)
+ {
+     if (!IsPilot(bot))
+         return false;
+-    auto const& profile = Area52FixedEquipment::Profiles[Role(bot) - 1];
++    auto assigned = ProfileFor(bot);
++    if (!assigned) return false;
++    auto const& profile = assigned->equipment;
+     for (uint32 entry : profile)
+         if (entry && !sObjectMgr->GetItemTemplate(entry))
+             return false;
+@@ -203,17 +251,24 @@
+ {
+     PlayerbotAI* ai = bot ? GET_PLAYERBOT_AI(bot) : nullptr;
+     return IsPilot(bot) && Available(bot) && !Busy(bot->GetGUID()) && ai && !ai->GetMaster() &&
+-        RecruiterAvailable(master) && bot->GetTeamId() == master->GetTeamId() && Role(bot) == role;
+-}
+-
+-bool PrepareRecruit(Player* bot, Player* master)
+-{
+-    return bot && RecruitAvailable(bot, master, Role(bot)) && Prepare(bot, master->GetLevel());
++        RecruiterAvailable(master) && bot->GetTeamId() == master->GetTeamId() && Area52PilotProfiles::Select(role, 0, bot->GetGUID().GetCounter());
++}
++
++bool PrepareRecruit(Player* bot, Player* master, unsigned role)
++{
++    return bot && RecruitAvailable(bot, master, role) && Prepare(bot, master->GetLevel(), role);
+ }
+ 
+ bool Busy(ObjectGuid guid)
+ {
++    std::lock_guard lock(ClaimsLock());
+     return sPlayerbotAIConfig.area52DungeonPool && Pool.reservations.contains(guid.GetRawValue());
++}
++
++std::recursive_mutex& ClaimsLock()
++{
++    static std::recursive_mutex mutex;
++    return mutex;
+ }
+ 
+ bool CanMatch(std::set<ObjectGuid> const& queues)
+@@ -224,14 +279,20 @@
+     for (ObjectGuid guid : queues)
+         if (!guid.IsEmpty())
+             ids.insert(guid.GetRawValue());
+-    if (!Pool.CanMatch(ids))
+-        return false;
+-    for (auto const& [id, request] : Pool.reservations)
++    Area52DungeonPool::Pool snapshot;
++    {
++        std::lock_guard lock(ClaimsLock());
++        snapshot = Pool;
++    }
++    if (!snapshot.CanMatch(ids))
++        return false;
++    for (auto const& [id, request] : snapshot.reservations)
+         if (ids.contains(id))
+         {
+             auto current = RequestFor(ObjectAccessor::FindConnectedPlayer(ObjectGuid(request.leader)));
+             Player* bot = ObjectAccessor::FindConnectedPlayer(ObjectGuid(id));
+-            if (!current || *current != request || !bot || bot->GetLevel() != request.level)
++            if (!current || *current != request || !bot || bot->GetLevel() != request.level ||
++                !ReadyForRole(bot, request.assignedRole))
+                 return false;
+         }
+     return true;
+@@ -250,31 +311,63 @@
+         if (auto request = RequestFor(player))
+             requests.emplace(request->queue, *request);
+     std::set<Area52DungeonPool::Id> released;
++    auto now = std::time(nullptr);
++    for (auto it = FailedRequests.begin(); it != FailedRequests.end();)
++        if (auto current = requests.find(it->first); current == requests.end() || current->second != it->second)
++            it = FailedRequests.erase(it);
++        else ++it;
+     for (auto const& [id, request] : Pool.reservations)
+     {
+         auto current = requests.find(request.queue);
+         Player* bot = ObjectAccessor::FindConnectedPlayer(ObjectGuid(id));
+         if (!bot || bot->GetGroup() || current == requests.end() || current->second != request)
+             released.insert(request.queue);
++        else if (sLFGMgr->GetState(bot->GetGUID()) == lfg::LFG_STATE_NONE &&
++            now - PreparingSince.try_emplace(id,now).first->second >= 120)
++        {
++            released.insert(request.queue);
++            if (FailedRequests.emplace(request.queue,request).second)
++                if (Player* leader = ObjectAccessor::FindConnectedPlayer(ObjectGuid(request.leader)))
++                    ChatHandler(leader->GetSession()).SendSysMessage("A dungeon bot could not prepare its assigned role. Its reservation was released. Requeue to try again.");
++        }
+     }
+     for (auto queue : released)
+-        for (auto id : Pool.Release(queue))
++    {
++        std::vector<Area52DungeonPool::Id> ids;
++        {
++            std::lock_guard lock(ClaimsLock());
++            ids = Pool.Release(queue);
++        }
++        for (auto id : ids)
++        {
++            PreparingSince.erase(id);
+             if (Player* bot = ObjectAccessor::FindConnectedPlayer(ObjectGuid(id)); bot && !bot->GetGroup() &&
+                 sLFGMgr->GetState(bot->GetGUID()) != lfg::LFG_STATE_NONE)
+                 sLFGMgr->LeaveLfg(bot->GetGUID());
++        }
++    }
+     std::vector<Area52DungeonPool::Bot> bots;
+     for (auto it = sRandomPlayerbotMgr.GetPlayerBotsBegin(); it != sRandomPlayerbotMgr.GetPlayerBotsEnd(); ++it)
+         if (Player* bot = it->second; bot && sRandomPlayerbotMgr.IsRandomBot(bot))
+         {
+             if (IsPilot(bot) && Available(bot))
+                 EnsureEquipment(bot);
+-            bots.push_back({ bot->GetGUID().GetRawValue(), bot->GetTeamId(), Role(bot),
++            bots.push_back({ bot->GetGUID().GetRawValue(), bot->GetTeamId(), ProfileFor(bot) ? ProfileFor(bot)->role : 0,
+                 Available(bot) && !CoaLfgOfferedToOther(bot, nullptr) &&
+                 GET_PLAYERBOT_AI(bot) && !GET_PLAYERBOT_AI(bot)->GetMaster() });
+         }
+     for (auto const& [queue, request] : requests)
+-        if (sLFGMgr->GetState(ObjectGuid(queue)) == lfg::LFG_STATE_QUEUED)
++        if (!FailedRequests.contains(queue) && sLFGMgr->GetState(ObjectGuid(queue)) == lfg::LFG_STATE_QUEUED)
++        {
++            std::lock_guard lock(ClaimsLock());
++            for (auto& candidate : bots)
++                if (candidate.available)
++                {
++                    auto bot = ObjectAccessor::FindConnectedPlayer(ObjectGuid(candidate.id));
++                    candidate.available = bot && !CoaLfgOfferedToOther(bot,nullptr);
++                }
+             Pool.Reserve(request, bots);
++        }
+     auto next = Pool.reservations.upper_bound(LastPrepared);
+     for (std::size_t checked = 0; checked < Pool.reservations.size(); ++checked)
+     {
+@@ -284,10 +377,10 @@
+         Player* bot = ObjectAccessor::FindConnectedPlayer(ObjectGuid(id));
+         if (!Available(bot) || sLFGMgr->GetState(ObjectGuid(request.queue)) != lfg::LFG_STATE_QUEUED)
+             continue;
+-        if (Prepare(bot, request.level))
++        if (Prepare(bot, request.level, request.assignedRole))
+         {
+             auto dungeons = request.dungeons;
+-            sLFGMgr->JoinLfg(bot, 1u << Role(bot), dungeons, "Area 52 dungeon companion");
++            sLFGMgr->JoinLfg(bot, 1u << request.assignedRole, dungeons, "Area 52 dungeon companion");
+         }
+         LastPrepared = id;
+         break;
+--- a/modules/mod-playerbots/src/Ai/Coa/CoaDungeonPool.h
++++ b/modules/mod-playerbots/src/Ai/Coa/CoaDungeonPool.h
+@@ -2,16 +2,21 @@
+ #define PLAYERBOTS_COA_DUNGEON_POOL_H
+ #include "ObjectGuid.h"
+ #include <set>
++#include <mutex>
+ class Player;
++namespace Area52PilotProfiles { struct Profile; }
+ namespace CoaDungeonPool
+ {
+ void Update(uint32 diff);
++std::recursive_mutex& ClaimsLock();
+ bool Busy(ObjectGuid guid);
+ bool CanMatch(std::set<ObjectGuid> const& queues);
+ bool IsPilot(Player* bot);
+ bool EnsureEquipment(Player* bot);
+ bool RecruitAvailable(Player* bot, Player* master, unsigned role);
+-bool PrepareRecruit(Player* bot, Player* master);
++Area52PilotProfiles::Profile const* ProfileFor(Player const* bot);
++bool PrepareRecruit(Player* bot, Player* master, unsigned role);
++bool ReadyForRole(Player* bot, unsigned role);
+ bool RecruiterAvailable(Player* master);
+ }
+ #endif
+--- a/modules/mod-playerbots/src/Ai/Coa/CoaGenericContext.cpp
++++ b/modules/mod-playerbots/src/Ai/Coa/CoaGenericContext.cpp
+@@ -1175,10 +1175,12 @@
+     return target && botAI->CastSpell(split(qualifier, ',')[0], target);
+ }
+ 
+-bool CoaLegendaryPetAction::isUseful() { return !bot->GetPet() && CoaLegendaryPetEntry(bot); }
++bool CoaLegendaryPetAction::isUseful() { return (!bot->GetPet() || !bot->GetPet()->IsAlive()) && CoaLegendaryPetEntry(bot); }
+ 
+ bool CoaLegendaryPetAction::Execute(Event /*event*/)
+ {
++    if (Pet* pet = bot->GetPet(); pet && !pet->IsAlive())
++        return botAI->CastSpell("Revive Pet", bot);
+     if (!bot->GetPetStable() || !bot->GetPetStable()->CurrentPet)
+         return CoaCreateLegendaryPet(bot) != nullptr;
+     return botAI->CastSpell("Call Pet", bot) || botAI->CastSpell("Revive Pet", bot);
+@@ -1196,3 +1198,285 @@
+         botAI->ResetStrategies();
+     return true;
+ }
++
++bool CoaBulwarkAction::Execute(Event)
++{
++    constexpr uint32 bulwark = 922565;
++    Spell const* channel = bot->GetCurrentSpell(CURRENT_CHANNELED_SPELL);
++    bool const holding = (channel && channel->m_spellInfo->Id == bulwark) || bot->HasAura(bulwark);
++    if (qualifier == "cancel")
++    {
++        if (bot->IsInCombat() || !holding) return false;
++        WorldPacket cancel(CMSG_CANCEL_AURA, 4);
++        cancel << bulwark;
++        bot->GetSession()->HandleCancelAuraOpcode(cancel);
++        return !bot->HasAura(bulwark) && (!bot->GetCurrentSpell(CURRENT_CHANNELED_SPELL) ||
++            bot->GetCurrentSpell(CURRENT_CHANNELED_SPELL)->m_spellInfo->Id != bulwark);
++    }
++    auto cast = [&](char const* name, Unit* who)
++    { return who && botAI->CanCastSpell(name,who) && botAI->CastSpell(name,who); };
++    auto buff = [&](char const* name)
++    { return !botAI->HasAura(name,bot) && cast(name,bot); };
++    if (qualifier == "armor")
++        return buff(AI_VALUE2(uint32,"spell id","Ice Armor") ? "Ice Armor" : "Frost Armor");
++    if (!bot->IsInCombat()) return false;
++    Unit* target = AI_VALUE(Unit*,"current target");
++    if (qualifier == "mongoose")
++        return bot->GetPower(POWER_ENERGY)<70 && cast("Mongoose Bite",target);
++    if (qualifier == "block")
++        return !holding && buff("Shield Block");
++    if (qualifier == "full channel" || qualifier == "pack channel")
++        return !holding && (qualifier == "pack channel" || bot->GetPower(POWER_ENERGY)==100) &&
++            botAI->CanCastSpell(bulwark,bot) && botAI->CastSpell(bulwark,bot);
++
++    static constexpr char const* defensives[] = {"Avatar","Shield Wall","Last Stand","Icebound Fortitude","Combat Readiness"};
++    if (qualifier == "defensive")
++    {
++        if (bot->GetHealthPct()>=25) return false;
++        for (auto name : defensives)
++            if (botAI->HasAura(name,bot)) return false;
++        for (auto name : defensives)
++            if (cast(name,bot)) return true;
++        return false;
++    }
++    if (qualifier == "hard fight")
++    {
++        Creature* enemy=target ? target->ToCreature() : nullptr;
++        if (!(enemy && (enemy->isWorldBoss() || enemy->IsDungeonBoss())) &&
++            !botAI->GetAiObjectContext()->GetTrigger("generic boost")->IsActive()) return false;
++        if (buff("Demoralizing Banner")) return true;
++        if (bot->GetHealthPct()<25) return false;
++        for (auto name : defensives)
++            if (botAI->HasAura(name,bot)) return false;
++        return buff("Combat Readiness") || buff("Avatar");
++    }
++    auto quake = [&]()
++    {
++        uint32 id=AI_VALUE2(uint32,"spell id","Earthquake");
++        return id && botAI->CanCastSpell(id,bot->GetPositionX(),bot->GetPositionY(),bot->GetPositionZ()) &&
++            botAI->CastSpell(id,bot->GetPositionX(),bot->GetPositionY(),bot->GetPositionZ());
++    };
++    if (qualifier=="quake") return quake();
++    if (qualifier=="reflect" || qualifier=="caster quake")
++    {
++        if (botAI->HasAura("Spell Reflection",bot)) return false;
++        auto casting = [&](Unit* unit)
++        {
++            if (!unit || !unit->IsAlive() || !bot->IsValidAttackTarget(unit)) return false;
++            Spell* spell=unit->GetCurrentSpell(CURRENT_GENERIC_SPELL);
++            if (!spell) spell=unit->GetCurrentSpell(CURRENT_CHANNELED_SPELL);
++            return spell && spell->GetCastTimeRemaining()>0 &&
++                (qualifier=="caster quake" || spell->GetCastTimeRemaining()<=3000);
++        };
++        if (qualifier=="reflect") return casting(target) && buff("Spell Reflection");
++        if (casting(target)) return quake();
++        for (auto guid : AI_VALUE(GuidVector,"attackers"))
++            if (casting(botAI->GetUnit(guid))) return quake();
++        return false;
++    }
++    if (qualifier=="recover")
++    {
++        for (auto guid : AI_VALUE(GuidVector,"attackers"))
++        {
++            Unit* enemy=botAI->GetUnit(guid);
++            Player* ally=enemy && enemy->GetVictim() ? enemy->GetVictim()->ToPlayer() : nullptr;
++            if (!enemy || !enemy->IsAlive() || !bot->IsValidAttackTarget(enemy) || !ally || ally==bot ||
++                !bot->GetGroup() || ally->GetGroup()!=bot->GetGroup()) continue;
++            if (guid!=rescuedEnemy || ally->GetGUID()!=rescuedAlly)
++            { recoveryStep=0; rescuedEnemy=guid; rescuedAlly=ally->GetGUID(); }
++            botAI->GetAiObjectContext()->GetValue<Unit*>("current target")->Set(enemy);
++            bot->SetSelection(guid);
++            bot->Attack(enemy,true);
++            SpellInfo const* gcd=sSpellMgr->GetSpellInfo(1752);
++            if (gcd && bot->GetGlobalCooldownMgr().HasGlobalCooldown(gcd)) return false;
++            for (; recoveryStep<3; )
++            {
++                unsigned step=recoveryStep++;
++                if (step==0 && cast("Frost Shock",enemy)) return true;
++                if (step==1 && cast("Taunt",enemy)) return true;
++                if (step==2 && cast("Intervene",ally)) return true;
++            }
++            recoveryStep=0;
++            return false;
++        }
++        rescuedEnemy.Clear();
++        rescuedAlly.Clear();
++        recoveryStep=0;
++    }
++    return false;
++}
++
++bool CoaMarksmanAction::Execute(Event)
++{
++    time_t const start = AI_VALUE(time_t, "combat start time");
++    if (start != encounter)
++    {
++        encounter = start;
++        nextShot = escapeStep = burstStep = 0;
++        usedOpener = false;
++    }
++    Player* tank = CoaMainTank(bot);
++    Unit* target = tank ? tank->GetVictim() : nullptr;
++    if (!target && tank)
++        target = tank->GetSelectedUnit();
++    if (target && (!target->IsAlive() || !bot->IsValidAttackTarget(target) || CoaPullsAheadOfTank(bot,target)))
++        target = nullptr;
++    auto cast = [&](std::string const& name, Unit* unit)
++    {
++        return unit && botAI->CanCastSpell(name, unit) && botAI->CastSpell(name, unit);
++    };
++    auto aura = [&](char const* name, Unit* unit){ return unit && botAI->HasAura(name, unit); };
++
++    if (qualifier == "aspect")
++    {
++        char const* name = bot->IsInCombat() ? "Aspect of the Viper" :
++            bot->GetLevel() >= 74 ? "Aspect of the Dragonhawk" : "Aspect of the Hawk";
++        if (bot->IsInCombat() && (!bot->GetMaxPower(POWER_MANA) ||
++            uint64(bot->GetPower(POWER_MANA))*100 >= uint64(bot->GetMaxPower(POWER_MANA))*30))
++            return false;
++        return !aura(name, bot) && cast(name, bot);
++    }
++    if (qualifier == "poison")
++    {
++        Item* weapon = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_RANGED);
++        if (!weapon || weapon->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT))
++            return false;
++        return botAI->CanCastSpell("Instant Poison", bot, weapon) && botAI->CastSpell("Instant Poison", bot, weapon);
++    }
++    if (qualifier == "escape")
++    {
++        Unit* threat = nullptr;
++        for (auto guid : AI_VALUE(GuidVector, "attackers"))
++            if (Unit* enemy = botAI->GetUnit(guid); enemy && enemy->IsAlive() && enemy->GetVictim() == bot)
++            { threat = enemy; break; }
++        if (!threat && !bot->getAttackers().empty())
++            threat = *bot->getAttackers().begin();
++        if (!threat) { escapeStep = 0; return false; }
++        // Advance only across unavailable moves or after a successful cast. Pause through the GCD.
++        if (SpellInfo const* gcd = sSpellMgr->GetSpellInfo(1752); gcd && bot->GetGlobalCooldownMgr().HasGlobalCooldown(gcd))
++            return false;
++        static constexpr char const* steps[] = {"Evasion","Feign Death","Freezing Trap","Disengage",
++            "Concussive Shot","Cloak of Shadows","Vanish","Preparation","Cloak of Shadows","Vanish","Sprint"};
++        while (escapeStep < std::size(steps))
++        {
++            unsigned step = escapeStep++;
++            if (step == 7)
++            {
++                uint32 vanish = AI_VALUE2(uint32, "spell id", "Vanish");
++                if (!vanish || !bot->HasSpellCooldown(vanish) || !cast("Preparation",bot))
++                { escapeStep = 10; continue; }
++                return true;
++            }
++            if (cast(steps[step], step == 4 ? threat : bot))
++                return true;
++        }
++        return botAI->DoSpecificAction("flee");
++    }
++    if (qualifier == "burst")
++    {
++        Creature* boss = target ? target->ToCreature() : nullptr;
++        if (!target || (!(boss && (boss->isWorldBoss() || boss->IsDungeonBoss())) &&
++            !botAI->GetAiObjectContext()->GetTrigger("generic boost")->IsActive()))
++            return false;
++        if (aura("Rapid Fire",bot) || aura("Bloodlust",bot) || aura("Recklessness",bot))
++            return false;
++        static constexpr char const* names[] = {"Rapid Fire","Bloodlust","Recklessness"};
++        for (unsigned i=0;i<std::size(names);++i)
++        {
++            unsigned index=(burstStep+i)%std::size(names);
++            if (cast(names[index],bot)) { burstStep=(index+1)%std::size(names); return true; }
++        }
++        return false;
++    }
++    if (!target)
++        return false;
++    if (qualifier == "sniper") return bot->HasAuraType(SPELL_AURA_MOD_STEALTH) && cast("Syndicate Sniper Shot",target);
++    if (qualifier == "mark") return !aura("Hunter's Mark",target) && cast("Hunter's Mark",target);
++    if (qualifier == "execute") return target->GetHealthPct()<20 && cast("Kill Shot",target);
++    if (qualifier == "sting") return !aura("Scorpid Sting",target) && cast("Scorpid Sting",target);
++    if (qualifier == "redirect") return !aura("Misdirection",bot) && cast("Misdirection",tank);
++    bool const hasComboPoints = bot->GetComboPoints() > 0 && bot->GetComboTarget() == target;
++    if (qualifier == "opener")
++    {
++        if (!start || usedOpener || time(nullptr)-start>5 || !hasComboPoints)
++            return false;
++        usedOpener=cast("Slice and Dice",bot);
++        return usedOpener;
++    }
++    if (qualifier == "shots")
++    {
++        if (hasComboPoints && cast("Compound Shot",target)) return true;
++        static constexpr char const* shots[] = {"Steady Shot","Arcane Shot","Combo Shot"};
++        for (unsigned i=0;i<std::size(shots);++i)
++        {
++            unsigned index=(nextShot+i)%std::size(shots);
++            if (cast(shots[index],target)) { nextShot=(index+1)%std::size(shots); return true; }
++        }
++    }
++    if (qualifier == "multi") return cast("Multi-Shot",target);
++    if (qualifier == "volley")
++    {
++        uint32 id=AI_VALUE2(uint32,"spell id","Volley");
++        return id && botAI->CanCastSpell(id,target->GetPositionX(),target->GetPositionY(),target->GetPositionZ()) &&
++            botAI->CastSpell(id,target->GetPositionX(),target->GetPositionY(),target->GetPositionZ());
++    }
++    return false;
++}
++
++bool CoaWalkerTrigger::IsActive()
++{
++    if (qualifier == "pet")
++        return CoaLegendaryPetEntry(bot) && (!bot->GetPet() || !bot->GetPet()->IsAlive());
++    if (qualifier == "self curse")
++        return botAI->HasAuraToDispel(bot, DISPEL_CURSE);
++    if (qualifier == "below five")
++        return !botAI->GetAura("Maelstrom Weapon", bot, false, false, 5);
++    if (qualifier == "water")
++    {
++        uint32 learned = AI_VALUE2(uint32, "spell id", "Conjure Water");
++        bool createsWater = false;
++        for (uint32 rank = sSpellMgr->GetFirstSpellInChain(learned); rank; rank = sSpellMgr->GetNextSpellInChain(rank))
++            if (SpellInfo const* info = sSpellMgr->GetSpellInfo(rank))
++                for (auto const& effect : info->Effects)
++                    if (effect.Effect == SPELL_EFFECT_CREATE_ITEM && effect.ItemType)
++                    {
++                        createsWater = true;
++                        if (bot->HasItemCount(effect.ItemType, 1, false))
++                            return false;
++                    }
++        return createsWater;
++    }
++    if (qualifier == "totem")
++    {
++        uint32 learned = AI_VALUE2(uint32, "spell id", "Windfury Totem");
++        if (!learned)
++            return false;
++        for (auto guid : bot->m_SummonSlot)
++            if (Unit* totem = botAI->GetUnit(guid); totem && totem->IsAlive() &&
++                sSpellMgr->GetFirstSpellInChain(totem->GetUInt32Value(UNIT_CREATED_BY_SPELL)) ==
++                sSpellMgr->GetFirstSpellInChain(learned) && bot->IsWithinDistInMap(totem, 30.f))
++                return false;
++        return true;
++    }
++    Unit* target = AI_VALUE(Unit*, "current target");
++    if (!target || !target->IsAlive())
++        return false;
++    if (qualifier == "target30")
++        return bot->IsWithinDistInMap(target, 30.f);
++    bool cluster = qualifier == "orb cluster";
++    if (cluster && !bot->IsWithinDistInMap(target, 25.f))
++        return false;
++    if (!cluster && qualifier != "three nearby")
++        return false;
++    unsigned count = 0;
++    for (auto guid : AI_VALUE(GuidVector, "possible targets"))
++        if (Unit* unit = botAI->GetUnit(guid); unit && unit->IsAlive() && unit->IsInCombat() &&
++            bot->IsWithinDistInMap(unit, cluster ? 25.f : 8.f))
++        {
++            if (cluster && unit != target && target->IsWithinDistInMap(unit, 8.f))
++                return true;
++            if (!cluster && ++count == 3)
++                return true;
++        }
++    return false;
++}
+--- a/modules/mod-playerbots/src/Ai/Coa/CoaGenericContext.h
++++ b/modules/mod-playerbots/src/Ai/Coa/CoaGenericContext.h
+@@ -256,6 +256,13 @@
+  * spell name in the const field AiNamedObject::name, which cannot be qualified
+  * afterwards - hence our own implementations with identical logic (see
+  * GenericTriggers.cpp). */
++class CoaWalkerTrigger : public Trigger, public Qualified
++{
++public:
++    explicit CoaWalkerTrigger(PlayerbotAI* ai) : Trigger(ai, "coa walker") {}
++    bool IsActive() override;
++};
++
+ class CoaHasAuraTrigger : public Trigger, public Qualified
+ {
+ public:
+@@ -825,11 +832,39 @@
+     bool isUseful() override;
+ };
+ 
++class CoaBulwarkAction : public Action, public Qualified
++{
++public:
++    explicit CoaBulwarkAction(PlayerbotAI* ai) : Action(ai,"coa bulwark") {}
++    std::string const getName() override { return "coa bulwark::" + qualifier; }
++    bool Execute(Event event) override;
++private:
++    ObjectGuid rescuedEnemy;
++    ObjectGuid rescuedAlly;
++    unsigned recoveryStep = 0;
++};
++
++class CoaMarksmanAction : public Action, public Qualified
++{
++public:
++    explicit CoaMarksmanAction(PlayerbotAI* ai) : Action(ai, "coa marksman") {}
++    std::string const getName() override { return "coa marksman::" + qualifier; }
++    bool Execute(Event event) override;
++private:
++    uint32 nextShot = 0;
++    uint32 escapeStep = 0;
++    uint32 burstStep = 0;
++    time_t encounter = 0;
++    bool usedOpener = false;
++};
++
+ class CoaGenericActionContext : public NamedObjectContext<Action>
+ {
+ public:
+     CoaGenericActionContext()
+     {
++        creators["coa bulwark"] = [](PlayerbotAI* ai) -> Action* { return new CoaBulwarkAction(ai); };
++        creators["coa marksman"] = [](PlayerbotAI* ai) -> Action* { return new CoaMarksmanAction(ai); };
+         creators["cast"] = &CoaGenericActionContext::cast;
+         creators["cast melee"] = &CoaGenericActionContext::cast_melee;
+         creators["cast buff"] = &CoaGenericActionContext::cast_buff;
+@@ -876,6 +911,7 @@
+ public:
+     CoaGenericTriggerContext()
+     {
++        creators["coa walker"] = [](PlayerbotAI* ai) -> Trigger* { return new CoaWalkerTrigger(ai); };
+         creators["has aura"] = &CoaGenericTriggerContext::has_aura;
+         creators["target has aura"] = &CoaGenericTriggerContext::target_has_aura;
+         creators["no aura"] = &CoaGenericTriggerContext::no_aura;
+--- a/modules/mod-playerbots/src/Ai/Coa/CoaLegendaryClasses.cpp
++++ b/modules/mod-playerbots/src/Ai/Coa/CoaLegendaryClasses.cpp
+@@ -1,8 +1,13 @@
+ #include "CoaLegendaryClasses.h"
+ #include "Area52FixedPilot.h"
++#include "Area52PilotProfiles.h"
++#include "Area52BotFeaturedBuild.h"
++#include <charconv>
++#include "CoaDungeonPool.h"
+ 
+ #include "CoaLegendaryPets.h"
+ #include "Config.h"
++#include "Chat.h"
+ #include "DBCStores.h"
+ #include "DatabaseEnv.h"
+ #include "IWorld.h"
+@@ -181,7 +186,8 @@
+         } while (weights->NextRow());
+ 
+     for (CoaLegendaryClass const& legendaryClass : classes)
+-        if (std::find(legendaryClass.enchants.begin(), legendaryClass.enchants.end(), legendaryClass.legendary) ==
++        if (!(sPlayerbotAIConfig.area52FixedPilot && Area52PilotProfiles::FindRegistered(legendaryClass.legendary)) &&
++            std::find(legendaryClass.enchants.begin(), legendaryClass.enchants.end(), legendaryClass.legendary) ==
+             legendaryClass.enchants.end())
+             LOG_ERROR("playerbots", "Legendary class '{}': its Legendary {} is in none of its enchant slots",
+                 legendaryClass.spec, legendaryClass.legendary);
+@@ -198,6 +204,8 @@
+ struct LegendaryState
+ {
+     uint32 appliedLevel = 0;
++    bool usesFeaturedSlots = false;
++    std::array<uint32,17> featuredSlots{};
+     uint32 nextTry = 0;
+     uint32 nextSlots = 0;
+     uint32 slotTries = 0;
+@@ -224,7 +232,8 @@
+         PlayerSettingVector const* roster = bot->FindPlayerSettings(Area52FixedPilot::Setting);
+         if (!roster || roster->empty())
+             return nullptr;
+-        return FindCoaLegendaryClass(Area52FixedPilot::Spec((*roster)[0].value));
++        auto const* profile = CoaDungeonPool::ProfileFor(bot);
++        return profile ? FindCoaLegendaryClass(std::string(profile->spec)) : nullptr;
+     }
+     uint32 const roll = (bot->GetGUID().GetCounter() * 2654435761u >> 16) % 100;
+     uint32 reached = 0;
+@@ -298,11 +307,11 @@
+         PlayerbotFactory(bot, bot->GetLevel()).InitEquipment(false, false, EQUIPMENT_SLOT_OFFHAND);
+ }
+ 
+-bool SlotsMatch(Player const* bot, CoaLegendaryClass const& legendaryClass)
++bool SlotsMatch(Player const* bot, CoaLegendaryClass const& legendaryClass, LegendaryState const& state)
+ {
+     PlayerSettingVector const* stored = bot->FindPlayerSettings(SlotSetting(bot));
+     for (uint32 slot = 0; slot < legendaryClass.enchants.size(); ++slot)
+-        if ((stored && slot < stored->size() ? (*stored)[slot].value : 0) != legendaryClass.enchants[slot])
++        if ((stored && slot < stored->size() ? (*stored)[slot].value : 0) != (state.usesFeaturedSlots ? state.featuredSlots[slot] : legendaryClass.enchants[slot]))
+             return false;
+     return true;
+ }
+@@ -508,6 +517,172 @@
+     return nullptr;
+ }
+ 
++CoaFeaturedRevision CurrentCoaFeaturedRevision(unsigned archetype)
++{
++    // The indexed link is small. Cache it briefly across retries while a bot is preparing.
++    static std::mutex lock;
++    static std::map<unsigned,std::pair<uint32,CoaFeaturedRevision>> links;
++    std::lock_guard<std::mutex> guard(lock);
++    auto& [expires,revision] = links[archetype];
++    if (Due(getMSTime(),expires))
++    {
++        revision = {};
++        if (auto row = CharacterDatabase.Query(
++            "SELECT a.build_id,a.revision FROM area52_build_archetype a JOIN area52_build b ON b.id=a.build_id "
++            "AND b.archived=0 WHERE a.archetype_id={}", archetype))
++            revision = {row->Fetch()[0].Get<uint64>(),row->Fetch()[1].Get<uint32>()};
++        expires = getMSTime()+1000;
++    }
++    return revision;
++}
++
++#if COA_LEGENDARY_CLASSES
++namespace
++{
++std::string PinKey(unsigned archetype) { return "core.area52.bot.featured."+std::to_string(archetype); }
++
++CoaFeaturedRevision SavedRevision(Player const* bot,unsigned archetype)
++{
++    auto settings=bot->FindPlayerSettings(PinKey(archetype));
++    if (!settings || settings->size()<3) return {};
++    return {(uint64((*settings)[1].value)<<32) | (*settings)[0].value, (*settings)[2].value};
++}
++
++bool ReadPilotPlan(CoaFeaturedRevision revision, uint32 legendary, Area52Build::Entry& plan, std::string& error)
++{
++    if (!revision.first || !revision.second) { error="no linked Featured revision"; return false; }
++    auto row=CharacterDatabase.Query(
++        "SELECT JSON_UNQUOTE(JSON_EXTRACT(document,'$.wire')) FROM area52_build_revision "
++        "WHERE build_id={} AND revision={} AND category=8 LIMIT 1",revision.first,revision.second);
++    if (!row) { error="Featured revision unavailable"; return false; }
++    auto wire=row->Fetch()[0].Get<std::string>();
++    if (wire.empty() || wire.size()%2 || wire.size()>2*Area52Build::MaxPacketBytes)
++    { error="invalid Featured wire length";return false; }
++    std::vector<uint8> bytes(wire.size()/2);
++    for (size_t i=0;i<bytes.size();++i)
++    {
++        char const* first=wire.data()+2*i;
++        auto read=std::from_chars(first,first+2,bytes[i],16);
++        if(read.ec!=std::errc{} || read.ptr!=first+2) { error="invalid Featured wire encoding";return false; }
++    }
++    if (!Area52Build::Decode(bytes,plan) || plan.Id!=std::to_string(revision.first) ||
++        plan.Category!=8 || plan.Class!=CoaHeroClass || plan.Spells.empty())
++    { error="invalid Featured identity, class, category or selections";return false; }
++    unsigned copies=0;
++    for (auto const& enchant:plan.Enchants)
++        if(enchant.Id==legendary) copies+=enchant.Stacks;
++    if(copies!=1) { error="Featured revision must contain its registered Legendary exactly once";return false; }
++    return true;
++}
++
++bool ValidatePilotPlan(Player* bot, CoaLegendaryClass const& build, CoaFeaturedRevision revision,
++    Area52Build::Entry& plan, std::vector<AscensionFreePick::KnownEntry>& wanted,std::string& error)
++{
++    plan={};wanted.clear();
++    if (!ReadPilotPlan(revision,build.legendary,plan,error)) return false;
++    auto result=AscensionFreePick::PlanSelection(bot,plan,wanted);
++    if (!result) { error=std::string(result.Status)+" "+result.Learn;return false; }
++    if (!AscensionMysticEnchant::CanApplyDraftEnchants(bot,plan.Enchants))
++    { error="enchant loadout rejected by Area 52 slot, stack or connection rules"; return false; }
++    return true;
++}
++}
++#endif
++
++bool ApplyCoaFeaturedRevision(Player* bot, CoaLegendaryClass const& build, CoaFeaturedRevision revision,std::string& error)
++{
++#if COA_LEGENDARY_CLASSES
++    if (!CoaDungeonPool::IsPilot(bot) || RandomClassFor(bot)!=&build) {error="pilot assignment mismatch";return false;}
++    if (!AscensionMysticEnchant::DraftEquipmentReady(bot)) {error="bot enchant state still loading";return false;}
++    auto profile=Area52PilotProfiles::Find(build.legendary);
++    if (!profile) {error="profile not registered";return false;}
++    auto saved=SavedRevision(bot,profile->archetype);
++    Area52Build::Entry plan;
++    std::vector<AscensionFreePick::KnownEntry> wanted;
++    if (!ValidatePilotPlan(bot,build,revision,plan,wanted,error))
++    {
++        // Worldserver log is available to GMs investigating a failed recruitment.
++        static std::mutex reportLock;
++        static std::map<std::pair<unsigned,unsigned>,std::pair<CoaFeaturedRevision,std::string>> reported;
++        {
++            std::lock_guard<std::mutex> guard(reportLock);
++            auto& last=reported[{profile->archetype,bot->GetLevel()}];
++            auto issue=std::make_pair(revision,error);
++            if (last!=issue)
++            {
++                LOG_ERROR("playerbots","Featured {} build {} revision {} at level {}: {} (last accepted {}:{})",
++                    build.name,revision.first,revision.second,bot->GetLevel(),error,saved.first,saved.second);
++                std::ostringstream notice;
++                notice << "Bot " << build.name << ", Featured build " << revision.first
++                       << " revision " << revision.second << ", level " << unsigned(bot->GetLevel()) << ": " << error;
++                ChatHandler(bot->GetSession()).SendGlobalGMSysMessage(notice.str().c_str());
++                last=issue;
++            }
++        }
++        if (!saved.first || saved==revision || !ValidatePilotPlan(bot,build,saved,plan,wanted,error)) return false;
++        revision=saved;
++    }
++    auto previous=GetCoaLegendaryClass(bot);
++    auto priorSelection=AscensionFreePick::KnownEntries(bot);
++    auto applied=AscensionFreePick::Apply(bot,wanted,false);
++    if (!applied) {error=std::string(applied.Status)+" "+applied.Learn;return false;}
++    std::vector<Area52Build::Enchant> priorEnchants;
++    if (auto previousSlots=bot->FindPlayerSettings(SlotSetting(bot)))
++        for(size_t i=0;i<17 && i<previousSlots->size();++i)
++            if(auto id=(*previousSlots)[i].value)
++            {
++                auto entry=std::find_if(priorEnchants.begin(),priorEnchants.end(),
++                    [id](auto const& enchant){return enchant.Id==id;});
++                if(entry==priorEnchants.end())
++                {
++                    Area52Build::Enchant enchant;
++                    enchant.Id=id;enchant.Stacks=1;priorEnchants.push_back(enchant);
++                }
++                else ++entry->Stacks;
++            }
++    if (!AscensionMysticEnchant::ApplyDraftEnchants(bot,plan.Enchants))
++    {
++        auto restored=AscensionFreePick::Apply(bot,priorSelection,false);
++        error=restored ? "could not apply validated Featured enchants; previous picks restored" :
++            "Featured enchant apply and previous pick restoration failed";
++        return false;
++    }
++
++    auto slots=bot->FindPlayerSettings(SlotSetting(bot));
++
++    std::multiset<uint32> expected,actual;
++    for(auto const& enchant:plan.Enchants)
++        for(unsigned i=0;i<enchant.Stacks;++i) expected.insert(enchant.Id);
++    for(unsigned i=0;slots && i<17 && i<slots->size();++i)
++        if((*slots)[i].value) actual.insert((*slots)[i].value);
++    if(!slots || !bot->HasAura(build.legendary) || actual!=expected)
++    {
++        bool restoredSlots=AscensionMysticEnchant::ApplyDraftEnchants(bot,priorEnchants);
++        auto restoredPicks=AscensionFreePick::Apply(bot,priorSelection,false);
++        error=restoredSlots && restoredPicks ? "Featured effect readback failed; previous build restored" :
++            "Featured effect readback failed; previous build restoration incomplete";
++        return false;
++    }
++    RemoveUnpickedSpells(bot,build);
++    if(previous && previous!=&build) LeaveClass(bot,*previous,build);
++    if(revision!=saved)
++    {
++        auto key=PinKey(profile->archetype);
++        bot->UpdatePlayerSetting(key,0,uint32(revision.first));
++        bot->UpdatePlayerSetting(key,1,uint32(revision.first>>32));
++        bot->UpdatePlayerSetting(key,2,revision.second);
++    }
++    std::lock_guard<std::mutex> guard(StatesLock);
++    auto& state=States[bot->GetGUID().GetRawValue()];
++    state.appliedLevel=bot->GetLevel();state.usesFeaturedSlots=true;
++    for(size_t i=0;i<state.featuredSlots.size();++i)
++        state.featuredSlots[i]=i<slots->size()?(*slots)[i].value:0;
++    error.clear();
++    return true;
++#else
++    error="Free Pick unavailable";return false;
++#endif
++}
+ bool ApplyCoaLegendaryClass(Player* bot, CoaLegendaryClass const& legendaryClass, std::string& error)
+ {
+ #if COA_LEGENDARY_CLASSES
+@@ -524,6 +699,19 @@
+         return false;
+     }
+ 
++    if (CoaDungeonPool::IsPilot(bot))
++    {
++        auto profile=Area52PilotProfiles::Find(legendaryClass.legendary);
++        if(!profile) return false;
++        auto revision=SavedRevision(bot,profile->archetype);
++        if(!revision.first)
++        {
++            if(bot->GetGroup() || bot->IsInCombat() || bot->duel || bot->FindMap()->Instanceable())
++            {error="awaiting idle preparation";return false;}
++            revision=CurrentCoaFeaturedRevision(profile->archetype);
++        }
++        return ApplyCoaFeaturedRevision(bot,legendaryClass,revision,error);
++    }
+     CoaLegendaryClass const* previous = GetCoaLegendaryClass(bot);
+     Area52Build::Entry plan;
+     plan.PrimaryStat = legendaryClass.primaryStat;
+@@ -596,7 +784,7 @@
+         {
+             // The "mystic equip" commands of an apply made before the core had loaded the collection were refused:
+             // the slots are asked for again a few times.
+-            if (!SlotsMatch(bot, *legendaryClass) && state.slotTries < SlotTries && Due(now, state.nextSlots))
++            if (!SlotsMatch(bot, *legendaryClass,state) && state.slotTries < SlotTries && Due(now, state.nextSlots))
+             {
+                 state.nextSlots = now + SlotRetryMs;
+                 ++state.slotTries;
+@@ -618,8 +806,12 @@
+     if (equipSlots || equipShield)
+     {
+ #if COA_LEGENDARY_CLASSES
+-        if (equipSlots)
+-            EquipSlots(bot, *legendaryClass);
++        if (equipSlots && CoaDungeonPool::IsPilot(bot))
++        {
++            std::string error;
++            ApplyCoaLegendaryClass(bot,*legendaryClass,error);
++        }
++        else if (equipSlots) EquipSlots(bot,*legendaryClass);
+ #endif
+         if (equipShield)
+             EquipLegendaryShield(bot);
+@@ -648,7 +840,7 @@
+     std::lock_guard<std::mutex> guard(StatesLock);
+     auto found = States.find(bot->GetGUID().GetRawValue());
+     return found != States.end() && found->second.appliedLevel == bot->GetLevel() &&
+-        bot->HasAura(build->legendary) && SlotsMatch(bot, *build) && !ShieldMissing(bot, *build);
++        bot->HasAura(build->legendary) && SlotsMatch(bot, *build,found->second) && !ShieldMissing(bot, *build);
+ }
+ 
+ bool CoaLegendaryClassUnready(Player* bot)
+@@ -668,7 +860,7 @@
+     LegendaryState const& state = found->second;
+     if (state.appliedLevel == bot->GetLevel() && bot->HasAura(legendaryClass->legendary))
+         return (ShieldMissing(bot, *legendaryClass) && Due(now, state.nextShield)) ||
+-            (state.slotTries < SlotTries && Due(now, state.nextSlots) && !SlotsMatch(bot, *legendaryClass));
++            (state.slotTries < SlotTries && Due(now, state.nextSlots) && !SlotsMatch(bot, *legendaryClass,state));
+     return Due(now, state.nextTry);
+ }
+ 
+--- a/modules/mod-playerbots/src/Ai/Coa/CoaLegendaryPets.cpp
++++ b/modules/mod-playerbots/src/Ai/Coa/CoaLegendaryPets.cpp
+@@ -21,12 +21,14 @@
+ // Call Pet, Dismiss Pet, Revive Pet.
+ std::set<uint32> const PetCommands = { 883, 2641, 982 };
+ 
+-bool FerocityPet(CreatureTemplate const* creature)
++bool EligibleCompanion(CreatureTemplate const* creature, uint32 entry, Player* bot)
+ {
+     if (!creature || !creature->IsTameable(false))
+         return false;
+     CreatureFamilyEntry const* family = sCreatureFamilyStore.LookupEntry(creature->family);
+-    return family && family->petTalentType == FerocityTalents;
++    // White Walker uses the same Ice Elemental starter as Featured Cryotherapist.
++    bool const walkerStarter = entry == 11783 && creature->family == 306 && bot->HasAura(978202);
++    return family && (family->petTalentType == FerocityTalents || walkerStarter);
+ }
+ 
+ // Free Pick refuses spells that no pick grants; the scope lets these through, as the core does for its own grants.
+@@ -61,9 +63,9 @@
+ 
+     TeachPetCommands(bot);
+     CreatureTemplate const* creature = sObjectMgr->GetCreatureTemplate(entry);
+-    if (!FerocityPet(creature))
++    if (!EligibleCompanion(creature, entry, bot))
+     {
+-        LOG_ERROR("playerbots", "Legendary pet {} of bot {} is not a tameable Ferocity creature", entry,
++        LOG_ERROR("playerbots", "Legendary pet {} of bot {} is not an eligible Legendary companion", entry,
+                   bot->GetName());
+         return nullptr;
+     }
+--- a/modules/mod-playerbots/src/Bot/Engine/Strategy/CustomStrategy.cpp
++++ b/modules/mod-playerbots/src/Bot/Engine/Strategy/CustomStrategy.cpp
+@@ -6,6 +6,11 @@
+ 
+ #include "CustomStrategy.h"
+ #include "Playerbots.h"
++#include "CoaDungeonPool.h"
++#include "CoaLegendaryClasses.h"
++#include <charconv>
++#include <cmath>
++#include <memory>
+ #include <regex>
+ #include <stdexcept>
+ 
+@@ -67,6 +72,53 @@
+ 
+ void CustomStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
+ {
++    validatedPilotRules = false;
++    if (CoaDungeonPool::IsPilot(botAI->GetBot()))
++    {
++        auto build = GetCoaLegendaryClass(botAI->GetBot());
++        if (build && (getName() == build->combat || getName() == build->nonCombat))
++        {
++            if (!loadedPilotDefaults)
++            {
++                actionLines.clear();
++                LoadActionLines(0);
++                loadedPilotDefaults = !actionLines.empty();
++            }
++            if (actionLines.empty()) return;
++            std::vector<std::unique_ptr<TriggerNode>> checked;
++            for (auto const& line : actionLines)
++            {
++                auto split = line.find('>');
++                auto priority = line.rfind('!');
++                if (!split || split == std::string::npos || split != line.rfind('>') ||
++                    priority == std::string::npos || priority <= split + 1) return;
++                auto condition = line.substr(0,split);
++                auto action = line.substr(split+1,priority-split-1);
++                float value = 0;
++                auto end = line.data()+line.size();
++                auto parsed = std::from_chars(line.data()+priority+1,end,value);
++                if (parsed.ec != std::errc() || parsed.ptr != end || !std::isfinite(value) || value <= 0 ||
++                    !botAI->GetAiObjectContext()->GetTrigger(condition) ||
++                    !botAI->GetAiObjectContext()->GetAction(action)) return;
++                if (condition.starts_with("coa all::"))
++                {
++                    for (std::size_t start = 9; ; )
++                    {
++                        auto separator = condition.find('&',start);
++                        auto part = condition.substr(start,separator-start);
++                        if (part.empty() || part.starts_with("coa all::") ||
++                            !botAI->GetAiObjectContext()->GetTrigger(part)) return;
++                        if (separator == std::string::npos) break;
++                        start = separator+1;
++                    }
++                }
++                checked.push_back(std::make_unique<TriggerNode>(condition,std::vector<NextAction>{{action,value}}));
++            }
++            for (auto& node : checked) triggers.push_back(node.release());
++            validatedPilotRules = true;
++            return;
++        }
++    }
+     if (actionLines.empty())
+     {
+         if (actionLinesCache[qualifier].empty())
+@@ -121,6 +173,8 @@
+ 
+ void CustomStrategy::Reset()
+ {
++    validatedPilotRules = false;
++    loadedPilotDefaults = false;
+     actionLines.clear();
+     actionLinesCache[qualifier].clear();
+ }
+--- a/modules/mod-playerbots/src/Bot/Engine/Strategy/CustomStrategy.h
++++ b/modules/mod-playerbots/src/Bot/Engine/Strategy/CustomStrategy.h
+@@ -20,11 +20,14 @@
+     void InitTriggers(std::vector<TriggerNode*>& triggers) override;
+     std::string const getName() override { return std::string("custom::" + qualifier); }
+     void Reset();
++    bool HasValidatedPilotRules() const { return validatedPilotRules; }
+ 
+     static std::map<std::string, std::string> actionLinesCache;
+ 
+ private:
+     std::vector<std::string> actionLines;
++    bool validatedPilotRules = false;
++    bool loadedPilotDefaults = false;
+     void LoadActionLines(uint32 owner);
+ };
+ 
+--- a/modules/mod-playerbots/src/Bot/Factory/PlayerbotFactory.cpp
++++ b/modules/mod-playerbots/src/Bot/Factory/PlayerbotFactory.cpp
+@@ -12,7 +12,7 @@
+ #include "ArenaTeamMgr.h"
+ #include "CoaLegendaryClasses.h"
+ #include "CoaDungeonPool.h"
+-#include "Area52FixedEquipment.h"
++#include "Area52PilotProfiles.h"
+ #include "CoaLegendaryPets.h"
+ #include "CoaSpecLookup.h"
+ #include "CoaSpecStatWeights.h"
+@@ -2253,8 +2253,9 @@
+         uint32 id = item->GetTemplate()->ItemId;
+         if (CoaDungeonPool::IsPilot(bot))
+         {
+-            auto const* roles = bot->FindPlayerSettings("core.area52.bot.pilot");
+-            auto const& profile = Area52FixedEquipment::Profiles[roles->front().value - 1];
++            auto const* assigned = CoaDungeonPool::ProfileFor(bot);
++            if (!assigned) return true;
++            auto const& profile = assigned->equipment;
+             if (std::find(profile.begin(), profile.end(), id) != profile.end())
+                 return true;
+         }
+--- a/src/server/coa/AscensionCompat.cpp
++++ b/src/server/coa/AscensionCompat.cpp
+@@ -3950,7 +3950,9 @@
+             return false;
+         constexpr std::array<uint32, 3> sets = {900527, 900501, 900573};
+         std::array<uint32, APPEARANCE_CATEGORY_COUNT> desired{};
+-        uint32 const set = sets[roles->front().value - 1];
++        auto const* assignment = player->FindPlayerSettings("core.area52.bot.assignment");
++        uint32 const set = assignment && assignment->size() > 1 && (*assignment)[1].value
++            ? (*assignment)[1].value : sets[roles->front().value - 1];
+         if (!ExpandItemSetAppearance(desired, set, AscensionFreePick::Applies(player)))
+             return false;
+         desired[55] = set;

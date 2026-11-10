@@ -1,0 +1,18 @@
+{
+  "package": "area52-featured-bot-rotations-20261109",
+  "baseline": "area52-shield-finesse-20261107",
+  "baseline_binary": "882075b816bc0ace5c60879a2d5e7090beb488e4fd9f6858600098799d294125",
+  "candidate_binary": "31147f8771da8a56207913c616af07afa0a38b49ae58f25b4dd8f05ce9afbf62",
+  "reports": {
+    "build-activation-r1": "1c8f1b42db00f9012edc8f48df6aba510bebf6fd6532dba79e903a7c7be2be90",
+    "activation-harness-r1": "5de51e19cb9b0c846ac1380729224bb41a1bbff7dfb0def09c96b7e97241e73d",
+    "featured-recheck/levels-r1": "f7bfeeaa27c90a82e13458ba64912ce1ab96e0b30e0b03d033f733d28e8f4d12"
+  },
+  "migration": {
+    "status": "passed",
+    "rotation_rows": 88,
+    "profiles": 3,
+    "apply_verify_rollback": true,
+    "edited_row_rejected": true
+  }
+}
