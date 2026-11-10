@@ -1,0 +1,18 @@
+{
+  "package": "area52-cryotherapist-bot-20261109-r2",
+  "baseline": "area52-featured-bot-rotations-20261109",
+  "baseline_binary": "31147f8771da8a56207913c616af07afa0a38b49ae58f25b4dd8f05ce9afbf62",
+  "candidate_binary": "72562d58a502074364ffa74ce894656437a1b2c49e8c06bf54e424bf9a49b3e3",
+  "reports": {
+    "build-cryotherapist-r2": "98329e1f6629ab6a29d0abc7df2ee473cbe30892ac66170ca82d7ffce12a0ca0",
+    "activation-harness-r3": "915f5255a1407d4ca96c7eb939ced0a76a49c28b9ac4f100e92d006bc93e97c2",
+    "featured-recheck/levels-r1": "b188f8e36e2a8940588aff9ce75ba2eaf98cb5b0c96f9cf08dffd8080c30c828"
+  },
+  "migration": {
+    "status": "passed",
+    "rotation_rows": 33,
+    "profiles": 1,
+    "apply_verify_rollback": true,
+    "edited_row_rejected": true
+  }
+}

@@ -1,0 +1,180 @@
+--- a/modules/mod-playerbots/src/Ai/Coa/Area52PilotProfiles.h
++++ b/modules/mod-playerbots/src/Ai/Coa/Area52PilotProfiles.h
+@@ -30,7 +30,10 @@
+          1339080,1339080,1642992,1642991,1339090,1642947,0,1642901,0}},
+     Profile{82,"marksman",979740,3,900582,
+         {1339124,1339076,1642950,0,1648677,1339096,1339117,1339103,1339110,1339131,
+-         1339082,1339079,1642991,1642992,1339084,3142943,0,1642946,0}}
++         1339082,1339079,1642991,1642992,1339084,3142943,0,1642946,0}},
++    Profile{13,"cryotherapist",86576,2,900513,
++        {1339123,1339077,1642951,0,1648683,1339095,1339116,1339102,1339109,1339130,
++         1339083,1339083,1642991,1642992,1339090,1642947,0,1642901,0}}
+ };
+ 
+ inline Profile const* FindRegistered(std::uint32_t legendary)
+--- a/modules/mod-playerbots/src/Ai/Coa/CoaGenericContext.cpp
++++ b/modules/mod-playerbots/src/Ai/Coa/CoaGenericContext.cpp
+@@ -1197,6 +1197,122 @@
+     if (!hadClass && GetCoaLegendaryClass(bot))
+         botAI->ResetStrategies();
+     return true;
++}
++
++bool CoaCryotherapistAction::Execute(Event)
++{
++    Player* tank=CoaMainTank(bot);
++    auto cast=[&](char const* name,Unit* unit)
++    {return unit && botAI->CanCastSpell(name,unit) && botAI->CastSpell(name,unit);};
++    auto ward=[&](char const* name,Unit* unit)
++    {return unit && !botAI->HasAura(name,unit) && cast(name,unit);};
++    auto ground=[&](char const* name,Unit* unit)
++    {
++        if(!unit) return false;
++        uint32 id=AI_VALUE2(uint32,"spell id",name);
++        float x=unit->GetPositionX(),y=unit->GetPositionY(),z=unit->GetPositionZ();
++        return id && botAI->CanCastSpell(id,x,y,z) && botAI->CastSpell(id,x,y,z);
++    };
++    if(qualifier=="emergency") return tank && tank->GetHealthPct()<25 && cast("Lay on Hands",tank);
++    if(qualifier=="mana")
++    {
++        if(!bot->GetMaxPower(POWER_MANA) || uint64(bot->GetPower(POWER_MANA))*100 >= uint64(bot->GetMaxPower(POWER_MANA))*30)
++            return false;
++        return ward("Innervate",bot) || cast("Evocation",bot);
++    }
++    if(qualifier=="pet autocast")
++    {
++        Pet* pet=bot->GetPet();
++        if(!pet || !pet->IsAlive() || pet->GetEntry()!=11783) return false;
++        bool changed=false;
++        for(auto const& [id,spell]:pet->m_spells)
++            if(spell.state!=PETSPELL_REMOVED && spell.active!=ACT_ENABLED)
++                if(auto info=sSpellMgr->GetSpellInfo(id); info && info->IsAutocastable())
++                {pet->ToggleAutocast(info,true);changed=true;}
++        return changed;
++    }
++    if(qualifier=="catch up")
++    {
++        if(!tank && bot->GetGroup())
++            for(GroupReference* ref=bot->GetGroup()->GetFirstMember();ref;ref=ref->next())
++                if(auto m=ref->GetSource();m && m!=bot && m->IsAlive() && m->IsInWorld() && m->GetMap()==bot->GetMap() && PlayerbotAI::IsTank(m))
++                {tank=m;break;}
++        if(!tank || bot->IsWithinDistInMap(tank,32.f) || !bot->IsWithinLOSInMap(tank) ||
++            (nextCatchUp && int32(getMSTime()-nextCatchUp)<0)) return false;
++        bool ok=ground("Angelic Feather",bot);
++        if(!ok){bot->SetFacingToObject(tank);ok=cast("Shimmer",bot);}
++        if(ok) nextCatchUp=getMSTime()+3000;
++        return ok;
++    }
++    if(qualifier=="frozen light") return ward("Frozen Light",tank);
++    if(qualifier=="tank wards") return ward("Power Word: Shield",tank) || ward("Prayer of Mending",tank) || ward("Frozen Light",tank);
++    if(qualifier=="cleanse")
++    {
++        auto cleanse=[&](Player* who)
++        {
++            if(!who) return false;
++            if((botAI->HasAuraToDispel(who,DISPEL_DISEASE) || botAI->HasAuraToDispel(who,DISPEL_POISON) ||
++                botAI->HasAuraToDispel(who,DISPEL_MAGIC)) && cast("Purify",who)) return true;
++            return botAI->HasAuraToDispel(who,DISPEL_CURSE) && cast("Dispel Curse",who);
++        };
++        if(cleanse(tank) || cleanse(bot)) return true;
++        for(auto member:CoaGroupInReach(bot))
++            if(member!=tank && member!=bot && (!bot->IsInCombat() || (!PlayerbotAI::IsTank(member) && !PlayerbotAI::IsHeal(member))) && cleanse(member)) return true;
++        return false;
++    }
++    if(qualifier=="escape")
++    {
++        Unit* enemy=nullptr;
++        for(auto guid:AI_VALUE(GuidVector,"attackers"))
++            if(auto u=botAI->GetUnit(guid);u && u->IsAlive() && u->GetVictim()==bot){enemy=u;break;}
++        if(!enemy && !bot->getAttackers().empty()) enemy=*bot->getAttackers().begin();
++        if(!enemy){escapeStep=0;return false;}
++        if(auto gcd=sSpellMgr->GetSpellInfo(1752);gcd && bot->GetGlobalCooldownMgr().HasGlobalCooldown(gcd))return false;
++        char const* names[]={"Fade","Cone of Cold","Frost Nova","Shimmer"};
++        while(escapeStep<4)
++        {
++            auto i=escapeStep++;
++            if(i==1) bot->SetFacingToObject(enemy);
++            if(i==3) bot->SetFacingTo(enemy->GetAngle(bot));
++            if(cast(names[i],i==1?enemy:bot)) return true;
++        }
++        return false;
++    }
++    auto members=CoaGroupInReach(bot);
++    if(qualifier=="group heal")
++        return std::count_if(members.begin(),members.end(),[&](Player* m){return !PlayerbotAI::IsTank(m) && m->GetHealthPct()<75;})>=2 && cast("Prayer of Healing",bot);
++    if(qualifier=="tremor")
++    {
++        for(auto member:members)
++            if(member->HasAuraWithMechanic((1ULL<<MECHANIC_FEAR)|(1ULL<<MECHANIC_CHARM)|(1ULL<<MECHANIC_SLEEP)))
++                return cast("Tremor Totem",bot);
++        return false;
++    }
++    Aura* frost=botAI->GetAura("Spirit Frost",bot);
++    unsigned stacks=frost?frost->GetStackAmount():0;
++    if(qualifier=="greater heal") return tank && stacks>=2 && stacks<=5 && tank->GetHealthPct()<75 && cast("Greater Heal",tank);
++    if(qualifier=="flash heal") return tank && stacks<2 && tank->GetHealthPct()<50 && cast("Flash Heal",tank);
++    Unit* target=tank?tank->GetVictim():nullptr;
++    if(!target && tank) target=tank->GetSelectedUnit();
++    if(!target || !target->IsAlive() || !bot->IsValidAttackTarget(target) || CoaPullsAheadOfTank(bot,target)) return false;
++    if(qualifier=="hard fight")
++    {
++        auto c=target->ToCreature();
++        if(!(c && (c->IsDungeonBoss() || c->isWorldBoss())) && !botAI->GetAiObjectContext()->GetTrigger("generic boost")->IsActive())return false;
++        return ward("Beacon of Light",tank) || ground("Ring of Frost",tank);
++    }
++    if(qualifier=="glacial") return !botAI->HasAura("Glacial Light",target,true) && cast("Glacial Light",target);
++    if(qualifier=="penance") return cast("Icy Penance",target);
++    if(qualifier=="frost cycle" && stacks<2)
++    {
++        for(unsigned n=0;n<2;++n){unsigned i=(nextShot+n)%2;if(cast(i?"Ice Lance":"Frostbolt",target)){nextShot=1-i;return true;}}
++    }
++    if(qualifier=="area")
++    {
++        for(unsigned n=0;n<3;++n){unsigned i=(nextArea+n)%3;
++            if(i==0?ground("Blizzard",target):cast(i==1?"Howling Blast":"Cone of Cold",target)){nextArea=(i+1)%3;return true;}}
++    }
++    return false;
+ }
+ 
+ bool CoaBulwarkAction::Execute(Event)
+--- a/modules/mod-playerbots/src/Ai/Coa/CoaGenericContext.h
++++ b/modules/mod-playerbots/src/Ai/Coa/CoaGenericContext.h
+@@ -832,6 +832,17 @@
+     bool isUseful() override;
+ };
+ 
++class CoaCryotherapistAction : public Action, public Qualified
++{
++public:
++    explicit CoaCryotherapistAction(PlayerbotAI* ai) : Action(ai,"coa cryotherapist") {}
++    std::string const getName() override { return "coa cryotherapist::" + qualifier; }
++    bool Execute(Event) override;
++private:
++    unsigned nextShot=0, escapeStep=0, nextArea=0;
++    uint32 nextCatchUp=0;
++};
++
+ class CoaBulwarkAction : public Action, public Qualified
+ {
+ public:
+@@ -863,6 +874,7 @@
+ public:
+     CoaGenericActionContext()
+     {
++        creators["coa cryotherapist"] = [](PlayerbotAI* ai) -> Action* { return new CoaCryotherapistAction(ai); };
+         creators["coa bulwark"] = [](PlayerbotAI* ai) -> Action* { return new CoaBulwarkAction(ai); };
+         creators["coa marksman"] = [](PlayerbotAI* ai) -> Action* { return new CoaMarksmanAction(ai); };
+         creators["cast"] = &CoaGenericActionContext::cast;
+--- a/modules/mod-playerbots/src/Ai/Coa/CoaLegendaryPets.cpp
++++ b/modules/mod-playerbots/src/Ai/Coa/CoaLegendaryPets.cpp
+@@ -27,8 +27,8 @@
+         return false;
+     CreatureFamilyEntry const* family = sCreatureFamilyStore.LookupEntry(creature->family);
+     // White Walker uses the same Ice Elemental starter as Featured Cryotherapist.
+-    bool const walkerStarter = entry == 11783 && creature->family == 306 && bot->HasAura(978202);
+-    return family && (family->petTalentType == FerocityTalents || walkerStarter);
++    bool const iceStarter = entry == 11783 && creature->family == 306 && (bot->HasAura(978202) || bot->HasAura(86576));
++    return family && (family->petTalentType == FerocityTalents || iceStarter);
+ }
+ 
+ // Free Pick refuses spells that no pick grants; the scope lets these through, as the core does for its own grants.
