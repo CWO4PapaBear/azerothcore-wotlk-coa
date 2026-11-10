@@ -1,0 +1,205 @@
+--- a/modules/mod-playerbots/src/Ai/Coa/Area52BotFeaturedBuild.h
++++ b/modules/mod-playerbots/src/Ai/Coa/Area52BotFeaturedBuild.h
+@@ -8,4 +8,7 @@
+ using CoaFeaturedRevision = std::pair<std::uint64_t,std::uint32_t>;
+ CoaFeaturedRevision CurrentCoaFeaturedRevision(unsigned archetype);
+ bool ApplyCoaFeaturedRevision(Player*, CoaLegendaryClass const&, CoaFeaturedRevision, std::string&);
++bool PartyBotNeedsProgress(Player const*, std::uint32_t leaderLevel);
++bool AdvanceCoaPartyBot(Player* bot, std::uint32_t level, std::string& error);
+ #endif
++
+--- a/modules/mod-playerbots/src/Ai/Coa/CoaDungeonPool.cpp
++++ b/modules/mod-playerbots/src/Ai/Coa/CoaDungeonPool.cpp
+@@ -298,6 +298,26 @@
+     return true;
+ }
+ 
++static void MatchPartyLeader(Player* leader)
++{
++    if (!leader || !leader->IsInWorld() || !leader->IsAlive() || leader->IsInCombat() ||
++        leader->duel || leader->IsInFlight() || leader->IsBeingTeleported() ||
++        leader->InBattleground() || leader->InBattlegroundQueue() || sRandomPlayerbotMgr.IsRandomBot(leader))
++        return;
++    Group* group=leader->GetGroup();
++    if (!group || group->isRaidGroup() || group->GetLeaderGUID()!=leader->GetGUID()) return;
++    for (GroupReference* ref=group->GetFirstMember();ref;ref=ref->next())
++    {
++        Player* bot=ref->GetSource();
++        if (!bot || bot==leader || !IsPilot(bot) || !PartyBotNeedsProgress(bot,leader->GetLevel()) ||
++            !bot->IsInWorld() || !bot->IsAlive() || bot->GetMap()!=leader->GetMap() ||
++            bot->IsInCombat() || bot->duel || bot->IsInFlight() || bot->IsBeingTeleported() ||
++            bot->InBattleground() || bot->InBattlegroundQueue() || bot->IsNonMeleeSpellCast(false)) continue;
++        std::string error;
++        if (!AdvanceCoaPartyBot(bot,leader->GetLevel(),error) && !error.empty())
++            LOG_DEBUG("playerbots","Party level sync for {} at {}: {}",bot->GetName(),leader->GetLevel(),error);
++    }
++}
+ void Update(uint32 diff)
+ {
+     if (!sPlayerbotAIConfig.enabled || !sPlayerbotAIConfig.area52DungeonPool)
+@@ -306,6 +326,13 @@
+     if (Elapsed < 1000)
+         return;
+     Elapsed = 0;
++    static uint32 nextPartySync=0;
++    uint32 nowMs=getMSTime();
++    if (!nextPartySync || int32(nowMs-nextPartySync)>=0)
++    {
++        nextPartySync=nowMs+10000;
++        for (Player* player : sRandomPlayerbotMgr.GetPlayers()) MatchPartyLeader(player);
++    }
+     std::map<Area52DungeonPool::Id, Area52DungeonPool::Request> requests;
+     for (Player* player : sRandomPlayerbotMgr.GetPlayers())
+         if (auto request = RequestFor(player))
+--- a/modules/mod-playerbots/src/Ai/Coa/CoaLegendaryClasses.cpp
++++ b/modules/mod-playerbots/src/Ai/Coa/CoaLegendaryClasses.cpp
+@@ -35,6 +35,7 @@
+     __has_include("AscensionMysticEnchantCatalog.h")
+ #define COA_LEGENDARY_CLASSES 1
+ #include "Area52BuildProtocol.h"
++#include "Area52BuildSelection.h"
+ #include "AscensionFreePick.h"
+ #include "AscensionMysticEnchantCatalog.h"
+ #else
+@@ -589,6 +590,59 @@
+ }
+ #endif
+ 
++bool PartyBotNeedsProgress(Player const* bot,uint32 leaderLevel)
++{
++    if (!bot || bot->GetLevel()>leaderLevel) return false;
++
++    std::lock_guard<std::mutex> guard(StatesLock);
++    auto it=States.find(bot->GetGUID().GetRawValue());
++    return it!=States.end() && it->second.usesFeaturedSlots &&
++        (bot->GetLevel()<leaderLevel || it->second.appliedLevel!=leaderLevel);
++}
++
++bool AdvanceCoaPartyBot(Player* bot, uint32 level, std::string& error)
++{
++#if COA_LEGENDARY_CLASSES
++    auto profile=CoaDungeonPool::ProfileFor(bot);
++    auto group=bot ? bot->GetGroup() : nullptr;
++    if (!profile || !group || !CoaDungeonPool::IsPilot(bot) || level<bot->GetLevel() ||
++        level>sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL)) return false;
++
++    Area52Build::Entry plan;
++    if (!ReadPilotPlan(SavedRevision(bot,profile->archetype),profile->legendary,plan,error))
++        return false;
++    static AscensionFreePick::Catalog catalog; // World update thread; retain the successfully loaded static DBC data.
++    if (catalog.Entries.empty())
++    {
++        AscensionFreePick::Catalog loaded;
++        if (!AscensionFreePick::LoadCatalog(loaded)) {error="Free Pick catalog unavailable";return false;}
++        catalog=std::move(loaded);
++    }
++    std::vector<AscensionFreePick::KnownEntry> wanted;
++    auto planned=Area52Build::Select(catalog,plan,level,wanted,AscensionFreePick::KnownEntries(bot));
++    if (!planned) {error=std::string(planned.Status)+" "+planned.Learn;return false;}
++    if (bot->GetLevel()<level) bot->GiveLevel(level);
++    if (bot->GetLevel()!=level) {error="level change declined";return false;}
++    auto applied=AscensionFreePick::Apply(bot,wanted,false);
++    if (!applied)
++    {
++        // The existing level-restoration path retries the pinned build on a subsequent safe update.
++        error=std::string(applied.Status)+" "+applied.Learn;
++        return false;
++    }
++    auto build=FindCoaLegendaryClass(std::string(profile->spec));
++    if (build) RemoveUnpickedSpells(bot,*build);
++    {
++        std::lock_guard<std::mutex> guard(StatesLock);
++        auto& state=States[bot->GetGUID().GetRawValue()];
++        if(state.usesFeaturedSlots) state.appliedLevel=level;
++    }
++    bot->SaveToDB(false,false);
++    return true;
++#else
++    error="Free Pick unavailable";return false;
++#endif
++}
+ bool ApplyCoaFeaturedRevision(Player* bot, CoaLegendaryClass const& build, CoaFeaturedRevision revision,std::string& error)
+ {
+ #if COA_LEGENDARY_CLASSES
+--- a/src/server/coa/Area52ActiveBuild.cpp
++++ b/src/server/coa/Area52ActiveBuild.cpp
+@@ -277,7 +277,7 @@
+                 current->InternalSelection = false;
+                 if (result && ((grantDraftEnchants
+                     && !AscensionMysticEnchant::ApplyDraftEnchants(owner, current->Plan.Enchants))
+-                    || (!grantDraftEnchants && previousDraft && !AscensionMysticEnchant::ClearDraftEnchants(owner))))
++                    || (!grantDraftEnchants && previousDraft && !AscensionMysticEnchant::ReleaseDraftEnchants(owner, previousId, previousRevision))))
+                     result = { "ACTIVATE_BUILD_NOT_AVAILABLE" };
+                 if (!result)
+                 {
+@@ -591,7 +591,9 @@
+     auto* state = player->CustomData.Get<State>(StateKey);
+     if (!state || state->InternalSelection || !state->Draft)
+         return true;
+-    if (state->Busy || !Safe(player) || !AscensionMysticEnchant::ClearDraftEnchants(player))
++    std::uint64_t build = 0;
++    if (state->Busy || !Safe(player) || !ParseId(state->Plan.Id, build) ||
++        !AscensionMysticEnchant::ReleaseDraftEnchants(player, build, state->Revision))
+         return false;
+     player->UpdatePlayerSetting("core.area52.draft_progress", 0, 1);
+     player->UpdatePlayerSetting("core.area52.draft_progress", 2, 1);
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -1321,6 +1321,29 @@
+     return true;
+ }
+ 
++bool ReleaseDraftEnchants(Player* player, std::uint64_t build, std::uint32_t revision)
++{
++    auto* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
++    if (!state || !CanChange(player, state) || !build || !revision)
++        return false;
++
++    // The character-wide rewarded flag can refer to a different build or revision.
++    auto claim = CharacterDatabase.Query(
++        "SELECT EXISTS(SELECT 1 FROM area52_draft_reward WHERE guid={} AND account={} AND build_id={} AND revision={})",
++        player->GetGUID().GetCounter(), player->GetSession()->GetAccountId(), build, revision);
++    if (!claim)
++        return false;
++    if (!claim->Fetch()[0].Get<std::uint32_t>())
++        return ClearDraftEnchants(player);
++
++    // Ownership must already be loaded before releasing the temporary entitlement.
++    for (auto spell : ReadSlots(player))
++        if (spell && !state->Known.contains(spell))
++            return false;
++    state->DraftEntitlement.clear();
++    Synchronize(player);
++    return true;
++}
+ bool GrantDraftReward(Player* player, std::uint64_t build, std::uint32_t revision,
+     std::vector<Area52Build::Enchant> const& enchants)
+ {
+--- a/src/server/coa/AscensionMysticEnchantCatalog.h
++++ b/src/server/coa/AscensionMysticEnchantCatalog.h
+@@ -48,6 +48,7 @@
+ bool CanApplyDraftEnchants(Player* player, std::vector<Area52Build::Enchant> const& enchants);
+ bool ApplyDraftEnchants(Player* player, std::vector<Area52Build::Enchant> const& enchants);
+ bool ClearDraftEnchants(Player* player);
++bool ReleaseDraftEnchants(Player* player, std::uint64_t build, std::uint32_t revision);
+ bool GrantDraftReward(Player* player, std::uint64_t build, std::uint32_t revision,
+     std::vector<Area52Build::Enchant> const& enchants);
+ void RefreshEpicReplacements(Player* player);
+--- a/src/server/coa/AscensionSummonedEffects.cpp
++++ b/src/server/coa/AscensionSummonedEffects.cpp
+@@ -211,7 +211,14 @@
+         if (!Fights())
+         {
+             me->SetReactState(REACT_PASSIVE);
+-            if (!me->IsTotem())
++            if (row->Creature == 105938 && owner->IsPlayer() && AscensionFreePick::Applies(owner->ToPlayer()))
++            {
++                constexpr uint32 DemoralizingBannerDisplay = 41840;
++                me->SetNativeDisplayId(DemoralizingBannerDisplay);
++                me->SetDisplayId(DemoralizingBannerDisplay);
++                me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
++            }
++            else if (!me->IsTotem())
+                 me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+         }
+ 

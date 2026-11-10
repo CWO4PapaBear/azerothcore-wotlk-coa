@@ -1,0 +1,21 @@
+{
+  "id": "area52-banner-party-draft-20261110",
+  "baseline_deployment": "area52-cryotherapist-bot-20261109-r2",
+  "baseline_binary": "72562d58a502074364ffa74ce894656437a1b2c49e8c06bf54e424bf9a49b3e3",
+  "candidate_binary": "b7b8bce086cec3ac833aaa94664cc0ea2fe0288bb1b24b821a9cba1668a97459",
+  "reports": {
+    "bot-party-levels-20261109/lifecycle-r1": "c6881f03aaf81adea272af7a31e3a6ca5c53d8fec29e539889f581e81d538e69",
+    "featured-reward-retention-20261109/retention-r1": "4104c5e8a19269c742a26bceb5f5f49623af3e8587fd1a5dddb620f24f0a6ae0",
+    "demoralizing-banner-20261109/banner-r1": "8b14b4480d015d0bae4d6c93fa1897f5dff568550c473e1e32c75df94ba2095b",
+    "demoralizing-banner-20261109/build-r1": "60f9947e364d04676279c76ae4a8a0b653939b22751d8b9f2f3920c2924837a5"
+  },
+  "source_files": {
+    "modules/mod-playerbots/src/Ai/Coa/Area52BotFeaturedBuild.h": "359262ac68a318aa82c8574f592efcfc6abb69fca5a9646384558238c7758ca6",
+    "modules/mod-playerbots/src/Ai/Coa/CoaDungeonPool.cpp": "0107f356fa37bdbfe439fc6286e27af2ca5f1f1f112e306d5933155a74824662",
+    "modules/mod-playerbots/src/Ai/Coa/CoaLegendaryClasses.cpp": "b2d4e2e912554a4377a1b639e278d5af01530a7c0d931cdbabb18c9a00c4a3f4",
+    "src/server/coa/Area52ActiveBuild.cpp": "d0f75550aa14ffbc0794d0eb672bf03e0fa65c9ca84730628e44fd2ce41df674",
+    "src/server/coa/AscensionMysticEnchant.cpp": "d8153ab26fa239626074e5d7e7bd1ce656e6f28f70a00e32e29d367f87cd2580",
+    "src/server/coa/AscensionMysticEnchantCatalog.h": "ae6eb27f2ac479f2d20f98d1cb1ae4a2c334b62814dcb362870698b4c790cfab",
+    "src/server/coa/AscensionSummonedEffects.cpp": "bd74745604076d1bb8595471427a0da92918591e595f558aab2881c19a0b9895"
+  }
+}
