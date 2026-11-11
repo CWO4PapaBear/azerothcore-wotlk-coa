@@ -1,0 +1,770 @@
+--- a/modules/mod-worldforged-upgrades/src/WorldforgedGuardian.cpp
++++ b/modules/mod-worldforged-upgrades/src/WorldforgedGuardian.cpp
+@@ -19,8 +19,12 @@
+ #include "World.h"
+ #include "WorldSession.h"
+ #include "Player.h"
++#include "ObjectMgr.h"
+ #include "ScriptMgr.h"
+ #include "ScriptedGossip.h"
++
++bool QuoteArea52HeirloomCache(Player*, uint32, uint32&);
++bool PurchaseArea52HeirloomCache(Player*, uint32, uint32);
+ 
+ namespace Worldforged
+ {
+@@ -60,6 +64,8 @@
+         ACTION_HEIRLOOM_WEAPONS = GOSSIP_ACTION_INFO_DEF + 5,
+         ACTION_HEIRLOOM_ACCESSORIES = GOSSIP_ACTION_INFO_DEF + 6,
+         ACTION_BACK = GOSSIP_ACTION_INFO_DEF + 7,
++        ACTION_HEIRLOOM_CACHES = GOSSIP_ACTION_INFO_DEF + 8,
++        ACTION_BUY_CACHE = GOSSIP_ACTION_INFO_DEF + 100,
+     };
+ }
+ 
+@@ -88,6 +94,14 @@
+     {
+         ClearGossipMenuFor(player);
+ 
++        if (action >= ACTION_BUY_CACHE && action < ACTION_BUY_CACHE + 70)
++        {
++            uint32 selection = action - ACTION_BUY_CACHE;
++            if (Area52HeirloomShop(player) && AccountCanBuyHeirlooms(player) &&
++                !PurchaseArea52HeirloomCache(player, 1339058 + selection / 10, 400 * (selection % 10)))
++                ChatHandler(player->GetSession()).SendSysMessage("Purchase declined. Check bag space, runes and the updated price.");
++            action = ACTION_HEIRLOOM_CACHES;
++        }
+         switch (action)
+         {
+             case ACTION_BACK:
+@@ -95,6 +109,7 @@
+             case ACTION_HEIRLOOMS:
+                 if (!Area52HeirloomShop(player))
+                     break;
++                AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Heirloom Caches (discounted for pieces already owned).", GOSSIP_SENDER_MAIN, ACTION_HEIRLOOM_CACHES);
+                 AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Armor and Paladin Librams (requires a max-level character on your account).",
+                     GOSSIP_SENDER_MAIN, ACTION_HEIRLOOM_ARMOR);
+                 AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Weapons (requires a max-level character on your account).",
+@@ -102,6 +117,28 @@
+                 AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Accessories and Heirloom Pendants (requires a max-level character on your account).",
+                     GOSSIP_SENDER_MAIN, ACTION_HEIRLOOM_ACCESSORIES);
+                 AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Back.", GOSSIP_SENDER_MAIN, ACTION_BACK);
++                SendGossipMenuFor(player, Worldforged::GUARDIAN_ENTRY, creature->GetGUID());
++                return true;
++            case ACTION_HEIRLOOM_CACHES:
++                if (!Area52HeirloomShop(player) || !AccountCanBuyHeirlooms(player))
++                {
++                    ChatHandler(player->GetSession()).SendSysMessage("You need a max-level character on this realm account to buy heirlooms.");
++                    return OnGossipHello(player, creature);
++                }
++                for (uint32 cache = 1339058; cache <= 1339064; ++cache)
++                {
++                    uint32 cost = 0;
++                    if (!QuoteArea52HeirloomCache(player, cache, cost))
++                        continue;
++                    if (auto const* item = sObjectMgr->GetItemTemplate(cache))
++                    {
++                        std::string label = item->Name1 + " - " + std::to_string(cost) + " Runes of Descension";
++                        AddGossipItemFor(player, GOSSIP_ICON_VENDOR, label, GOSSIP_SENDER_MAIN,
++                            ACTION_BUY_CACHE + (cache - 1339058) * 10 + cost / 400,
++                            "Add this cache to your bags for " + std::to_string(cost) + " Runes of Descension?", 0, false);
++                    }
++                }
++                AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Back.", GOSSIP_SENDER_MAIN, ACTION_HEIRLOOMS);
+                 SendGossipMenuFor(player, Worldforged::GUARDIAN_ENTRY, creature->GetGUID());
+                 return true;
+             case ACTION_HEIRLOOM_ARMOR:
+--- a/src/server/coa/Area52MasterOffers.h
++++ b/src/server/coa/Area52MasterOffers.h
+@@ -179,7 +179,34 @@
+     {8210205, {2, 1297306, 4}},
+ };
+ inline const std::map<std::uint32_t, std::vector<std::uint32_t>> Bundles = {
++    {1339058, {1339086, 1339092, 1339099, 1339106, 1339113, 1339120, 1339127, 1642985, 1648691}},
++    {1339059, {1339089, 1339094, 1339101, 1339108, 1339115, 1339122, 1339129, 1642984, 1648687}},
++    {1339060, {1339088, 1339093, 1339100, 1339107, 1339114, 1339121, 1339128, 1642952, 1648689}},
++    {1339061, {1339084, 1339096, 1339103, 1339110, 1339117, 1339124, 1339131, 1642950, 1648677}},
++    {1339062, {1339085, 1339097, 1339104, 1339111, 1339118, 1339125, 1339132, 1642949, 1648685}},
++    {1339063, {1339087, 1339098, 1339105, 1339112, 1339119, 1339126, 1339133, 3142949, 3148685}},
++    {1339064, {1339090, 1339095, 1339102, 1339109, 1339116, 1339123, 1339130, 1642951, 1648683}},
+     {8210180, {178352, 178355, 178358, 178363, 178369, 178374, 178377, 178383, 8210171}},
+     {8210181, {8210138, 8210139, 8210140, 8210141, 8210142, 8210143, 8210144, 8210145, 8210172}},
+ };
++
++inline bool IsHeirloomCache(std::uint32_t item)
++{
++    return item >= 1339058 && item <= 1339064;
+ }
++
++inline std::uint32_t HeirloomCacheForPiece(std::uint32_t item)
++{
++    static const auto byPiece = []
++    {
++        std::map<std::uint32_t, std::uint32_t> result;
++        for (auto const& [cache, pieces] : Bundles)
++            if (IsHeirloomCache(cache))
++                for (auto piece : pieces)
++                    result.emplace(piece, cache);
++        return result;
++    }();
++    auto itr = byPiece.find(item);
++    return itr == byPiece.end() ? 0 : itr->second;
++}
++}
+--- a/src/server/coa/Area52MasterStore.inc
++++ b/src/server/coa/Area52MasterStore.inc
+@@ -7,11 +7,11 @@
+         for (uint32 part : bundle->second)
+         {
+             auto appearance = _itemAppearances.find(part);
+-            if (state.OwnedVanityItems.contains(part) || (appearance != _itemAppearances.end()
++            if (state.OwnedVanityItems.contains(part) || (!Area52Master::IsHeirloomCache(item) && appearance != _itemAppearances.end()
+                 && state.CollectedAppearances.contains(appearance->second)))
+                 continue;
+             missing.push_back(part);
+-            total += Area52Master::Offers.at(part).Price;
++            total += Area52Master::IsHeirloomCache(item) ? 400 : Area52Master::Offers.at(part).Price;
+         }
+         return total;
+     }
+@@ -40,6 +40,20 @@
+             CollectItem(player, *state, part, true);
+         CollectItem(player, *state, item, true);
+         return true;
++    }
++
++    void GrantCompletedHeirloomCaches(Player* player, PlayerCollectionState& state)
++    {
++        state.CheckHeirloomCaches = false;
++        for (auto const& [cache, parts] : Area52Master::Bundles)
++        {
++            if (!Area52Master::IsHeirloomCache(cache) || state.OwnedVanityItems.contains(cache))
++                continue;
++            if (!std::all_of(parts.begin(), parts.end(), [&](uint32 part) { return state.OwnedVanityItems.contains(part); }))
++                continue;
++            if (!BuyMasterOffer(player, cache, Area52Master::Offers.at(cache).Currency, 0))
++                ChatHandler(player->GetSession()).SendSysMessage("Your heirloom set is complete. Free a bag slot and claim its free cache in Vanity.");
++        }
+     }
+ 
+     bool HandleMasterStore(Player* player, WorldPacket const& incoming)
+--- a/src/server/coa/Area52VanityPurchase.h
++++ b/src/server/coa/Area52VanityPurchase.h
+@@ -33,7 +33,8 @@
+     Item* stack = nullptr;
+     if ((!cost && !Area52Master::Bundles.contains(itemId)) || cost > MaximumPrice || (cost && !player->HasItemCount(currency, cost)))
+         return false;
+-    if (consumable)
++    bool const deliverToBags = consumable || Area52Master::IsHeirloomCache(itemId);
++    if (deliverToBags)
+     {
+         if (player->CanStoreNewItem(NULL_BAG, NULL_SLOT, destinations, itemId, 1) != EQUIP_ERR_OK
+             || destinations.size() != 1 || destinations[0].count != 1)
+@@ -76,9 +77,9 @@
+     {
+         bool missing = std::find(pieces.begin(), pieces.end(), piece) != pieces.end();
+         transaction->Append("INSERT INTO area52_vanity_guard SELECT IF((EXISTS(SELECT 1 FROM account_vanity_collection "
+-            "WHERE account_id={} AND item_id={} FOR UPDATE) OR EXISTS(SELECT 1 FROM account_appearance_collection "
+-            "WHERE account_id={} AND appearance_id={} FOR UPDATE))={},1,0)",
+-            player->GetSession()->GetAccountId(), piece, player->GetSession()->GetAccountId(), appearance, missing ? 0 : 1);
++            "WHERE account_id={} AND item_id={} FOR UPDATE) OR ({} AND EXISTS(SELECT 1 FROM account_appearance_collection "
++            "WHERE account_id={} AND appearance_id={} FOR UPDATE)))={},1,0)",
++            player->GetSession()->GetAccountId(), piece, !Area52Master::IsHeirloomCache(itemId), player->GetSession()->GetAccountId(), appearance, missing ? 0 : 1);
+     }
+     for (Debit const& debit : debits)
+     {
+@@ -97,13 +98,13 @@
+     if (!consumable)
+         transaction->Append("INSERT INTO account_vanity_collection (account_id,item_id) VALUES ({},{})",
+             player->GetSession()->GetAccountId(), itemId);
+-    else if (stack)
++    if (deliverToBags && stack)
+     {
+         transaction->Append("UPDATE item_instance SET count=count+1,flags=flags|1 WHERE guid={} AND owner_guid={} AND count={}",
+             stack->GetGUID().GetCounter(), owner, stack->GetCount());
+         transaction->Append("INSERT INTO area52_vanity_guard VALUES(IF(ROW_COUNT()=1,1,0))");
+     }
+-    else
++    else if (deliverToBags)
+     {
+         uint8 bag = uint8(destinations[0].pos >> 8);
+         uint32 bagGuid = bag == INVENTORY_SLOT_BAG_0 ? 0 : player->GetBagByPos(bag)->GetGUID().GetCounter();
+@@ -116,7 +117,7 @@
+         return false;
+     if (cost)
+         player->DestroyItemCount(currency, cost, true);
+-    if (consumable)
++    if (deliverToBags)
+     {
+         Item* bought = player->StoreItem(destinations, reward.release(), true);
+         bought->SetBinding(true);
+--- a/src/server/coa/AscensionCompat.cpp
++++ b/src/server/coa/AscensionCompat.cpp
+@@ -484,6 +484,7 @@
+ };
+ 
+ struct PlayerCollectionState {
++    bool CheckHeirloomCaches = false;
+   uint32 AccountId = 0;
+   std::unordered_set<uint32> CollectedAppearances;
+   Area52Build::DraftVanityLease DraftVanity;
+@@ -3476,6 +3477,7 @@
+             AscensionCompatConfig::AUTO_COLLECT_APPEARANCES))
+       ScanPlayerInventory(player, *state);
+ 
++    state->CheckHeirloomCaches = AscensionFreePick::Applies(player);
+     BeginAppearanceCollectionSync(player, *state);
+     state->LoginResyncTimer = APPEARANCE_LOGIN_RESYNC_DELAY_MS;
+     SendActiveAppearances(player, *state);
+@@ -3555,6 +3557,8 @@
+     ProcessCompanionLoot(player, diff, true);
+     if (auto state = GetState(player))
+     {
++        if (state->CheckHeirloomCaches)
++            GrantCompletedHeirloomCaches(player, *state);
+         if (state->CosmeticTimer <= diff)
+         {
+             state->CosmeticTimer = 1000;
+@@ -3802,6 +3806,24 @@
+             state->PendingCompanionSpells.clear();
+             state->NextCompanionSpell = 0;
+         }
++    }
++
++    bool GuardianCacheQuote(Player* player, uint32 cache, uint32& cost)
++    {
++        if (!AscensionFreePick::Applies(player) || !Area52Master::IsHeirloomCache(cache))
++            return false;
++        auto state = GetState(player);
++        if (!state || state->OwnedVanityItems.contains(cache))
++            return false;
++        std::vector<uint32> missing;
++        cost = MasterQuote(*state, cache, missing);
++        return true;
++    }
++
++    bool BuyGuardianCache(Player* player, uint32 cache, uint32 quoted)
++    {
++        return Area52Master::IsHeirloomCache(cache) &&
++            BuyMasterOffer(player, cache, Area52Master::Offers.at(cache).Currency, quoted);
+     }
+ 
+     bool RedeemVanityBundle(Player* player, Item* item, std::vector<uint32> const& appearances, std::vector<uint32> const& rewards)
+@@ -4748,6 +4770,8 @@
+         _vanityItems.contains(itemId) &&
+         (!AscensionFreePick::Applies(player) || !IsConsumableVanityItem(_vanityItems.at(itemId))) &&
+         state.OwnedVanityItems.insert(itemId).second) {
++      if (AscensionFreePick::Applies(player) && Area52Master::HeirloomCacheForPiece(itemId))
++          state.CheckHeirloomCaches = true;
+       CharacterDatabase.Execute(
+           "INSERT IGNORE INTO `account_vanity_collection` (`account_id`, "
+           "`item_id`) VALUES ({}, {})",
+@@ -4950,6 +4974,17 @@
+ 
+     void HandlePointSpendRequest(Player* player, WorldPacket& packet)
+     {
++        if (AscensionFreePick::Applies(player) && packet.size() == 2 * sizeof(uint32))
++        {
++            uint32 version, item;
++            packet >> version >> item;
++            auto offer = Area52Master::Offers.find(item);
++            if (version == 0xA52B0003 && offer != Area52Master::Offers.end() && offer->second.Store == 0)
++                DeliverVanityItem(player, item);
++            else
++                RejectClientPacket(player->GetSession()->GetAccountId(), packet, "invalid heirloom delivery request");
++            return;
++        }
+         if (AscensionFreePick::Applies(player) && packet.size() == 4 * sizeof(uint32))
+         {
+             uint32 version, item, currency, cost;
+@@ -4975,8 +5010,13 @@
+         uint8 currency = 0;
+         uint32 itemId = 0;
+         packet >> currency >> itemId;
+-        if (AscensionFreePick::Applies(player) && Area52Master::Offers.contains(itemId))
+-            return;
++        if (AscensionFreePick::Applies(player))
++        {
++            auto offer = Area52Master::Offers.find(itemId);
++            if (offer != Area52Master::Offers.end() &&
++                (offer->second.Store != 0 || currency != VANITY_CURRENCY_DONATION_POINTS))
++                return;
++        }
+         if (currency == 3 && AscensionFreePick::Applies(player))
+         {
+             ChatHandler(player->GetSession()).SendSysMessage("Update through the launcher before using Bazaar Token purchases. No tokens were charged.");
+@@ -7740,6 +7780,16 @@
+     return AscensionCollectionService::Instance().RedeemVanityBundle(player, item, appearances, rewards);
+ }
+ 
++bool QuoteArea52HeirloomCache(Player* player, uint32 cache, uint32& cost)
++{
++    return AscensionCollectionService::Instance().GuardianCacheQuote(player, cache, cost);
++}
++
++bool PurchaseArea52HeirloomCache(Player* player, uint32 cache, uint32 quoted)
++{
++    return AscensionCollectionService::Instance().BuyGuardianCache(player, cache, quoted);
++}
++
+ void AddAscensionCompatScripts() {
+   AscensionFreePick::RegisterSpecializations();
+   new AscensionRemovedSpellActionBars::Script(AscensionFreePick::Applies);
+--- a/src/server/coa/AscensionFreePick.h
++++ b/src/server/coa/AscensionFreePick.h
+@@ -16,6 +16,13 @@
+ 
+ namespace AscensionFreePick
+ {
++constexpr bool IsDarkRangerMoltenCore(std::uint32_t aura, std::uint32_t spell)
++{
++    return spell == 998204 && (aura == 47383 || aura == 71162 || aura == 71165);
++}
++
++constexpr std::uint32_t DarkfallDamageKey = 0xDA520003;
++
+ // Per-effect launch input. Set by AP-producing damage scripts, cleared for each target/effect.
+ constexpr std::uint32_t AgilityEffectDamageKey = 0xA520C001;
+ float AgilityAttackPower(Player const* player, bool ranged);
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -338,9 +338,14 @@
+             state->Applied.insert(spell);
+         }
+     }
++    if (Applies(player) && !state->Applied.contains(997115))
++        for (uint32 helper : {997412u, 997539u, 984509u})
++            player->RemoveAurasDueToSpell(helper, player->GetGUID());
++
+     for (auto const& grant : SpellGrants)
+     {
+         bool const enabled = GrantsActive(player, grant.Enchant) &&
++            (grant.Enchant != 997115 || state->Applied.contains(997115)) &&
+             (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
+             (grant.Enchant != 81248 || player->HasActiveSpell(33831)) && GrantRequirementMet(player, grant.Requires);
+         std::set<std::uint32_t> visited;
+@@ -662,6 +667,25 @@
+     return expected.empty();
+ }
+ 
++bool HasDarkRangerHandlers()
++{
++    for (uint32 spell : {997517u, 990236u, 997526u, 300073u, 998204u, 984510u, 984509u,
++                         997412u, 997539u, 997742u, 17941u})
++        if (!sSpellMgr->GetSpellInfo(spell))
++            return false;
++    for (auto [id, name] : {std::pair{998204u, "spell_area52_dark_ranger_artillery"},
++                            std::pair{984510u, "spell_area52_darkfall_periodic"},
++                            std::pair{997526u, "spell_area52_dark_ranger_shadow_arrow"}})
++    {
++        uint32 script = sObjectMgr->GetScriptId(name);
++        auto [first, last] = sObjectMgr->GetSpellScriptsBounds(id);
++        if (!script || !ScriptRegistry<SpellScriptLoader>::GetScriptById(script) ||
++            std::none_of(first, last, [script](auto const& binding) { return binding.second == script; }))
++            return false;
++    }
++    return true;
++}
++
+ bool HasShieldFinesseHandlers()
+ {
+     // This enchant reacts to casts through spell_area52_shield_tools.
+@@ -825,6 +849,12 @@
+         if (entry.Quality < 2 || entry.Quality > 5 || !info || !info->IsPassive() ||
+             info->HasAttribute(SPELL_ATTR0_CU_FORCE_AURA_SAVING))
+             continue;
++        if (spell == 997115)
++        {
++            if (HasDarkRangerHandlers())
++                Connected.emplace(spell, 1);
++            continue;
++        }
+         if (spell == 986125)
+         {
+             if (HasShieldFinesseHandlers())
+@@ -1058,6 +1088,12 @@
+     }
+ };
+ 
++bool IsDarkRangerPrerequisite(uint32 spell)
++{
++    uint32 first = sSpellMgr->GetFirstSpellInChain(spell);
++    return first == 689 || first == 172 || first == 686;
++}
++
+ class MysticPlayer final : public PlayerScript
+ {
+ public:
+@@ -1067,7 +1103,7 @@
+         PLAYERHOOK_ON_FORGOT_SPELL}) { }
+     void OnPlayerLearnSpell(Player* player, uint32 spell) override
+     {
+-        if (spell == 33831 || spell == 6117 ||
++        if (spell == 33831 || spell == 6117 || IsDarkRangerPrerequisite(spell) ||
+             sSpellMgr->GetFirstSpellInChain(spell) == 14914)
+             Synchronize(player);
+         if (Applies(player) && std::find(AscensionFreePick::SpecializationSpells.begin(),
+@@ -1076,7 +1112,7 @@
+     }
+     void OnPlayerForgotSpell(Player* player, uint32 spell) override
+     {
+-        if (spell == 33831 || spell == 6117 ||
++        if (spell == 33831 || spell == 6117 || IsDarkRangerPrerequisite(spell) ||
+             sSpellMgr->GetFirstSpellInChain(spell) == 14914)
+             Synchronize(player);
+     }
+@@ -1712,8 +1748,165 @@
+     }
+ };
+ 
++class area52_dark_arrows : public AllSpellScript
++{
++public:
++    area52_dark_arrows() : AllSpellScript("area52_dark_arrows",
++        {ALLSPELLHOOK_ON_BEFORE_EFFECTS, ALLSPELLHOOK_ON_HIT_RESULT}) { }
++
++    // Preserve eligibility from launch through missile travel.
++    enum : uint32 { OldBoltCharge = 0xDA520001, Spent = 0xDA520002 };
++
++    void OnSpellBeforeEffects(Spell* spell, Unit* caster, SpellInfo const* info) override
++    {
++        Player* player = caster ? caster->ToPlayer() : nullptr;
++        if (!AscensionFreePick::Applies(player) || !player->HasAura(997115) || spell->IsTriggered())
++            return;
++        bool bolt = player->MatchesSpellInteraction(info->Id, 686);
++        if (!bolt && !player->MatchesSpellInteraction(info->Id, 27243))
++            return;
++        Aura* old = player->GetAura(997412, player->GetGUID());
++        if (bolt && old && old->GetCharges())
++        {
++            spell->SetScriptValue(OldBoltCharge, 1);
++            old->ModCharges(-1);
++        }
++        if (Aura* arrows = player->AddAura(997412, player))
++            arrows->SetCharges(6);
++    }
++
++    void OnSpellHitResult(Spell* spell, Unit* target, uint8 miss, uint32, uint32, bool) override
++    {
++        Player* player = spell->GetCaster()->ToPlayer();
++        if (!AscensionFreePick::Applies(player) || !player->HasAura(997115) || spell->IsTriggered() ||
++            !target || miss != SPELL_MISS_NONE || spell->GetScriptValue(Spent))
++            return;
++        uint32 id = spell->GetSpellInfo()->Id;
++        if (!spell->GetScriptValue(OldBoltCharge))
++        {
++            if (player->MatchesSpellInteraction(id, 686) || player->MatchesSpellInteraction(id, 27243))
++                return;
++            SpellInfo const* rapid = sSpellMgr->GetSpellInfo(3045);
++            auto isShot = [rapid](SpellInfo const* info)
++            {
++                return rapid && info && info->SpellFamilyName == SPELLFAMILY_HUNTER &&
++                    bool(info->SpellFamilyFlags & rapid->Effects[EFFECT_1].SpellClassMask);
++            };
++            bool eligible = id == 997517 || id == 997526 || isShot(spell->GetSpellInfo());
++            if (!eligible)
++                for (uint32 origin : player->GetSpellInteractionOrigins(id))
++                    if (origin == 997517 || origin == 997526 || isShot(sSpellMgr->GetSpellInfo(origin)))
++                    {
++                        eligible = true;
++                        break;
++                    }
++            Aura* arrows = player->GetAura(997412, player->GetGUID());
++            if (!eligible || !arrows || !arrows->GetCharges())
++                return;
++            arrows->ModCharges(-1);
++        }
++        spell->SetScriptValue(Spent, 1);
++        player->CastSpell(target, 997742, true);
++        player->CastSpell(player, 997539, true);
++    }
++};
++class spell_area52_dark_ranger_shadow_arrow : public SpellScript
++{
++    PrepareSpellScript(spell_area52_dark_ranger_shadow_arrow);
++
++    void Landed(SpellEffIndex)
++    {
++        Player* caster = GetCaster()->ToPlayer();
++        if (!AscensionFreePick::Applies(caster) || !caster->HasAura(997115) ||
++            !GetHitUnit())
++            return;
++
++        Aura* nightfall = caster->GetAura(18095, caster->GetGUID());
++        SpellProcEntry const* proc = sSpellMgr->GetSpellProcEntry(18095);
++        auto now = GameTime::SteadyNow();
++        if (!nightfall || !proc || nightfall->IsProcOnCooldown(now))
++            return;
++        nightfall->AddProcCooldown(proc, now);
++        caster->CastSpell(caster, 17941, true);
++    }
++
++    void Register() override
++    {
++        OnEffectHitTarget += SpellEffectFn(spell_area52_dark_ranger_shadow_arrow::Landed, EFFECT_0, SPELL_EFFECT_WEAPON_PERCENT_DAMAGE);
++    }
++};
++class spell_area52_dark_ranger_artillery : public SpellScript
++{
++    PrepareSpellScript(spell_area52_dark_ranger_artillery);
++
++    bool Load() override
++    {
++        return AscensionFreePick::Applies(GetCaster()->ToPlayer());
++    }
++
++    SpellCastResult Check()
++    {
++        Unit* caster = GetCaster();
++        Aura* shells = caster->GetAura(997539, caster->GetGUID());
++        return caster->HasAura(997115) && shells && shells->GetStackAmount() >= 3
++            ? SPELL_CAST_OK : SPELL_FAILED_CASTER_AURASTATE;
++    }
++
++    void Launched()
++    {
++        Unit* caster = GetCaster();
++        if (Aura* shells = caster->GetAura(997539, caster->GetGUID()))
++            shells->ModStackAmount(-3);
++        caster->EnergizeBySpell(caster, GetSpellInfo()->Id, CalculatePct(caster->GetCreateMana(), 35), POWER_MANA);
++    }
++
++    void CycleDarkfall()
++    {
++        Unit* caster = GetCaster();
++        Aura* previous = caster->GetAura(984509, caster->GetGUID());
++        if (previous)
++            if (AuraEffect* bonus = previous->GetEffect(EFFECT_0))
++                GetSpell()->SetScriptValue(AscensionFreePick::DarkfallDamageKey, bonus->GetAmount());
++        if (previous && previous->GetStackAmount() >= 3)
++            previous->Remove();
++        else
++            caster->AddAura(984509, caster);
++    }
++
++    void Register() override
++    {
++        OnCheckCast += SpellCheckCastFn(spell_area52_dark_ranger_artillery::Check);
++        OnCast += SpellCastFn(spell_area52_dark_ranger_artillery::Launched);
++        OnCast += SpellCastFn(spell_area52_dark_ranger_artillery::CycleDarkfall);
++    }
++};
++
++class spell_area52_darkfall_periodic : public SpellScript
++{
++    PrepareSpellScript(spell_area52_darkfall_periodic);
++
++    void SnapshotTick()
++    {
++        int32 const bonus = GetSpellValue()->EffectBasePoints[EFFECT_2] - GetSpellInfo()->Effects[EFFECT_2].CalcBaseValue(0);
++        if (!AscensionFreePick::Applies(GetCaster()->ToPlayer()) || bonus <= 0)
++            return;
++        if (Aura* aura = GetHitAura())
++            if (AuraEffect* tick = aura->GetEffect(EFFECT_0))
++                tick->SetAmount(tick->GetAmount() + CalculatePct(tick->GetAmount(), bonus));
++    }
++
++    void Register() override
++    {
++        AfterHit += SpellHitFn(spell_area52_darkfall_periodic::SnapshotTick);
++    }
++};
++
+ void AddSC_AscensionMysticEnchant()
+ {
++    new area52_dark_arrows();
++    RegisterSpellScript(spell_area52_dark_ranger_shadow_arrow);
++    RegisterSpellScript(spell_area52_dark_ranger_artillery);
++    RegisterSpellScript(spell_area52_darkfall_periodic);
+     RegisterSpellScript(spell_area52_everliving_swiftmend);
+     RegisterSpellScript(aura_area52_everliving);
+     RegisterSpellScript(aura_area52_everliving_stacks);
+--- a/src/server/coa/AscensionMysticSpellGrants.h
++++ b/src/server/coa/AscensionMysticSpellGrants.h
+@@ -13,7 +13,10 @@
+     std::uint32_t Requires = 0;
+     std::uint32_t Replaces = 0;
+ };
+-inline constexpr std::array<SpellGrant, 27> SpellGrants = {{
++inline constexpr std::array<SpellGrant, 30> SpellGrants = {{
++    {997115, 997517, 689},
++    {997115, 997526, 172},
++    {997115, 998204, 686},
+     {997220, 997221, 14914, 14914},
+     {997220, 997222, 15262, 15262},
+     {997220, 997223, 15263, 15263},
+--- a/src/server/game/Entities/Player/Player.cpp
++++ b/src/server/game/Entities/Player/Player.cpp
+@@ -10288,6 +10288,9 @@
+ 
+     if (AscensionFreePick::Applies(this))
+     {
++        // Darkfall has an empty family mask. Artillery applies its snapshotted bonus once.
++        if (mod->spellId == 984509)
++            return false;
+         if ((mod->spellId == 20216 || mod->spellId == 411134 || mod->spellId == 31842) &&
+             !(spellInfo->SchoolMask & SPELL_SCHOOL_MASK_HOLY))
+             return false;
+@@ -10303,6 +10306,10 @@
+     // +duration to infinite duration spells making them limited
+     if (mod->op == SPELLMOD_DURATION && spellInfo->GetDuration() == -1)
+         return false;
++
++    if (AscensionFreePick::IsDarkRangerMoltenCore(mod->spellId, spellInfo->Id) &&
++        AscensionFreePick::Applies(this) && HasAura(997115))
++        return mod->op == SPELLMOD_DAMAGE || mod->op == SPELLMOD_CRITICAL_CHANCE;
+ 
+     if (spellInfo->IsAffectedBySpellMod(mod))
+         return true;
+--- a/src/server/game/Spells/Auras/SpellAuraEffects.cpp
++++ b/src/server/game/Spells/Auras/SpellAuraEffects.cpp
+@@ -1219,6 +1219,10 @@
+                 }
+             }
+ 
++            if (!periodicCrit && GetId() == 990236 && AscensionFreePick::Applies(modOwner) &&
++                modOwner == caster && modOwner->HasAura(997115))
++                critChance = modOwner->SpellDoneCritChance(nullptr, GetSpellInfo(), GetSpellInfo()->GetSchoolMask(), BASE_ATTACK, true);
++
+             switch (GetSpellInfo()->SpellFamilyName)
+             {
+                 // Rupture - since 3.3.3 can crit
+@@ -6883,10 +6887,20 @@
+     if (!caster || !caster->IsAlive())
+         return;
+ 
+-    float gainMultiplier = GetSpellInfo()->Effects[GetEffIndex()].CalcValueMultiplier(caster);
+-
+-    uint32 heal = uint32(caster->SpellHealingBonusDone(caster, GetSpellInfo(), uint32(new_damage * gainMultiplier), DOT, GetEffIndex(), 0.0f, GetBase()->GetStackAmount()));
+-    heal = uint32(caster->SpellHealingBonusTaken(caster, GetSpellInfo(), heal, DOT, GetBase()->GetStackAmount()));
++    uint32 heal;
++    if (AscensionFreePick::Applies(caster->ToPlayer()) && caster->HasAura(997115) &&
++        (GetId() == 990236 || sSpellMgr->GetFirstSpellInChain(GetId()) == 689))
++    {
++        // Dark Ranger returns a fixed fraction of the damage actually dealt.
++        heal = new_damage > 0 ? uint32(new_damage) / 10 : 0;
++    }
++    else
++    {
++        float gainMultiplier = GetSpellInfo()->Effects[GetEffIndex()].CalcValueMultiplier(caster);
++
++        heal = uint32(caster->SpellHealingBonusDone(caster, GetSpellInfo(), uint32(new_damage * gainMultiplier), DOT, GetEffIndex(), 0.0f, GetBase()->GetStackAmount()));
++        heal = uint32(caster->SpellHealingBonusTaken(caster, GetSpellInfo(), heal, DOT, GetBase()->GetStackAmount()));
++    }
+ 
+     HealInfo healInfo(caster, caster, heal, GetSpellInfo(), GetSpellInfo()->GetSchoolMask());
+     float threat = float(caster->HealBySpell(healInfo)) * 0.5f;
+--- a/src/server/game/Spells/Auras/SpellAuras.cpp
++++ b/src/server/game/Spells/Auras/SpellAuras.cpp
+@@ -2227,6 +2227,20 @@
+         return 0;
+ 
+     // do checks against db data
++    // Artillery uses Molten Core's native cast-phase charge bookkeeping. Only
++    // the family mask needs widening for this additional qualifying spell.
++    SpellProcEntry artilleryProc;
++    SpellInfo const* eventSpell = eventInfo.GetSpellInfo();
++    if (eventSpell && AscensionFreePick::IsDarkRangerMoltenCore(GetId(), eventSpell->Id))
++    {
++        Unit* actor = eventInfo.GetActor();
++        if (actor && actor == GetCaster() && AscensionFreePick::Applies(actor->ToPlayer()) && actor->HasAura(997115))
++        {
++            artilleryProc = *procEntry;
++            artilleryProc.SpellFamilyMask = flag96(0, 0, 0);
++            procEntry = &artilleryProc;
++        }
++    }
+     if (!sSpellMgr->CanSpellTriggerProcOnEvent(*procEntry, eventInfo))
+         return 0;
+ 
+--- a/src/server/game/Spells/SpellEffects.cpp
++++ b/src/server/game/Spells/SpellEffects.cpp
+@@ -1066,6 +1066,23 @@
+             damage = unitTarget->SpellDamageBonusTaken(m_originalCaster, m_spellInfo, (uint32)damage, SPELL_DIRECT_DAMAGE, 1, trackAgility ? &agilityDamage : nullptr);
+         }
+ 
++        // Dark Ranger splits only the impact. The triggered aura calculates its own ticks.
++        if (m_spellInfo->Id == 998204 && effIndex == EFFECT_0 && AscensionFreePick::Applies(agilityPlayer))
++        {
++            auto const bonus = GetScriptValue(AscensionFreePick::DarkfallDamageKey);
++            damage += CalculatePct(damage, bonus);
++            agilityDamage += CalculatePct(agilityDamage, bonus);
++            auto const hits = std::count_if(m_UniqueTargetInfo.begin(), m_UniqueTargetInfo.end(),
++                [](TargetInfo const& target)
++                {
++                    return (target.effectMask & (1u << EFFECT_0)) && target.missCondition == SPELL_MISS_NONE;
++                });
++            if (hits > 1)
++            {
++                damage /= hits;
++                agilityDamage /= hits;
++            }
++        }
+         if (trackAgility && damage > 0)
+             m_area52AgilityCriticalDamage += agilityDamage;
+         m_damage += damage;
+@@ -1390,6 +1407,8 @@
+     }
+ 
+     CustomSpellValues values;
++    if (m_spellInfo->Id == 998204 && triggered_spell_id == 984510 && AscensionFreePick::Applies(m_caster->ToPlayer()))
++        values.AddSpellMod(SPELLVALUE_BASE_POINT2, GetScriptValue(AscensionFreePick::DarkfallDamageKey));
+     // set basepoints for trigger with value effect
+     if (m_spellInfo->Effects[effIndex].Effect == SPELL_EFFECT_TRIGGER_MISSILE_SPELL_WITH_VALUE)
+     {
+--- a/Interface/AddOns/Ascension_VanityCollection/VanityStore.lua
++++ b/Interface/AddOns/Ascension_VanityCollection/VanityStore.lua
+@@ -39,13 +39,13 @@
+     [123162] = {97751, 3},
+     [123163] = {97751, 3},
+     [8210181] = {97751, 0, {8210138, 8210139, 8210140, 8210141, 8210142, 8210143, 8210144, 8210145, 8210172}},
+-    [1339058] = {375250, 3600},
+-    [1339059] = {375250, 3600},
+-    [1339060] = {375250, 3600},
+-    [1339061] = {375250, 3600},
+-    [1339062] = {375250, 3600},
+-    [1339063] = {375250, 3600},
+-    [1339064] = {375250, 3600},
++    [1339058] = {375250, 0, {1339086, 1339092, 1339099, 1339106, 1339113, 1339120, 1339127, 1642985, 1648691}, 400},
++    [1339059] = {375250, 0, {1339089, 1339094, 1339101, 1339108, 1339115, 1339122, 1339129, 1642984, 1648687}, 400},
++    [1339060] = {375250, 0, {1339088, 1339093, 1339100, 1339107, 1339114, 1339121, 1339128, 1642952, 1648689}, 400},
++    [1339061] = {375250, 0, {1339084, 1339096, 1339103, 1339110, 1339117, 1339124, 1339131, 1642950, 1648677}, 400},
++    [1339062] = {375250, 0, {1339085, 1339097, 1339104, 1339111, 1339118, 1339125, 1339132, 1642949, 1648685}, 400},
++    [1339063] = {375250, 0, {1339087, 1339098, 1339105, 1339112, 1339119, 1339126, 1339133, 3142949, 3148685}, 400},
++    [1339064] = {375250, 0, {1339090, 1339095, 1339102, 1339109, 1339116, 1339123, 1339130, 1642951, 1648683}, 400},
+     [1339084] = {375250, 500},
+     [1339085] = {375250, 500},
+     [1339086] = {375250, 500},
+@@ -182,10 +182,10 @@
+     if not offer then return end
+     local price = offer[2]
+     for _, part in ipairs(offer[3] or {}) do
+-        local appearance = C_Appearance.GetItemAppearanceID(part)
++        local appearance = not offer[4] and C_Appearance.GetItemAppearanceID(part)
+         if not C_VanityCollection.IsCollectionItemOwned(part) and
+             not (appearance and appearance > 0 and C_AppearanceCollection.IsAppearanceCollected(appearance)) then
+-            price = price + masterOffers[part][2]
++            price = price + (offer[4] or masterOffers[part][2])
+         end
+     end
+     return offer[1], price
+@@ -922,7 +922,18 @@
+ 	if Area52FeaturedEditor and Area52FeaturedEditor.picker then return end
+ 	PlaySound("igMainMenuOptionCheckBoxOn")
+ 	if (Store.ItemSelected ~= 0) and (self:IsEnabled() == 1) then
+-		C_VanityCollection.RequestDelivery(Store.ItemSelected)
++        local item = Store.ItemSelected
++        local offer = masterOffers[item]
++        if GetRealmName() == "Area 52 - Free-Pick" and offer and offer[1] == 375250 then
++            local packet = CreatePacket(0x523)
++            if packet then
++                packet:PutUInt32(0xA52B0003)
++                packet:PutUInt32(item)
++                packet:Send()
++            end
++            return
++        end
++        C_VanityCollection.RequestDelivery(item)
+ 	end
+ end
+ 

@@ -1,0 +1,17 @@
+{
+  "enchant": 997115,
+  "status": "VERIFIED",
+  "candidate_sha256": "0f179146bc6026ea8d1f55865c0160fa3554729838fe52e11df1e2234f693578",
+  "baseline_sha256": "103d503db738b265d8e16732ad73b51a94e5867766fb78e1039a8a6dd192fc45",
+  "reports": {
+    "build-r1": "4444beca1472642f6476b0ad393c397e7052da77b26f5a646bdcfd1215f3cfe8"
+  },
+  "client_sha256": "6d9468dcf0791ffc6d2143331378fe9c2dca63f29e36336002e26aa13f54a77e",
+  "heirloom_client_sha256": "84d8b39a6de72f090b18fdaa4759133e9fd6a373f3897857fe66b7748bfd248b",
+  "feature_reports": {
+    "dark-ranger-enchant-20261110/verified-r3/report.json": "90adf88abeb9d6c95b9f3e790622b799e019fbaba5d0aecdc94284f0fbe50ea2",
+    "heirloom-delivery-20261110/check-r2/report.json": "0527cff2f3d7d0b7f513ac34082234c31b88939294bede6b74bed41ab6123de5",
+    "heirloom-delivery-20261110/transaction-r1/report.json": "fdbe75fd154b26b92c14357d4100b69b092012fc8803bf704085f6a41a8ab440"
+  },
+  "preserves_test_access_exclusions": true
+}
