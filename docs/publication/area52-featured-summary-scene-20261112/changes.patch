@@ -1,0 +1,1010 @@
+--- a/src/server/coa/Area52BuildService.cpp
++++ b/src/server/coa/Area52BuildService.cpp
+@@ -307,6 +307,8 @@
+ 
+ char const* Validate(Entry const& entry)
+ {
++    if (!ValidCreationSummary(entry.Description, entry.Category == FeaturedDraftCategory ? DraftArchetype(entry) : 0))
++        return "PUBLISH_BUILD_INVALID_CREATION_SUMMARY";
+     FeaturedPreviewEffects incarnations{};
+     if (!ReadFeaturedIncarnations(entry.Description, incarnations)
+         || (entry.Category != FeaturedDraftCategory
+--- a/src/server/coa/Area52FeaturedCatalogEvents.h
++++ b/src/server/coa/Area52FeaturedCatalogEvents.h
+@@ -1,6 +1,7 @@
+ #ifndef AREA52_FEATURED_CATALOG_EVENTS_H
+ #define AREA52_FEATURED_CATALOG_EVENTS_H
+ 
++#include "Area52CreationSummary.h"
+ #include "Area52FeaturedIncarnations.h"
+ #include "Area52FeaturedRewards.h"
+ #include <chrono>
+@@ -33,7 +34,7 @@
+ {
+     auto const left = ReadCatalogSelection(before);
+     auto const right = ReadCatalogSelection(after);
+-    return !left.Valid || !right.Valid || left != right;
++    return !left.Valid || !right.Valid || left != right || SummaryLine(before) != SummaryLine(after);
+ }
+ 
+ inline bool WriteCatalogSignal(std::filesystem::path const& path)
+--- /dev/null
++++ b/src/server/coa/Area52CreationSummary.h
+@@ -0,0 +1,128 @@
++#pragma once
++#include "utf8.h"
++#include <algorithm>
++#include <array>
++#include <charconv>
++#include <cstdint>
++#include <string>
++#include <string_view>
++
++namespace Area52Build {
++inline constexpr std::string_view SummaryMarker = "###AREA52_CREATION_SUMMARY";
++inline std::string_view SummaryLine(std::string_view description)
++{
++    auto pos = description.find(SummaryMarker);
++    if (pos == description.npos)
++        return {};
++    auto line = description.substr(pos + SummaryMarker.size());
++    if ((pos && description[pos-1] != '\n') || !line.starts_with("\n") ||
++        line.find(SummaryMarker) != line.npos)
++        return "invalid";
++    line.remove_prefix(1);
++    return line.substr(0, line.find('\n'));
++}
++struct SummaryArchetype { unsigned id; std::array<unsigned,5> spells; };
++inline constexpr SummaryArchetype SummaryArchetypes[] = {
++    {1,{774,8936,8004,48438}},
++    {2,{635,53563,596}},
++    {3,{2050,2061,301001,34861}},
++    {6,{635,888571,276273,20473}},
++    {7,{331,61295,1064,974}},
++    {10,{5185,740,1064,974}},
++    {12,{2050,139,2061,47540}},
++    {13,{116,2050,92754,596}},
++    {14,{403,331,86435,86441}},
++    {15,{92726,5185,92737,48438}},
++    {16,{986163,986164,986165,276361}},
++    {17,{86461,2120,14914,34861}},
++    {18,{92779,276961,92770,982331,92778}},
++    {19,{20243,53385,14278,14251}},
++    {20,{922565,6343,23922,46968}},
++    {21,{92789,6343,300048,983241}},
++    {22,{2098,8647,16511,23922}},
++    {24,{983854,6343,34428,14278}},
++    {25,{701463,954425,986067,2120}},
++    {26,{990224,890,19028,29722,980060}},
++    {27,{954081,701463,983702,983703}},
++    {29,{53600,954801,17,53595}},
++    {30,{6343,403,977929,421}},
++    {31,{701463,986067,983740,11426}},
++    {32,{84443,33917,270356,22842,760100}},
++    {33,{271403,172,33878,686}},
++    {34,{92815,92806,92826,421}},
++    {73,{978569,982250,86361,978533}},
++    {74,{1495,2973,954821,983797}},
++    {75,{982401,92366,2842,997746}},
++    {77,{772,78,7384,12294}},
++    {78,{1464,954250,954256,12294}},
++    {79,{1464,984193,984201,984203}},
++    {80,{275491,1752,2098,760050}},
++    {82,{275317,56641,5171,3044,826679}},
++    {84,{3044,272136,284079,19434}},
++    {85,{965200,954587,34026,965289}},
++    {86,{997048,997050,2973,1495,997052}},
++    {88,{116,133,5143,44549,54488}},
++    {90,{5176,283815,2912,48516,954800}},
++    {95,{686,172,17877,273458}},
++    {97,{116,954263,30455,31687,44572}},
++    {101,{585,14914,965858,879,20473}},
++    {104,{403,8042,965305,421,16166}},
++    {129,{947470,1329,5308}},
++    {131,{768,984116,984019,5676,984010}},
++    {132,{53408,35395,53385,20375,954817}},
++    {133,{1752,978302,978846,44572}},
++    {134,{417699,2136,8024,760121,11366}},
++    {136,{979748,35395,53385,14914}},
++    {139,{954052,1978,5176,53209}},
++    {140,{997526,997517,686,998204}},
++    {141,{978945,1680,8232,983982}},
++    {142,{6343,403,978823,978826,421}},
++    {143,{986011,986008,779,6807,33745}},
++    {144,{5740,29722,902186,6353,50796}},
++};
++inline bool SummaryNumber(std::string_view text, unsigned& value)
++{
++    if (text.empty() || text.front()=='0') return false;
++    auto [end,error]=std::from_chars(text.data(),text.data()+text.size(),value);
++    return error==std::errc{} && end==text.data()+text.size();
++}
++inline bool ValidCreationSummary(std::string_view description,unsigned archetype)
++{
++    if (description.find(SummaryMarker)==description.npos) return true;
++    auto data=SummaryLine(description);
++    if (!data.starts_with("1;")) return false;
++    data.remove_prefix(2);
++    auto source=std::find_if(std::begin(SummaryArchetypes),std::end(SummaryArchetypes),
++        [archetype](auto const& s){return s.id==archetype;});
++    if (source==std::end(SummaryArchetypes)) return false;
++    auto remaining=source->spells;
++    for (;;)
++    {
++        auto end=data.find(';');
++        auto row=data.substr(0,end);
++        auto a=row.find(':'), b=row.find(':',a==row.npos?a:a+1);
++        unsigned spell=0,level=0;
++        if (a==row.npos || b==row.npos || !SummaryNumber(row.substr(0,a),spell) ||
++            !SummaryNumber(row.substr(a+1,b-a-1),level) || level>80) return false;
++        auto slot=std::find(remaining.begin(),remaining.end(),spell);
++        if (slot==remaining.end()) return false;
++        *slot=0;
++        auto bytes=row.substr(b+1);
++        if (bytes.size()>2048 || bytes.size()%2) return false;
++        std::string text;
++        for (size_t i=0;i<bytes.size();i+=2)
++        {
++            auto pair=bytes.substr(i,2);
++            if (pair.find_first_not_of("0123456789abcdef")!=pair.npos) return false;
++            unsigned c=0;
++            std::from_chars(pair.data(),pair.data()+2,c,16);
++            if ((c<32 && c!=10 && c!=13) || c==127) return false;
++            text.push_back(static_cast<char>(c));
++        }
++        if (!utf8::is_valid(text.begin(),text.end())) return false;
++        if (end==data.npos) break;
++        data.remove_prefix(end+1);
++    }
++    return std::all_of(remaining.begin(),remaining.end(),[](unsigned id){return !id;});
++}
++}
+--- a/featured-catalog/catalog_archive.py
++++ b/featured-catalog/catalog_archive.py
+@@ -6,14 +6,17 @@
+ def sha(value):
+     return hashlib.sha256(value).hexdigest()
+ 
+-def stage(request_directory,baseline,expected,output,mpq_tools):
++def stage(request_directory,baseline,expected,output,mpq_tools,base=False):
+     sys.path.insert(0,str(mpq_tools))
+     from lib.mpq import MPQArchive,write_archive
+     directory=Path(request_directory)
+     request=json.loads((directory/'release-request.json').read_text())
+     required={'DBFilesClient/CharacterCreationArchetypeDetails.dbc','Interface/GlueXML/CharacterCreate.lua'}
+     reward_files={'DBFilesClient/ItemSet.dbc','DBFilesClient/VanityCollection.dbc'}
+-    if request['schema']!=1 or request['dll_changed'] or set(request['files']) not in (required,required|reward_files):
++    summary={'DBFilesClient/CharacterCreationArchetypes.dbc'}
++    selected=request['base_files'] if base else request['files']
++    scopes=(summary,) if base else (required,required|reward_files,required|summary,required|reward_files|summary)
++    if request['schema']!=1 or request['dll_changed'] or set(selected) not in scopes:
+         raise ValueError('Unsupported catalog release scope')
+     baseline=Path(baseline)
+     if sha(baseline.read_bytes())!=expected:
+@@ -23,8 +26,8 @@
+         files={name:archive.read_file(name) for name in names if name not in ('(listfile)','(attributes)','(signature)')}
+     changes={}
+     original={name:sha(value) for name,value in files.items()}
+-    for relative,digest in request['files'].items():
+-        value=(directory/relative).read_bytes()
++    for relative,digest in selected.items():
++        value=((directory/'base' if base else directory)/relative).read_bytes()
+         if sha(value)!=digest:
+             raise ValueError('Export hash mismatch')
+         key=relative.replace('/','\\')
+@@ -37,7 +40,11 @@
+     if output.exists():
+         raise ValueError('Refuse to overwrite a staged archive')
+     output.parent.mkdir(parents=True,exist_ok=True)
+-    write_archive(output,files)
++    if all(original.get(name)==digest for name,digest in changes.items()):
++        import shutil
++        shutil.copyfile(baseline,output)
++    else:
++        write_archive(output,files)
+     with MPQArchive(output) as archive:
+         for name,value in files.items():
+             if archive.read_file(name)!=value:
+--- a/featured-catalog/catalog_worker.py
++++ b/featured-catalog/catalog_worker.py
+@@ -8,6 +8,9 @@
+ import sys
+ import tempfile
+ import time
++
++from catalog_summary import selection, transform
++SUMMARY="DBFilesClient/CharacterCreationArchetypes.dbc"
+ 
+ DEFAULT=4294967295
+ CATEGORIES=(17,18,23,31)
+@@ -59,7 +62,7 @@
+         ids=re.findall(r'(?:^|\n)###AREA52_ARCHETYPE_ID\n(\d+)(?:\n|$)',description)
+         if ids!=[str(archetype)]:
+             raise ValueError('Assignment metadata mismatch')
+-        result[archetype]={'revision':revision,'items':section(description,'AREA52_FEATURED_VANITY',14),
++        result[archetype]={'revision':revision,'summary':selection(description),'items':section(description,'AREA52_FEATURED_VANITY',14),
+             'effects':section(description,'AREA52_FEATURED_PREVIEW',4),
+             'incarnations':section(description,'AREA52_FEATURED_INCARNATIONS',4)}
+     return result
+@@ -159,9 +162,23 @@
+     if pricing is not None:
+         files['DBFilesClient/VanityCollection.dbc'] = render_prices(files['DBFilesClient/VanityCollection.dbc'], pricing)
+         inputs['vanity_prices'] = pricing.encode('utf-8')
++    base_files={}
++    overrides={i:r['summary'] for i,r in assigned.items() if r['summary'] is not None}
++    if overrides and 'summary_catalogs' not in config:
++        raise ValueError('Both summary catalogs must be configured')
++    if 'summary_catalogs' in config:
++        summaries=config['summary_catalogs']
++        for key,outputs in [('realm',files),('base',base_files)]:
++            entry=summaries[key]
++            original=pinned(entry['path'],entry['sha256'])
++            inputs['summary_'+key]=original
++            outputs[SUMMARY]=transform(original,overrides)[0]
+     manifest={'schema':1,'baseline':{name:sha(data) for name,data in inputs.items()},
+         'files':{name:sha(data) for name,data in files.items()},'revisions':{str(key):value['revision'] for key,value in sorted(assigned.items())},
+         'publication':'pending','dll_changed':False}
++    if base_files:
++        manifest['base_files']={name:sha(data) for name,data in base_files.items()}
++        manifest['baseline']['base_archive']=summaries['archive']['sha256']
+     if 'archive' in config:
+         pinned(config['archive']['path'],config['archive']['sha256'])
+         manifest['baseline']['archive']=config['archive']['sha256']
+@@ -179,8 +196,10 @@
+     identity=sha(encoded)
+     root=Path(config['outbox']);root.mkdir(parents=True,exist_ok=True)
+     target=root/identity
++    exports=dict(files)
++    exports.update({"base/"+name:data for name,data in base_files.items()})
+     if target.exists():
+-        if (target/'release-request.json').read_bytes()!=encoded or any(sha((target/name).read_bytes())!=sha(data) for name,data in files.items()):
++        if (target/'release-request.json').read_bytes()!=encoded or any(sha((target/name).read_bytes())!=sha(data) for name,data in exports.items()):
+             raise ValueError('Immutable export drift')
+         if 'archive' in config:
+             receipt=json.loads((target/'patch-E.catalog.json').read_text())
+@@ -193,19 +212,23 @@
+     if query(QUERY)!=snapshot or (pricing is not None and query(PRICING_QUERY)!=pricing):
+         raise ValueError('Assignments changed during export; retry next cycle')
+     temporary=Path(tempfile.mkdtemp(prefix='.staging-',dir=root))
+-    for name,data in files.items():
++    for name,data in exports.items():
+         path=temporary/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(data)
+     (temporary/'release-request.json').write_bytes(encoded)
+     if 'archive' in config:
+         from catalog_archive import stage
+         stage(temporary,config['archive']['path'],config['archive']['sha256'],temporary/'patch-E.MPQ',config['mpq_tools'])
++        if base_files:
++            entry=summaries['archive']
++            stage(temporary,entry['path'],entry['sha256'],temporary/'patch-M.MPQ',config['mpq_tools'],base=True)
+     if 'release' in config:
+         from catalog_release import prepare
+         release=config['release']
+         prepare(temporary/'patch-E.MPQ',release.get('archive_sha256',config['archive']['sha256']),
+             pinned(release['manifest']['path'],release['manifest']['sha256']),
+             pinned(release['pointer']['path'],release['pointer']['sha256']),
+-            temporary/'release',release['launcher'],release['repository'])
++            temporary/'release',release['launcher'],release['repository'],
++            (temporary/'patch-M.MPQ',release['base_archive_sha256']) if base_files else None)
+     if 'publication' in config:
+         from catalog_publication import prepare
+         publication=config['publication']
+--- a/featured-catalog/catalog_delivery.py
++++ b/featured-catalog/catalog_delivery.py
+@@ -25,6 +25,8 @@
+             entry={'path':str(path),'sha256':sha(path.read_bytes())}
+             result['release'][name]=entry
+             result['publication'][name]=entry
++        if (root/'patch-M.MPQ').is_file():
++            result['release']['base_archive_sha256']=sha((root/'patch-M.MPQ').read_bytes())
+         result['release']['archive_sha256']=sha((root/'patch-E.MPQ').read_bytes())
+     return result
+ 
+@@ -50,8 +52,14 @@
+         identity=cycle(effective(config,state),query,decode)
+         root=outbox/identity
+         request=json.loads((root/'release-request.json').read_text())
+-        content=sha(json.dumps(request['files'],sort_keys=True).encode())
++        outputs=dict(request['files'])
++        outputs.update({'base/'+name:value for name,value in request.get('base_files',{}).items()})
++        content=sha(json.dumps(outputs,sort_keys=True).encode())
+         if state.get('content')==content:
++            return 'unchanged'
++        if 'base_files' in request and not json.loads((root/'release/catalog-release.json').read_text())['changed_paths']:
++            state['content']=content
++            save(path,state)
+             return 'unchanged'
+         state.update(pending=identity,pending_content=content)
+         save(path,state)
+--- a/featured-catalog/catalog_release.py
++++ b/featured-catalog/catalog_release.py
+@@ -4,7 +4,7 @@
+ import json
+ import sys
+ 
+-def prepare(archive,baseline_hash,manifest_bytes,pointer_bytes,destination,launcher,repository):
++def prepare(archive,baseline_hash,manifest_bytes,pointer_bytes,destination,launcher,repository,base=None):
+     sys.path[:0]=[str(launcher),str(Path(launcher)/'tools')]
+     from launcher import fullclient
+     digest=lambda value:hashlib.sha256(value).hexdigest()
+@@ -12,33 +12,43 @@
+     if pointer['manifest_sha256']!=digest(manifest_bytes):
+         raise ValueError('Launcher pointer baseline mismatch')
+     manifest=copy.deepcopy(fullclient.validate(json.loads(manifest_bytes),repository))
+-    path='Data/area-52/patch-E.MPQ'
+-    rows=[row for row in manifest['baseline'] if row['path'].lower()==path.lower()]
+-    components=[value for value in manifest['components'] if len(value['files'])==1 and value['files'][0]['path'].lower()==path.lower()]
+-    if len(rows)!=1 or len(components)!=1 or rows[0]['sha256']!=baseline_hash:
+-        raise ValueError('Launcher archive baseline requires reconciliation')
+-    data=Path(archive).read_bytes()
+     output=Path(destination)
+     if output.exists():
+         raise ValueError('Refuse to overwrite release preparation')
+     output.mkdir(parents=True)
+-    row={'path':rows[0]['path'],'bytes':len(data),'sha256':digest(data)}
+-    identity='featured-catalog-'+digest(data)[:32]
+-    prefix=pointer['manifest_url'].rsplit('/',1)[0]+'/'
+-    chunks=[]
+-    for index,start in enumerate(range(0,len(data),fullclient.CHUNK_LIMIT)):
+-        block=data[start:start+fullclient.CHUNK_LIMIT]
+-        asset=identity+'-'+str(index).zfill(3)+'.bin'
+-        (output/asset).write_bytes(block)
+-        chunks.append({'asset':asset,'url':prefix+asset,'bytes':len(block),'sha256':digest(block)})
+-    manifest['components'].remove(components[0])
+-    manifest['components'].append({'id':identity,'bytes':len(data),'files':[row],'chunks':chunks})
+-    manifest['baseline']=[row if value['path'].lower()==path.lower() else value for value in manifest['baseline']]
++    changed=[]
++    archives=[('Data/area-52/patch-E.MPQ',archive,baseline_hash)]
++    if base:
++        archives.append(('Data/patch-M.MPQ',*base))
++    for path,source,baseline_hash in archives:
++        rows=[row for row in manifest['baseline'] if row['path'].lower()==path.lower()]
++        components=[value for value in manifest['components'] if len(value['files'])==1 and value['files'][0]['path'].lower()==path.lower()]
++        if len(rows)!=1 or len(components)!=1 or rows[0]['sha256']!=baseline_hash:
++            raise ValueError('Launcher archive baseline requires reconciliation')
++        data=Path(source).read_bytes()
++        if digest(data)==baseline_hash:
++            continue
++        changed.append(path)
++        row={'path':rows[0]['path'],'bytes':len(data),'sha256':digest(data)}
++        identity='featured-catalog-'+digest(data)[:32]
++        prefix=pointer['manifest_url'].rsplit('/',1)[0]+'/'
++        chunks=[]
++        for index,start in enumerate(range(0,len(data),fullclient.CHUNK_LIMIT)):
++            block=data[start:start+fullclient.CHUNK_LIMIT]
++            asset=identity+'-'+str(index).zfill(3)+'.bin'
++            (output/asset).write_bytes(block)
++            chunks.append({'asset':asset,'url':prefix+asset,'bytes':len(block),'sha256':digest(block)})
++        manifest['components'].remove(components[0])
++        manifest['components'].append({'id':identity,'bytes':len(data),'files':[row],'chunks':chunks})
++        manifest['baseline']=[row if value['path'].lower()==path.lower() else value for value in manifest['baseline']]
+     fullclient.validate(manifest,repository)
+     encoded=(json.dumps(manifest,indent=2)+'\n').encode()
++    if not changed:
++        encoded=manifest_bytes
+     pointer['manifest_sha256']=digest(encoded)
+-    pointer['message']='Featured Build catalog updated.'
++    if changed:
++        pointer['message']='Featured Build catalog updated.'
+     (output/'manifest.json').write_bytes(encoded)
+     (output/'area52.json').write_text(json.dumps(pointer,indent=2)+'\n')
+-    (output/'catalog-release.json').write_text(json.dumps({'publication':'pending','baseline_manifest_sha256':digest(manifest_bytes),'candidate_manifest_sha256':digest(encoded),'changed_paths':[path],'archive_sha256':digest(data)},indent=2))
++    (output/'catalog-release.json').write_text(json.dumps({'publication':'pending','baseline_manifest_sha256':digest(manifest_bytes),'candidate_manifest_sha256':digest(encoded),'changed_paths':changed,'archive_sha256':digest(Path(archive).read_bytes())},indent=2))
+     return manifest
+--- /dev/null
++++ b/featured-catalog/catalog_summary.py
+@@ -0,0 +1,55 @@
++"""Render the enUS spell summary while retaining all other native catalog fields."""
++import re
++import struct
++
++MARKER='###AREA52_CREATION_SUMMARY'
++RECORD=struct.Struct('<157I')
++PREFIX=re.compile(rb'^\|cFF00f3ffUnlocks at level (\d+) \|r\r\n\r\n',re.I)
++
++def selection(description):
++    lines=description.split('\n')
++    hits=[i for i,line in enumerate(lines) if line.startswith(MARKER)]
++    if not hits:return None
++    if len(hits)!=1 or lines[hits[0]]!=MARKER:raise ValueError('Invalid summary section')
++    line=lines[hits[0]+1] if hits[0]+1<len(lines) else ''
++    return parse(line)
++
++def parse(line):
++    if not line.startswith('1;'):raise ValueError('Unknown summary version')
++    result=[]
++    for item in line[2:].split(';'):
++        m=re.fullmatch(r'([1-9][0-9]{0,8}):([1-9][0-9]?):([0-9a-f]{0,2048})',item)
++        if not m:raise ValueError('Invalid summary row')
++        spell,level=int(m[1]),int(m[2]);body=bytes.fromhex(m[3])
++        body.decode('utf8')
++        if level>80 or any(b<32 and b not in (10,13) for b in body) or b'\x7f' in body:raise ValueError('Invalid summary text or level')
++        result.append((spell,level,body))
++    if len(result)>5 or len({s for s,_,_ in result})!=len(result):raise ValueError('Duplicate or excessive summary abilities')
++    return result
++
++def transform(data, overrides):
++    magic,n,k,w,size=struct.unpack_from('<4s4I',data)
++    end=20+n*w
++    if (magic,k,w)!=(b'WDBC',157,628) or end+size!=len(data):raise ValueError('Archetype catalog layout changed')
++    records=bytearray(data[20:end]);pool=bytearray(data[end:]);defaults={}
++    for i in range(n):
++        row=list(RECORD.unpack_from(records,i*w));archetype=row[0];old=row[:];slots={};rows=[]
++        for j,spell in enumerate(row[3:8]):
++            if not spell:continue
++            start=70+j*17;off=row[start];text=bytes(pool[off:pool.index(0,off)]);m=PREFIX.match(text)
++            if not m or spell in slots:raise ValueError('Unsupported source summary')
++            slots[spell]=(start,text);rows.append((spell,int(m[1]),text[m.end():]))
++        defaults[archetype]=rows
++        chosen=overrides.get(archetype)
++        if chosen is None or chosen==rows:continue
++        if sorted(s for s,_,_ in chosen)!=sorted(slots):raise ValueError('Summary spell set differs from assigned archetype')
++        for j,(spell,level,body) in enumerate(chosen):
++            start,text=slots[spell];dest=70+j*17;row[3+j]=spell
++            row[dest:dest+17]=old[start:start+17]
++            match=PREFIX.match(text)
++            new=text[:match.start(1)]+str(level).encode()+text[match.end(1):match.end()]+body
++            if new!=text:
++                row[dest]=len(pool);pool.extend(new+b'\0')
++        RECORD.pack_into(records,i*w,*row)
++    if set(overrides)-defaults.keys():raise ValueError('Missing summary archetype')
++    return data[:16]+struct.pack('<I',len(pool))+records+pool,defaults
+--- a/client/EditableBuildView.lua
++++ b/client/EditableBuildView.lua
+@@ -239,6 +239,7 @@
+         local text = section:Serialize(self.build)
+         local shouldShowSection = (section.category ~= "MYSTIC_ENCHANTS" or ShouldShowMysticEnchantSection())
+             and (not section.Area52FeaturedOnly or Area52FeaturedEditor.Applies())
++            and (section ~= self.SummaryPanel or section:IsShown())
+ 
+         if shouldShowSection then
+             height = height + section:GetHeight() + (section.Area52FeaturedOnly and 16 or 0)
+@@ -1192,7 +1193,7 @@
+         button:SetScript("OnShow",function(self) self.AnimFrame:Hide() end)
+         button:SetScript("OnEvent",nil)
+         button:SetScript("OnHide",function() GameTooltip:Hide() end)
+-        local layout={{"TOPLEFT",12,-56},{"TOPLEFT",12,-109},{"TOPLEFT",12,-215},{"TOPRIGHT",-12,-128},{"TOPRIGHT",-12,-287},{"TOPLEFT",12,-374},{"TOPRIGHT",-12,-181},{"TOPLEFT",12,-162},{"TOPRIGHT",-12,-234},{"BOTTOM",-53,28},{"BOTTOM",0,28},{"BOTTOM",53,28},{"TOPLEFT",402,-350},{"TOPLEFT",455,-350}}
++        local layout={{"TOPLEFT",12,-56},{"TOPLEFT",12,-109},{"TOPLEFT",12,-215},{"TOPRIGHT",-12,-128},{"TOPRIGHT",-12,-287},{"TOPLEFT",12,-374},{"TOPRIGHT",-12,-181},{"TOPLEFT",12,-162},{"TOPRIGHT",-12,-234},{"BOTTOM",-53,28},{"BOTTOM",0,28},{"BOTTOM",53,28},{"TOPLEFT",402,-56},{"TOPLEFT",455,-56}}
+         button:SetPoint(layout[slot][1],canvas,layout[slot][1],layout[slot][2],layout[slot][3])
+         button:SetScript("OnClick",function(_,mouse)
+             if not F.Applies() then return end
+@@ -1215,7 +1216,7 @@
+     local help=panel:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+     help:SetPoint("TOP",panel,"TOP",0,-28);help:SetText("Hover for item details. Left-click to choose; right-click to clear.")
+     local mounts=canvas:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+-    mounts:SetPoint("TOPLEFT",canvas,"TOPLEFT",402,-324);mounts:SetText("Mounts")
++    mounts:SetPoint("TOPLEFT",canvas,"TOPLEFT",402,-30);mounts:SetText("Mounts")
+     local ordered={}
+     for _,section in ipairs(content.sections) do
+         if section~=ai and section~=panel then
+@@ -3513,23 +3514,7 @@
+         local panel=CreateFrame("Frame",view:GetName().."Area52Preview",content,"EditableBuildViewSectionTemplate")
+         panel:SetSize(764,340);panel:SetCategory("AREA52_FEATURED_PREVIEW");panel.Area52FeaturedOnly=true
+         panel.Serialize=function()return nil end;panel.Deserialize=function()end
+-        panel.Buttons={}
+-        for index=1,8 do
+-            local selected=index
+-            local button=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate")
+-            button:SetSize(660,28);button:SetPoint("TOP",0,-38-(index-1)*32)
+-            button:SetScript("OnClick",function()F.OpenPreviewChoices(view,selected)end)
+-            if index==2 then button:Disable() end
+-            if index>4 then
+-                button:SetScript("OnEnter",function(self)
+-                    GameTooltip:SetOwner(self,"ANCHOR_RIGHT")
+-                    GameTooltip:SetText("Choose and preview the incarnation in Wardrobe. Save changes the Draft reward; the matching creation preview arrives with the next launcher catalog update.",nil,nil,nil,nil,true)
+-                    GameTooltip:Show()
+-                end)
+-                button:SetScript("OnLeave",function()GameTooltip:Hide()end)
+-            end
+-            panel.Buttons[index]=button
+-        end
++        F.CreateScene(view,panel)
+         view.Area52PreviewSection=panel
+         local ordered={}
+         for _,section in ipairs(content.sections) do
+@@ -3626,3 +3611,421 @@
+     if import then Area52FeaturedEditor.ImportAssigned(self,false)
+     elseif queued then sessionUpdate(self,false) end
+ end
++
++-- Summary metadata is separate from the player's Overview. Encode bytes so section
++-- delimiters and multiline descriptions can be saved without changing build wire format.
++local Summary = {}
++Summary.defaults={
++    [1]={{774,8,"Plant a mending seed on your target, which heals for a small amount over time."},{8936,12,"Invigorate an ally, causing a burst of healing followed by additional healing over time."},{8004,20,"Quickly heal an ally for a small amount and enhance your heal over time effects."},{48438,60,"Instantly invigorate up to 5 nearby allies, causing a rapid regeneration effect that slows over time."}},
++    [2]={{635,1,"Imbue an ally with a burst of Holy light, causing massive healing."},{53563,30,"Choose a party member to become a Beacon of Light. Healing other party members also heals the Beacon."},{596,32,"Unleash a powerful wave of light that heals nearby allies."}},
++    [3]={{2050,1,"A slow-casting spell that heals a single target for a great amount."},{2061,20,"Quickly heal a target for a small amount of health."},{301001,36,"Unleash a burst of shining light that radiates out from your body, healing allies as it passes through them. Allies closer to the blast are healed for more."},{34861,50,"Instantly heal up to 5 nearby allies with a blast of brilliant light."}},
++    [6]={{635,1,"Imbue an ally with a burst of Holy light, causing massive healing."},{888571,20,"Mutter a divine prayer, healing allies over a few seconds with a final burst at the end. Allies are then shrouded in a protective glow, increasing their chance to be critically healed."},{276273,20,"A lingering effect left by the Prayer of Preservation. Healing the target will shield them with damage reduction, as well as reduce the cooldown of your Prayer of Preservation."},{20473,40,"Blasts the target with Holy energy, dealing Holy damage to enemies or healing allies."}},
++    [7]={{331,1,"Soothe an ally with healing waters, restoring health and sometimes causing your Riptide to spread to another party member."},{61295,20,"Splash an ally with instant healing and leave behind cool waters, causing additional healing over time."},{1064,40,"Unleash a burst of Nature healing, bouncing between your target and allies."},{974,50,"Place a natural shield on an ally, healing them whenever struck."}},
++    [10]={{5185,4,"A slow casting spell that heals a single target for a great amount. This spell overflows to an additional ally, healing them for 50% of the original amount."},{740,34,"Summon healing rains to soothe all nearby party members, healing every second while you channel."},{1064,40,"Unleash a burst of nature healing, bouncing between your target and allies."},{974,50,"Place a natural shield on an ally, healing them whenever struck."}},
++    [12]={{2050,1,"A slow casting spell that heals a single target for a great amount."},{139,4,"Place a mending prayer on your target, which heals for a small amount over time."},{2061,22,"Quickly heal a target for a small amount of health."},{47540,30,"Launch spheres of Holy light at the target, healing allies or damaging enemies."}},
++    [13]={{116,1,"Fire an icy bolt of magic at your target, slowing and dealing damage."},{2050,4,"A slow casting spell that heals a single target for a great amount."},{92754,30,"Launch spheres of frozen light at the target, damaging enemies."},{596,32,"Unleash a powerful wave of light that heals nearby allies."}},
++    [14]={{403,1,"Send a ball of lightning hurdling towards your foe."},{331,4,"Soothe an ally with healing waters."},{86435,30,"Transform into a thunder-infused Tree of Life, allowing you to use enhanced lightning spells."},{86441,40,"Invigorate your target with a shock of lightning, healing them before arcing out and damaging foes."}},
++    [15]={{92726,4,"Fire a shot at the target location that blooms with natural energy, damaging foes and healing allies."},{5185,6,"A slow casting spell that heals a single target for a great amount."},{92737,10,"Stings an enemy with poison, dealing Nature damage over time while healing allies."},{48438,60,"Instantly invigorate up to 5 nearby allies, causing a rapid regeneration effect that slows over time."}},
++    [16]={{986163,4,"Heals your target and aligns them with your current space in time, causing a Temporal Distortion."},{986164,6,"Binds your target to Eternity, periodically healing them for 30% of the damage taken during the bond."},{986165,8,"Channel healing to all Aligned and Time-bound targets over 4 seconds. While channeling, time is stalled and freezes the duration of your Alignment."},{276361,10,"Time is distorted. Your cast speed is increased by 2% and energy generation is reduced by 10%. Stacks up to 20 times."}},
++    [17]={{86461,1,"Hurls a flaming orb that sears foes or heals allies."},{2120,18,"Calls down a pillar of Fire, burning all enemies caught within the flames. Enemies who linger on the burning ground take additional damage."},{14914,20,"Summons wrathful light to strike a target, bathing them in flames and dealing massive damage."},{34861,50,"Instantly heal up to 5 nearby allies with a blast of brilliant light."}},
++    [18]={{92779,1,"Place a Beacon of Shadow on an ally, causing your Shadow Bolt to heal them based on damage dealt."},{276961,8,"Imbue an ally with a burst of unholy light, causing massive healing. "},{92770,32,"Unleash a powerful wave of vampiric shadow that heals nearby allies. "},{982331,35,"Sends a shadowy bolt at your enemy, dealing a burst of Shadow damage and leaving behind a lingering curse."},{92778,40,"Passively drain life from targets you damage, healing allies for a portion of all damage dealt."}},
++    [19]={{20243,1,"Strike your target with a brutal swing, destroying some of their armor and increasing the damage they take from both you and your allies.\013\010\013\010Empowered effect: Deal 70% additional damage to all nearby enemies."},{53385,15,"Channel energy into your blade and sweep it in a circle around you, striking up to 6 enemies and healing allies for a portion of the damage dealt.\013\010\013\010Empowered effect: Increase your armor by 100% of your strength."},{14278,20,"A shadowy thrust that readies you for the enemy's next strike, increasing your chance to Parry by 10%."},{14251,24,"After parrying an attack, strike back for bonus damage and reduce your foe's attack speed.\013\010\013\010Empowered effect: Increase your your ability to stagger incoming damage."}},
++    [20]={{922565,4,"Raise your shield and emit a massive wall of wind, giving you 100% chance to block incoming damage for a short time. "},{6343,10,"Strike the ground beneath you, causing a boom of thunder that damages and slows the attack speed of all nearby enemies."},{23922,40,"Bash your target with your shield, dealing damage and turning their attention towards you."},{46968,60,"Slam your weapon into the earth, sending out a mighty shockwave that damages and stuns all enemies in a cone in front of you."}},
++    [21]={{92789,4,"Unleash your Combo Points in a graceful flurry of blows, dealing damage to all enemies around you and decreasing the damage you take."},{6343,6,"Strike the ground beneath you, causing a boom of thunder that damages and slows the attack speed of all nearby enemies."},{300048,10,"Strike your target's weak point with an elegant stab, destroying some of their armor and increasing the damage they take from both you and your allies. Generates Combo Points."},{983241,24,"A ghostly slash that haunts your target dealing Shadow damage over time. "}},
++    [22]={{2098,4,"Unleash your Combo Points in a savage, gut-wrenching strike, dealing massive damage to a single foe. \013\010\013\010Triggers an additional attack that deals 80% of its original damage to all nearby enemies."},{8647,14,"Expose the weakness in your target's armor, reducing it for some time. This spell also deals a high amount of damage to the target."},{16511,30,"A gruesome strike that wounds your target, causing them to take increased physical damage. Awards a Combo Point.\013\010\013\010Has a chance to trigger the Sword and Board talent."},{23922,40,"Bash your target with your shield, dealing damage and turning their attention towards you. Awards 2 Combo Points."}},
++    [24]={{983854,1,"Rush an enemy, using the momentum to strike them for massive damage."},{6343,4,"Strike the ground beneath you, causing a boom of thunder that damages and slows the attack speed of all nearby enemies."},{34428,8,"Strike your target with a brutal swing, restoring some of your missing health."},{14278,20,"A shadowy thrust that readies you for the enemy's next strike, increasing your chance to Parry by 10%."}},
++    [25]={{701463,1,"Envelops you in a barrier of hardened magic, reducing damage taken by 90% and draining your mana instead."},{954425,10,"Fills you with the strength of righteous flames, causing your attacks to deal Fire damage to foes."},{986067,14,"Channel Arcane strength into your Mana-forged Barrier, causing it to temporarilly not drain mana. "},{2120,18,"Calls down a pillar of Fire, burning all enemies caught within the flames. Enemies who linger on the burning ground take additional damage."}},
++    [26]={{990224,1,"Surrender yourself to darkness and transform into a Demon, gaining increased health and sinister new abilities."},{890,1,"Bend a Demon from the Twisting Nether to your will. Summon a demonic creature to do your bidding, attacking your foes and defending you from enemies."},{19028,20,"Bind your Enslaved Demon's soul to yours, causing it to take damage on your behalf."},{29722,29,"Conjure an evil flame and sling it at your target, dealing Fire damage."},{980060,60,"Raises your defense and improves the effectiveness of Soul Link by 10%."}},
++    [27]={{954081,1,"Strike your target with an Arcane-infused blade, destroying some of their armor and increasing your Spell Power."},{701463,1,"Envelops you in a barrier of hardened magic, reducing damage taken by 90% and draining your mana instead."},{983702,21,"Restores 20% of your missing mana and imbues your weapon with magic, causing it to deal Arcane Damage."},{983703,50,"Unleash a surge of magical energy, dealing Arcane damage to all enemies struck and reducing their attack power."}},
++    [29]={{53600,6,"Slam the target with your holy shield, dealing Holy damage and healing you for a small amount. \013\010\013\010If used with Charges of Light: Conjures a wave of light, damaging enemies caught in its wake."},{954801,36,"Throw a blessed hammer at the ground which strikes foes with arcs of holy lightning, slows their movement speed, and heals nearby allies."},{17,42,"Protects your target with a shield of light, absorbing damage. \013\010\013\010If used with Charges of Light: Reduces damage taken by 30% for some time."},{53595,60,"Imbue your weapon with Holy magic and strike up to 3 enemies, causing damage and burning them with righteous flames."}},
++    [30]={{6343,1,"Strike the ground beneath you, causing a boom of thunder that damages and slows the attack speed of all nearby enemies."},{403,1,"Send a ball of lightning hurdling towards your foe."},{977929,30,"Throw a lightning-infused hammer at your target, dealing massive damage and shrouding you in lightning.\013\010\013\010While shrouded, damage taken is reduced by 12% and spell damage is increased by 30% of your Stamina."},{421,32,"Strike your target with a blast of lightning, which arcs out to damage multiple enemies."}},
++    [31]={{701463,1,"Envelops you in a barrier of hardened magic, reducing damage taken by 90% and draining your mana instead."},{986067,14,"Channel Arcane strength into your Mana-forged Barrier, causing it to temporarilly not drain mana."},{983740,20,"Strike your target with a burst of freezing cold, destroying some of their armor and increasing the damage they take from both you and your allies. Reduces the cooldown of Ice Barrier."},{11426,40,"Wrap yourself in a frozen shield, absorbing damage."}},
++    [32]={{84443,4,"Mauls the target with your plagued claws, inflicting the target with Infected Blood. This spell can also spread Rabies."},{33917,20,"Shreds the target with powerful claws, causing damage and applying Rabies."},{270356,20,"Infected with Rabies, increasing damage taken."},{22842,36,"Reduces your damage taken for a short time, then heals you based on the damage you taken."},{760100,42,"Harderns your fur to be as tough as iron, reducing damage."}},
++    [33]={{271403,1,"Corrupts your Bear Form, causing your claws to deal Shadow damage and allowing specific Bear Form skills to spread Corruption."},{172,8,"Corrupts your target, dealing Shadow damage over time."},{33878,20,"Shreds the target with powerful claws, causing damage."},{686,26,"Sends a ball of pure Shadow hurdling towards your target, dealing damage."}},
++    [34]={{92815,1,"Charge your fur with lightning, dealing damage to foes who attack you."},{92806,4,"Strike the ground beneath you, causing a boom of thunder that deals damage and slows the attack speed of all nearby enemies."},{92826,8,"Unleash a savage bite upon the target with lightning-infused teeth, dealing damage."},{421,32,"Strike your target with a blast of lightning, which arcs out to nearby targets."}},
++    [73]={{978569,1,"An instant strike that deals damage and awards a Combo Point."},{982250,12,"Hurl a Javelin at your target, piercing their armor and causing them to bleed over time. "},{86361,36,"Smash your target for massive weapon damage, breaking their armor and causing you to deal bonus damage."},{978533,40,"Spend Combo Points to slam the target with your shield, dealing massive damage."}},
++    [74]={{1495,4,"Strike your target for instant damage."},{2973,6,"Enhance your next weapon swing to deal additional damage."},{954821,14,"Hurl two glaives at your target, dealing damage."},{983797,25,"Strike your target from a distance, dealing damage and increasing the power of your next Mongoose Bite."}},
++    [75]={{982401,1,"Transforms you into a serpent, causing your attacks to deal poisonous Nature damage."},{92366,1,"Lash at the enemy with your teeth, dealing damage and increasing the damage they take from poisons. Awards a Combo Point."},{2842,20,"Unlocks various Rogue poisons for you to coat your weapons with."},{997746,34,"Spend Combo Points to bite the target and inject deadly venom, dealing massive damage."}},
++    [77]={{772,6,"Wound your target, dealing Weapon Damage and causing them to bleed."},{78,10,"Enhance your next weapon swing to deal additional damage. Allows you to maintain stacks of Heavyweight."},{7384,20,"Only usable after your target dodges; deals instant high weapon damage. "},{12294,40,"A vicious strike that deals massive weapon damage, and wounds the target, reducing their healing for a time."}},
++    [78]={{1464,1,"Slam your opponent, dealing instant weapon damage. "},{954250,30,"Roar explosively, slowing enemies and dealing armor-piercing Physical damage. Also increases physical damage by 15%."},{954256,32,"Begin charging at double movement speed. Colliding with a target causes immediate Fire damage, and increases your Physical damage done by 15%."},{12294,42,"A vicious strike that deals massive weapon damage and wounds the target, reducing their healing for some time."}},
++    [79]={{1464,1,"Slam your opponent, dealing instant weapon damage. "},{984193,12,"Stomp the earth, sending a massive stone spike bursting up from beneath your foe, dealing immense damage."},{984201,34,"Slam the ground, unleashing a devastating wave of earth spikes."},{984203,40,"Smash the enemy, dealing immediate damage. This spell can be cast twice as fast as other attacks."}},
++    [80]={{275491,1,"Your rogue abilities now deal bonus Shadow damage and have additional sinister effects."},{1752,1,"An instant strike that deals damage and awards a Combo Point."},{2098,4,"Unleash your Combo Points in a savage, gut-wrenching strike, dealing massive damage to a single foe."},{760050,26,"Puncture the target with a shadow-infused blade, dealing Shadow damage and corrupting the target."}},
++    [82]={{275317,1,"Your Arcane Shot and Steady Shot now generate Combo Points."},{56641,1,"Prepare a precise shot, dealing damage. Castable while moving."},{5171,4,"Unleash your Combo Points and increase ranged attack speed by 20%."},{3044,6,"Fire a magic-infused shot at your target, dealing Arcane damage."},{826679,20,"Unleash your Combo Points to fire a shot that deals massive damage and wounds your target, reducing healing."}},
++    [84]={{3044,4,"Fire a magic-infused shot at your target, dealing Arcane damage."},{272136,10,"Launch yourself straight into the air, out of harm's way! After a moment, deploy a combat parachute and gain bonuses to your ranged attacks while descending."},{284079,18,"Fire several shots at your target in rapid succession, dealing damage in a quick channeled burst."},{19434,20,"Aim your weapon and fire a deadly shot, dealing massive weapon damage. This shot wounds the target, reducing their healing recieved."}},
++    [85]={{965200,1,"Teaches you how to tame a permanent animal companion."},{954587,20,"Fire a magic shot that sends your companion into a frenzy. Its attacks cleave nearby enemies for a time."},{34026,30,"Give your companion the command to kill, increasing its damage significantly."},{965289,50,"Send your companion into a rage, significantly increasing it's damage. Also resets the cooldown of your Frenzy Shot."}},
++    [86]={{997048,1,"Fires off a quick, close range shot that deals damage and triggers Gunslinger Strike."},{997050,1,"Massively increases the damage of your Mongoose Bite and Raptor Strike."},{2973,6,"Enhance your next weapon swing to deal additional damage."},{1495,10,"Strike your target for instant damage."},{997052,18,"Spend combo points to damage up to five enemies in front of you, dealing additional weapon damage to your main target."}},
++    [88]={{116,1,"Launch a bolt of frozen magic at the target, dealing Frost damage and slowing them."},{133,6,"Launch a ball of blazing magic at the target, dealing Fire damage and burning them over time."},{5143,20,"Channels bolts of magic at a foe, dealing Arcane damage."},{44549,35,"Your Frostbolt sometimes triggers an instant cast of Arcane Missiles."},{54488,40,"Your Frostbolt sometimes triggers instant, empowered Fireballs."}},
++    [90]={{5176,1,"Sling a crackling ball of magic at your target, dealing Nature damage."},{283815,12,"Strike your target with a beam of sunlight, dealing Sunfire damage to enemies caught in its beam, and additional damage over time."},{2912,20,"Call down a star to demolish your target, dealing massive Arcane damage."},{48516,35,"Embrace the cycle of the Eclipse, rotating between Solar and Lunar phases that empower your spells in different ways."},{954800,38,"Conjure a sphere of celestial power, slinging it at your target dealing Spellstorm damage. "}},
++    [95]={{686,1,"Sends a ball of pure Shadow hurdling towards your target, dealing damage."},{172,1,"Corrupts your target, dealing Shadow damage over time."},{17877,30,"Burn your target for instant Shadow damage."},{273458,50,"Unleash a cascade of darkness at a target location, dealing massive Shadow damage, and stunning targets caught in its wake."}},
++    [97]={{116,1,"Launch a bolt of frozen magic at the target, dealing Frost damage and slowing them."},{954263,1,"Weave a Frost Bomb onto the target, which emits waves of Frost damage when struck with Frostbolt. After a time, the Frost Bomb explodes, dealing massive damage to enemies caught in it's blast."},{30455,40,"Fire a lance of frost at the target, dealing Frost damage. Deals triple damage against frozen targets."},{31687,50,"Summon a Water Elemental to fight for you, slinging Water Bolts and empowering your attacks."},{44572,60,"Freeze the target in a block of ice, stunning them. If the target is immune, deal massive Frost damage instead."}},
++    [101]={{585,1,"Smites an enemy, dealing Holy damage."},{14914,20,"Summons wrathful light to strike a target, bathing them in flames and dealing massive damage."},{965858,20,"Your Holy Fire casts empowers your Exorcism and Holy Shock with unique effects."},{879,22,"Purge the target of darkness, dealing massive Holy damage. \013\010\013\010Empowered Effect: Causes a wave of Holy energy to hit 5 nearby targets, and damage is increased by 50%."},{20473,40,"Blasts the target with Holy energy, dealing Holy damage to enemies or healing allies.\013\010\013\010Empowered Effect: Guaranteed to critically strike. Damage/healing increased by 100%."}},
++    [104]={{403,1,"Send a ball of lightning hurdling towards your foe."},{8042,4,"Shock your target with concussive force, dealing Nature damage."},{965305,19,"Your Lightning Bolt and Chain Lightning grant a stack of Booming Thunder, increasing the damage of your next Earth Shock by 16%. Stacks up to 22 times."},{421,32,"Strike your target with a blast of lightning, which arcs out to damage multiple enemies."},{16166,40,"Channel the power of the elements to make your next lightning spell instant cast."}},
++    [129]={{947470,4,"Unleash your Combo Points and brutally disembowel the target, causing massive bleed damage over time. Disemboweled targets take increased damage from Mutilate."},{1329,20,"Drive both daggers into your target's sides, dealing instant damage. Awards 2 Combo Points."},{5308,24,"Attempt to finish off a wounded foe, dealing massive instant damage. Can only be used on targets below 20% health. "}},
++    [131]={{768,1,"Shapeshift into an agile panther, gaining new abilities."},{984116,10,"Unleash your Combo Points in a blazing bite, dealing massive Fire damage over time."},{984019,28,"Cause your body to swell with heat, dealing Fire damage to your target. Awards 2 Combo Points."},{5676,42,"Scorch your target with hellish flames, dealing Fire damage."},{984010,54,"Strike the target with cataclysmic fire, dealing Fire damage to nearby targets and increasing their Fire damage taken."}},
++    [132]={{53408,4,"Call upon the light and drop a Holy hammer on your target, passing judgement on their soul and dealing Holy damage."},{35395,6,"An instant strike that deals damage."},{53385,16,"Swing your weapon in an arc around you, dealing damage to enemies and healing allies."},{20375,22,"Your attacks smite the target for additional Holy damage."},{954817,40,"Summon a divine hammer from the sky that falls to your target, dealing damage to enemies or healing allies."}},
++    [133]={{1752,1,"An instant strike that deals damage and awards a Combo Point."},{978302,12,"Unleash your Combo Points to wrap yourself in frozen winds, increasing your critical strike chance."},{978846,26,"Unleash your Combo Points in a cone of frigid wind, dealing massive Frost damage."},{44572,60,"Freeze the target in a block of ice, stunning them. If the target is immune, deal massive Frost damage instead."}},
++    [134]={{417699,1,"Sweep your weapon in an arc before you, dealing damage. If enchanted with Flametongue, the damage is doubled."},{2136,6,"Blast your target, dealing Fire damage."},{8024,12,"Bathe your weapon in molten flames, giving each swing a chance to burst for bonus Fire damage."},{760121,34,"Shatters the earth in a line before you, dealing Fire damage and incapacitating enemies hit."},{11366,64,"Sling a giant ball of fire at the target, dealing massive Fire damage."}},
++    [136]={{979748,1,"Abandon your physical form and ascend to a body of pure light, causing all strikes to deal Holy instead of Physical damage."},{35395,5,"An instant strike that deals damage."},{53385,16,"Swing your weapon in an arc around you, dealing damage to enemies and healing allies."},{14914,20,"Summons wrathful light to strike a target, bathing them in flames and dealing massive damage."}},
++    [139]={{954052,1,"Shoot a poison-tipped arrow at your target, causing Nature damage over time."},{1978,10,"Fire a poisonous shot, dealing Nature damage. Castable while moving."},{5176,20,"Sling a ball of energy at your target, dealing Nature damage."},{53209,60,"Shoot your target and consume your active Serpent Sting, dealing its remaining periodic damage all at once for a massive burst of damage."}},
++    [140]={{997526,1,"Fire a cursed arrow at the target, dealing Shadow damage and causing additional Shadow damage over time."},{997517,14,"Sling a sinister arrow at the target, dealing Shadow damage. The arrow then bleeds the target, transferring their health to you every few seconds."},{686,26,"Sends a ball of pure Shadow hurdling towards your target, dealing damage."},{998204,26,"Launch a wave of Shadow Artillery, dealing Shadow damage to enemies in it's path."}},
++    [141]={{978945,1,"Strike your target in a burst of wind, hitting twice."},{1680,14,"Spin your blades in a whirl of steel, cleaving nearby enemies."},{8232,32,"Imbue your weapons with elemental wind, giving them a 20% chance to strike 2 additional times whenever you attack."},{983982,40,"Slash your target, dealing damage and increasing your chance to trigger Windfury Weapon."}},
++    [142]={{6343,1,"Strike the ground beneath you, causing a boom of thunder that damages and slows the attack speed of all nearby enemies."},{403,10,"Send a ball of lightning hurdling towards your foe."},{978823,22,"Strike your foes with the fury of thunder, dealing massive Nature damage and increasing the damage of Thunder Clap."},{978826,30,"Shock your target with booming thunder, dealing Nature damage then jumping to nearby targets."},{421,32,"Strike your target with a blast of lightning, which arcs out to nearby targets."}},
++    [143]={{986011,1,"Carve into your foe with your claws, causing them to bleed profusely. Has a chance to draw blood from the target."},{986008,1,"Your attacks have a chance to draw blood from your enemies, healing you or eventually turning you into a tornado of blood and bone."},{779,1,"Swipe at all nearby enemies, dealing damage."},{6807,4,"Maul your target with savage claws, dealing damage and causing the target to focus on you. Has a chance to draw blood from the target."},{33745,10,"Lacerate the enemy, dealing immediate damage and causing the target to bleed for some time."}},
++    [144]={{5740,20,"Calls down a rain of flaming meteors to damage all enemies in an area."},{29722,28,"Conjure an evil flame and sling it at your target, dealing Fire damage."},{902186,28,"Channel a beam of pure fury into the target, dealing Shadowflame damage over time."},{6353,48,"Sears the enemy's soul, dealing massive Fire damage."},{50796,60,"Hurl a bolt of chaotic Fire at the enemy, dealing Fire damage. Chaos Bolt cannot be resisted, and pierces through all absorption, deflection, and reflection effects."}},
++}
++local marker = "###AREA52_CREATION_SUMMARY"
++local function hex(text)
++    return (text:gsub(".", function(c) return string.format("%02x",string.byte(c)) end))
++end
++local function encode(rows)
++    local parts={"1"}
++    for _,row in ipairs(rows) do parts[#parts+1]=row.id..":"..row.level..":"..hex(row.text) end
++    return table.concat(parts,";")
++end
++function Summary.load(id,value)
++    local defaults=Summary.defaults[id] or {}
++    local rows,seen={},{}
++    if not value then
++        for i,s in ipairs(defaults) do rows[i]={id=s[1],level=tostring(s[2]),text=s[3]} end
++        return rows
++    end
++    for spell,level,raw in value:gmatch(";(%d+):(%d+):([0-9a-f]*)") do
++        local key=tonumber(spell)
++        if seen[key] or #raw%2~=0 then return end
++        local found=false
++        for _,s in ipairs(defaults) do if s[1]==key then found=true end end
++        if not found then return end
++        seen[key]=true
++        rows[#rows+1]={id=key,level=level,text=(raw:gsub("..",function(pair)return string.char(tonumber(pair,16)) end))}
++    end
++    if #rows==#defaults and encode(rows)==value then return rows end
++end
++local function valid(rows)
++    for _,row in ipairs(rows or {}) do
++        local level=tonumber(row.level)
++        if not level or tostring(level)~=row.level or level<1 or level>80 or level~=math.floor(level) then return false end
++        if #row.text>1024 or row.text:find("[%z\1-\9\11\12\14-\31\127]") then return false end
++    end
++    return true
++end
++local beforeSummary=F.Before
++function F.Before(view,deserialize)
++    beforeSummary(view,deserialize)
++    if not view.Area52PreviewSection then return end
++    local build=C_BuildEditor.GetPendingBuild()
++    local id=view.Area52ArchetypeID
++    if deserialize then id=Area52DraftSelector.ReadID(build.Description) end
++    local eligible=F.Applies() and id and Summary.defaults[id]
++    if not eligible then
++        view.SummaryID=nil;view.SummaryRows=nil;view.SummaryInvalid=nil
++        if view.SummaryPanel then view.SummaryPanel:Hide() end
++        return
++    end
++    if deserialize or view.SummaryID~=id or view.SummaryGeneration~=view.Area52FeaturedGeneration then
++        local raw
++        if Area52DraftSelector.ReadID(build.Description)==id then raw=(build.Description or ""):match(marker.."\n([^\n]*)") end
++        view.SummaryRows=Summary.load(id,raw)
++        view.SummaryInvalid=not view.SummaryRows
++        view.SummaryID=id;view.SummaryGeneration=view.Area52FeaturedGeneration
++    end
++    Summary.show(view)
++end
++local originalDescription=Area52DraftSelector.Description
++function Area52DraftSelector.Description(view,description)
++    if GetRealmName()~="Area 52 - Free-Pick" then return originalDescription(view,description) end
++    local result=(originalDescription(view,description) or ""):gsub("\n*"..marker.."\n[^\n]*","")
++    if F.Applies() and view.SummaryRows and view.SummaryID==view.Area52ArchetypeID then
++        local data=encode(view.SummaryRows)
++        if data~=encode(Summary.load(view.SummaryID)) then result=result.."\n\n"..marker.."\n"..data end
++    end
++    return result
++end
++local priorValidate=Area52CanPublishBuild
++function Area52CanPublishBuild(view)
++    if F.Applies() and (view.SummaryInvalid or not valid(view.SummaryRows)) then
++        return false,{"Character Creation summary: use unlock levels 1–80 and descriptions up to 1,024 bytes."}
++    end
++    if F.Applies() and #(C_BuildEditor.GetPendingBuild().Description or "")>8192 then
++        return false,{"The build description and Character Creation summary exceed the 8,192-byte save limit. Shorten the text before saving."}
++    end
++    return priorValidate(view)
++end
++local priorReason=Area52BuildPublishReason
++function Area52BuildPublishReason(reason)
++    if reason=="PUBLISH_BUILD_INVALID_CREATION_SUMMARY" then return "Check the Character Creation summary abilities, unlock levels and descriptions." end
++    return priorReason(reason)
++end
++BUILDCREATOR_SECTION_AREA52_CREATION_SUMMARY="Character Creation Summary"
++function Summary.show(view)
++    local content=view.MainFrame.ScrollFrame.Content
++    local panel=view.SummaryPanel
++    if not panel then
++        BuildViewSectionMixin.CategoryIcons.AREA52_CREATION_SUMMARY="Interface\\Icons\\INV_Misc_Book_09"
++        panel=CreateFrame("Frame",view:GetName().."CreationSummary",content,"EditableBuildViewSectionTemplate")
++        view.SummaryPanel=panel;panel:SetWidth(764);panel:SetCategory("AREA52_CREATION_SUMMARY");panel.Area52FeaturedOnly=true
++        panel.Serialize=function()end;panel.Deserialize=function()end;panel.rows={}
++        for pos=#content.sections,1,-1 do if content.sections[pos]==panel then table.remove(content.sections,pos) end end
++        for pos,section in ipairs(content.sections) do
++            if section==view.Area52PreviewSection then table.insert(content.sections,pos+1,panel);break end
++        end
++        for i=1,5 do
++            local index=i
++            local line=CreateFrame("Frame",nil,panel);panel.rows[i]=line
++            line:SetSize(720,90);line:SetPoint("TOPLEFT",20,-40-(i-1)*94)
++            line.name=line:CreateFontString(nil,"OVERLAY","GameFontNormal")
++            line.name:SetPoint("TOPLEFT",0,0)
++            local label=line:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
++            label:SetPoint("TOPLEFT",270,0);label:SetText("Unlock level")
++            local function field(width,height,x,y,key)
++                local box=CreateFrame("EditBox",nil,line,"InputBoxTemplate")
++                box:SetAutoFocus(false);box:SetSize(width,height);box:SetPoint("TOPLEFT",x,y)
++                if key=="text" then box:SetMultiLine(true);box:SetJustifyV("TOP") else box:SetNumeric(true);box:SetMaxLetters(2) end
++                box:SetScript("OnTextChanged",function(self,user)
++                    if user and F.Applies() and view.SummaryRows and view.SummaryRows[index] then
++                        view.SummaryRows[index][key]=self:GetText();view:UpdatePendingBuild()
++                    end
++                end)
++                box:SetScript("OnEscapePressed",function(self)self:ClearFocus()end)
++                return box
++            end
++            line.level=field(46,22,356,4,"level");line.text=field(670,62,8,-24,"text")
++            local function move(delta,x,title)
++                local b=CreateFrame("Button",nil,line,"UIPanelButtonTemplate")
++                b:SetSize(65,22);b:SetPoint("TOPLEFT",x,4);b:SetText(title)
++                b:SetScript("OnClick",function()
++                    local rows=view.SummaryRows;local dest=index+delta
++                    if F.Applies() and rows and rows[dest] then
++                        rows[index],rows[dest]=rows[dest],rows[index];view:UpdatePendingBuild()
++                    end
++                end)
++                return b
++            end
++            line.up=move(-1,510,"Up");line.down=move(1,580,"Down")
++        end
++    end
++    local rows=view.SummaryRows or {}
++    panel:SetHeight(50+94*#rows);panel:Show()
++    panel:ClearAllPoints();panel:SetPoint("TOPLEFT",view.Area52PreviewSection,"BOTTOMLEFT",0,-16)
++    content.Consumables:ClearAllPoints();content.Consumables:SetPoint("TOPLEFT",panel,"BOTTOMLEFT",0,-16)
++    for i,line in ipairs(panel.rows) do
++        local row=rows[i];line:SetShown(row~=nil)
++        if row then
++            line.name:SetText(GetSpellInfo(row.id) or tostring(row.id))
++            if line.level:GetText()~=row.level then line.level:SetText(row.level) end
++            if line.text:GetText()~=row.text then line.text:SetText(row.text) end
++            if i>1 then line.up:Enable() else line.up:Disable() end
++            if i<#rows then line.down:Enable() else line.down:Disable() end
++        end
++    end
++end
++
++-- These controls edit the existing Featured reward and preview fields.
++local DEFAULT=4294967295
++local sceneData={["pets"]={[1]=0,[2]=0,[3]=0,[6]=0,[7]=0,[10]=0,[12]=0,[13]=11783,[14]=0,[15]=0,[16]=0,[17]=1042,[18]=0,[19]=0,[20]=0,[21]=0,[22]=0,[24]=74491,[25]=0,[26]=16941,[27]=0,[29]=0,[30]=0,[31]=0,[32]=0,[33]=18683,[34]=0,[73]=0,[74]=0,[75]=0,[77]=0,[78]=0,[79]=0,[80]=1863,[82]=0,[84]=24747,[85]=35189,[86]=0,[88]=0,[90]=0,[95]=80854,[97]=510,[101]=0,[104]=0,[129]=0,[131]=0,[132]=0,[133]=0,[134]=0,[136]=0,[139]=6554,[140]=0,[141]=0,[142]=0,[143]=1860,[144]=416},["forms"]={[14]={[3]=47652},[26]={[4]=51205},[32]={[1]=822},[33]={[1]=47557},[34]={[1]=47559},[75]={[2]=47577},[131]={[2]=47579},[143]={[1]=45402}},["items"]={[645]=1006100,[646]=1006101,[647]=1006102,[648]=1006103,[649]=1006104,[650]=1006105,[651]=1006106,[652]=1006108,[822]=1777062,[6004]=204819,[6005]=204820,[6006]=204821,[6007]=204822,[6008]=204823,[6009]=204824,[15605]=291916,[15606]=291917,[15607]=291918,[15608]=291919,[15609]=291920,[15610]=291921,[15611]=291922,[45401]=1777303,[45402]=1777305,[45403]=1777306,[47124]=6300608,[47250]=1777312,[47251]=1777313,[47522]=49095,[47524]=1777063,[47533]=1777311,[47536]=1777314,[47537]=1777316,[47538]=6300600,[47539]=6300601,[47540]=6300602,[47541]=6300603,[47542]=6300604,[47543]=6300605,[47544]=6300606,[47545]=6300607,[47547]=6300609,[47548]=6300610,[47549]=6300611,[47550]=6300612,[47551]=6300613,[47552]=6300614,[47553]=6300615,[47554]=6300616,[47555]=6300617,[47556]=6300618,[47557]=6300619,[47558]=6300620,[47559]=6300624,[47560]=6300625,[47561]=6300626,[47562]=6300627,[47563]=97750,[47565]=507380,[47566]=752019,[47567]=752020,[47568]=752021,[47569]=754699,[47571]=754701,[47572]=754702,[47573]=754703,[47574]=754704,[47575]=754705,[47576]=754706,[47577]=200624,[47578]=1009546,[47579]=1777061,[47580]=1777287,[47581]=1777288,[47582]=1777289,[47584]=1777291,[47585]=1777292,[47586]=1777293,[47587]=1777294,[47588]=1777295,[47589]=1777296,[47590]=1777297,[47591]=1777298,[47592]=6300628,[47593]=6300629,[47595]=6300631,[47596]=6300632,[47597]=6300633,[47598]=6300634,[47599]=6300635,[47600]=6300636,[47601]=6300637,[47602]=6300638,[47603]=6300639,[47604]=6300640,[47605]=6300641,[47606]=6300642,[47607]=6300643,[47608]=6300644,[47609]=6300645,[47610]=6300646,[47611]=6300647,[47612]=6300648,[47613]=6300649,[47614]=6300650,[47615]=6300657,[47640]=97742,[47642]=97744,[47647]=499401,[47648]=1777236,[47649]=1777237,[47650]=1777238,[47651]=1777239,[47652]=6300590,[47653]=6300591,[47654]=6300592,[47655]=6300593,[47656]=193607,[47657]=193608,[47658]=193609,[47659]=193610,[47660]=193611,[47661]=193612,[51205]=97752,[51206]=97753,[51207]=198602,[51208]=198603,[51209]=198604,[51210]=198605,[51211]=455986,[51212]=455987,[51213]=455988,[51214]=455989,[51215]=455990,[51216]=455991,[51217]=6300680,[51429]=1777290,[61375]=1777307,[61376]=1777308,[61377]=1777309,[61378]=1777310,[179673]=239750,[179674]=239751,[179675]=239752,[179676]=239753,[179677]=239754,[179678]=239756,[261377]=427807,[261378]=427808,[261379]=427809,[261380]=427810,[261381]=427811,[261382]=427812},["petAppearance"]={[74491]={61374,26,1777174},[16941]={47677,26,101262},[18683]={51229,26,101261},[80854]={51230,27,101267}},["categories"]={{26,"Voidwalker appearances"},{27,"Succubus appearances"}},["petIcons"]={[1042]="Interface\\Icons\\INV_Misc_Head_Dragon_Red",[24747]="Interface\\Icons\\Ability_Hunter_Pet_Owl",[35189]="Interface\\Icons\\Ability_Hunter_Pet_Wolf",[6554]="Interface\\Icons\\Ability_Hunter_Pet_Wasp"}}
++local poses={{0,"Stand"},{25,"Unarmed ready"},{26,"One-handed ready"},{27,"Two-handed ready"},{28,"Two-handed ready (alternate)"},{29,"Bow ready"},{48,"Rifle ready"},{51,"Directed cast ready"},{52,"Omnidirectional cast ready"}}
++local function choose(view,index,id)
++    if not F.Applies() or view.Area52PreviewInvalid then return end
++    view.Area52PreviewEffects[index]=id
++    view:UpdatePendingBuild()
++end
++local function dropdown(parent,name,x,y)
++    local d=CreateFrame("Frame",name,parent,"UIDropDownMenuTemplate")
++    d:SetPoint("TOPLEFT",parent,"TOPLEFT",x,y);UIDropDownMenu_SetWidth(d,212)
++    return d
++end
++local function menu(drop,choices,current,select)
++    UIDropDownMenu_Initialize(drop,function()
++        for _,entry in ipairs(choices) do
++            local id=entry.id
++            local info=UIDropDownMenu_CreateInfo()
++            info.text=entry.name;info.checked=id==current
++            info.func=function()select(id) end
++            UIDropDownMenu_AddButton(info)
++        end
++    end)
++    local text=current==DEFAULT and "Archetype default" or tostring(current)
++    for _,entry in ipairs(choices) do if entry.id==current then text=entry.name end end
++    UIDropDownMenu_SetText(drop,text)
++end
++local function pose(scene)
++    scene.actor:StopSequence()
++    scene.actor:PlaySequence(scene.pose or 0,true)
++end
++local function idle(scene,index)
++    scene.deadlines[index]=nil
++    if index==1 then
++        local model=scene.actor
++        model:StopSequence()
++        model:SetUnit("player")
++        model:Undress()
++        for slot=1,12 do
++            local item=scene.view.Area52FeaturedItems[slot]
++            if item and item>0 then model:TryOn(item) end
++        end
++        pose(scene)
++    else
++        local pet=scene.pet
++        pet:StopSequence()
++        if scene.petID and scene.petID>0 then
++            pet:SetCreature(scene.petID);pet:SetSequence(0);pet:Show()
++        else
++            pet:ClearModel();pet:Hide()
++        end
++    end
++end
++local function play(scene)
++    for index,actor in ipairs({scene.actor,scene.pet}) do
++        idle(scene,index)
++        local spell=scene.view.Area52PreviewEffects[index+2]
++        if spell and spell~=DEFAULT and spell>0 and (index==1 or scene.petID>0) then
++            actor:StopSequence()
++            actor:SetSpell(spell,0)
++            local _,_,_,_,_,_,ms=GetSpellInfo(spell)
++            scene.deadlines[index]=math.max(2,(tonumber(ms) or 0)/1000+1)
++        end
++    end
++end
++local function label(parent,text,x,y)
++    local l=parent:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
++    l:SetPoint("TOPLEFT",parent,"TOPLEFT",x,y);l:SetText(text)
++end
++local function petWardrobe(view,category)
++    F.OpenPicker(view,0)
++    if not F.picker then return end
++    F.picker.scenePetCategory=category
++    local kind
++    for _,candidate in ipairs({"APPEARANCE_TYPE_COSMETIC_PET","APPEARANCE_TYPE_INCARNATION"}) do
++        for _,id in pairs(C_AppearanceCollection.GetCategoriesForType(candidate) or {}) do if id==category then kind=candidate end end
++    end
++    if not kind then F.ClosePicker(true);F.Message("This pet category is unavailable in Wardrobe.");return end
++    AppearanceUI.OpenCategory(kind,category)
++    AppearanceWardrobeFrame.Collection.SearchBox:SetText("")
++    AppearanceWardrobeFrame.Collection:RefreshCategory()
++    F.PickerBar.Text:SetText("Choose a supported combat-pet appearance")
++end
++local oldPick=F.PickAppearance
++function F.PickAppearance(appearance)
++    local c=F.picker
++    if not c or not c.scenePetCategory then return oldPick(appearance) end
++    if not F.ValidContext(c) then F.ClosePicker(false);return true end
++    for creature,row in pairs(sceneData.petAppearance) do
++        if row[1]==appearance and row[2]==c.scenePetCategory then
++            F.ClosePicker(true);choose(c.view,1,creature);return true
++        end
++    end
++    F.Message("This appearance has no Featured combat-pet reward mapping.")
++    return true
++end
++function F.CreateScene(view,panel)
++    panel:SetHeight(248)
++    local scene={view=view,deadlines={}};panel.scene=scene
++    scene.actor=CreateFrame("DressUpModel",nil,panel)
++    scene.actor:SetSize(190,180);scene.actor:SetPoint("TOPLEFT",12,-38)
++    scene.pet=CreateFrame("DressUpModel",nil,panel)
++    scene.pet:SetSize(110,110);scene.pet:SetPoint("BOTTOMLEFT",160,20)
++    local base=view:GetName().."FeaturedScene"
++    scene.drops={}
++    for i,title in ipairs({"Character cast visual","Pet cast visual","Editor stance"}) do
++        label(panel,title,310,-30-(i-1)*60)
++        scene.drops[i]=dropdown(panel,base.."Menu"..i,290,-44-(i-1)*60)
++    end
++    local replay=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate")
++    scene.replay=replay;replay:SetSize(98,24);replay:SetPoint("TOPLEFT",550,-48);replay:SetText("Replay")
++    replay:SetScript("OnClick",function()play(scene)end)
++    for i,model in ipairs({scene.actor,scene.pet}) do
++        local index=i
++        model:HookScript("OnAnimFinished",function()
++            if scene.deadlines[index] then idle(scene,index) end
++        end)
++    end
++    panel:HookScript("OnUpdate",function(_,elapsed)
++        for i=1,2 do
++            if scene.deadlines[i] then
++                scene.deadlines[i]=scene.deadlines[i]-elapsed
++                if scene.deadlines[i]<=0 then idle(scene,i) end
++            end
++        end
++    end)
++    panel:HookScript("OnHide",function()scene.deadlines={};scene.key=nil end)
++    local canvas=view.Area52VanitySection.Canvas
++    scene.icons={}
++    scene.petMenu=CreateFrame("Frame",base.."PetMenu",canvas,"UIDropDownMenuTemplate")
++    scene.petMenu:Hide()
++    for j,index in ipairs({1,5,6,7,8}) do
++        local slot=index
++        local btn=CreateFrame("CheckButton",nil,canvas,"AppearanceCategorySlotButtonTemplate")
++        btn:UnregisterAllEvents();btn:SetScript("OnEvent",nil)
++        btn:SetScript("OnShow",function(self)self.AnimFrame:Hide()end)
++        btn:SetSize(36,36);btn:SetPoint("TOPLEFT",canvas,"TOPLEFT",402+((j-1)%3)*42,-148-math.floor((j-1)/3)*45)
++        btn:RegisterForClicks("LeftButtonUp","RightButtonUp")
++        btn:SetScript("OnClick",function(self,mouse)
++            if not F.Applies() or view.Area52PreviewInvalid then return end
++            if mouse=="RightButton" then choose(view,slot,IsShiftKeyDown() and DEFAULT or 0);return end
++            if slot~=1 then F.OpenIncarnationPicker(view,slot);return end
++            local ctx={view=view,id=C_BuildEditor.GetPendingBuild().ID,archetype=view.Area52ArchetypeID,generation=view.Area52FeaturedGeneration}
++            local function action(fn)return function()if F.ValidContext(ctx) then fn() end end end
++            local options={{text="Archetype default",func=action(function()choose(view,1,DEFAULT)end)}}
++            for _,p in ipairs(F.RewardPets) do
++                local id=p.id
++                if not sceneData.petAppearance[id] then
++                    options[#options+1]={text=p.name,func=action(function()choose(view,1,id)end)}
++                end
++            end
++            for _,p in ipairs(sceneData.categories) do
++                local cat=p[1]
++                options[#options+1]={text=p[2],func=action(function()petWardrobe(view,cat)end)}
++            end
++            EasyMenu(options,scene.petMenu,self,0,0,"MENU")
++        end)
++        btn:SetScript("OnEnter",function(self)
++            GameTooltip:SetOwner(self,"ANCHOR_RIGHT");GameTooltip:SetText(F.PreviewLabels[slot])
++            GameTooltip:AddLine(self.rewardName or "None",1,1,1)
++            GameTooltip:AddLine("Left-click to choose. Right-click to clear. Shift-right-click to restore the default.",1,0.82,0);GameTooltip:Show()
++        end)
++        btn:SetScript("OnLeave",function()GameTooltip:Hide()end)
++        scene.icons[slot]=btn
++    end
++end
++function F.RefreshPreviewControls(view)
++    local panel=view.Area52PreviewSection
++    if not panel or not panel.scene or not F.Applies() then return end
++    local scene=panel.scene
++    local e=view.Area52PreviewEffects
++    local archetype=view.Area52ArchetypeID or Area52DraftSelector.ReadID(C_BuildEditor.GetPendingBuild().Description)
++    scene.petID=e[1]==DEFAULT and (sceneData.pets[archetype] or 0) or e[1]
++    local ctx={view=view,id=C_BuildEditor.GetPendingBuild().ID,archetype=view.Area52ArchetypeID,generation=view.Area52FeaturedGeneration}
++    for i=1,2 do
++        local idx=i+2
++        menu(scene.drops[i],F.PreviewChoices(view,idx),e[idx],function(id)
++            if F.ValidContext(ctx) then choose(view,idx,id) end
++        end)
++    end
++    local choices={}
++    for _,p in ipairs(poses) do choices[#choices+1]={id=p[1],name=p[2]} end
++    menu(scene.drops[3],choices,scene.pose or 0,function(id)
++        if not F.ValidContext(ctx) then return end
++        scene.pose=id;idle(scene,1)
++        for _,p in ipairs(poses) do if p[1]==id then UIDropDownMenu_SetText(scene.drops[3],p[2]);break end end
++    end)
++    for idx,btn in pairs(scene.icons) do
++        local id=e[idx]
++        local effective=id
++        if id==DEFAULT then effective=idx==1 and scene.petID or ((sceneData.forms[archetype] or {})[idx-4] or 0) end
++        local icon,name
++        if idx==1 then
++            for _,p in ipairs(F.RewardPets) do if p.id==effective then name=p.name end end
++            if id==DEFAULT and not name then effective=0 end
++            local ap=sceneData.petAppearance[effective]
++            icon=ap and GetItemIconInstant(ap[3]) or sceneData.petIcons[effective]
++        else
++            local item=sceneData.items[effective]
++            icon=item and GetItemIconInstant(item)
++            for _,p in ipairs(F.IncarnationChoices[idx-4]) do if p.id==effective then name=p.name end end
++        end
++        btn.Icon:SetTexture(icon or (effective>0 and "Interface\\Icons\\INV_Misc_QuestionMark" or "Interface\\Icons\\INV_Misc_Bag_10"))
++        btn.Icon:SetDesaturated(effective==0);btn.NoItemTexture:SetShown(effective==0)
++        btn.rewardName=(id==DEFAULT and "Archetype default: " or "")..(name or (effective==0 and "None" or tostring(effective)))
++    end
++    local key=table.concat({view.Area52FeaturedGeneration or 0,archetype or 0,scene.petID,e[3],e[4],table.concat(view.Area52FeaturedItems,",")},":")
++    if key~=scene.key then scene.key=key;play(scene) end
++end
+--- a/client/BuildCreatorUtil.lua
++++ b/client/BuildCreatorUtil.lua
+@@ -102,7 +102,7 @@
+ 
+ local function Area52VisibleDescription(description)
+     if GetRealmName() ~= "Area 52 - Free-Pick" then return description end
+-    for _,key in ipairs({"ARCHETYPE_ID","FEATURED_VANITY","FEATURED_IMPORTED","FEATURED_PREVIEW","FEATURED_INCARNATIONS"}) do
++    for _,key in ipairs({"ARCHETYPE_ID","FEATURED_VANITY","FEATURED_IMPORTED","FEATURED_PREVIEW","FEATURED_INCARNATIONS","CREATION_SUMMARY"}) do
+         description=description:gsub("\n*###AREA52_"..key.."[^#]*","")
+     end
+     return description
+--- a/client/local_glue.lua
++++ b/client/local_glue.lua
+@@ -1,29 +1,49 @@
+ do
+     local selected=0
+-    local changed=false
+-    local function reset()
+-        if changed then
+-            C_CharacterCreate.StopCastAnimation()
+-            C_CharacterCreate.StopPetCastAnimation()
+-            changed=false
++    local clock=CreateFrame("Frame",nil,CharacterCreateFrame)
++    local remaining={}
++    local function stop(i)
++        if i==1 then C_CharacterCreate.StopCastAnimation() else C_CharacterCreate.StopPetCastAnimation() end
++        remaining[i]=nil
++    end
++    clock:Hide()
++    clock:SetScript("OnUpdate",function(self,dt)
++        for i=1,2 do
++            if remaining[i] then
++                remaining[i]=remaining[i]-dt
++                if remaining[i]<=0 then stop(i) end
++            end
+         end
++        if not remaining[1] and not remaining[2] then self:Hide() end
++    end)
++    local function apply()
++        -- The hooked native call has already rebuilt this scene. Discard old
++        -- deadlines without stopping either actor in the freshly built scene.
++        remaining={};clock:Hide()
++        if selected==0 or GetRealmName()~="Area 52 - Free-Pick" then return end
++        local values=Area52FeaturedPreviewCatalog[selected] or {}
++        for i=1,2 do
++            local spell=values[i]
++            if spell==0 then stop(i)
++            else
++                local duration=4
++                if spell and spell~=4294967295 then
++                    if i==1 then C_CharacterCreate.PlayCastAnimation(spell) else C_CharacterCreate.PlayPetCastAnimation(spell) end
++                    if GetSpellInfo then
++                        local _,_,_,_,_,_,ms=GetSpellInfo(spell)
++                        if tonumber(ms) then duration=math.max(2,ms/1000+1) end
++                    end
++                end
++                remaining[i]=duration
++            end
++        end
++        if remaining[1] or remaining[2] then clock:Show() end
+     end
+-    local function apply()
+-        reset()
+-        if GetRealmName()~="Area 52 - Free-Pick" then return end
+-        local values=Area52FeaturedPreviewCatalog[selected]
+-        if not values then return end
+-        if values[1]~=4294967295 then
+-            if values[1]==0 then C_CharacterCreate.StopCastAnimation() else C_CharacterCreate.PlayCastAnimation(values[1]) end
+-            changed=true
+-        end
+-        if values[2]~=4294967295 then
+-            if values[2]==0 then C_CharacterCreate.StopPetCastAnimation() else C_CharacterCreate.PlayPetCastAnimation(values[2]) end
+-            changed=true
+-        end
+-    end
+-    hooksecurefunc(C_CharacterCreate,"SetSelectedArchetype",function(role,category,archetype)selected=archetype or 0;apply()end)
++    hooksecurefunc(C_CharacterCreate,"SetSelectedArchetype",function(role,category,id)selected=id or 0;apply()end)
+     hooksecurefunc("SetCharacterRace",apply)
+     hooksecurefunc("SetCharacterGender",apply)
+-    hooksecurefunc("CharacterCreate_OnHide",function()reset();selected=0 end)
++    hooksecurefunc("CharacterCreate_OnHide",function()
++        for i=1,2 do if remaining[i] then stop(i) end end
++        selected=0;clock:Hide()
++    end)
+ end

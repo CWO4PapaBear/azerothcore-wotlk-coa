@@ -1,0 +1,10 @@
+{
+  "binary": "04e86f2b9b7e07effda2aecc0e78949b00863d6d54d12ccb50ec48e7cf44dc90",
+  "baseline": "ccb5a4a55e29bd5d9ebb3dd37dbedf6e57326811440552efae87896c845d1f38",
+  "reports": {
+    "featured-scene-editor/build-r1/report.json": "7ee6682447078d6e433e125cbdf2d94d48b06477776f321e18a4c33fd6d4d54f",
+    "featured-scene-editor/layout-verification/report.json": "8b0d89eac916108bdc3946e6f8813528571ada25c51d7c8c375ff258cbbe248c",
+    "featured-summary-editor/verified/report.json": "8c99cbef7518ec78e6d1be6fa4b793080a1c04c362d1d7eb6a7220bc13379732"
+  },
+  "managed_files": 509
+}
