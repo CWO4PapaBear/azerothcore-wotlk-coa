@@ -1,0 +1,11 @@
+{
+  "scope": "mechanical repairs only; preserve certification and collection records",
+  "candidate_sha256": "d2add2d38377042650879f643fcfd7d7684b99f713fb61bccdbbc77b3a8ebc04",
+  "baseline_sha256": "04e86f2b9b7e07effda2aecc0e78949b00863d6d54d12ccb50ec48e7cf44dc90",
+  "reports": {
+    "build-r1": "4a546188cc946068c0eb9d73a5e3bcdeb870f53768733d57a8507227c6c5ea3f",
+    "package-check": "4a068f109927b77d8064a3c5a6633ba96e56a25b5a6d039f9b3f62426376fb04"
+  },
+  "client_sha256": "e56d5ad416683a811ec3f63c19ae1d81af489eb2cbd0a6d782aca4a19a1826db",
+  "preserves_test_access_exclusions": true
+}

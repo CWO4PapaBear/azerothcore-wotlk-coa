@@ -1,0 +1,312 @@
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -1584,18 +1584,31 @@
+ {
+     if (!Active)
+         return 0.0f;
++    uint32 const primarySchool = 1u << GetFirstSchoolInMask(SpellSchoolMask(schoolMask));
+     AuraEffect const* athletic = caster->GetAuraEffect(84561, EFFECT_0);
+-    if (!athletic || athletic->GetAmount() >= 0 || athletic->GetAuraType() != SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT ||
+-        !(athletic->GetMiscValue() & schoolMask))
++    AuraEffect const* shadows = caster->GetAuraEffect(84562, EFFECT_0);
++    auto matches = [](AuraEffect const* effect, uint32 mask)
++    {
++        return effect && effect->GetAuraType() == SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT &&
++            effect->GetAmount() < 0 && (effect->GetMiscValue() & mask);
++    };
++    if (!matches(athletic, primarySchool) && !matches(shadows, schoolMask))
+         return 0.0f;
++
+     int32 sum = 0;
+     int32 strongest = 0;
+     for (AuraEffect const* effect : caster->GetAuraEffectsByType(SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT))
+     {
+-        if (effect->GetAmount() >= 0 || !(effect->GetMiscValue() & schoolMask) || !Data.BySpell.contains(effect->GetId()))
++        if (!Data.BySpell.contains(effect->GetId()))
+             continue;
+-        sum += effect->GetAmount();
+-        strongest = std::min(strongest, effect->GetAmount());
++        // The normal cost field already contains modifiers for the primary school.
++        if (matches(effect, primarySchool))
++        {
++            sum += effect->GetAmount();
++            strongest = std::min(strongest, effect->GetAmount());
++        }
++        else if (effect == shadows && matches(effect, schoolMask))
++            strongest = std::min(strongest, effect->GetAmount());
+     }
+     return float(strongest - sum) / 100.0f;
+ }
+@@ -2177,6 +2190,105 @@
+     return DefiasWeaponReady(player) && IsDefiasGrape(player, spellId);
+ }
+ 
++#include "CellImpl.h"
++#include "GridNotifiersImpl.h"
++class aura_area52_frenzied_cleave : public AuraScript
++{
++    PrepareAuraScript(aura_area52_frenzied_cleave);
++
++    bool Validate(SpellInfo const*) override { return ValidateSpellInfo({954584}); }
++
++    bool Load() override
++    {
++        return AscensionFreePick::Applies(GetCaster() ? GetCaster()->ToPlayer() : nullptr);
++    }
++
++    void Cleave(AuraEffect const* effect, ProcEventInfo& event)
++    {
++        PreventDefaultAction();
++        Unit* pet = GetTarget();
++        DamageInfo* hit = event.GetDamageInfo();
++        if (!hit || !hit->GetDamage() || hit->GetSpellInfo() || event.GetActor() != pet ||
++            !(event.GetTypeMask() & PROC_FLAG_DONE_MELEE_AUTO_ATTACK) ||
++            !GetCaster() || GetCaster()->GetGuardianPet() != pet)
++            return;
++
++        std::list<Unit*> nearby;
++        Acore::AnyUnfriendlyNoTotemUnitInObjectRangeCheck check(pet, pet, NOMINAL_MELEE_RANGE);
++        Acore::UnitListSearcher<Acore::AnyUnfriendlyNoTotemUnitInObjectRangeCheck> search(pet, nearby, check);
++        Cell::VisitObjects(pet, search, NOMINAL_MELEE_RANGE);
++        nearby.remove_if([&](Unit* unit)
++        {
++            return unit == hit->GetVictim() || !pet->IsValidAttackTarget(unit) || !pet->IsWithinLOSInMap(unit);
++        });
++        Acore::Containers::RandomResize(nearby, 5);
++        std::vector<ObjectGuid> targets;
++        for (Unit* unit : nearby)
++            targets.push_back(unit->GetGUID());
++
++        CustomSpellValues values;
++        values.AddSpellMod(SPELLVALUE_BASE_POINT0, hit->GetUnmitigatedDamage());
++        values.AddSpellMod(SPELLVALUE_FORCED_CRIT_RESULT, int32(event.GetHitMask() & PROC_EX_CRITICAL_HIT));
++        for (ObjectGuid guid : targets)
++            if (Unit* unit = ObjectAccessor::GetUnit(*pet, guid))
++                pet->CastCustomSpell(954584, values, unit, TRIGGERED_FULL_MASK, nullptr, effect);
++    }
++
++    void Register() override
++    {
++        OnEffectProc += AuraEffectProcFn(aura_area52_frenzied_cleave::Cleave, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
++    }
++};
++
++class spell_area52_void_eruption : public SpellScript
++{
++    PrepareSpellScript(spell_area52_void_eruption);
++
++    bool Validate(SpellInfo const*) override
++    {
++        return ValidateSpellInfo({589, 760185, 760186});
++    }
++
++    bool Load() override
++    {
++        return AscensionFreePick::Applies(GetCaster()->ToPlayer());
++    }
++
++    void Landed(SpellEffIndex)
++    {
++        Player* caster = GetCaster()->ToPlayer();
++        Unit* enemy = GetHitUnit();
++        if (!enemy || !caster->IsValidAttackTarget(enemy))
++            return;
++
++        // The default launch effect has already granted this cast's personal buff.
++        if (Aura* buff = caster->GetAura(760185, caster->GetGUID()))
++        {
++            int32 extension = sSpellMgr->GetSpellInfo(760186)->Effects[EFFECT_0].CalcValue();
++            buff->SetDuration(buff->GetDuration() + extension);
++        }
++
++        // The original tooltip exposes Worgen Form only with the Wildcard rune.
++        if (caster->GetShapeshiftForm() != FORM_SHADOW &&
++            !(caster->HasSpell(973827) && caster->GetShapeshiftForm() == FORM_CAT &&
++              (caster->HasAura(275737) || caster->HasAura(982807) || caster->HasAura(1575492))))
++            return;
++
++        for (uint32 rank = sSpellMgr->GetLastSpellInChain(589); rank; rank = sSpellMgr->GetPrevSpellInChain(rank))
++            if (caster->HasActiveSpell(rank))
++            {
++                // Apply to the already-hit target, preserving aura immunities and caster ownership.
++                caster->AddAura(rank, enemy);
++                break;
++            }
++    }
++
++    void Register() override
++    {
++        OnEffectHitTarget += SpellEffectFn(spell_area52_void_eruption::Landed, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
++    }
++};
++
+ void AddSC_AscensionMysticEnchant()
+ {
+     new area52_defias_combat();
+@@ -2184,6 +2296,8 @@
+     RegisterSpellScript(aura_area52_dark_arrow_mark);
+     RegisterSpellScript(aura_area52_bone_arrow_charges);
+     RegisterSpellScript(spell_area52_dark_ranger_auto_shot);
++    RegisterSpellScript(aura_area52_frenzied_cleave);
++    RegisterSpellScript(spell_area52_void_eruption);
+     RegisterSpellScript(spell_area52_bone_arrow);
+     new area52_bone_arrow_rapid_killing();
+     new area52_dark_arrows();
+--- a/src/server/game/Entities/Player/PlayerUpdates.cpp
++++ b/src/server/game/Entities/Player/PlayerUpdates.cpp
+@@ -31,6 +31,7 @@
+ #include "OutdoorPvPMgr.h"
+ #include "Pet.h"
+ #include "Player.h"
++#include "Spell.h"
+ #include "ScriptMgr.h"
+ #include "SkillDiscovery.h"
+ #include "SpellAuraEffects.h"
+@@ -1651,6 +1652,11 @@
+ 
+ void Player::AtExitCombat()
+ {
++    if (AscensionFreePick::Applies(this))
++        if (Spell* shot = GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL))
++            if (shot->GetSpellInfo()->Id == 75)
++                InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
++
+     Unit::AtExitCombat();
+     UpdatePotionCooldown();
+ 
+--- a/src/server/game/Entities/Unit/Unit.cpp
++++ b/src/server/game/Entities/Unit/Unit.cpp
+@@ -3904,6 +3904,9 @@
+         return SPELL_MISS_NONE;
+     }
+ 
++    if (spellInfo->Id == 15487 && AscensionFreePick::Applies(ToPlayer())) // Silence
++        return SPELL_MISS_NONE;
++
+     if (AscensionFreePick::Applies(ToPlayer()) && spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER &&
+         (spellInfo->Id == 3355 || spellInfo->Id == 14308 || spellInfo->Id == 14309))
+         return SPELL_MISS_NONE;
+@@ -9092,6 +9095,11 @@
+ {
+     uint32 heal = healInfo.GetHeal();
+     sScriptMgr->ModifyHealReceived(this, healInfo.GetTarget(), heal, healInfo.GetSpellInfo());
++    // Apply the per-recipient Vampiric Embrace ceiling after all healing modifiers.
++    if (healInfo.GetSpellInfo() && healInfo.GetSpellInfo()->Id == 15290 &&
++        AscensionFreePick::Applies(ToPlayer()))
++        heal = std::min(heal, GetMaxHealth() / 20);
++
+     healInfo.SetHeal(heal);
+ 
+     // calculate heal absorb and reduce healing
+--- a/src/server/game/Handlers/MiscHandler.cpp
++++ b/src/server/game/Handlers/MiscHandler.cpp
+@@ -44,6 +44,7 @@
+ #include "Opcodes.h"
+ #include "OutdoorPvP.h"
+ #include "Pet.h"
++#include "../../coa/AscensionFreePick.h"
+ #include "Player.h"
+ #include "ScriptMgr.h"
+ #include "SocialMgr.h"
+@@ -643,6 +644,15 @@
+     recv_data >> guid;
+ 
+     _player->SetSelection(guid);
++
++    // Area 52 starts each Auto Shot against one explicit target.
++    if (AscensionFreePick::Applies(_player))
++        if (Spell* shot = _player->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL))
++            if (shot->GetSpellInfo()->Id == 75 && shot->m_targets.GetUnitTargetGUID() != guid)
++            {
++                _player->InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
++                return;
++            }
+ 
+     // Change target of current autoshoot spell
+     if (guid)
+--- a/src/server/game/Spells/SpellInfo.cpp
++++ b/src/server/game/Spells/SpellInfo.cpp
+@@ -3187,7 +3187,7 @@
+     // intrinsically instant, non-channeled mana spells; ranged animation delay
+     // and temporary cast-time spellmods do not change that classification.
+     float powerCostMultiplier = caster->GetFloatValue(static_cast<uint16>(UNIT_FIELD_POWER_COST_MULTIPLIER) + school);
+-    powerCostMultiplier += AscensionMysticEnchant::NonstackingCostCorrection(caster, uint32(1) << school);
++    powerCostMultiplier += AscensionMysticEnchant::NonstackingCostCorrection(caster, schoolMask);
+     if (PowerType == POWER_MANA && !IsChanneled() && (!CastTimeEntry || CastTimeEntry->CastTime == 0))
+         powerCostMultiplier -= float(caster->GetTotalAuraModifier(SPELL_AURA_ASCENSION_MOD_INSTANT_MANA_COST_PCT)) / 100.0f;
+ 
+--- a/src/server/scripts/Spells/spell_priest.cpp
++++ b/src/server/scripts/Spells/spell_priest.cpp
+@@ -16,6 +16,7 @@
+  */
+ 
+ #include "Config.h"
++#include "../../coa/AscensionFreePick.h"
+ #include "GridNotifiers.h"
+ #include "Player.h"
+ #include "SpellAuraEffects.h"
+@@ -1042,8 +1043,11 @@
+         if (!damageInfo || !damageInfo->GetDamage())
+             return;
+ 
+-        int32 selfHeal = CalculatePct(static_cast<int32>(damageInfo->GetDamage()), aurEff->GetAmount());
+-        int32 partyHeal = selfHeal / 5;
++        uint64 const rawSelf = uint64(damageInfo->GetDamage()) * std::max(0, aurEff->GetAmount()) / 100;
++        uint32 const limit = AscensionFreePick::Applies(GetTarget()->ToPlayer())
++            ? GetTarget()->GetMaxHealth() / 20 : INT32_MAX;
++        int32 selfHeal = int32(std::min<uint64>(rawSelf, limit));
++        int32 partyHeal = int32(std::min<uint64>(rawSelf / 5, limit));
+         GetTarget()->CastCustomSpell(GetTarget(), SPELL_PRIEST_VAMPIRIC_EMBRACE_HEAL, &partyHeal, &selfHeal, nullptr, true, nullptr, aurEff);
+     }
+ 
+--- a/src/server/scripts/Spells/spell_warlock.cpp
++++ b/src/server/scripts/Spells/spell_warlock.cpp
+@@ -1534,6 +1534,8 @@
+ {
+     PrepareAuraScript(spell_warl_seed_of_corruption_dummy);
+ 
++    bool detonated = false;
++
+     bool Validate(SpellInfo const* /*spellInfo*/) override
+     {
+         return ValidateSpellInfo({ SPELL_WARLOCK_SEED_OF_CORRUPTION_DAMAGE_R1 });
+@@ -1551,13 +1553,17 @@
+     void Detonate(AuraEffect const* aurEff)
+     {
+         Unit* caster = GetCaster();
+-        if (!caster)
++        if (!caster || detonated)
+             return;
+ 
+-        GetUnitOwner()->CastSpell(GetUnitOwner(), SPELL_WARLOCK_SEED_OF_CORRUPTION_VISUAL, true, nullptr, aurEff);
+-
++        detonated = true;
++        Unit* host = GetUnitOwner();
++        host->CastSpell(host, SPELL_WARLOCK_SEED_OF_CORRUPTION_VISUAL, true, nullptr, aurEff);
++
++        // Cast at the host's location, including on death. Supplying this Seed
++        // as a triggering aura would exclude neighboring Seeds of the same rank.
+         uint32 spellId = sSpellMgr->GetSpellWithRank(SPELL_WARLOCK_SEED_OF_CORRUPTION_DAMAGE_R1, GetSpellInfo()->GetRank());
+-        caster->CastSpell(GetUnitOwner(), spellId, true, nullptr, aurEff);
++        caster->CastSpell(host->GetPositionX(), host->GetPositionY(), host->GetPositionZ(), spellId, true);
+     }
+ 
+     void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+@@ -1567,12 +1573,11 @@
+         if (!damageInfo || !damageInfo->GetDamage())
+             return;
+ 
+-        int32 amount = aurEff->GetAmount() - damageInfo->GetDamage();
+-        if (amount > 0)
+-        {
+-            const_cast<AuraEffect*>(aurEff)->SetAmount(amount);
+-            if (!GetTarget()->HealthBelowPctDamaged(1, damageInfo->GetDamage()))
+-                return;
++        int32 remaining = aurEff->GetAmount();
++        if (remaining > 0 && damageInfo->GetDamage() < uint32(remaining))
++        {
++            const_cast<AuraEffect*>(aurEff)->SetAmount(remaining - int32(damageInfo->GetDamage()));
++            return;
+         }
+ 
+         Remove();
