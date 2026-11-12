@@ -1,0 +1,16 @@
+{
+  "enchants": [
+    81279,
+    982330,
+    982743
+  ],
+  "status": "VERIFIED",
+  "candidate_sha256": "77e998748dbe2a9ba16ef0acf3b92a31d66adba34db992a16068fee2ce1804cf",
+  "baseline_sha256": "0f179146bc6026ea8d1f55865c0160fa3554729838fe52e11df1e2234f693578",
+  "reports": {
+    "build-r1": "458b7f33236d705b9e0eca399af207fa2830ddae2f0eb26dac60a57fead6890a",
+    "qualification-1": "da6366886e10af01a9f3f365fd57f9471d3d2eb378461c0cf48920c92bb2a1f2"
+  },
+  "client_sha256": "1998eeac5d89b1b66bdc20dbbc6b39ee803a111551ab991f3a8e47373e6fb829",
+  "preserves_test_access_exclusions": true
+}

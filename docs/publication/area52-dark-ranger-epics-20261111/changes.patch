@@ -1,0 +1,206 @@
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -338,6 +338,8 @@
+             state->Applied.insert(spell);
+         }
+     }
++    if (Applies(player) && !state->Applied.contains(982743))
++        player->RemoveAurasDueToSpell(982745, player->GetGUID());
+     if (Applies(player) && !state->Applied.contains(997115))
+         for (uint32 helper : {997412u, 997539u, 984509u})
+             player->RemoveAurasDueToSpell(helper, player->GetGUID());
+@@ -346,14 +348,15 @@
+     {
+         bool const enabled = GrantsActive(player, grant.Enchant) &&
+             (grant.Enchant != 997115 || state->Applied.contains(997115)) &&
++            (grant.Enchant != 982330 || player->HasSpell(grant.Requires)) &&
+             (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
+             (grant.Enchant != 81248 || player->HasActiveSpell(33831)) && GrantRequirementMet(player, grant.Requires);
+         std::set<std::uint32_t> visited;
+         for (auto rank = grant.Spell; rank && visited.insert(rank).second;
+-            rank = grant.Enchant == 997220 ? 0 : sSpellMgr->GetNextSpellInChain(rank))
++            rank = (grant.Enchant == 997220 || grant.Enchant == 982330) ? 0 : sSpellMgr->GetNextSpellInChain(rank))
+         {
+             SpellInfo const* info = sSpellMgr->GetSpellInfo(rank);
+-            bool const rankDue = grant.Enchant == 979740 && grant.Spell == 826679 ?
++            bool const rankDue = (grant.Enchant == 982743 || (grant.Enchant == 979740 && grant.Spell == 826679)) ?
+                 info && GrantRankDue(rank == grant.Spell, player->HasSpell(rank), info->SpellLevel, player->GetLevel()) :
+                 rank == grant.Spell || player->HasSpell(rank);
+             SetGrantedSpell(player, grant.Enchant, rank, enabled && info &&
+@@ -849,6 +852,13 @@
+         if (entry.Quality < 2 || entry.Quality > 5 || !info || !info->IsPassive() ||
+             info->HasAttribute(SPELL_ATTR0_CU_FORCE_AURA_SAVING))
+             continue;
++        if (spell == 81279 || spell == 982743)
++        {
++            if (sSpellMgr->GetSpellProcEntry(spell) &&
++                (spell == 81279 ? sObjectMgr->GetCreatureTemplate(375036) != nullptr : sSpellMgr->GetSpellInfo(982744) != nullptr))
++                Connected.emplace(spell, 1);
++            continue;
++        }
+         if (spell == 997115)
+         {
+             if (HasDarkRangerHandlers())
+@@ -1901,8 +1911,127 @@
+     }
+ };
+ 
++#include "SpellAuraEffects.h"
++
++class aura_area52_dark_arrow_mark : public AuraScript
++{
++    PrepareAuraScript(aura_area52_dark_arrow_mark);
++    void Removed(AuraEffect const*, AuraEffectHandleModes)
++    {
++        Unit* caster = GetCaster();
++        Unit* victim = GetTarget();
++        if (GetTargetApplication()->GetRemoveMode() == AURA_REMOVE_BY_DEATH &&
++            caster && AscensionFreePick::Applies(caster->ToPlayer()) && caster->HasAura(81279))
++            caster->CastSpell(victim->GetPositionX(), victim->GetPositionY(), victim->GetPositionZ(), 81280, true);
++    }
++    void Register() override
++    {
++        AfterEffectRemove += AuraEffectRemoveFn(aura_area52_dark_arrow_mark::Removed, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
++    }
++};
++
++class aura_area52_bone_arrow_charges : public AuraScript
++{
++    PrepareAuraScript(aura_area52_bone_arrow_charges);
++    void Charge(AuraEffect const*, ProcEventInfo& event)
++    {
++        PreventDefaultAction();
++        Unit* owner = GetTarget();
++        if (!AscensionFreePick::Applies(owner->ToPlayer()) || event.GetActor() != owner ||
++            !event.GetDamageInfo() || !event.GetDamageInfo()->GetDamage())
++            return;
++        Aura* old = owner->GetAura(982745, owner->GetGUID());
++        uint8 next = old ? std::min<uint32>(3, old->GetCharges() + 1) : 1;
++        if (Aura* charge = owner->AddAura(982745, owner))
++            charge->SetCharges(next);
++    }
++    void Register() override
++    {
++        OnEffectProc += AuraEffectProcFn(aura_area52_bone_arrow_charges::Charge, EFFECT_1, SPELL_AURA_PROC_TRIGGER_SPELL);
++    }
++};
++
++class spell_area52_bone_arrow : public SpellScript
++{
++    PrepareSpellScript(spell_area52_bone_arrow);
++    bool Load() override { return AscensionFreePick::Applies(GetCaster()->ToPlayer()); }
++    SpellCastResult Check()
++    {
++        Unit* caster = GetCaster();
++        Aura* charges = caster->GetAura(982745, caster->GetGUID());
++        return caster->HasAura(982743) && charges && charges->GetCharges() ? SPELL_CAST_OK : SPELL_FAILED_CASTER_AURASTATE;
++    }
++    void Spend()
++    {
++        if (Aura* charges = GetCaster()->GetAura(982745, GetCaster()->GetGUID()))
++            charges->ModCharges(-1);
++    }
++    void Register() override
++    {
++        OnCheckCast += SpellCheckCastFn(spell_area52_bone_arrow::Check);
++        OnCast += SpellCastFn(spell_area52_bone_arrow::Spend);
++    }
++};
++
++class area52_bone_arrow_rapid_killing : public AllSpellScript
++{
++public:
++    area52_bone_arrow_rapid_killing() : AllSpellScript("area52_bone_arrow_rapid_killing", {ALLSPELLHOOK_ON_HIT_RESULT}) { }
++    void OnSpellHitResult(Spell* spell, Unit*, uint8 miss, uint32 damage, uint32, bool) override
++    {
++        Player* player = spell->GetCaster()->ToPlayer();
++        if (miss != SPELL_MISS_NONE || !damage || !AscensionFreePick::Applies(player) ||
++            !player->HasAura(982743) || sSpellMgr->GetFirstSpellInChain(spell->GetSpellInfo()->Id) != 982744 ||
++            player->HasSpellCooldown(901080))
++            return;
++        for (uint32 talent : {834949u, 34949u, 34948u})
++            if (player->GetAura(talent, player->GetGUID()))
++            {
++                SpellInfo const* buff = sSpellMgr->GetSpellInfo(talent == 834949 ? 835099 : talent == 34949 ? 35099 : 35098);
++                if (!buff)
++                    return;
++                CustomSpellValues values;
++                values.AddSpellMod(SPELLVALUE_BASE_POINT0, buff->Effects[EFFECT_0].CalcValue(player) / 2);
++                values.AddSpellMod(SPELLVALUE_AURA_DURATION, buff->GetDuration() / 2);
++                if (player->CastCustomSpell(901090, values, player, TRIGGERED_FULL_MASK) == SPELL_CAST_OK)
++                    player->AddSpellCooldown(901080, 0, 10 * IN_MILLISECONDS);
++                return;
++            }
++    }
++};
++
++
++class spell_area52_dark_ranger_auto_shot : public SpellScript
++{
++    PrepareSpellScript(spell_area52_dark_ranger_auto_shot);
++
++    void StartAutoShot()
++    {
++        Player* player = GetCaster()->ToPlayer();
++        Unit* target = GetExplTargetUnit();
++        if (!AscensionFreePick::Applies(player) || !player->HasAura(997115) ||
++            !player->HasSpell(75) || !target || !player->IsValidAttackTarget(target))
++            return;
++        Spell* current = player->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL);
++        if (current && current->GetSpellInfo()->Id == 75 &&
++            current->m_targets.GetUnitTargetGUID() == target->GetGUID())
++            return;
++        player->CastSpell(target, 75, false);
++    }
++
++    void Register() override
++    {
++        AfterCast += SpellCastFn(spell_area52_dark_ranger_auto_shot::StartAutoShot);
++    }
++};
++
+ void AddSC_AscensionMysticEnchant()
+ {
++    RegisterSpellScript(aura_area52_dark_arrow_mark);
++    RegisterSpellScript(aura_area52_bone_arrow_charges);
++    RegisterSpellScript(spell_area52_dark_ranger_auto_shot);
++    RegisterSpellScript(spell_area52_bone_arrow);
++    new area52_bone_arrow_rapid_killing();
+     new area52_dark_arrows();
+     RegisterSpellScript(spell_area52_dark_ranger_shadow_arrow);
+     RegisterSpellScript(spell_area52_dark_ranger_artillery);
+@@ -2022,7 +2151,8 @@
+             auto const& entry = Data.BySpell.at(grant.Enchant);
+             if (InvestmentMet(player, entry, false) && InvestmentMet(player, entry, true) &&
+                 (grant.Enchant != 978724 || player->HasSpell(2565)) &&
+-                (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
++                (grant.Enchant != 982330 || player->HasSpell(grant.Requires)) &&
++            (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
+                 (grant.Enchant != 81248 || player->HasActiveSpell(33831)) &&
+                 GrantRequirementMet(player, grant.Requires))
+                 SetGrantedSpell(player, grant.Enchant, grant.Spell, true);
+--- a/src/server/coa/AscensionMysticSpellGrants.h
++++ b/src/server/coa/AscensionMysticSpellGrants.h
+@@ -13,7 +13,21 @@
+     std::uint32_t Requires = 0;
+     std::uint32_t Replaces = 0;
+ };
+-inline constexpr std::array<SpellGrant, 30> SpellGrants = {{
++inline constexpr std::array<SpellGrant, 44> SpellGrants = {{
++    {982330, 982331, 686},
++    {982330, 982332, 695},
++    {982330, 982333, 705},
++    {982330, 982334, 1088},
++    {982330, 982335, 1106},
++    {982330, 982336, 7641},
++    {982330, 982337, 11659},
++    {982330, 982338, 11660},
++    {982330, 982339, 11661},
++    {982330, 982340, 25307},
++    {982330, 982341, 27209},
++    {982330, 982342, 47808},
++    {982330, 982343, 47809},
++    {982743, 982744},
+     {997115, 997517, 689},
+     {997115, 997526, 172},
+     {997115, 998204, 686},
