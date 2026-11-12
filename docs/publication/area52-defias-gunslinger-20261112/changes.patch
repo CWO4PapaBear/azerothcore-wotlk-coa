@@ -1,0 +1,466 @@
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -81,6 +81,8 @@
+ #include "Area52HopliteSupport.inc"
+ #include "Area52HopliteRemaining.inc"
+ 
++namespace { void ClearInvalidDefiasBuffs(Player* player); }
++
+ namespace AscensionMysticEnchant
+ {
+ namespace
+@@ -347,13 +349,13 @@
+     for (auto const& grant : SpellGrants)
+     {
+         bool const enabled = GrantsActive(player, grant.Enchant) &&
+-            (grant.Enchant != 997115 || state->Applied.contains(997115)) &&
+-            (grant.Enchant != 982330 || player->HasSpell(grant.Requires)) &&
++            ((grant.Enchant != 997115 && grant.Enchant != 997047) || state->Applied.contains(grant.Enchant)) &&
++            ((grant.Enchant != 982330 && grant.Enchant != 997047) || player->HasSpell(grant.Requires)) &&
+             (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
+             (grant.Enchant != 81248 || player->HasActiveSpell(33831)) && GrantRequirementMet(player, grant.Requires);
+         std::set<std::uint32_t> visited;
+         for (auto rank = grant.Spell; rank && visited.insert(rank).second;
+-            rank = (grant.Enchant == 997220 || grant.Enchant == 982330) ? 0 : sSpellMgr->GetNextSpellInChain(rank))
++            rank = (grant.Enchant == 997220 || grant.Enchant == 982330 || grant.Enchant == 997047) ? 0 : sSpellMgr->GetNextSpellInChain(rank))
+         {
+             SpellInfo const* info = sSpellMgr->GetSpellInfo(rank);
+             bool const rankDue = (grant.Enchant == 982743 || (grant.Enchant == 979740 && grant.Spell == 826679)) ?
+@@ -670,6 +672,25 @@
+     return expected.empty();
+ }
+ 
++bool HasDefiasHandlers()
++{
++    for (uint32 helper : {997050u, 997054u, 997430u, 997429u, 997416u, 997051u})
++        if (!sSpellMgr->GetSpellInfo(helper))
++            return false;
++    uint32 script = sObjectMgr->GetScriptId("spell_area52_defias_weapon");
++    if (!script || !ScriptRegistry<SpellScriptLoader>::GetScriptById(script))
++        return false;
++    for (auto const& grant : SpellGrants)
++        if (grant.Enchant == 997047)
++        {
++            auto [first, last] = sObjectMgr->GetSpellScriptsBounds(grant.Spell);
++            if (!sSpellMgr->GetSpellInfo(grant.Spell) ||
++                std::none_of(first, last, [script](auto const& binding) { return binding.second == script; }))
++                return false;
++        }
++    return true;
++}
++
+ bool HasDarkRangerHandlers()
+ {
+     for (uint32 spell : {997517u, 990236u, 997526u, 300073u, 998204u, 984510u, 984509u,
+@@ -859,6 +880,12 @@
+                 Connected.emplace(spell, 1);
+             continue;
+         }
++        if (spell == 997047)
++        {
++            if (HasDefiasHandlers())
++                Connected.emplace(spell, 1);
++            continue;
++        }
+         if (spell == 997115)
+         {
+             if (HasDarkRangerHandlers())
+@@ -1098,10 +1125,10 @@
+     }
+ };
+ 
+-bool IsDarkRangerPrerequisite(uint32 spell)
++bool IsRangedEnchantPrerequisite(uint32 spell)
+ {
+     uint32 first = sSpellMgr->GetFirstSpellInChain(spell);
+-    return first == 689 || first == 172 || first == 686;
++    return first == 689 || first == 172 || first == 686 || first == 1752 || first == 2643;
+ }
+ 
+ class MysticPlayer final : public PlayerScript
+@@ -1113,7 +1140,7 @@
+         PLAYERHOOK_ON_FORGOT_SPELL}) { }
+     void OnPlayerLearnSpell(Player* player, uint32 spell) override
+     {
+-        if (spell == 33831 || spell == 6117 || IsDarkRangerPrerequisite(spell) ||
++        if (spell == 33831 || spell == 6117 || IsRangedEnchantPrerequisite(spell) ||
+             sSpellMgr->GetFirstSpellInChain(spell) == 14914)
+             Synchronize(player);
+         if (Applies(player) && std::find(AscensionFreePick::SpecializationSpells.begin(),
+@@ -1122,7 +1149,7 @@
+     }
+     void OnPlayerForgotSpell(Player* player, uint32 spell) override
+     {
+-        if (spell == 33831 || spell == 6117 || IsDarkRangerPrerequisite(spell) ||
++        if (spell == 33831 || spell == 6117 || IsRangedEnchantPrerequisite(spell) ||
+             sSpellMgr->GetFirstSpellInChain(spell) == 14914)
+             Synchronize(player);
+     }
+@@ -1139,6 +1166,7 @@
+     void OnPlayerUpdate(Player* player, uint32) override
+     {
+         ProcessScrollRequests(player);
++        ClearInvalidDefiasBuffs(player);
+         RefreshArea52MarksmanTalentHelpers(player);
+     }
+     void OnPlayerLogout(Player* player) override
+@@ -2025,8 +2053,134 @@
+     }
+ };
+ 
++namespace
++{
++bool DefiasWeaponReady(Player* player)
++{
++    if (!player || !AscensionFreePick::Applies(player) || !player->HasAura(997047) ||
++        player->GetShapeshiftForm() != FORM_NONE ||
++        player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
++        return false;
++    Item const* main = player->GetWeaponForAttack(BASE_ATTACK, true);
++    if (!main)
++        return false;
++    uint32 type = main->GetTemplate()->InventoryType;
++    return type == INVTYPE_WEAPON || type == INVTYPE_WEAPONMAINHAND;
++}
++
++bool IsDefiasPistol(Player* player, uint32 id)
++{
++    return player->MatchesSpellInteraction(id, 997048) || (id >= 998100 && id <= 998110);
++}
++
++bool IsDefiasGrape(Player* player, uint32 id)
++{
++    return player->MatchesSpellInteraction(id, 997052) || id == 300191 || (id >= 300147 && id <= 300153);
++}
++
++constexpr uint32 DefiasLandedKey = 997049;
++class area52_defias_combat final : public AllSpellScript
++{
++public:
++    area52_defias_combat() : AllSpellScript("area52_defias_combat",
++        {ALLSPELLHOOK_ON_BEFORE_EFFECTS, ALLSPELLHOOK_ON_HIT_RESULT}) { }
++
++    void OnSpellBeforeEffects(Spell* spell, Unit* caster, SpellInfo const* info) override
++    {
++        Player* player = caster ? caster->ToPlayer() : nullptr;
++        if (spell->IsTriggered() || !DefiasWeaponReady(player) ||
++            (!IsDefiasPistol(player, info->Id) && !IsDefiasGrape(player, info->Id)))
++            return;
++        SpellInfo const* helper = sSpellMgr->GetSpellInfo(997416);
++        if (!helper)
++            return;
++        for (SpellEffIndex i : {EFFECT_0, EFFECT_1})
++        {
++            SpellEffectInfo const& effect = helper->Effects[i];
++            int32 delta = effect.CalcValue(player);
++            if (delta >= 0)
++                continue;
++            for (auto const& entry : player->GetSpellMap())
++                if (player->HasSpellCooldown(entry.first) &&
++                    player->MatchesSpellInteraction(entry.first, effect.MiscValue))
++                    player->ModifySpellCooldown(entry.first, -int32(std::min<uint32>(uint32(-delta), player->GetSpellCooldownDelay(entry.first))));
++        }
++    }
++
++    void OnSpellHitResult(Spell* spell, Unit* target, uint8 miss, uint32, uint32, bool) override
++    {
++        Player* player = spell->GetCaster()->ToPlayer();
++        if (spell->IsTriggered() || miss != SPELL_MISS_NONE || !target ||
++            spell->GetScriptValue(DefiasLandedKey) || !DefiasWeaponReady(player) || target != spell->m_targets.GetUnitTarget())
++            return;
++        uint32 id = spell->GetSpellInfo()->Id;
++        if (IsDefiasPistol(player, id))
++        {
++            spell->SetScriptValue(DefiasLandedKey, 1);
++            player->CastSpell(player, 997050, true);
++            player->CastSpell(player, 997054, true);
++        }
++        else if (player->MatchesSpellInteraction(id, 1495) && player->GetAura(997054, player->GetGUID()))
++        {
++            spell->SetScriptValue(DefiasLandedKey, 1);
++            player->RemoveAurasDueToSpell(997054, player->GetGUID());
++            player->CastSpell(target, 997430, true);
++        }
++    }
++};
++}
++
++
++namespace
++{
++void ClearInvalidDefiasBuffs(Player* player)
++{
++    if (!AscensionFreePick::Applies(player))
++        return;
++    auto guid = player->GetGUID();
++    if ((!player->GetAura(997050, guid) && !player->GetAura(997054, guid)) || DefiasWeaponReady(player))
++        return;
++    player->RemoveAurasDueToSpell(997050, guid);
++    player->RemoveAurasDueToSpell(997054, guid);
++}
++}
++
++
++
++class spell_area52_defias_weapon final : public SpellScript
++{
++    PrepareSpellScript(spell_area52_defias_weapon);
++    bool Load() override { return AscensionFreePick::Applies(GetCaster()->ToPlayer()); }
++    SpellCastResult Check()
++    {
++        return DefiasWeaponReady(GetCaster()->ToPlayer()) ? SPELL_CAST_OK : SPELL_FAILED_CASTER_AURASTATE;
++    }
++    void Register() override
++    {
++        OnCheckCast += SpellCheckCastFn(spell_area52_defias_weapon::Check);
++    }
++};
++
++std::int32_t AscensionMysticEnchant::DefiasGlobalCooldownDelta(Player* player, std::uint32_t spell)
++{
++    if (!DefiasWeaponReady(player) || !player->MatchesSpellInteraction(spell, 1495))
++        return 0;
++    SpellInfo const* tactics = sSpellMgr->GetSpellInfo(997051);
++    return tactics ? tactics->Effects[EFFECT_1].CalcValue(player) : 0;
++}
++bool AscensionMysticEnchant::DefiasPistolProcEligible(Player* player, std::uint32_t spellId)
++{
++    return DefiasWeaponReady(player) && IsDefiasPistol(player, spellId);
++}
++bool AscensionMysticEnchant::DefiasGrapeShotEligible(Player* player, std::uint32_t spellId)
++{
++    return DefiasWeaponReady(player) && IsDefiasGrape(player, spellId);
++}
++
+ void AddSC_AscensionMysticEnchant()
+ {
++    new area52_defias_combat();
++    RegisterSpellScript(spell_area52_defias_weapon);
+     RegisterSpellScript(aura_area52_dark_arrow_mark);
+     RegisterSpellScript(aura_area52_bone_arrow_charges);
+     RegisterSpellScript(spell_area52_dark_ranger_auto_shot);
+@@ -2151,7 +2305,7 @@
+             auto const& entry = Data.BySpell.at(grant.Enchant);
+             if (InvestmentMet(player, entry, false) && InvestmentMet(player, entry, true) &&
+                 (grant.Enchant != 978724 || player->HasSpell(2565)) &&
+-                (grant.Enchant != 982330 || player->HasSpell(grant.Requires)) &&
++                ((grant.Enchant != 982330 && grant.Enchant != 997047) || player->HasSpell(grant.Requires)) &&
+             (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
+                 (grant.Enchant != 81248 || player->HasActiveSpell(33831)) &&
+                 GrantRequirementMet(player, grant.Requires))
+--- a/src/server/coa/AscensionMysticEnchantCatalog.h
++++ b/src/server/coa/AscensionMysticEnchantCatalog.h
+@@ -51,6 +51,9 @@
+ bool ReleaseDraftEnchants(Player* player, std::uint64_t build, std::uint32_t revision);
+ bool GrantDraftReward(Player* player, std::uint64_t build, std::uint32_t revision,
+     std::vector<Area52Build::Enchant> const& enchants);
++bool DefiasGrapeShotEligible(Player* player, std::uint32_t spellId);
++bool DefiasPistolProcEligible(Player* player, std::uint32_t spellId);
++std::int32_t DefiasGlobalCooldownDelta(Player* player, std::uint32_t spell);
+ void RefreshEpicReplacements(Player* player);
+ bool HasGlacialLight(Unit const* target);
+ void ConsumeGlacialLightFingersForCast(Spell* spell);
+--- a/src/server/coa/AscensionMysticSpellGrants.h
++++ b/src/server/coa/AscensionMysticSpellGrants.h
+@@ -13,7 +13,7 @@
+     std::uint32_t Requires = 0;
+     std::uint32_t Replaces = 0;
+ };
+-inline constexpr std::array<SpellGrant, 44> SpellGrants = {{
++inline constexpr std::array<SpellGrant, 64> SpellGrants = {{
+     {982330, 982331, 686},
+     {982330, 982332, 695},
+     {982330, 982333, 705},
+@@ -28,6 +28,26 @@
+     {982330, 982342, 47808},
+     {982330, 982343, 47809},
+     {982743, 982744},
++    {997047, 997048, 1752},
++    {997047, 998100, 1757},
++    {997047, 998101, 1758},
++    {997047, 998102, 1759},
++    {997047, 998103, 1760},
++    {997047, 998104, 8621},
++    {997047, 998105, 11293},
++    {997047, 998106, 11294},
++    {997047, 998107, 26861},
++    {997047, 998108, 26862},
++    {997047, 998109, 48637},
++    {997047, 998110, 48638},
++    {997047, 997052, 2643},
++    {997047, 300147, 14288},
++    {997047, 300148, 14289},
++    {997047, 300149, 14290},
++    {997047, 300150, 25294},
++    {997047, 300151, 27021},
++    {997047, 300152, 49047},
++    {997047, 300153, 49048},
+     {997115, 997517, 689},
+     {997115, 997526, 172},
+     {997115, 998204, 686},
+--- a/src/server/game/Entities/Player/Player.cpp
++++ b/src/server/game/Entities/Player/Player.cpp
+@@ -10329,6 +10329,12 @@
+ template<class T>
+ void Player::ApplySpellModTrackingDamage(uint32 spellId, SpellModOp op, T& basevalue, Spell* spell, bool temporaryPet, float* extraDamage)
+ {
++    ApplyTargetedSpellModTrackingDamage(spellId, op, basevalue, spell, temporaryPet, extraDamage, nullptr);
++}
++
++template<class T>
++void Player::ApplyTargetedSpellModTrackingDamage(uint32 spellId, SpellModOp op, T& basevalue, Spell* spell, bool temporaryPet, float* extraDamage, Unit const* victim)
++{
+     SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId);
+     if (!spellInfo)
+         return;
+@@ -10381,7 +10387,13 @@
+ 
+             // xinef: those two mods should be multiplicative (Glyph of Renew)
+             if (mod->op == SPELLMOD_DAMAGE || mod->op == SPELLMOD_DOT)
+-                totalmul *= CalculatePct(1.0f, 100.0f + mod->value);
++            {
++                int32 percent = mod->value;
++                if (mod->spellId == 997050 && mod->op == SPELLMOD_DAMAGE && victim && victim->IsPlayer() &&
++                    AscensionFreePick::Applies(this) && mod->ownerAura && MatchesSpellInteraction(spellId, 1495))
++                    percent = 5 * mod->ownerAura->GetStackAmount();
++                totalmul *= CalculatePct(1.0f, 100.0f + percent);
++            }
+             else
+                 totalmul += CalculatePct(1.0f, mod->value);
+         }
+@@ -10440,6 +10452,7 @@
+ }
+ 
+ template AC_GAME_API void Player::ApplySpellModTrackingDamage(uint32, SpellModOp, float&, Spell*, bool, float*);
++template AC_GAME_API void Player::ApplyTargetedSpellModTrackingDamage(uint32, SpellModOp, float&, Spell*, bool, float*, Unit const*);
+ template AC_GAME_API void Player::ApplySpellMod(uint32 spellId, SpellModOp op, int32& basevalue, Spell* spell, bool temporaryPet);
+ template AC_GAME_API void Player::ApplySpellMod(uint32 spellId, SpellModOp op, uint32& basevalue, Spell* spell, bool temporaryPet);
+ template AC_GAME_API void Player::ApplySpellMod(uint32 spellId, SpellModOp op, float& basevalue, Spell* spell, bool temporaryPet);
+--- a/src/server/game/Entities/Player/Player.h
++++ b/src/server/game/Entities/Player/Player.h
+@@ -1838,6 +1838,8 @@
+ 
+     template<class T>
+     void ApplySpellModTrackingDamage(uint32 spellId, SpellModOp op, T& basevalue, Spell* spell, bool temporaryPet, float* extraDamage);
++    template<class T>
++    void ApplyTargetedSpellModTrackingDamage(uint32 spellId, SpellModOp op, T& basevalue, Spell* spell, bool temporaryPet, float* extraDamage, Unit const* victim);
+     void RemoveSpellMods(Spell* spell);
+     void RestoreSpellMods(Spell* spell, uint32 ownerAuraId = 0, Aura* aura = nullptr);
+     void RestoreAllSpellMods(uint32 ownerAuraId = 0, Aura* aura = nullptr);
+--- a/src/server/game/Entities/Unit/Unit.cpp
++++ b/src/server/game/Entities/Unit/Unit.cpp
+@@ -9974,6 +9974,10 @@
+     // These physical Primalist effects explicitly scale with Nature spell power.
+     // Keep physical mitigation and the normal coefficient/modifier path.
+     SpellSchoolMask spellPowerSchool = spellProto->GetSchoolMask();
++    bool const grapeAreaDamage = effIndex == EFFECT_1 && damagetype == SPELL_DIRECT_DAMAGE &&
++        AscensionMysticEnchant::DefiasGrapeShotEligible(ToPlayer(), spellProto->Id);
++    if (grapeAreaDamage)
++        spellPowerSchool = SPELL_SCHOOL_MASK_MAGIC;
+     if (spellProto->SpellFamilyName == 37 &&
+         spellPowerSchool == SPELL_SCHOOL_MASK_NORMAL && effIndex == EFFECT_0 &&
+         spellProto->Effects[EFFECT_0].Effect == SPELL_EFFECT_SCHOOL_DAMAGE)
+@@ -10004,6 +10008,14 @@
+         damagetype != DOT && AscensionFreePick::Applies(ToPlayer()) && victim->IsPlayer() ? 0.5f : 1.0f;
+     float coeff = spellProto->Effects[effIndex].BonusMultiplier;
+     SpellBonusEntry const* bonus = sSpellMgr->GetSpellBonusData(spellProto->Id);
++    SpellBonusEntry grapeBonus{};
++    if (grapeAreaDamage)
++    {
++        // The rank tooltips multiply the SP term by combo points, and list AP twice at 1% and 2%.
++        grapeBonus.direct_damage = 0.01f + 0.02f * GetComboPoints();
++        grapeBonus.ap_bonus = 0.03f;
++        bonus = &grapeBonus;
++    }
+     if (bonus)
+     {
+         if (damagetype == DOT)
+@@ -10098,7 +10110,7 @@
+     }
+ 
+     if (Player* modOwner = GetSpellModOwner())
+-        modOwner->ApplySpellModTrackingDamage(spellProto->Id, damagetype == DOT ? SPELLMOD_DOT : SPELLMOD_DAMAGE, tmpDamage, nullptr, false, agilityDamage);
++        modOwner->ApplyTargetedSpellModTrackingDamage(spellProto->Id, damagetype == DOT ? SPELLMOD_DOT : SPELLMOD_DAMAGE, tmpDamage, nullptr, false, agilityDamage, victim);
+ 
+     // Elemental Berserker's copied mask covers the repeated area helper only. Include the
+     // original Smash area, including its AP term, without increasing the primary weapon strike.
+@@ -12077,7 +12089,7 @@
+     // apply spellmod to Done damage
+     if (spellProto)
+         if (Player* modOwner = GetSpellModOwner())
+-            modOwner->ApplySpellModTrackingDamage(spellProto->Id, SPELLMOD_DAMAGE, tmpDamage, nullptr, false, agilityDamage);
++            modOwner->ApplyTargetedSpellModTrackingDamage(spellProto->Id, SPELLMOD_DAMAGE, tmpDamage, nullptr, false, agilityDamage, victim);
+ 
+     // bonus result can be negative
+     return uint32(std::max(tmpDamage, 0.0f));
+--- a/src/server/game/Spells/Spell.cpp
++++ b/src/server/game/Spells/Spell.cpp
+@@ -1295,7 +1295,13 @@
+             if (uint32 maxTargets = m_spellValue->MaxAffectedTargets)
+             {
+                 maxTargets += m_caster->GetTotalAuraModifierByAffectMask(SPELL_AURA_MOD_MAX_AFFECTED_TARGETS, m_spellInfo);
+-                Acore::Containers::RandomResize(targets, maxTargets);
++                if (m_targets.GetUnitTarget() && AscensionMysticEnchant::DefiasGrapeShotEligible(m_caster->ToPlayer(), m_spellInfo->Id))
++                {
++                    targets.remove(m_targets.GetUnitTarget());
++                    Acore::Containers::RandomResize(targets, 4u);
++                }
++                else
++                    Acore::Containers::RandomResize(targets, maxTargets);
+             }
+ 
+             for (std::list<WorldObject*>::iterator itr = targets.begin(); itr != targets.end(); ++itr)
+@@ -9262,7 +9268,10 @@
+     {
+         // gcd modifier auras are applied only to own spells and only players have such mods
+         if (m_caster->IsPlayer())
++        {
+             m_caster->ToPlayer()->ApplySpellMod(m_spellInfo->Id, SPELLMOD_GLOBAL_COOLDOWN, gcd, this);
++            gcd += AscensionMysticEnchant::DefiasGlobalCooldownDelta(m_caster->ToPlayer(), m_spellInfo->Id);
++        }
+ 
+         // Apply haste rating
+         if (m_spellInfo->StartRecoveryCategory == 133 && m_spellInfo->StartRecoveryTime == 1500 && m_spellInfo->DmgClass != SPELL_DAMAGE_CLASS_MELEE &&
+--- a/src/server/game/Spells/SpellEffects.cpp
++++ b/src/server/game/Spells/SpellEffects.cpp
+@@ -1,3 +1,4 @@
++#include "../../coa/AscensionMysticEnchantCatalog.h"
+  /*
+  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
+  *
+@@ -3887,6 +3888,11 @@
+     if (!unitTarget || !unitTarget->IsAlive())
+         return;
+ 
++    // Grape Shot awards its weapon component only to the primary target.
++    if (unitTarget != m_targets.GetUnitTarget() &&
++        AscensionMysticEnchant::DefiasGrapeShotEligible(m_caster->ToPlayer(), m_spellInfo->Id))
++        return;
++
+     // multiple weapon dmg effect workaround
+     // execute only the last weapon damage
+     // and handle all effects at once
+--- a/src/server/game/Spells/SpellMgr.cpp
++++ b/src/server/game/Spells/SpellMgr.cpp
+@@ -1,3 +1,4 @@
++#include "../../coa/AscensionMysticEnchantCatalog.h"
+ /*
+  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
+  *
+@@ -1017,6 +1018,16 @@
+                     for (uint32 original : actor->GetSpellInteractionOrigins(eventSpellInfo->Id))
+                         if (SpellInfo const* ancestor = GetSpellInfo(original))
+                             inherited |= ancestor->IsAffected(procEntry.SpellFamilyName, procEntry.SpellFamilyMask);
++                if (!inherited && eventInfo.GetActor() &&
++                    AscensionMysticEnchant::DefiasPistolProcEligible(eventInfo.GetActor()->ToPlayer(), eventSpellInfo->Id))
++                {
++                    for (uint32 talent : {53234u, 53237u, 53238u, 34506u, 34507u, 34508u, 34838u, 34839u})
++                        if (GetSpellProcEntry(talent) == &procEntry)
++                        {
++                            inherited = true;
++                            break;
++                        }
++                }
+                 if (!inherited)
+                     return false;
+             }

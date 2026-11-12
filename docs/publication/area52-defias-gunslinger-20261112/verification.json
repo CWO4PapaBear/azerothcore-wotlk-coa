@@ -1,0 +1,35 @@
+{
+  "enchants": [
+    997047
+  ],
+  "status": "VERIFIED",
+  "candidate_sha256": "ccb5a4a55e29bd5d9ebb3dd37dbedf6e57326811440552efae87896c845d1f38",
+  "baseline_sha256": "77e998748dbe2a9ba16ef0acf3b92a31d66adba34db992a16068fee2ce1804cf",
+  "reports": {
+    "build-r1": "189d3a01a106b92f3e4188e0ad6bf9337d59afdced86646378911d2bfaf062a9",
+    "qualified": "cea2fe093542574a2422328b1ac0cd793020a8f0512d33f80fad3ba00f253053"
+  },
+  "client_sha256": "5c2dac23ef47f64a86a3855c3f6a506866bcd835d401e9ceccdb7ed30f2f9192",
+  "preview_sha256": "28c4fe0a7c40dcb82e0dda910c5064c3c9fc0e89df8dfa528d65a58bb10e53ff",
+  "preview": {
+    "archetype": 86,
+    "spell_ids": [
+      997048,
+      997050,
+      2973,
+      1495,
+      997052
+    ],
+    "unlock_levels": [
+      1,
+      1,
+      6,
+      10,
+      18
+    ],
+    "source_archive_sha256": "84d8b39a6de72f090b18fdaa4759133e9fd6a373f3897857fe66b7748bfd248b",
+    "candidate_archive_sha256": "28c4fe0a7c40dcb82e0dda910c5064c3c9fc0e89df8dfa528d65a58bb10e53ff",
+    "changed_member": "DBFilesClient\\CharacterCreationArchetypes.dbc"
+  },
+  "preserves_test_access_exclusions": true
+}

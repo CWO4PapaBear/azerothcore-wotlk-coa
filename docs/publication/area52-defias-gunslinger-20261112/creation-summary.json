@@ -1,0 +1,20 @@
+{
+  "archetype": 86,
+  "spell_ids": [
+    997048,
+    997050,
+    2973,
+    1495,
+    997052
+  ],
+  "unlock_levels": [
+    1,
+    1,
+    6,
+    10,
+    18
+  ],
+  "source_archive_sha256": "84d8b39a6de72f090b18fdaa4759133e9fd6a373f3897857fe66b7748bfd248b",
+  "candidate_archive_sha256": "28c4fe0a7c40dcb82e0dda910c5064c3c9fc0e89df8dfa528d65a58bb10e53ff",
+  "changed_member": "DBFilesClient\\CharacterCreationArchetypes.dbc"
+}
