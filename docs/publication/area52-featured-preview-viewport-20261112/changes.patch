@@ -1,0 +1,219 @@
+--- a/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
++++ b/Interface/AddOns/Ascension_BuildCreator/BuildEditor/EditableBuildView.lua
+@@ -1131,6 +1131,39 @@
+     end
+ end
+ 
++-- Model widgets use screen-space viewports on this client. Keep the model
++-- outside the scroll child and give it only the visible part of its layout slot.
++local function attachPreviewModel(view, section, slot, kind)
++    local scroll=view.MainFrame.ScrollFrame
++    local model=CreateFrame(kind,nil,scroll)
++    local last={}
++    local function sync()
++        if not section:IsVisible() or not slot:IsVisible() then model:Hide();return end
++        local l,b,w,h=slot:GetLeft(),slot:GetBottom(),slot:GetWidth(),slot:GetHeight()
++        local x,y,sw,sh=scroll:GetLeft(),scroll:GetBottom(),scroll:GetWidth(),scroll:GetHeight()
++        if not (l and b and w and h and x and y and sw and sh) then model:Hide();return end
++        local ratio=slot:GetEffectiveScale()/scroll:GetEffectiveScale()
++        local left=math.max(0,l*ratio-x)
++        local right=math.min(sw,(l+w)*ratio-x)
++        local bottom=math.max(0,b*ratio-y)
++        local top=math.min(sh,(b+h)*ratio-y)
++        if right<=left or top<=bottom then model:Hide();return end
++        local width,height=right-left,top-bottom
++        if last.x~=left or last.y~=bottom or last.w~=width or last.h~=height then
++            model:ClearAllPoints();model:SetPoint("BOTTOMLEFT",scroll,"BOTTOMLEFT",left,bottom)
++            model:SetSize(width,height)
++            last.x,last.y,last.w,last.h=left,bottom,width,height
++        end
++        model:Show()
++    end
++    section:HookScript("OnUpdate",sync)
++    section:HookScript("OnHide",function()model:Hide()end)
++    slot:HookScript("OnHide",function()model:Hide()end)
++    model:Hide()
++    return model
++end
++
++
+ function F.Ensure(view)
+     BuildViewSectionMixin.CategoryIcons.AI_BOT_ROTATION = "Interface\\Icons\\inv_gizmo_02"
+     BuildViewSectionMixin.CategoryIcons.AREA52_FEATURED_VANITY = "Interface\\Icons\\inv_chest_chain"
+@@ -1146,13 +1179,12 @@
+     local scale=math.min(1,math.max(0.25,(scroll:GetHeight()-76)/538))
+     panel:SetSize(764,76+538*scale);panel:SetCategory("AREA52_FEATURED_VANITY");panel.Area52FeaturedOnly=true
+     panel.Serialize=function() return nil end;panel.Deserialize=function() end
+-    local canvas=CreateFrame("Frame",nil,scroll)
++    local canvas=CreateFrame("Frame",nil,panel)
+     canvas:SetSize(380,538);canvas:SetScale(scale);canvas:SetPoint("TOP",panel,"TOP",0,-44/scale)
+     panel.Canvas=canvas
+-    panel.Model=CreateFrame("DressUpModel",nil,canvas)
++    panel.Model=attachPreviewModel(view,panel,canvas,"DressUpModel")
+     local model=panel.Model
+-    model:SetAllPoints(canvas)
+-    model.Background=model:CreateTexture(nil,"BACKGROUND");model.Background:SetAllPoints()
++    model.Background=canvas:CreateTexture(nil,"BACKGROUND");model.Background:SetAllPoints()
+     model.Background:SetAtlas(AppearanceUtil.GetBackgroundAtlas())
+     Mixin(model,ModelMixin)
+     model:SetPosition(0,0.12,0)
+@@ -1171,19 +1203,6 @@
+             end
+         end
+     end
+-    local elapsed=0
+-    panel:HookScript("OnHide",function() canvas:Hide() end)
+-    panel:HookScript("OnUpdate",function(self,delta)
+-        elapsed=elapsed+delta;if elapsed<0.05 then return end;elapsed=0
+-        local top,bottom=scroll:GetTop(),scroll:GetBottom()
+-        local a,b=canvas:GetTop(),canvas:GetBottom()
+-        local visible=false
+-        if panel:IsShown() and top and bottom and a and b then
+-            local outerScale,innerScale=scroll:GetEffectiveScale(),canvas:GetEffectiveScale()
+-            visible=a*innerScale<=top*outerScale+1 and b*innerScale>=bottom*outerScale-1
+-        end
+-        canvas:SetShown(visible)
+-    end)
+     panel.Buttons={}
+     for slot=1,14 do
+         local index=slot
+@@ -3828,6 +3847,89 @@
+     view.Area52PreviewEffects[index]=id
+     view:UpdatePendingBuild()
+ end
++-- The spell menus can contain every spell in a build. Keep a fixed pool of
++-- rows in a picker parented to the editor instead of expanding a native menu.
++local function castSelector(view,parent,index,title)
++    local button=CreateFrame("Button",nil,parent,"UIPanelButtonTemplate")
++    button:SetSize(212,24)
++    button:SetPoint("TOPLEFT",parent,"TOPLEFT",309,-46-(index-1)*60)
++    local function open()
++        local picker=view.CastVisualPicker
++        if not picker then
++            picker=CreateFrame("Frame",nil,view)
++            view.CastVisualPicker=picker
++            picker:SetPoint("CENTER",view,"CENTER",0,0)
++            picker:SetFrameStrata("DIALOG");picker:EnableMouse(true)
++            picker:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Tooltips\\UI-Tooltip-Border",edgeSize=14})
++            picker:SetBackdropColor(0.055,0.045,0.035,1)
++            picker.heading=picker:CreateFontString(nil,"OVERLAY","GameFontNormal")
++            picker.heading:SetPoint("TOPLEFT",16,-12)
++            local close=CreateFrame("Button",nil,picker,"UIPanelCloseButton")
++            close:SetPoint("TOPRIGHT",-2,-2);close:SetScript("OnClick",function()picker:Hide()end)
++            picker.rows={}
++            local function draw(value)
++                picker.first=math.max(1,math.min(picker.maximum,math.floor(value+0.5)))
++                for i,row in ipairs(picker.rows) do
++                    local entry=picker.options[picker.first+i-1]
++                    row:SetShown(i<=picker.count and entry~=nil)
++                    if entry and i<=picker.count then
++                        row:SetText((entry.id==picker.selected and "|cffffd100" or "")..entry.name..(entry.id==picker.selected and "|r" or ""))
++                    end
++                end
++            end
++            for i=1,12 do
++                local offset=i-1
++                local row=CreateFrame("Button",nil,picker,"UIPanelButtonTemplate")
++                row:SetHeight(22)
++                row:SetPoint("TOPLEFT",12,-36-offset*23);row:SetPoint("TOPRIGHT",-36,-36-offset*23)
++                row:SetScript("OnClick",function()
++                    local choice=picker.options[picker.first+offset]
++                    local callback=picker.callback
++                    picker:Hide()
++                    if choice and callback then callback(choice.id) end
++                end)
++                picker.rows[i]=row
++            end
++            local slider=CreateFrame("Slider",view:GetName().."CastVisualScrollBar",picker,"UIPanelScrollBarTemplate")
++            slider:SetPoint("TOPRIGHT",-12,-52);slider:SetPoint("BOTTOMRIGHT",-12,25)
++            slider:SetValueStep(1);slider:SetScript("OnValueChanged",function(_,value)
++                if picker.options then draw(value) end
++            end)
++            picker.slider=slider
++            picker:EnableMouseWheel(true)
++            picker:SetScript("OnMouseWheel",function(_,delta)
++                slider:SetValue(math.max(1,math.min(picker.maximum,picker.first-delta*3)))
++            end)
++            picker.draw=draw
++            view:HookScript("OnHide",function()picker:Hide()end)
++            view:HookScript("OnSizeChanged",function()picker:Hide()end)
++        end
++        if not F.Applies() or not button.options then return end
++        picker.options=button.options;picker.selected=button.selected;picker.callback=button.callback
++        picker.generation=view.Area52FeaturedGeneration;picker.archetype=view.Area52ArchetypeID
++        local width=math.min(340,view:GetWidth()-16)
++        local count=math.min(12,#picker.options,math.floor((view:GetHeight()-68)/23))
++        if width<80 or count<1 then picker:Hide();return end
++        picker.count=count;picker.maximum=math.max(1,#picker.options-count+1)
++        picker:SetSize(width,48+count*23);picker.heading:SetText(title)
++        local first=1
++        for i,entry in ipairs(picker.options) do if entry.id==picker.selected then first=math.min(i,picker.maximum);break end end
++        picker.slider:SetMinMaxValues(1,picker.maximum);picker.slider:SetValue(first)
++        picker.slider:SetShown(picker.maximum>1);picker.draw(first);picker:Show()
++    end
++    button:SetScript("OnClick",open)
++    function button:SetCastChoices(choices,current,callback)
++        self.options=choices;self.selected=current;self.callback=callback
++        local text=tostring(current)
++        for _,entry in ipairs(choices)do if entry.id==current then text=entry.name;break end end
++        self:SetText(text.."  |TInterface\\ChatFrame\\UI-ChatIcon-ScrollDown-Up:14|t")
++        local picker=view.CastVisualPicker
++        if picker and (picker.generation~=view.Area52FeaturedGeneration or picker.archetype~=view.Area52ArchetypeID) then picker:Hide() end
++    end
++    return button
++end
++
++
+ local function dropdown(parent,name,x,y)
+     local d=CreateFrame("Frame",name,parent,"UIDropDownMenuTemplate")
+     d:SetPoint("TOPLEFT",parent,"TOPLEFT",x,y);UIDropDownMenu_SetWidth(d,212)
+@@ -3867,9 +3969,9 @@
+         local pet=scene.pet
+         pet:StopSequence()
+         if scene.petID and scene.petID>0 then
+-            pet:SetCreature(scene.petID);pet:SetSequence(0);pet:Show()
++            pet:SetCreature(scene.petID);pet:SetSequence(0);scene.petSlot:Show()
+         else
+-            pet:ClearModel();pet:Hide()
++            pet:ClearModel();scene.petSlot:Hide();pet:Hide()
+         end
+     end
+ end
+@@ -3919,15 +4021,23 @@
+ function F.CreateScene(view,panel)
+     panel:SetHeight(248)
+     local scene={view=view,deadlines={}};panel.scene=scene
+-    scene.actor=CreateFrame("DressUpModel",nil,panel)
+-    scene.actor:SetSize(190,180);scene.actor:SetPoint("TOPLEFT",12,-38)
+-    scene.pet=CreateFrame("DressUpModel",nil,panel)
+-    scene.pet:SetSize(110,110);scene.pet:SetPoint("BOTTOMLEFT",160,20)
++    local canvas=CreateFrame("Frame",nil,panel)
++    canvas:SetSize(280,184);canvas:SetPoint("TOPLEFT",panel,"TOPLEFT",12,-42)
++    scene.canvas=canvas
++    local background=canvas:CreateTexture(nil,"BACKGROUND")
++    background:SetAllPoints();background:SetAtlas(AppearanceUtil.GetBackgroundAtlas())
++    local actorSlot=CreateFrame("Frame",nil,canvas)
++    actorSlot:SetSize(184,180);actorSlot:SetPoint("BOTTOMLEFT",canvas,"BOTTOMLEFT",0,0)
++    local petSlot=CreateFrame("Frame",nil,canvas)
++    petSlot:SetSize(96,104);petSlot:SetPoint("BOTTOMRIGHT",canvas,"BOTTOMRIGHT",0,0)
++    scene.actor=attachPreviewModel(view,panel,actorSlot,"DressUpModel")
++    scene.petSlot=petSlot
++    scene.pet=attachPreviewModel(view,panel,petSlot,"DressUpModel")
+     local base=view:GetName().."FeaturedScene"
+     scene.drops={}
+     for i,title in ipairs({"Character cast visual","Pet cast visual","Editor stance"}) do
+         label(panel,title,310,-30-(i-1)*60)
+-        scene.drops[i]=dropdown(panel,base.."Menu"..i,290,-44-(i-1)*60)
++        if i<=2 then scene.drops[i]=castSelector(view,panel,i,title) else scene.drops[i]=dropdown(panel,base.."Menu"..i,290,-44-(i-1)*60) end
+     end
+     local replay=CreateFrame("Button",nil,panel,"UIPanelButtonTemplate")
+     scene.replay=replay;replay:SetSize(98,24);replay:SetPoint("TOPLEFT",550,-48);replay:SetText("Replay")
+@@ -3996,7 +4106,7 @@
+     local ctx={view=view,id=C_BuildEditor.GetPendingBuild().ID,archetype=view.Area52ArchetypeID,generation=view.Area52FeaturedGeneration}
+     for i=1,2 do
+         local idx=i+2
+-        menu(scene.drops[i],F.PreviewChoices(view,idx),e[idx],function(id)
++        scene.drops[i]:SetCastChoices(F.PreviewChoices(view,idx),e[idx],function(id)
+             if F.ValidContext(ctx) then choose(view,idx,id) end
+         end)
+     end
