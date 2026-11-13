@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "scope": "Offline indexed lookup and preview asset resolution; visual rendering awaits player test",
+  "item": 1999412,
+  "name": "Beastmaster's Whistle: Dark Rootbound Beast",
+  "appearance": 1999412,
+  "display": 1999412,
+  "model": "creature\\area52rootboundbeast\\area52rootboundbeast.m2",
+  "texture": "cadaverousmount_black",
+  "skin_batches": 2,
+  "changed": [
+    "item.dbc",
+    "spell.dbc",
+    "vanitycollection.dbc"
+  ],
+  "archive_sha256": "772b3be5f65851a384cb53ad7a49b0f62f368d6233c864285593ef2a85d54da8"
+}
