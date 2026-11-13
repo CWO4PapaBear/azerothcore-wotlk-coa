@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "checks": [
+    "installed MPQ member readback and creature-entry model chain",
+    "two pet skin batches; three original mount batches",
+    "Lua 5.1 scoped scroll panel and selection of last of 55 rows",
+    "MySQL apply, rollback rejection after edit, restore, reapply, pet save and reload"
+  ],
+  "limits": "Offline data and callback tests; live drawing and player actions require tester acceptance."
+}
