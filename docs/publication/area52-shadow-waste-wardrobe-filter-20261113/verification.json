@@ -1,0 +1,1 @@
+{"status": "passed", "checks": ["Lua filter background and scrolling", "archive member readback", "previously qualified Shadow Waste Bolt native binary retained"], "server_reports": ["shadow-waste-interactions/check-final/report.json", "shadow-waste-interactions/build-r1/report.json"]}
