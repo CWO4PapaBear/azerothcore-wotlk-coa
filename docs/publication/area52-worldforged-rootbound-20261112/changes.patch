@@ -1,0 +1,31 @@
+--- a/src/server/coa/AscensionConvenienceItems.cpp
++++ b/src/server/coa/AscensionConvenienceItems.cpp
+@@ -1031,6 +1031,7 @@
+     {1021779, 86357, 80210},
+     {1234940, 93259, 347301},
+     {1519393, 9931617, 440555},
++    {1999412, 1999412, 1999412},
+     {8200118, 1113343, 11000167},
+     {8200184, 9934290, 11000195},
+     {8200187, 9934293, 11000199},
+--- a/src/server/game/Entities/Pet/Pet.cpp
++++ b/src/server/game/Entities/Pet/Pet.cpp
+@@ -1961,6 +1961,18 @@
+ {
+     uint8 level = GetLevel();
+ 
++    if (GetEntry() == 1999412 && getPetType() == HUNTER_PET)
++    {
++        // Dark Rootbound Beast uses private focus-based Shadow Bite ranks.
++        constexpr uint32 firstRank = 1999413;
++        uint32 eligible = level < 10 ? 0 : firstRank + std::min<uint32>((level - 10) / 8, 8);
++        for (uint32 spell = firstRank; spell < firstRank + 9; ++spell)
++            if (spell != eligible && HasSpell(spell))
++                unlearnSpell(spell, false);
++        if (eligible && !HasSpell(eligible))
++            learnSpell(eligible);
++    }
++
+     if (PetLevelupSpellSet const* levelupSpells = GetCreatureTemplate()->family ? sSpellMgr->GetPetLevelupSpellList(GetCreatureTemplate()->family) : nullptr)
+     {
+         // PetLevelupSpellSet ordered by levels, process in reversed order

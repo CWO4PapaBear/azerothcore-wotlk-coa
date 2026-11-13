@@ -1,0 +1,11 @@
+{
+  "scope": "Worldforged placements and private Dark Rootbound Beast whistle, pet ranks and persistence",
+  "candidate_sha256": "fc6e0f53feb7e2e91fe1663fb5c3d29bb11cc6ba167f60744c5b50a957b80bd1",
+  "baseline_sha256": "3f9a82204d201fbab365398d12c22238a346c20ea4571d15310d59d7477a7a46",
+  "reports": {
+    "build-r3": "f415194d0dce0cfb50fa5d437127ee11cd4d30b20f8576467cd84aaacda2a23f",
+    "package-check": "fd956d159fbea8ff4e456ee012d89132398579aa882ff1d8ab00633bc25d68f4"
+  },
+  "client_sha256": "dccf83a87dc9232263ad9dc92699028e1666cb5b2aa20b84b6bc092af7acbacf",
+  "preserves_test_access_exclusions": true
+}
