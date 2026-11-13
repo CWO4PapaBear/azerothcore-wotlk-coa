@@ -1,3 +1,11 @@
+#include "Area52VanityPurchase.h"
+class Player;
+namespace AscensionTaming { char const* SelectWardrobeBeast(Player*, unsigned, unsigned, unsigned); }
+#include "Area52CacheOwnership.h"
+#include "Area52FeaturedCatalogEvents.h"
+#include "Area52FeaturedSet.h"
+#include "Area52FeaturedIncarnations.h"
+#include "Area52FeaturedPets.h"
 #include "AscensionRemovedSpellActionBars.h"
 #include "Area52StarterEquipment.h"
 /*
@@ -34,6 +42,9 @@
 #include "AscensionRunemasterEchoes.h"
 #include "AscensionCollectionModelData.h"
 #include "AscensionIncarnationRules.h"
+#include "Area52DraftVanityRules.h"
+#include "Area52DraftVanity.h"
+#include "Area52ActiveBuild.h"
 #include "Pet.h"
 #include "SpellAuraEffects.h"
 #include "AscensionAmmunitionData.h"
@@ -463,7 +474,11 @@ struct AppearanceInfo {
   uint32 CosmeticSpell = 0;
   uint32 CreatureDisplay = 0;
   uint32 IncarnationSpell = 0;
+  uint32 CreatureWeapon = 0;
+  uint32 BeastEntry = 0;
 };
+
+Area52Build::CatalogSignal VanityCatalogSignal;
 
 struct VanityInfo {
   uint32 LearnedSpell = 0;
@@ -473,8 +488,10 @@ struct VanityInfo {
 };
 
 struct PlayerCollectionState {
+    bool CheckHeirloomCaches = false;
   uint32 AccountId = 0;
   std::unordered_set<uint32> CollectedAppearances;
+  Area52Build::DraftVanityLease DraftVanity;
   std::unordered_set<uint32> OwnedVanityItems;
   std::array<uint32, APPEARANCE_CATEGORY_COUNT> ActiveAppearances{};
   std::map<std::string, std::vector<uint32>> Outfits;
@@ -491,6 +508,8 @@ struct PlayerCollectionState {
   std::unordered_set<uint32> AppliedCosmeticSpells;
   ObjectGuid IncarnationPet;
   uint32 IncarnationPetDisplay = 0;
+  uint32 OriginalPetWeapon = 0;
+  uint32 AppliedPetWeapon = 0;
   bool UpdatingIncarnation = false;
   bool CanSeeItemAppearances = true;
   bool CanSeeSpellAppearances = true;
@@ -1327,7 +1346,17 @@ public:
     return restored != 0;
   }
 
-  void OnPlayerLogin(Player *player) {
+  void PrepareHeroProficienciesBeforeMap(Player* player)
+  {
+    if (!player || player->IsInWorld() || !player->GetSession() || !player->GetSession()->PlayerLoading())
+      return;
+    LearnHeroProficiencies(player);
+    if (player->getClass() == CLASS_HERO)
+      player->SendInitialSpells();
+  }
+
+  static void LearnHeroProficiencies(Player* player)
+  {
     if (player && player->getClass() == CLASS_HERO)
     {
       constexpr std::array<uint32, 20> heroProficiencies = {
@@ -1338,6 +1367,10 @@ public:
         if (!player->HasSpell(spell) && sSpellMgr->GetSpellInfo(spell))
           player->learnSpell(spell, false);
     }
+  }
+
+  void OnPlayerLogin(Player *player) {
+    LearnHeroProficiencies(player);
     if (!IsAscensionCustomClass(player))
     {
       QueueCharacterAdvancementState(player);
@@ -3215,6 +3248,20 @@ AscensionCollectionModels::Entry const* FindCollectionModel(uint32 creatureId);
 
 class AscensionCollectionService {
 public:
+    Area52CacheOwnership::Appearance ReadCacheAppearance(Player* player, uint32 item)
+    {
+        if (!player || !item || !_clientDataLoaded || !AscensionFreePick::Applies(player))
+            return {};
+        auto state = GetState(player);
+        if (!state)
+            return {};
+        auto const mapping = _itemAppearances.find(item);
+        if (mapping == _itemAppearances.end())
+            return { true, false, false };
+        if (!_appearances.contains(mapping->second))
+            return {};
+        return { true, true, state->CollectedAppearances.contains(mapping->second) };
+    }
     static bool IsCosmeticCategory(uint32 category)
     {
         return category >= 56 && category <= 58;
@@ -3257,10 +3304,28 @@ public:
     return instance;
   }
 
-    static uint32 ResolveIncarnationDisplay(uint32 creatureId)
+    struct IncarnationCategory
     {
-        auto model = FindCollectionModel(creatureId);
-        return model && sCreatureDisplayInfoStore.LookupEntry(model->DisplayId) ? model->DisplayId : 0;
+        uint32 Kind, First, Second;
+        uint64 ClassMask;
+        bool Allows(uint32 cls) const
+        {
+            return cls && cls <= 64 && (ClassMask & (uint64(1) << (cls - 1)));
+        }
+    };
+    std::map<uint32, IncarnationCategory> _incarnationCategories;
+    IncarnationCategory _beastCategory{};
+
+    uint32 CategoryFor(uint32 kind, uint32 entry) const
+    {
+        if (kind == 1 && entry == FORM_DIREBEAR)
+            entry = FORM_BEAR;
+        if (kind == 1 && entry == FORM_FLIGHT_EPIC)
+            entry = FORM_FLIGHT;
+        for (auto const& [id, category] : _incarnationCategories)
+            if (entry && category.Kind == kind && (category.First == entry || category.Second == entry))
+                return id;
+        return 0;
     }
 
   bool LoadClientData() {
@@ -3273,9 +3338,27 @@ public:
     _woodworkingAppearancePatches.clear();
     _woodworkingItemAppearancePatches.clear();
 
+    _incarnationCategories.clear();
+    _beastCategory = {};
+    ClientDBC categories;
+    if (!categories.Load(GetClientDBCPath("AppearanceCategories.dbc"), 25))
+        return false;
+    for (uint32 i = 0; i < categories.GetRecordCount(); ++i)
+    {
+        auto record = categories.GetRecord(i);
+        auto id = record.GetUInt32(0);
+        auto kind = record.GetUInt32(19);
+        uint64 mask = record.GetUInt32(23) | (uint64(record.GetUInt32(24)) << 32);
+        if (id == 33 && record.GetString(1) == "APPEARANCE_TYPE_COSMETIC_PET")
+            _beastCategory = {kind, record.GetUInt32(20), record.GetUInt32(21), mask};
+        if (id < APPEARANCE_CATEGORY_COUNT && id != 68 && mask && (kind == 1 || kind == 2)
+            && record.GetString(1) == "APPEARANCE_TYPE_INCARNATION")
+            _incarnationCategories.emplace(id, IncarnationCategory{kind, record.GetUInt32(20), record.GetUInt32(21), mask});
+    }
+
     ClientDBC appearances;
     bool appearancesLoaded =
-        appearances.Load(GetClientDBCPath("Appearances.dbc"), 9);
+        appearances.Load(GetClientDBCPath("Appearances.dbc"), 10);
     for (uint32 row = 0; row < appearances.GetRecordCount(); ++row) {
       ClientDBC::Record record = appearances.GetRecord(row);
       uint32 appearanceId = record.GetUInt32(0);
@@ -3290,16 +3373,21 @@ public:
       if (IsCosmeticCategory(appearance.PrimaryCategory))
         appearance.CosmeticSpell = ResolveCosmeticSpell(appearanceId,
             displayId, record.GetUInt32(8));
-      if (AscensionIncarnations::ModelCategory(appearance.PrimaryCategory))
+      if (appearance.PrimaryCategory == 33)
+        appearance.BeastEntry = record.GetUInt32(8);
+      if (_incarnationCategories.contains(appearance.PrimaryCategory) ||
+          _incarnationCategories.contains(appearance.SecondaryCategory) ||
+          _incarnationCategories.contains(appearance.TertiaryCategory))
       {
-        appearance.CreatureDisplay = ResolveIncarnationDisplay(displayId);
-        if (!appearance.CreatureDisplay && record.GetInt32(8) > 0 &&
-            sCreatureDisplayInfoStore.LookupEntry(record.GetUInt32(8)))
-          appearance.CreatureDisplay = record.GetUInt32(8);
+        int32 model = record.GetInt32(8);
+        if (model > 0 && sCreatureDisplayInfoStore.LookupEntry(uint32(model)))
+          appearance.CreatureDisplay = uint32(model);
+        else if (model < 0 && uint32(-int64(model)) == displayId && sSpellMgr->GetSpellInfo(displayId))
+          appearance.IncarnationSpell = displayId;
+        if (AscensionIncarnations::CategoryMatches(29, appearance.PrimaryCategory,
+            appearance.SecondaryCategory, appearance.TertiaryCategory))
+          appearance.CreatureWeapon = record.GetUInt32(9);
       }
-      uint32 const visual = AscensionIncarnations::VisualSpell(appearanceId, appearance.PrimaryCategory);
-      if (visual && displayId == visual && record.GetInt32(8) == -int32(visual))
-        appearance.IncarnationSpell = ResolveCosmeticSpell(appearanceId, visual, 0);
       _allAppearanceIds.push_back(appearanceId);
     }
 
@@ -3415,6 +3503,7 @@ public:
     {
       TakeLoginState(player);
       InitializeRiding(player);
+      ApplyPilotVanity(player);
       return;
     }
 
@@ -3435,6 +3524,7 @@ public:
             AscensionCompatConfig::AUTO_COLLECT_APPEARANCES))
       ScanPlayerInventory(player, *state);
 
+    state->CheckHeirloomCaches = AscensionFreePick::Applies(player);
     BeginAppearanceCollectionSync(player, *state);
     state->LoginResyncTimer = APPEARANCE_LOGIN_RESYNC_DELAY_MS;
     SendActiveAppearances(player, *state);
@@ -3503,15 +3593,19 @@ public:
   }
 
   void OnPlayerUpdate(Player *player, uint32 diff) {
+    PumpVanityCatalog();
     for (WorldPacket &packet : TakeClientPackets(player->GetSession()->GetAccountId()))
       HandleClientPacket(player, packet);
 
+    SynchronizeDraftVanity(player);
     ProcessPendingAppearanceAdds(player, diff);
     ProcessPendingCompanionSpells(player, diff);
     ProcessCompanionLoot(player, diff);
     ProcessCompanionLoot(player, diff, true);
     if (auto state = GetState(player))
     {
+        if (state->CheckHeirloomCaches)
+            GrantCompletedHeirloomCaches(player, *state);
         if (state->CosmeticTimer <= diff)
         {
             state->CosmeticTimer = 1000;
@@ -3580,7 +3674,10 @@ public:
             if (sSpellMgr->GetSpellInfo(spellId) && !player->HasSpell(spellId))
                 player->learnSpell(spellId, false);
 
-        player->SetSkill(SKILL_RIDING, 4, 300, 300);
+        if (player->GetPureSkillValue(SKILL_RIDING) < 300 || player->GetPureMaxSkillValue(SKILL_RIDING) < 300)
+            player->SetSkill(SKILL_RIDING, std::max<uint16>(player->GetSkillStep(SKILL_RIDING), 4),
+                std::max<uint16>(player->GetPureSkillValue(SKILL_RIDING), 300),
+                std::max<uint16>(player->GetPureMaxSkillValue(SKILL_RIDING), 300));
     }
 
     void PrepareOwnedCompanionsBeforeMap(Player* player)
@@ -3758,6 +3855,24 @@ public:
         }
     }
 
+    bool GuardianCacheQuote(Player* player, uint32 cache, uint32& cost)
+    {
+        if (!AscensionFreePick::Applies(player) || !Area52Master::IsHeirloomCache(cache))
+            return false;
+        auto state = GetState(player);
+        if (!state || state->OwnedVanityItems.contains(cache))
+            return false;
+        std::vector<uint32> missing;
+        cost = MasterQuote(*state, cache, missing);
+        return true;
+    }
+
+    bool BuyGuardianCache(Player* player, uint32 cache, uint32 quoted)
+    {
+        return Area52Master::IsHeirloomCache(cache) &&
+            BuyMasterOffer(player, cache, Area52Master::Offers.at(cache).Currency, quoted);
+    }
+
     bool RedeemVanityBundle(Player* player, Item* item, std::vector<uint32> const& appearances, std::vector<uint32> const& rewards)
     {
         if (!AscensionFreePick::Applies(player) || !item || appearances.empty())
@@ -3894,6 +4009,39 @@ public:
         }
     }
 
+    bool ApplyPilotVanity(Player* player)
+    {
+        if (!player || !player->GetSession() || !player->GetSession()->IsBot() ||
+            !AscensionFreePick::Applies(player) || !_clientDataLoaded)
+            return false;
+        auto const* roles = player->FindPlayerSettings("core.area52.bot.pilot");
+        if (!roles || roles->empty() || roles->front().value < 1 || roles->front().value > 3)
+            return false;
+        constexpr std::array<uint32, 3> sets = {900527, 900501, 900573};
+        std::array<uint32, APPEARANCE_CATEGORY_COUNT> desired{};
+        auto const* assignment = player->FindPlayerSettings("core.area52.bot.assignment");
+        uint32 const set = assignment && assignment->size() > 1 && (*assignment)[1].value
+            ? (*assignment)[1].value : sets[roles->front().value - 1];
+        if (!ExpandItemSetAppearance(desired, set, AscensionFreePick::Applies(player)))
+            return false;
+        desired[55] = set;
+        auto state = GetState(player);
+        if (!state)
+        {
+            state = std::make_shared<PlayerCollectionState>();
+            state->AccountId = player->GetSession()->GetAccountId();
+            std::lock_guard lock(_stateMutex);
+            _playerStates[player->GetGUID().GetCounter()] = state;
+        }
+        if (state->ActiveAppearances != desired)
+        {
+            state->ActiveAppearances = desired;
+            SaveActiveAppearances(player, *state);
+            RefreshVisibleItems(player);
+        }
+        return true;
+    }
+
   void OnVisibleItemSet(Player *player, uint8 slot, Item *item) {
     if (!item)
       return;
@@ -3947,27 +4095,144 @@ public:
             entry->ItemDisplayId : 0;
     }
 
-    uint32 GetIncarnationDisplay(Player* player, uint32 category)
+    bool PrepareDraftVanityReward(Player* player, uint64 build, uint32 revision,
+        Area52DraftAppearanceRewards& rewards)
+    {
+        auto const context = Area52Build::GetDraftVanityContext(player);
+        auto state = GetState(player);
+        if (!state || !context.Ready || context.Build != build || context.Revision != revision)
+            return false;
+        if (!SynchronizeDraftVanity(player))
+            return false;
+        if (state->DraftVanity.Build != build || state->DraftVanity.Revision != revision)
+            return false;
+        for (auto const& [category, id] : state->DraftVanity.Applied)
+            rewards.emplace_back(id, _appearances.at(id).SourceItem);
+        return true;
+    }
+
+    void ConfirmDraftVanityReward(Player* player, Area52DraftAppearanceRewards const& rewards)
     {
         auto state = GetState(player);
-        if (!state || !state->CanSeeSpellAppearances || !AscensionIncarnations::ModelCategory(category))
-            return 0;
+        if (!state)
+            return;
+        for (auto const& [appearance, item] : rewards)
+            if (state->CollectedAppearances.insert(appearance).second)
+                SendAppearanceAdded(player, appearance, item);
+        SaveActiveAppearances(player, *state);
+    }
+
+    bool SynchronizeDraftVanity(Player* player)
+    {
+        auto state = GetState(player);
+        if (!state)
+            return false;
+        auto const context = Area52Build::GetDraftVanityContext(player);
+        if (!context.Ready)
+            return false;
+        auto reject = [&]()
+        {
+            if (state->DraftVanity.Synchronize(0, 0, {}, state->ActiveAppearances, state->CollectedAppearances))
+            {
+                BeginAppearanceCollectionSync(player, *state);
+                SendActiveAppearances(player, *state);
+                RefreshIncarnations(player);
+            }
+            return false;
+        };
+        std::map<uint32, uint32> desired;
+        if (context.Archetype)
+        {
+            auto const bundle = Area52ArchetypeVanity::Bundles.find(9901000 + context.Archetype);
+            if (bundle == Area52ArchetypeVanity::Bundles.end())
+                return reject();
+            std::vector<uint32> assigned = bundle->second;
+            for (auto const& [archetype, appearance] : std::map<uint32, uint32>{
+                {24, 61374}, {26, 47677}, {33, 51229}, {95, 51230}})
+                if (archetype == context.Archetype)
+                    assigned.push_back(appearance);
+            for (uint32 id : assigned)
+            {
+                auto const appearance = _appearances.find(id);
+                if (appearance == _appearances.end())
+                    return reject();
+                auto const& row = appearance->second;
+                if (_incarnationCategories.contains(row.PrimaryCategory))
+                {
+                    if ((!row.CreatureDisplay && !row.IncarnationSpell)
+                        || !desired.emplace(row.PrimaryCategory, id).second)
+                        return reject();
+                }
+            }
+        }
+        for (std::size_t i = 0; i < context.Incarnations.size(); ++i)
+        {
+            auto const id = context.Incarnations[i];
+            auto const category = Area52Build::FeaturedIncarnationCategories[i];
+            if (id == Area52Build::FeaturedPreviewDefault)
+                continue;
+            if (!id)
+                desired.erase(category);
+            else
+            {
+                auto const row = _appearances.find(id);
+                if (row == _appearances.end() || row->second.PrimaryCategory != category
+                    || (!row->second.CreatureDisplay && !row->second.IncarnationSpell))
+                    return reject();
+                desired[category] = id;
+            }
+        }
+        if (context.Pet != Area52Build::FeaturedPreviewDefault)
+        {
+            for (uint32 category = 25; category <= 29; ++category)
+                desired.erase(category);
+            if (auto const id = Area52Build::FeaturedPetAppearance(context.Pet))
+            {
+                auto const row = _appearances.find(id);
+                if (row == _appearances.end() || row->second.PrimaryCategory < 25
+                    || row->second.PrimaryCategory > 29 || !row->second.CreatureDisplay)
+                    return reject();
+                desired[row->second.PrimaryCategory] = id;
+            }
+        }
+        if (!state->DraftVanity.Synchronize(context.Build, context.Revision, desired,
+            state->ActiveAppearances, state->CollectedAppearances))
+            return true;
+        BeginAppearanceCollectionSync(player, *state);
+        SendActiveAppearances(player, *state);
+        RefreshIncarnations(player);
+        return true;
+    }
+
+    AppearanceInfo const* SelectedIncarnation(Player* player, uint32 category)
+    {
+        auto def = _incarnationCategories.find(category);
+        auto state = GetState(player);
+        if (def == _incarnationCategories.end() || !def->second.Allows(player->getClass()) ||
+            !state || !state->CanSeeSpellAppearances)
+            return nullptr;
         uint32 id = state->ActiveAppearances[category];
         auto itr = _appearances.find(id);
-        if (!state->CollectedAppearances.contains(id) || itr == _appearances.end())
-            return 0;
+        if ((!state->CollectedAppearances.contains(id) && !state->DraftVanity.Contains(id)) || itr == _appearances.end())
+            return nullptr;
         auto const& row = itr->second;
         return AscensionIncarnations::CategoryMatches(category, row.PrimaryCategory,
-            row.SecondaryCategory, row.TertiaryCategory) ?
-            (row.IncarnationSpell ? player->GetNativeDisplayId() : row.CreatureDisplay) : 0;
+            row.SecondaryCategory, row.TertiaryCategory) ? &row : nullptr;
     }
     uint32 GetIncarnationSpell(Player* player, uint32 category)
     {
-        if (!GetIncarnationDisplay(player, category))
-            return 0;
-        auto state = GetState(player);
-        auto const& row = _appearances.at(state->ActiveAppearances[category]);
-        return row.IncarnationSpell;
+        auto row = SelectedIncarnation(player, category);
+        return row ? row->IncarnationSpell : 0;
+    }
+    static void UpdatePetWeapon(Unit* pet, PlayerCollectionState& state, uint32 selected)
+    {
+        uint32 current = pet->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID);
+        if (!state.AppliedPetWeapon || current != state.AppliedPetWeapon)
+            state.OriginalPetWeapon = current;
+        uint32 desired = selected ? selected : state.OriginalPetWeapon;
+        if (current != desired)
+            pet->SetVirtualItem(0, desired);
+        state.AppliedPetWeapon = selected;
     }
     void RefreshIncarnation(Unit* unit)
     {
@@ -3995,7 +4260,7 @@ public:
         uint32 category = 0;
         if (unit == owner)
         {
-            category = AscensionIncarnations::FormCategory(owner->GetShapeshiftForm());
+            category = CategoryFor(1, owner->GetShapeshiftForm());
             auto const& forms = owner->GetAuraEffectsByType(SPELL_AURA_MOD_SHAPESHIFT);
             if (!category || forms.empty() ||
                 (owner->GetDisplayId() != owner->GetModelForForm(owner->GetShapeshiftForm(), forms.front()->GetId()) &&
@@ -4007,19 +4272,24 @@ public:
             auto pet = owner->GetPet();
             if (!pet || unit != pet || pet->getPetType() != SUMMON_PET)
                 return;
-            category = AscensionIncarnations::PetCategory(pet->GetEntry());
+            category = CategoryFor(2, pet->GetEntry());
             if (!category)
                 return;
             if (state->IncarnationPet != pet->GetGUID())
             {
                 state->IncarnationPet = pet->GetGUID();
                 state->IncarnationPetDisplay = 0;
+                state->AppliedPetWeapon = 0;
             }
             if (unit->GetDisplayId() != unit->GetNativeDisplayId() &&
                 unit->GetDisplayId() != state->IncarnationPetDisplay)
                 return;
         }
-        uint32 display = GetIncarnationDisplay(owner, category);
+        auto selected = SelectedIncarnation(owner, category);
+        uint32 display = selected ? selected->CreatureDisplay : 0;
+        if (unit != owner && category == 29)
+            UpdatePetWeapon(unit, *state, selected && sObjectMgr->GetItemTemplate(selected->CreatureWeapon)
+                ? selected->CreatureWeapon : 0);
         state->UpdatingIncarnation = true;
         if (display && unit->GetDisplayId() != display)
             unit->SetDisplayId(display, unit->GetObjectScale());
@@ -4055,10 +4325,16 @@ public:
     bool unlockAll = ascensionCompatConfig.GetConfigValue<bool>(
         AscensionCompatConfig::UNLOCK_ALL_VANITY);
 
+    if (AscensionFreePick::Applies(player) && IsConsumableVanityItem(vanityItr->second))
+    {
+        ChatHandler(player->GetSession()).SendSysMessage("Consumables must be purchased individually from the Vanity menu.");
+        return;
+    }
+
     bool const entitled =
         IsBankVanityItem(itemId)
             ? OwnsBankVanityItem(player, *state, itemId)
-            : (unlockAll || state->OwnedVanityItems.contains(itemId));
+            : ((unlockAll && !(AscensionFreePick::Applies(player) && Area52Master::Offers.contains(itemId))) || state->OwnedVanityItems.contains(itemId));
     if (!entitled)
     {
       ChatHandler(player->GetSession())
@@ -4248,8 +4524,13 @@ private:
                                      PlayerCollectionState &state) {
     std::vector<uint32> appearances(state.CollectedAppearances.begin(),
                                     state.CollectedAppearances.end());
+    for (auto const& [category, appearance] : state.DraftVanity.Applied)
+      if (!state.CollectedAppearances.contains(appearance))
+        appearances.push_back(appearance);
     std::sort(appearances.begin(), appearances.end());
 
+    state.PendingAppearanceAdds.clear();
+    state.NextPendingAppearanceAdd = 0;
     if (appearances.size() <= MAX_APPEARANCE_SNAPSHOT_ENTRIES)
     {
       SendAppearanceCollection(player, appearances);
@@ -4544,10 +4825,13 @@ private:
     if (_vanityItems.contains(itemId))
       sScriptMgr->OnPlayerCoAProgress(player, CoAProgressEvent::VanityCollected, itemId);
 
-    if (!ascensionCompatConfig.GetConfigValue<bool>(
-            AscensionCompatConfig::UNLOCK_ALL_VANITY) &&
+    if ((!ascensionCompatConfig.GetConfigValue<bool>(AscensionCompatConfig::UNLOCK_ALL_VANITY) ||
+        (AscensionFreePick::Applies(player) && Area52Master::Offers.contains(itemId))) &&
         _vanityItems.contains(itemId) &&
+        (!AscensionFreePick::Applies(player) || !IsConsumableVanityItem(_vanityItems.at(itemId))) &&
         state.OwnedVanityItems.insert(itemId).second) {
+      if (AscensionFreePick::Applies(player) && Area52Master::HeirloomCacheForPiece(itemId))
+          state.CheckHeirloomCaches = true;
       CharacterDatabase.Execute(
           "INSERT IGNORE INTO `account_vanity_collection` (`account_id`, "
           "`item_id`) VALUES ({}, {})",
@@ -4555,9 +4839,7 @@ private:
 
       if (notifyClient)
       {
-        WorldPacket packet(SMSG_VANITY_COLLECTION_ADDED, sizeof(uint32));
-        packet << itemId;
-        player->GetSession()->SendPacket(&packet);
+        SendVanityCollectionAdded(player, itemId);
       }
     }
 
@@ -4570,9 +4852,7 @@ private:
 
       if (notifyClient)
       {
-        WorldPacket packet(SMSG_VANITY_COLLECTION_ADDED, sizeof(uint32));
-        packet << itemId;
-        player->GetSession()->SendPacket(&packet);
+        SendVanityCollectionAdded(player, itemId);
       }
 
       LearnOwnedBankSpells(player, state, !player->IsInWorld());
@@ -4636,14 +4916,22 @@ private:
         break;
       case CMSG_CREATURE_QUERY_BULK:
         for (uint32 entry : ReadBulkQueryEntries(packet, MAX_CREATURE_QUERY_BULK_ENTRIES))
-          SendCollectionCreatureQueryResponse(player->GetSession(), entry);
+        {
+          WorldSession* session = player->GetSession();
+          if (!sObjectMgr->GetCreatureTemplate(entry) && SendCollectionCreatureQueryResponse(session, entry))
+            continue;
+
+          WorldPacket query(CMSG_CREATURE_QUERY, sizeof(uint32) + sizeof(uint64));
+          query << entry << ObjectGuid::Empty;
+          session->HandleCreatureQueryOpcode(query);
+        }
         break;
       case CMSG_CUSTOM_ASCENSION_POINT_SPEND_REQUEST:
         HandlePointSpendRequest(player, packet);
         break;
       case CMSG_QUERY_CUSTOM_STORE:
       case CMSG_PURCHASE_CUSTOM_STORE_ITEM:
-        if (!AscensionCompatOpcodes::Dispatch(player->GetSession(), packet) &&
+        if (!HandleMasterStore(player, packet) && !AscensionCompatOpcodes::Dispatch(player->GetSession(), packet) &&
             packet.GetOpcode() == CMSG_QUERY_CUSTOM_STORE)
         {
           WorldPacket empty(SMSG_QUERY_CUSTOM_STORE_RESULT, 32);
@@ -4686,7 +4974,7 @@ private:
       if (!appearanceId)
         continue;
 
-      if (!state->CollectedAppearances.contains(appearanceId))
+      if (!state->CollectedAppearances.contains(appearanceId) && !state->DraftVanity.Contains(appearanceId))
       {
         SendApplyResult(player, "APPLY_APPEARANCES_NOT_COLLECTED");
         return;
@@ -4700,8 +4988,14 @@ private:
       }
 
       AppearanceInfo const &appearance = appearanceItr->second;
+      if (auto def = _incarnationCategories.find(categoryId);
+          def != _incarnationCategories.end() && !def->second.Allows(player->getClass()))
+      {
+        SendApplyResult(player, "APPLY_APPEARANCES_NOT_AVAILABLE_FOR_CLASS");
+        return;
+      }
       if ((categoryId <= 14 || categoryId == APPEARANCE_CATEGORY_AMMUNITION ||
-          IsCosmeticCategory(categoryId) || AscensionIncarnations::ModelCategory(categoryId)) &&
+          IsCosmeticCategory(categoryId) || _incarnationCategories.contains(categoryId)) &&
           appearance.PrimaryCategory != categoryId &&
           appearance.SecondaryCategory != categoryId &&
           appearance.TertiaryCategory != categoryId) {
@@ -4709,19 +5003,35 @@ private:
         return;
       }
       if ((IsCosmeticCategory(categoryId) && !appearance.CosmeticSpell) ||
-          (AscensionIncarnations::ModelCategory(categoryId) && !appearance.CreatureDisplay && !appearance.IncarnationSpell))
+          (_incarnationCategories.contains(categoryId) && !appearance.CreatureDisplay && !appearance.IncarnationSpell))
       {
         SendApplyResult(player, "APPLY_APPEARANCES_INVALID_SELECTION");
         return;
       }
     }
 
-    if (requested[55] && !ExpandItemSetAppearance(requested, requested[55]))
+    if (requested[55] && !ExpandItemSetAppearance(requested, requested[55], AscensionFreePick::Applies(player)))
     {
       SendApplyResult(player, "APPLY_APPEARANCES_INVALID_SELECTION");
       return;
     }
 
+    if (AscensionFreePick::Applies(player) && requested[33] && requested[33] != state->ActiveAppearances[33])
+    {
+      auto const& appearance = _appearances.at(requested[33]);
+      if (!appearance.BeastEntry || !state->CollectedAppearances.contains(requested[33]) ||
+          !_beastCategory.Allows(player->getClass()))
+      {
+        SendApplyResult(player, "APPLY_APPEARANCES_INVALID_SELECTION");
+        return;
+      }
+      if (char const* error = AscensionTaming::SelectWardrobeBeast(player, appearance.BeastEntry,
+              _beastCategory.First, _beastCategory.Second))
+      {
+        SendApplyResult(player, error);
+        return;
+      }
+    }
     state->ActiveAppearances = requested;
     SaveActiveAppearances(player, *state);
     RefreshIncarnations(player);
@@ -4754,6 +5064,33 @@ private:
 
     void HandlePointSpendRequest(Player* player, WorldPacket& packet)
     {
+        if (AscensionFreePick::Applies(player) && packet.size() == 2 * sizeof(uint32))
+        {
+            uint32 version, item;
+            packet >> version >> item;
+            auto offer = Area52Master::Offers.find(item);
+            if (version == 0xA52B0003 && offer != Area52Master::Offers.end() && offer->second.Store == 0)
+                DeliverVanityItem(player, item);
+            else
+                RejectClientPacket(player->GetSession()->GetAccountId(), packet, "invalid heirloom delivery request");
+            return;
+        }
+        if (AscensionFreePick::Applies(player) && packet.size() == 4 * sizeof(uint32))
+        {
+            uint32 version, item, currency, cost;
+            packet >> version >> item >> currency >> cost;
+            if (version == 0xA52B0002 && !BuyMasterOffer(player, item, currency, cost))
+                ChatHandler(player->GetSession()).SendSysMessage("Purchase declined. Check your currency and refresh your collection.");
+            return;
+        }
+        if (AscensionFreePick::Applies(player) && packet.size() == 3 * sizeof(uint32))
+        {
+            uint32 version, itemId, cost;
+            packet >> version >> itemId >> cost;
+            if (version == Area52Vanity::Request)
+                PurchaseVanityItemWithBazaarTokens(player, itemId, cost);
+            return;
+        }
         if (packet.size() != POINT_SPEND_REQUEST_SIZE)
         {
             RejectClientPacket(player->GetSession()->GetAccountId(), packet, "malformed point spend request");
@@ -4763,6 +5100,18 @@ private:
         uint8 currency = 0;
         uint32 itemId = 0;
         packet >> currency >> itemId;
+        if (AscensionFreePick::Applies(player))
+        {
+            auto offer = Area52Master::Offers.find(itemId);
+            if (offer != Area52Master::Offers.end() &&
+                (offer->second.Store != 0 || currency != VANITY_CURRENCY_DONATION_POINTS))
+                return;
+        }
+        if (currency == 3 && AscensionFreePick::Applies(player))
+        {
+            ChatHandler(player->GetSession()).SendSysMessage("Update through the launcher before using Bazaar Token purchases. No tokens were charged.");
+            return;
+        }
         if (currency != VANITY_CURRENCY_DONATION_POINTS)
         {
             LOG_DEBUG("coa", "Ignored Ascension point spend request in vanity currency {} for {} from {}",
@@ -4772,6 +5121,9 @@ private:
 
         DeliverVanityItem(player, itemId);
     }
+
+#include "Area52MasterStore.inc"
+#include "Area52VanityBazaar.inc"
 
   void SaveActiveAppearances(Player *player,
                              PlayerCollectionState const &state) {
@@ -4783,7 +5135,8 @@ private:
 
     for (uint32 categoryId = 1; categoryId < state.ActiveAppearances.size();
          ++categoryId) {
-      uint32 appearanceId = state.ActiveAppearances[categoryId];
+      uint32 appearanceId = state.DraftVanity.PersistentAppearance(categoryId,
+          state.ActiveAppearances[categoryId], state.CollectedAppearances);
       if (!appearanceId)
         continue;
 
@@ -4951,7 +5304,7 @@ private:
     {
       uint32 appearanceId = 0;
       packet >> appearanceId;
-      valid = !appearanceId || state->CollectedAppearances.contains(appearanceId);
+      valid = !appearanceId || state->CollectedAppearances.contains(appearanceId) || state->DraftVanity.Contains(appearanceId);
       appearances.push_back(appearanceId);
     }
     if (!valid)
@@ -5012,17 +5365,23 @@ private:
 
       vanityItems.erase(
           std::remove_if(vanityItems.begin(), vanityItems.end(),
-                         [](uint32 itemId) { return IsBankVanityItem(itemId); }),
+                         [player](uint32 itemId) { return IsBankVanityItem(itemId) || (AscensionFreePick::Applies(player) && Area52Master::Offers.contains(itemId)); }),
           vanityItems.end());
 
       for (uint32 itemId : state.OwnedVanityItems)
-        if (IsBankVanityItem(itemId))
+        if (IsBankVanityItem(itemId) || (AscensionFreePick::Applies(player) && Area52Master::Offers.contains(itemId)))
           vanityItems.push_back(itemId);
     }
     else
       vanityItems.assign(state.OwnedVanityItems.begin(),
                          state.OwnedVanityItems.end());
 
+    if (AscensionFreePick::Applies(player))
+        std::erase_if(vanityItems, [&](uint32 itemId)
+        {
+            auto itr = _vanityItems.find(itemId);
+            return itr != _vanityItems.end() && IsConsumableVanityItem(itr->second);
+        });
     std::sort(vanityItems.begin(), vanityItems.end());
     vanityItems.erase(std::unique(vanityItems.begin(), vanityItems.end()), vanityItems.end());
     WorldPacket packet(SMSG_VANITY_COLLECTION_INFO,
@@ -5046,7 +5405,7 @@ private:
         if (player->IsAlive() && !player->HasAuraType(SPELL_AURA_TRANSFORM) &&
             !player->HasAuraType(SPELL_AURA_CLONE_CASTER))
             if (uint32 spell = GetIncarnationSpell(player,
-                AscensionIncarnations::FormCategory(player->GetShapeshiftForm())))
+                CategoryFor(1, player->GetShapeshiftForm())))
                 desired.insert(spell);
         for (uint32 category = 56; category <= 58; ++category)
         {
@@ -5081,7 +5440,7 @@ private:
 
   bool ExpandItemSetAppearance(
       std::array<uint32, APPEARANCE_CATEGORY_COUNT> &activeAppearances,
-      uint32 setAppearanceId) const {
+      uint32 setAppearanceId, bool featured) const {
     auto setAppearanceItr = _appearances.find(setAppearanceId);
     if (setAppearanceItr == _appearances.end())
       return false;
@@ -5091,15 +5450,49 @@ private:
     if (itemSetItr == _itemSetItems.end())
       return false;
 
-    bool expanded = false;
-    for (uint32 itemId : itemSetItr->second) {
+    auto desired = activeAppearances;
+    std::vector<uint32> selected = itemSetItr->second;
+    bool overridden = false;
+    if (featured && itemSetId > 90000 && itemSetId < 100000
+        && Area52ArchetypeVanity::Bundles.contains(9901000 + itemSetId - 90000))
+    {
+        auto result = CharacterDatabase.Query(Area52Build::FeaturedSetQuery, itemSetId - 90000);
+        if (!result)
+            return false;
+        Area52Build::FeaturedRewardItems items{};
+        int const resolved = Area52Build::ReadFeaturedSet(result->Fetch()[0].Get<std::string>(), items);
+        if (resolved < 0)
+            return false;
+        if (resolved > 0)
+        {
+            selected.assign(items.begin(), items.begin() + 12);
+            overridden = true;
+            for (uint32 category = 1; category <= 14; ++category)
+                if (category != 5 && category != 6)
+                    desired[category] = 0;
+        }
+    }
+    bool expanded = overridden;
+    constexpr std::array<uint32, 12> selectedCategories{1, 2, 4, 8, 11, 7, 9, 3, 10, 13, 14, 12};
+    for (std::size_t slot = 0; slot < selected.size(); ++slot) {
+      uint32 const itemId = selected[slot];
+      if (!itemId)
+        continue;
       auto itemAppearanceItr = _itemAppearances.find(itemId);
       if (itemAppearanceItr == _itemAppearances.end())
+      {
+        if (overridden)
+          return false;
         continue;
+      }
 
       auto appearanceItr = _appearances.find(itemAppearanceItr->second);
       if (appearanceItr == _appearances.end())
+      {
+        if (overridden)
+          return false;
         continue;
+      }
 
       AppearanceInfo const &appearance = appearanceItr->second;
       std::array<uint32, 3> const categories = {
@@ -5110,12 +5503,21 @@ private:
             return categoryId >= 1 && categoryId <= 14;
           });
       if (categoryItr == categories.end())
+      {
+        if (overridden)
+          return false;
         continue;
+      }
 
-      activeAppearances[*categoryItr] = itemAppearanceItr->second;
+      uint32 const category = overridden ? selectedCategories[slot] : *categoryItr;
+      if (overridden && std::find(categories.begin(), categories.end(), category) == categories.end())
+        return false;
+      desired[category] = itemAppearanceItr->second;
       expanded = true;
     }
 
+    if (expanded)
+      activeAppearances = desired;
     return expanded;
   }
 
@@ -5657,6 +6059,7 @@ public:
         {"resync", HandleSpellChargesResyncCommand, SEC_PLAYER, Console::No}};
 
     static ChatCommandTable commandTable = {
+        {"vanityprice", HandleVanityPriceCommand, SEC_GAMEMASTER, Console::No},
         {"localfreshcheck", HandleAscensionFreshCharacterCheck, SEC_ADMINISTRATOR, Console::Yes},
         {"localreloadpresets", HandleLocalReloadPresetsCommand, SEC_ADMINISTRATOR, Console::Yes},
         {"morphpreset", HandleMorphPresetCommand, SEC_ADMINISTRATOR, Console::No},
@@ -5671,6 +6074,11 @@ public:
          Console::No},
         {"bankground", HandleBankGroundCommand, SEC_ADMINISTRATOR, Console::No}};
     return commandTable;
+  }
+
+  static bool HandleVanityPriceCommand(ChatHandler* handler, uint32 itemId, Optional<uint32> price)
+  {
+    return AscensionCollectionService::Instance().VanityPriceCommand(handler, itemId, price);
   }
 
   static bool HandleBankGroundCommand(ChatHandler *handler) {
@@ -6014,6 +6422,7 @@ public:
             SendAscensionCoAConfig(player->GetSession());
             AscensionCollectionService::Instance().PrepareOwnedCompanionsBeforeMap(player);
             AscensionCollectionService::Instance().PrepareOwnedBankSpellsBeforeMap(player);
+            AscensionClassService::Instance().PrepareHeroProficienciesBeforeMap(player);
             AscensionClassService::Instance().PrepareTaughtAbilitiesBeforeMap(player);
             AscensionClassService::Instance().QueueCharacterAdvancementState(player);
         }
@@ -6049,7 +6458,8 @@ public:
       return;
 
     for (PlayerCreateInfoAction const& action : info->action)
-      if (!player->GetActionButton(action.button))
+      if ((!AscensionFreePick::Applies(player) || action.type != ACTION_BUTTON_SPELL || action.action != 5019) &&
+          !player->GetActionButton(action.button))
         player->addActionButton(action.button, action.action, action.type);
   }
 
@@ -6126,6 +6536,8 @@ public:
       AscensionClassService::Instance().SynchronizeProficiencies(player);
       AscensionClassService::Instance().SendCharacterAdvancementKnownEntries(player);
 
+      if (player->HasSpell(2842))
+        AscensionFreePick::SynchronizeLinkedSpells(player);
       RefreshScaledQuestQueries(player);
     }
   }
@@ -6407,7 +6819,21 @@ public:
             {UNITHOOK_ON_BLOCK,
              UNITHOOK_ON_PERIODIC_DAMAGE_RESULT,
              UNITHOOK_ON_AURA_APPLY, UNITHOOK_ON_AURA_REMOVE,
-             UNITHOOK_ON_SEND_AURA_UPDATE, UNITHOOK_ON_DISPLAYID_CHANGE}) {}
+             UNITHOOK_ON_SEND_AURA_UPDATE, UNITHOOK_ON_DISPLAYID_CHANGE, UNITHOOK_ON_UNIT_SET_SHAPESHIFT_FORM}) {}
+
+    void OnUnitSetShapeshiftForm(Unit* unit, uint8) override
+    {
+        if (unit && unit->IsPlayer() && unit->IsInWorld() &&
+            ascensionCompatConfig.GetConfigValue<bool>(AscensionCompatConfig::ENABLED))
+        {
+            ObjectGuid guid = unit->GetGUID();
+            unit->m_Events.AddEventAtOffset([guid]()
+            {
+                if (Player* player = ObjectAccessor::FindPlayer(guid))
+                    AscensionCollectionService::Instance().RefreshIncarnation(player);
+            }, std::chrono::milliseconds(1));
+        }
+    }
 
     void OnDisplayIdChange(Unit* unit, uint32) override
     {
@@ -6650,6 +7076,10 @@ public:
     bool dataLoaded =
         AscensionCollectionService::Instance().LoadClientData();
     AscensionResourceService::Instance().ValidateDefinitions();
+    VanityCatalogSignal.Configure(ascensionCompatConfig.GetConfigValue<std::string>(AscensionCompatConfig::CLASS_MODEL) == "hero" &&
+        ascensionCompatConfig.GetConfigValue<std::string>(AscensionCompatConfig::REALM_TYPE) == "live",
+        sConfigMgr->GetOption<std::string>("CoA.FeaturedCatalog.SignalPath", "/logs/area52-featured-catalog.signal"));
+    VanityCatalogSignal.Start();
     LOG_INFO("coa",
              "Ascension compatibility enabled; consuming extension opcodes "
              "0x{:04X}-0x{:04X}; collection data {}",
@@ -7439,9 +7869,29 @@ void SendArea52Advancement(Player* player)
     AscensionClassService::Instance().SendCharacterAdvancementKnownEntries(player);
 }
 
+bool ApplyArea52PilotVanity(Player* player)
+{
+    return AscensionCollectionService::Instance().ApplyPilotVanity(player);
+}
+
+Area52CacheOwnership::Appearance Area52CacheOwnership::ReadAppearance(Player* player, std::uint32_t item)
+{
+    return AscensionCollectionService::Instance().ReadCacheAppearance(player, item);
+}
+
 bool RedeemArea52ArchetypeVanity(Player* player, Item* item, std::vector<uint32> const& appearances, std::vector<uint32> const& rewards)
 {
     return AscensionCollectionService::Instance().RedeemVanityBundle(player, item, appearances, rewards);
+}
+
+bool QuoteArea52HeirloomCache(Player* player, uint32 cache, uint32& cost)
+{
+    return AscensionCollectionService::Instance().GuardianCacheQuote(player, cache, cost);
+}
+
+bool PurchaseArea52HeirloomCache(Player* player, uint32 cache, uint32 quoted)
+{
+    return AscensionCollectionService::Instance().BuyGuardianCache(player, cache, quoted);
 }
 
 void AddAscensionCompatScripts() {
@@ -7472,4 +7922,15 @@ void AddAscensionCompatScripts() {
   new AscensionCompatChangelogScript();
   new AscensionCompatWorldScript();
   new AscensionCompatAllCreatureScript();
+}
+
+bool PrepareArea52DraftVanityReward(Player* player, std::uint64_t build,
+    std::uint32_t revision, Area52DraftAppearanceRewards& rewards)
+{
+    return AscensionCollectionService::Instance().PrepareDraftVanityReward(player, build, revision, rewards);
+}
+
+void ConfirmArea52DraftVanityReward(Player* player, Area52DraftAppearanceRewards const& rewards)
+{
+    AscensionCollectionService::Instance().ConfirmDraftVanityReward(player, rewards);
 }

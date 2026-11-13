@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "checks": [
+    "build-r1 build and unit",
+    "installed Wardrobe Lua cold-cache regression for Felhound and Rootbound with simulated native cache delivery",
+    "client MPQ member readback",
+    "isolated SQL fixture: 123 missing displays, edited-row rollback rejection, restore and reapply"
+  ],
+  "limits": "No in-game rendering or certification."
+}
