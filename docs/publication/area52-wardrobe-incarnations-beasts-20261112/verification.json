@@ -1,0 +1,28 @@
+{
+  "candidate_sha256": "bcf873c1718655b70a26675ad906fe25845c889fc713a738901344ffa6f5e724",
+  "baseline_sha256": "d2add2d38377042650879f643fcfd7d7684b99f713fb61bccdbbc77b3a8ebc04",
+  "reports": {
+    "build-r1": "4b94a6206ac4f448d217956a74675d08b3a743cf99eca0c0681a50f856cb9dc5",
+    "package-check": "954e6f02c3979174b0f7ea30567319274fd3a7dd0f76be746a57acd194d64c62"
+  },
+  "database": {
+    "templates_after": 1033,
+    "unusable": [
+      23232,
+      24063,
+      80986,
+      225600,
+      225601,
+      225602,
+      225603,
+      225604,
+      225605,
+      225606,
+      225607,
+      590019,
+      11000151
+    ],
+    "non_pet_cache": 918854,
+    "rollback": "exact"
+  }
+}

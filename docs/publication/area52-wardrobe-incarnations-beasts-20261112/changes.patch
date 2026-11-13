@@ -1,0 +1,491 @@
+--- a/src/server/coa/Area52DraftPet.h
++++ b/src/server/coa/Area52DraftPet.h
+@@ -5,6 +5,7 @@
+ class Player;
+ bool Area52DraftPetSavePending(Pet const* pet);
+ bool Area52DraftPetTracked(Pet const* pet);
++bool Area52WardrobePetReserved(Player const* player, std::uint32_t number);
+ bool Area52DraftPetBusy(Player const* player);
+ bool Area52DraftPetAuthorized(Player const* player, std::uint32_t number);
+ void UpdateArea52DraftPet(Player* player);
+--- a/src/server/coa/Area52DraftPet.inc
++++ b/src/server/coa/Area52DraftPet.inc
+@@ -229,6 +229,13 @@
+     return lease && !lease->Permanent && lease->Number == const_cast<Pet*>(pet)->GetCharmInfo()->GetPetNumber();
+ }
+ 
++bool Area52WardrobePetReserved(Player const* player, std::uint32_t number)
++{
++    auto const* lease = player->CustomData.Get<Area52DraftPets::Lease>(Area52DraftPets::Key);
++    return !lease || !lease->Loaded || lease->Busy ||
++        (!lease->Permanent && lease->Number && (lease->Number == number || lease->Previous == number));
++}
++
+ bool Area52DraftPetBusy(Player const* player)
+ {
+     auto const* lease = player ? player->CustomData.Get<Area52DraftPets::Lease>(Area52DraftPets::Key) : nullptr;
+--- a/src/server/coa/AscensionCompat.cpp
++++ b/src/server/coa/AscensionCompat.cpp
+@@ -1,4 +1,6 @@
+ #include "Area52VanityPurchase.h"
++class Player;
++namespace AscensionTaming { char const* SelectWardrobeBeast(Player*, unsigned, unsigned, unsigned); }
+ #include "Area52CacheOwnership.h"
+ #include "Area52FeaturedCatalogEvents.h"
+ #include "Area52FeaturedSet.h"
+@@ -472,6 +474,8 @@
+   uint32 CosmeticSpell = 0;
+   uint32 CreatureDisplay = 0;
+   uint32 IncarnationSpell = 0;
++  uint32 CreatureWeapon = 0;
++  uint32 BeastEntry = 0;
+ };
+ 
+ Area52Build::CatalogSignal VanityCatalogSignal;
+@@ -504,6 +508,8 @@
+   std::unordered_set<uint32> AppliedCosmeticSpells;
+   ObjectGuid IncarnationPet;
+   uint32 IncarnationPetDisplay = 0;
++  uint32 OriginalPetWeapon = 0;
++  uint32 AppliedPetWeapon = 0;
+   bool UpdatingIncarnation = false;
+   bool CanSeeItemAppearances = true;
+   bool CanSeeSpellAppearances = true;
+@@ -3298,10 +3304,28 @@
+     return instance;
+   }
+ 
+-    static uint32 ResolveIncarnationDisplay(uint32 creatureId)
+-    {
+-        auto model = FindCollectionModel(creatureId);
+-        return model && sCreatureDisplayInfoStore.LookupEntry(model->DisplayId) ? model->DisplayId : 0;
++    struct IncarnationCategory
++    {
++        uint32 Kind, First, Second;
++        uint64 ClassMask;
++        bool Allows(uint32 cls) const
++        {
++            return cls && cls <= 64 && (ClassMask & (uint64(1) << (cls - 1)));
++        }
++    };
++    std::map<uint32, IncarnationCategory> _incarnationCategories;
++    IncarnationCategory _beastCategory{};
++
++    uint32 CategoryFor(uint32 kind, uint32 entry) const
++    {
++        if (kind == 1 && entry == FORM_DIREBEAR)
++            entry = FORM_BEAR;
++        if (kind == 1 && entry == FORM_FLIGHT_EPIC)
++            entry = FORM_FLIGHT;
++        for (auto const& [id, category] : _incarnationCategories)
++            if (entry && category.Kind == kind && (category.First == entry || category.Second == entry))
++                return id;
++        return 0;
+     }
+ 
+   bool LoadClientData() {
+@@ -3314,9 +3338,27 @@
+     _woodworkingAppearancePatches.clear();
+     _woodworkingItemAppearancePatches.clear();
+ 
++    _incarnationCategories.clear();
++    _beastCategory = {};
++    ClientDBC categories;
++    if (!categories.Load(GetClientDBCPath("AppearanceCategories.dbc"), 25))
++        return false;
++    for (uint32 i = 0; i < categories.GetRecordCount(); ++i)
++    {
++        auto record = categories.GetRecord(i);
++        auto id = record.GetUInt32(0);
++        auto kind = record.GetUInt32(19);
++        uint64 mask = record.GetUInt32(23) | (uint64(record.GetUInt32(24)) << 32);
++        if (id == 33 && record.GetString(1) == "APPEARANCE_TYPE_COSMETIC_PET")
++            _beastCategory = {kind, record.GetUInt32(20), record.GetUInt32(21), mask};
++        if (id < APPEARANCE_CATEGORY_COUNT && id != 68 && mask && (kind == 1 || kind == 2)
++            && record.GetString(1) == "APPEARANCE_TYPE_INCARNATION")
++            _incarnationCategories.emplace(id, IncarnationCategory{kind, record.GetUInt32(20), record.GetUInt32(21), mask});
++    }
++
+     ClientDBC appearances;
+     bool appearancesLoaded =
+-        appearances.Load(GetClientDBCPath("Appearances.dbc"), 9);
++        appearances.Load(GetClientDBCPath("Appearances.dbc"), 10);
+     for (uint32 row = 0; row < appearances.GetRecordCount(); ++row) {
+       ClientDBC::Record record = appearances.GetRecord(row);
+       uint32 appearanceId = record.GetUInt32(0);
+@@ -3331,16 +3373,21 @@
+       if (IsCosmeticCategory(appearance.PrimaryCategory))
+         appearance.CosmeticSpell = ResolveCosmeticSpell(appearanceId,
+             displayId, record.GetUInt32(8));
+-      if (AscensionIncarnations::ModelCategory(appearance.PrimaryCategory))
++      if (appearance.PrimaryCategory == 33)
++        appearance.BeastEntry = record.GetUInt32(8);
++      if (_incarnationCategories.contains(appearance.PrimaryCategory) ||
++          _incarnationCategories.contains(appearance.SecondaryCategory) ||
++          _incarnationCategories.contains(appearance.TertiaryCategory))
+       {
+-        appearance.CreatureDisplay = ResolveIncarnationDisplay(displayId);
+-        if (!appearance.CreatureDisplay && record.GetInt32(8) > 0 &&
+-            sCreatureDisplayInfoStore.LookupEntry(record.GetUInt32(8)))
+-          appearance.CreatureDisplay = record.GetUInt32(8);
++        int32 model = record.GetInt32(8);
++        if (model > 0 && sCreatureDisplayInfoStore.LookupEntry(uint32(model)))
++          appearance.CreatureDisplay = uint32(model);
++        else if (model < 0 && uint32(-int64(model)) == displayId && sSpellMgr->GetSpellInfo(displayId))
++          appearance.IncarnationSpell = displayId;
++        if (AscensionIncarnations::CategoryMatches(29, appearance.PrimaryCategory,
++            appearance.SecondaryCategory, appearance.TertiaryCategory))
++          appearance.CreatureWeapon = record.GetUInt32(9);
+       }
+-      uint32 const visual = AscensionIncarnations::VisualSpell(appearanceId, appearance.PrimaryCategory);
+-      if (visual && displayId == visual && record.GetInt32(8) == -int32(visual))
+-        appearance.IncarnationSpell = ResolveCosmeticSpell(appearanceId, visual, 0);
+       _allAppearanceIds.push_back(appearanceId);
+     }
+ 
+@@ -4110,7 +4157,7 @@
+                 if (appearance == _appearances.end())
+                     return reject();
+                 auto const& row = appearance->second;
+-                if (AscensionIncarnations::ModelCategory(row.PrimaryCategory))
++                if (_incarnationCategories.contains(row.PrimaryCategory))
+                 {
+                     if ((!row.CreatureDisplay && !row.IncarnationSpell)
+                         || !desired.emplace(row.PrimaryCategory, id).second)
+@@ -4157,27 +4204,35 @@
+         return true;
+     }
+ 
+-    uint32 GetIncarnationDisplay(Player* player, uint32 category)
+-    {
++    AppearanceInfo const* SelectedIncarnation(Player* player, uint32 category)
++    {
++        auto def = _incarnationCategories.find(category);
+         auto state = GetState(player);
+-        if (!state || !state->CanSeeSpellAppearances || !AscensionIncarnations::ModelCategory(category))
+-            return 0;
++        if (def == _incarnationCategories.end() || !def->second.Allows(player->getClass()) ||
++            !state || !state->CanSeeSpellAppearances)
++            return nullptr;
+         uint32 id = state->ActiveAppearances[category];
+         auto itr = _appearances.find(id);
+         if ((!state->CollectedAppearances.contains(id) && !state->DraftVanity.Contains(id)) || itr == _appearances.end())
+-            return 0;
++            return nullptr;
+         auto const& row = itr->second;
+         return AscensionIncarnations::CategoryMatches(category, row.PrimaryCategory,
+-            row.SecondaryCategory, row.TertiaryCategory) ?
+-            (row.IncarnationSpell ? player->GetNativeDisplayId() : row.CreatureDisplay) : 0;
++            row.SecondaryCategory, row.TertiaryCategory) ? &row : nullptr;
+     }
+     uint32 GetIncarnationSpell(Player* player, uint32 category)
+     {
+-        if (!GetIncarnationDisplay(player, category))
+-            return 0;
+-        auto state = GetState(player);
+-        auto const& row = _appearances.at(state->ActiveAppearances[category]);
+-        return row.IncarnationSpell;
++        auto row = SelectedIncarnation(player, category);
++        return row ? row->IncarnationSpell : 0;
++    }
++    static void UpdatePetWeapon(Unit* pet, PlayerCollectionState& state, uint32 selected)
++    {
++        uint32 current = pet->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID);
++        if (!state.AppliedPetWeapon || current != state.AppliedPetWeapon)
++            state.OriginalPetWeapon = current;
++        uint32 desired = selected ? selected : state.OriginalPetWeapon;
++        if (current != desired)
++            pet->SetVirtualItem(0, desired);
++        state.AppliedPetWeapon = selected;
+     }
+     void RefreshIncarnation(Unit* unit)
+     {
+@@ -4205,7 +4260,7 @@
+         uint32 category = 0;
+         if (unit == owner)
+         {
+-            category = AscensionIncarnations::FormCategory(owner->GetShapeshiftForm());
++            category = CategoryFor(1, owner->GetShapeshiftForm());
+             auto const& forms = owner->GetAuraEffectsByType(SPELL_AURA_MOD_SHAPESHIFT);
+             if (!category || forms.empty() ||
+                 (owner->GetDisplayId() != owner->GetModelForForm(owner->GetShapeshiftForm(), forms.front()->GetId()) &&
+@@ -4217,19 +4272,24 @@
+             auto pet = owner->GetPet();
+             if (!pet || unit != pet || pet->getPetType() != SUMMON_PET)
+                 return;
+-            category = AscensionIncarnations::PetCategory(pet->GetEntry());
++            category = CategoryFor(2, pet->GetEntry());
+             if (!category)
+                 return;
+             if (state->IncarnationPet != pet->GetGUID())
+             {
+                 state->IncarnationPet = pet->GetGUID();
+                 state->IncarnationPetDisplay = 0;
++                state->AppliedPetWeapon = 0;
+             }
+             if (unit->GetDisplayId() != unit->GetNativeDisplayId() &&
+                 unit->GetDisplayId() != state->IncarnationPetDisplay)
+                 return;
+         }
+-        uint32 display = GetIncarnationDisplay(owner, category);
++        auto selected = SelectedIncarnation(owner, category);
++        uint32 display = selected ? selected->CreatureDisplay : 0;
++        if (unit != owner && category == 29)
++            UpdatePetWeapon(unit, *state, selected && sObjectMgr->GetItemTemplate(selected->CreatureWeapon)
++                ? selected->CreatureWeapon : 0);
+         state->UpdatingIncarnation = true;
+         if (display && unit->GetDisplayId() != display)
+             unit->SetDisplayId(display, unit->GetObjectScale());
+@@ -4920,8 +4980,14 @@
+       }
+ 
+       AppearanceInfo const &appearance = appearanceItr->second;
++      if (auto def = _incarnationCategories.find(categoryId);
++          def != _incarnationCategories.end() && !def->second.Allows(player->getClass()))
++      {
++        SendApplyResult(player, "APPLY_APPEARANCES_NOT_AVAILABLE_FOR_CLASS");
++        return;
++      }
+       if ((categoryId <= 14 || categoryId == APPEARANCE_CATEGORY_AMMUNITION ||
+-          IsCosmeticCategory(categoryId) || AscensionIncarnations::ModelCategory(categoryId)) &&
++          IsCosmeticCategory(categoryId) || _incarnationCategories.contains(categoryId)) &&
+           appearance.PrimaryCategory != categoryId &&
+           appearance.SecondaryCategory != categoryId &&
+           appearance.TertiaryCategory != categoryId) {
+@@ -4929,7 +4995,7 @@
+         return;
+       }
+       if ((IsCosmeticCategory(categoryId) && !appearance.CosmeticSpell) ||
+-          (AscensionIncarnations::ModelCategory(categoryId) && !appearance.CreatureDisplay && !appearance.IncarnationSpell))
++          (_incarnationCategories.contains(categoryId) && !appearance.CreatureDisplay && !appearance.IncarnationSpell))
+       {
+         SendApplyResult(player, "APPLY_APPEARANCES_INVALID_SELECTION");
+         return;
+@@ -4942,6 +5008,22 @@
+       return;
+     }
+ 
++    if (AscensionFreePick::Applies(player) && requested[33] && requested[33] != state->ActiveAppearances[33])
++    {
++      auto const& appearance = _appearances.at(requested[33]);
++      if (!appearance.BeastEntry || !state->CollectedAppearances.contains(requested[33]) ||
++          !_beastCategory.Allows(player->getClass()))
++      {
++        SendApplyResult(player, "APPLY_APPEARANCES_INVALID_SELECTION");
++        return;
++      }
++      if (char const* error = AscensionTaming::SelectWardrobeBeast(player, appearance.BeastEntry,
++              _beastCategory.First, _beastCategory.Second))
++      {
++        SendApplyResult(player, error);
++        return;
++      }
++    }
+     state->ActiveAppearances = requested;
+     SaveActiveAppearances(player, *state);
+     RefreshIncarnations(player);
+@@ -5315,7 +5397,7 @@
+         if (player->IsAlive() && !player->HasAuraType(SPELL_AURA_TRANSFORM) &&
+             !player->HasAuraType(SPELL_AURA_CLONE_CASTER))
+             if (uint32 spell = GetIncarnationSpell(player,
+-                AscensionIncarnations::FormCategory(player->GetShapeshiftForm())))
++                CategoryFor(1, player->GetShapeshiftForm())))
+                 desired.insert(spell);
+         for (uint32 category = 56; category <= 58; ++category)
+         {
+@@ -6729,7 +6811,21 @@
+             {UNITHOOK_ON_BLOCK,
+              UNITHOOK_ON_PERIODIC_DAMAGE_RESULT,
+              UNITHOOK_ON_AURA_APPLY, UNITHOOK_ON_AURA_REMOVE,
+-             UNITHOOK_ON_SEND_AURA_UPDATE, UNITHOOK_ON_DISPLAYID_CHANGE}) {}
++             UNITHOOK_ON_SEND_AURA_UPDATE, UNITHOOK_ON_DISPLAYID_CHANGE, UNITHOOK_ON_UNIT_SET_SHAPESHIFT_FORM}) {}
++
++    void OnUnitSetShapeshiftForm(Unit* unit, uint8) override
++    {
++        if (unit && unit->IsPlayer() && unit->IsInWorld() &&
++            ascensionCompatConfig.GetConfigValue<bool>(AscensionCompatConfig::ENABLED))
++        {
++            ObjectGuid guid = unit->GetGUID();
++            unit->m_Events.AddEventAtOffset([guid]()
++            {
++                if (Player* player = ObjectAccessor::FindPlayer(guid))
++                    AscensionCollectionService::Instance().RefreshIncarnation(player);
++            }, std::chrono::milliseconds(1));
++        }
++    }
+ 
+     void OnDisplayIdChange(Unit* unit, uint32) override
+     {
+--- a/src/server/coa/AscensionTaming.cpp
++++ b/src/server/coa/AscensionTaming.cpp
+@@ -1,6 +1,8 @@
+ /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
+ 
+ #include "Area52ActiveBuild.h"
++#include "Area52DraftPet.h"
++#include "Area52FeaturedPets.h"
+ #include "AscensionTamingData.h"
+ #include "AscensionHeroPets.h"
+ #include "Creature.h"
+@@ -196,6 +198,128 @@
+ }
+ }
+ 
++char const* SelectWardrobeBeast(Player* player, uint32 entry, uint32 summon, uint32 dismiss)
++{
++    auto const* creature = sObjectMgr->GetCreatureTemplate(entry);
++    if (!creature || !creature->IsTameable(true))
++        return "APPLY_APPEARANCES_BAD_CREATURE_TEMPLATE";
++    if (!creature->IsTameable(player->CanTameExoticPets()))
++        return "APPLY_APPEARANCES_CANNOT_TAME_EXOTIC";
++    if (!player->HasSpell(summon))
++        return "APPLY_APPEARANCES_PET_SUMMON_SPELL_NOT_LEARNED";
++    if (!player->HasSpell(dismiss))
++        return "APPLY_APPEARANCES_PET_DISMISS_SPELL_NOT_LEARNED";
++    if (player->IsInCombat())
++        return "APPLY_APPEARANCES_COSMETIC_PET_IN_COMBAT";
++
++    auto const draft = Area52Build::GetDraftVanityContext(player);
++    if (!draft.Ready || (draft.Build && Area52Build::FeaturedHunterPet(draft.Pet, draft.Archetype)) ||
++        Area52DraftPetBusy(player) || player->GetTemporaryUnsummonedPetNumber() || player->GetCharmGUID() ||
++        !player->IsAlive() || !player->IsInWorld() || !player->FindMap() || player->IsBeingTeleported())
++        return "APPLY_APPEARANCES_UNKNOWN";
++
++    auto& stable = player->GetOrInitPetStable();
++    auto* current = player->GetPet();
++    if (current && (current->isBeingLoaded() || Area52DraftPetTracked(current) || !stable.CurrentPet ||
++        stable.CurrentPet->PetNumber != current->GetCharmInfo()->GetPetNumber()))
++        return "APPLY_APPEARANCES_UNKNOWN";
++    if (stable.CurrentPet && (stable.CurrentPet->Type != HUNTER_PET ||
++        Area52WardrobePetReserved(player, stable.CurrentPet->PetNumber)))
++        return "APPLY_APPEARANCES_UNKNOWN";
++    if (current ? !current->IsAlive() : stable.CurrentPet && !stable.CurrentPet->Health)
++        return "APPLY_APPEARANCES_PET_DEAD_NON_SAFE_ZONE";
++    if (HasUnslottedHunterPet(stable))
++        return "APPLY_APPEARANCES_UNKNOWN";
++
++    auto restore = [player](uint32 number)
++    {
++        auto pet = std::make_unique<Pet>(player, HUNTER_PET);
++        if (!pet->LoadPetFromDB(player, 0, number, false))
++            return false;
++        pet.release();
++        return true;
++    };
++    if (stable.CurrentPet && stable.CurrentPet->CreatureId == entry)
++        return current || restore(stable.CurrentPet->PetNumber) ? nullptr : "APPLY_APPEARANCES_UNKNOWN";
++
++    std::optional<std::size_t> wanted;
++    for (std::size_t i = 0; i < stable.StabledPets.size(); ++i)
++        if (stable.StabledPets[i] && stable.StabledPets[i]->CreatureId == entry && stable.StabledPets[i]->Type == HUNTER_PET)
++        {
++            if (!CanLoad(player, *stable.StabledPets[i]) || Area52WardrobePetReserved(player, stable.StabledPets[i]->PetNumber))
++                return "APPLY_APPEARANCES_UNKNOWN";
++            wanted = i;
++            break;
++        }
++    auto park = wanted ? wanted : FreeStableSlot(stable);
++    if (stable.CurrentPet && !park)
++    {
++        player->SendTameFailure(PET_TAME_TOO_MANY);
++        return "APPLY_APPEARANCES_UNKNOWN";
++    }
++
++    auto previous = stable.CurrentPet;
++    if (current && previous)
++        current->FillPetInfo(&*previous);
++    auto wantedPet = wanted ? stable.StabledPets[*wanted] : decltype(stable.CurrentPet){};
++    auto tx = CharacterDatabase.BeginTransaction();
++    auto slotUpdate = [&](uint32 number, PetSaveMode slot)
++    {
++        auto stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHAR_PET_SLOT_BY_ID);
++        stmt->SetData(0, uint8(slot));
++        stmt->SetData(1, player->GetGUID().GetCounter());
++        stmt->SetData(2, number);
++        tx->Append(stmt);
++    };
++    if (previous)
++    {
++        auto mode = PetSaveMode(PET_SAVE_FIRST_STABLE_SLOT + *park);
++        if (current)
++            player->RemovePet(current, mode, false, tx);
++        else
++            slotUpdate(previous->PetNumber, mode);
++    }
++    stable.CurrentPet.reset();
++    bool loaded = false;
++    if (wantedPet)
++    {
++        loaded = restore(wantedPet->PetNumber);
++        if (loaded)
++            slotUpdate(wantedPet->PetNumber, PET_SAVE_AS_CURRENT);
++    }
++    else
++    {
++        std::unique_ptr<Pet> pet(player->CreateTamedPetFrom(entry, summon));
++        if (pet && pet->GetMap()->AddToMap(pet->ToCreature(), true))
++        {
++            player->SetMinion(pet.get(), true);
++            pet->InitTalentForLevel();
++            pet->SavePetToDB(PET_SAVE_AS_CURRENT, tx);
++            player->PetSpellInitialize();
++            pet.release();
++            loaded = true;
++        }
++    }
++    // This rare Wardrobe action needs the ASYNC statement connection and a definite
++    // commit result before acknowledging the appearance or allowing another selection.
++    if (loaded && CharacterDatabase.AsyncCommitTransaction(tx).m_future.get())
++    {
++        if (previous)
++            stable.StabledPets[*park] = std::move(previous);
++        return nullptr;
++    }
++    if (auto failed = player->GetPet())
++        player->RemovePet(failed, PET_SAVE_AS_CURRENT, false, CharacterDatabase.BeginTransaction());
++    stable.CurrentPet = previous;
++    if (wanted)
++        stable.StabledPets[*wanted] = std::move(wantedPet);
++    if (previous && current)
++        restore(previous->PetNumber);
++    return "APPLY_APPEARANCES_UNKNOWN";
++}
++
++
++
+ class spell_ascension_family_call : public SpellScript
+ {
+     PrepareSpellScript(spell_ascension_family_call);
+--- a/src/server/game/Entities/Player/Player.cpp
++++ b/src/server/game/Entities/Player/Player.cpp
+@@ -9578,6 +9578,11 @@
+ 
+ void Player::RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent)
+ {
++    RemovePet(pet, mode, returnreagent, nullptr);
++}
++
++void Player::RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent, CharacterDatabaseTransaction trans)
++{
+     if (!pet)
+         pet = GetPet();
+ 
+@@ -9636,7 +9641,7 @@
+         pet->CombatStop();
+ 
+         // only if current pet in slot
+-        pet->SavePetToDB(mode);
++        pet->SavePetToDB(mode, trans);
+ 
+         if (m_petStable->CurrentPet && m_petStable->CurrentPet->PetNumber == pet->GetCharmInfo()->GetPetNumber())
+         {
+--- a/src/server/game/Entities/Player/Player.h
++++ b/src/server/game/Entities/Player/Player.h
+@@ -1237,6 +1237,7 @@
+     [[nodiscard]] Pet* GetPet() const;
+     Pet* SummonPet(uint32 entry, float x, float y, float z, float ang, PetType petType, Milliseconds duration = 0ms, uint32 healthPct = 0);
+     void RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent = false);
++    void RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent, CharacterDatabaseTransaction trans);
+     bool CanPetResurrect();
+     bool IsExistPet();
+     Pet* CreatePet(Creature* creatureTarget, uint32 spellID = 0);
