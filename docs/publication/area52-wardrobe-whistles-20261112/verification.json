@@ -1,0 +1,11 @@
+{
+  "scope": "1,006 whistle routes and pet persistence; Wardrobe search, pet filters and Wendigo cleanup",
+  "candidate_sha256": "3f9a82204d201fbab365398d12c22238a346c20ea4571d15310d59d7477a7a46",
+  "baseline_sha256": "bcf873c1718655b70a26675ad906fe25845c889fc713a738901344ffa6f5e724",
+  "reports": {
+    "build-r1": "d12308cd56fdd0b108e1bf4636ec1f5085cb1d1f4d634c8cad7c5343df8893ec",
+    "package-check": "f0d30108c186fc47aee4b8add81b4ccf764908adfa650e7c0e240680d9dbc8f8"
+  },
+  "client_sha256": "3e33007e282b942279496f769354417bc35f2c6c083f98bf56ec23cae1d4dfe2",
+  "preserves_test_access_exclusions": true
+}
