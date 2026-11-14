@@ -1,0 +1,11 @@
+{
+  "scope": "Fused Quel'Serrar and Dusty Draconian Deflector",
+  "candidate_sha256": "4239f67823164b82b89c2487a3dba571d13631edc39b50cd5a64a8baa315c1dd",
+  "baseline_sha256": "75f00946016b0a8af7fd931e9213754c3727221a1810a92d9ef4b9cf4237875c",
+  "reports": {
+    "build-r1": "0f81714dfaf650e5ac51ad528ffb20194791fa6f40e08b778d3be029481b5faa",
+    "mechanics-hit": "46b073bfd2981e6c01033286987d1ac048a8ed9bec9bf59437728a32a325f330"
+  },
+  "client_sha256": "bfd28f11f81c548adc507967149a90b1013286310e8089aed3672c84e70a2a9b",
+  "preserves_test_access_exclusions": true
+}
