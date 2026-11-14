@@ -1117,7 +1117,8 @@ public:
     }
     bool TeleportToEntryPoint();
 
-    void SetSummonPoint(uint32 mapid, float x, float y, float z, uint32 delay = 0, bool asSpectator = false);
+    void SetSummonPoint(uint32 mapid, float x, float y, float z, uint32 delay = 0, bool asSpectator = false,
+        ObjectGuid ritualSummoner = ObjectGuid::Empty);
     [[nodiscard]] bool IsSummonAsSpectator() const;
     void SetSummonAsSpectator(bool on) { m_summon_asSpectator = on; }
     void SummonIfPossible(bool agree, ObjectGuid summoner_guid);
@@ -1236,6 +1237,7 @@ public:
     [[nodiscard]] Pet* GetPet() const;
     Pet* SummonPet(uint32 entry, float x, float y, float z, float ang, PetType petType, Milliseconds duration = 0ms, uint32 healthPct = 0);
     void RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent = false);
+    void RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent, CharacterDatabaseTransaction trans);
     bool CanPetResurrect();
     bool IsExistPet();
     Pet* CreatePet(Creature* creatureTarget, uint32 spellID = 0);
@@ -1738,7 +1740,7 @@ public:
     void SendLearnPacket(uint32 spellId, bool learn);
     bool addSpell(uint32 spellId, uint8 addSpecMask, bool updateActive, bool temporary = false, bool learnFromSkill = false);
     bool _addSpell(uint32 spellId, uint8 addSpecMask, bool temporary, bool learnFromSkill = false);
-    void learnSpell(uint32 spellId, bool temporary = false, bool learnFromSkill = false);
+    void learnSpell(uint32 spellId, bool temporary = false, bool learnFromSkill = false, bool announce = true);
     void removeSpell(uint32 spellId, uint8 removeSpecMask, bool onlyTemporary);
     void MarkSpellForSave(uint32 spellId);
     void resetSpells();
@@ -1834,6 +1836,11 @@ public:
     bool HasSpellMod(SpellModifier* mod, Spell* spell);
     template <class T>
     void ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell* spell = nullptr, bool temporaryPet = false);
+
+    template<class T>
+    void ApplySpellModTrackingDamage(uint32 spellId, SpellModOp op, T& basevalue, Spell* spell, bool temporaryPet, float* extraDamage);
+    template<class T>
+    void ApplyTargetedSpellModTrackingDamage(uint32 spellId, SpellModOp op, T& basevalue, Spell* spell, bool temporaryPet, float* extraDamage, Unit const* victim);
     void RemoveSpellMods(Spell* spell);
     void RestoreSpellMods(Spell* spell, uint32 ownerAuraId = 0, Aura* aura = nullptr);
     void RestoreAllSpellMods(uint32 ownerAuraId = 0, Aura* aura = nullptr);
@@ -2321,7 +2328,7 @@ public:
     void UpdateWeaponDependentCritAuras(WeaponAttackType attackType);
     void UpdateAllWeaponDependentCritAuras();
 
-    void _ApplyItemMods(Item* item, uint8 slot, bool apply);
+    void _ApplyItemMods(Item* item, uint8 slot, bool apply, bool levelChange = false);
     void _RemoveAllItemMods();
     void _ApplyAllItemMods();
     void _ApplyAllLevelScaleItemMods(bool apply);
@@ -2977,6 +2984,9 @@ protected:
     int32 m_baseRatingValue[MAX_COMBAT_RATING];
     std::array<float, MAX_ITEM_SUBCLASS_ARMOR> m_itemArmorBySubclass{};
     float m_appliedRatingHaste[CR_HASTE_SPELL - CR_HASTE_MELEE + 1] = {};
+    // Equipped Area 52 Rockbiter contributions, before applying the current path.
+    int32 m_rockbiterAttackPower = 0;
+    int32 m_rockbiterCasterAttackPower = 0;
     uint32 m_baseSpellPower;
     uint32 m_baseSpellDamage;
     uint32 m_baseSpellHealing;
@@ -3062,6 +3072,7 @@ protected:
     uint32 m_lastpetnumber;
 
     // Player summoning
+    ObjectGuid m_ritualSummoner;
     time_t m_summon_expire;
     uint32 m_summon_mapid;
     float  m_summon_x;
