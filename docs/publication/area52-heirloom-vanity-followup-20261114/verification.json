@@ -1,0 +1,11 @@
+{
+  "scope": "Heirloom Vanity search, prices, purchases and armor previews",
+  "candidate_sha256": "ae4452d8b565ffe48d8876bb62a87584348a1ea3dcafd09d0c1ed28335a2399c",
+  "baseline_sha256": "4239f67823164b82b89c2487a3dba571d13631edc39b50cd5a64a8baa315c1dd",
+  "reports": {
+    "build-r1": "ae06a0e69ce2fa44665fd94a79170c2054e1b9c8169b72ec6423c7e776db6f6c",
+    "purchase-check": "c91033a8381492f7836e494dc2874f2dcd01537a85ca4603f24ff74a42bee27e"
+  },
+  "client_sha256": "6427b20ddca7acd1bdf02986ab17d4c709e95265ad4912f54bd974593ea30311",
+  "preserves_test_access_exclusions": true
+}
