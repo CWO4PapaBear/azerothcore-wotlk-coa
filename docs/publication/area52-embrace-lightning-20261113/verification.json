@@ -1,0 +1,17 @@
+{
+  "advancements": [
+    3202
+  ],
+  "mystic_spells": [
+    81091
+  ],
+  "status": "VERIFIED",
+  "candidate_sha256": "9743abaa342148328b216ec17940ad2f50cd5c8948ff73582379f349a3529540",
+  "baseline_sha256": "5205b97b1d25c54570c0735c2957997715d96cac313be212b086573e3ae4e6d6",
+  "reports": {
+    "build-r1": "34de835267a217ff9c92dd5bd205923dce420390f64721479a750b0f4e506c65",
+    "mechanics": "09a1a5808302720c70fa86b6192320cc4b0c4ba318c1e2f5bca26834b7cccda6"
+  },
+  "client_sha256": "fdc7d9f57216c80d8cc36b8ddda48bc931e794f637862ecb3c6be7a1f796f942",
+  "preserves_test_access_exclusions": true
+}
