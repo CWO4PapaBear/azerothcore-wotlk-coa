@@ -6861,6 +6861,34 @@ uint32 Unit::GetDiseasesByCaster(ObjectGuid casterGUID, uint8 mode)
     return diseases;
 }
 
+namespace
+{
+SpellSchoolMask RoothoundBiteSchool(uint32 id)
+{
+    if (id >= 1999413 && id <= 1999421)
+        return SPELL_SCHOOL_MASK_SHADOW;
+    if (id >= 1999501 && id <= 1999509)
+        return SPELL_SCHOOL_MASK_NATURE;
+    if (id >= 1999511 && id <= 1999519)
+        return SPELL_SCHOOL_MASK_FIRE;
+    return SPELL_SCHOOL_MASK_NONE;
+}
+
+uint32 CountRoothoundDots(Unit const* victim, ObjectGuid owner, SpellSchoolMask school)
+{
+    uint32 count = 0;
+    for (AuraType type : {SPELL_AURA_PERIODIC_DAMAGE, SPELL_AURA_PERIODIC_DAMAGE_PERCENT, SPELL_AURA_PERIODIC_LEECH})
+        for (AuraEffect const* effect : victim->GetAuraEffectsByType(type))
+        {
+            SpellInfo const* info = effect->GetSpellInfo();
+            if (effect->GetCasterGUID() == owner && ((info->GetSchoolMask() & school) ||
+                (info->GetEffectMechanicMask(effect->GetEffIndex()) & (1ULL << MECHANIC_BLEED))))
+                ++count;
+        }
+    return count;
+}
+}
+
 uint32 Unit::GetDoTsByCaster(ObjectGuid casterGUID) const
 {
     static const AuraType diseaseAuraTypes[] =
@@ -9820,8 +9848,13 @@ float Unit::SpellPctDamageModsDone(Unit* victim, SpellInfo const* spellProto, Da
                     DoneTotalMod *= 4;
             // Shadow Bite (15% increase from each dot)
             if (spellProto->SpellFamilyFlags[1] & 0x00400000 && IsPet())
-                if (uint8 count = victim->GetDoTsByCaster(GetOwnerGUID()))
+            {
+                SpellSchoolMask school = RoothoundBiteSchool(spellProto->Id);
+                uint32 count = school ? CountRoothoundDots(victim, GetOwnerGUID(), school)
+                    : victim->GetDoTsByCaster(GetOwnerGUID());
+                if (count)
                     AddPct(DoneTotalMod, 15 * count);
+            }
             break;
         case SPELLFAMILY_HUNTER:
             // Steady Shot

@@ -168,23 +168,27 @@ Result PlanMasteryRemoval(Catalog const& catalog, std::vector<KnownEntry> const&
     return {};
 }
 
-std::vector<KnownEntry> IncludeJudgementMastery(std::vector<KnownEntry> wanted)
+std::vector<KnownEntry> IncludeMemberMasteries(Catalog const& catalog, std::vector<KnownEntry> wanted)
 {
-    constexpr std::uint32_t mastery = 1324;
-    bool const judgement = std::any_of(wanted.begin(), wanted.end(), [](KnownEntry const& pick)
+    std::set<std::uint32_t> selected;
+    for (auto const& pick : wanted)
+        selected.insert(pick.EntryId);
+    for (std::size_t i = 0; i < wanted.size(); ++i)
     {
-        return pick.EntryId == 2955 || pick.EntryId == 3019 || pick.EntryId == 3020;
-    });
-    if (judgement && std::none_of(wanted.begin(), wanted.end(), [](KnownEntry const& pick)
-        { return pick.EntryId == mastery; }))
-        wanted.push_back({mastery, 1});
+        auto const it = catalog.Entries.find(wanted[i].EntryId);
+        if (it == catalog.Entries.end())
+            continue;
+        for (auto mastery : it->second.Masteries)
+            if (mastery && selected.insert(mastery).second)
+                wanted.push_back({mastery, 1});
+    }
     return wanted;
 }
 
 Result Validate(Catalog const& catalog, std::uint32_t level, std::vector<KnownEntry> const& requested,
     std::vector<KnownEntry> const& previous)
 {
-    auto const wanted = IncludeJudgementMastery(requested);
+    auto const wanted = IncludeMemberMasteries(catalog, requested);
     auto budget = catalog.Budgets.upper_bound(level);
     if (budget == catalog.Budgets.begin() || wanted.size() > catalog.Entries.size())
         return Refuse("CA_LEARN_BAD_ABILITY");

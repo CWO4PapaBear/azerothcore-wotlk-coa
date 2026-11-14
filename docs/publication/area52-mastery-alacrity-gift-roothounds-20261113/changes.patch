@@ -1,0 +1,164 @@
+--- a/src/server/coa/AscensionConvenienceItems.cpp
++++ b/src/server/coa/AscensionConvenienceItems.cpp
+@@ -1032,6 +1032,8 @@
+     {1234940, 93259, 347301},
+     {1519393, 9931617, 440555},
+     {1999412, 1999412, 1999412},
++        {1999500, 1999500, 1999500},
++        {1999510, 1999510, 1999510},
+     {8200118, 1113343, 11000167},
+     {8200184, 9934290, 11000195},
+     {8200187, 9934293, 11000199},
+--- a/src/server/coa/AscensionFreePick.cpp
++++ b/src/server/coa/AscensionFreePick.cpp
+@@ -529,7 +529,7 @@
+ 
+ Result Apply(Player* player, std::vector<KnownEntry> const& requested, bool, bool specializationChange)
+ {
+-    auto const wanted = IncludeJudgementMastery(requested);
++    auto const wanted = IncludeMemberMasteries(Data, requested);
+     if (!Applies(player) || !player->IsInWorld())
+         return { "CA_UPDATE_ENTRIES_UNKNOWN" };
+     if (!player->IsAlive())
+--- a/src/server/coa/AscensionFreePick.h
++++ b/src/server/coa/AscensionFreePick.h
+@@ -77,7 +77,7 @@
+ inline constexpr std::uint32_t QualityMode = 0x400;
+ 
+ bool LoadCatalog(Catalog& catalog);
+-std::vector<KnownEntry> IncludeJudgementMastery(std::vector<KnownEntry> wanted);
++std::vector<KnownEntry> IncludeMemberMasteries(Catalog const& catalog, std::vector<KnownEntry> wanted);
+ Result Validate(Catalog const& catalog, std::uint32_t level, std::vector<KnownEntry> const& wanted,
+     std::vector<KnownEntry> const& previous = {});
+ bool SameSelection(std::vector<KnownEntry> const& left, std::vector<KnownEntry> const& right);
+--- a/src/server/coa/AscensionFreePickRules.cpp
++++ b/src/server/coa/AscensionFreePickRules.cpp
+@@ -168,23 +168,27 @@
+     return {};
+ }
+ 
+-std::vector<KnownEntry> IncludeJudgementMastery(std::vector<KnownEntry> wanted)
+-{
+-    constexpr std::uint32_t mastery = 1324;
+-    bool const judgement = std::any_of(wanted.begin(), wanted.end(), [](KnownEntry const& pick)
+-    {
+-        return pick.EntryId == 2955 || pick.EntryId == 3019 || pick.EntryId == 3020;
+-    });
+-    if (judgement && std::none_of(wanted.begin(), wanted.end(), [](KnownEntry const& pick)
+-        { return pick.EntryId == mastery; }))
+-        wanted.push_back({mastery, 1});
++std::vector<KnownEntry> IncludeMemberMasteries(Catalog const& catalog, std::vector<KnownEntry> wanted)
++{
++    std::set<std::uint32_t> selected;
++    for (auto const& pick : wanted)
++        selected.insert(pick.EntryId);
++    for (std::size_t i = 0; i < wanted.size(); ++i)
++    {
++        auto const it = catalog.Entries.find(wanted[i].EntryId);
++        if (it == catalog.Entries.end())
++            continue;
++        for (auto mastery : it->second.Masteries)
++            if (mastery && selected.insert(mastery).second)
++                wanted.push_back({mastery, 1});
++    }
+     return wanted;
+ }
+ 
+ Result Validate(Catalog const& catalog, std::uint32_t level, std::vector<KnownEntry> const& requested,
+     std::vector<KnownEntry> const& previous)
+ {
+-    auto const wanted = IncludeJudgementMastery(requested);
++    auto const wanted = IncludeMemberMasteries(catalog, requested);
+     auto budget = catalog.Budgets.upper_bound(level);
+     if (budget == catalog.Budgets.begin() || wanted.size() > catalog.Entries.size())
+         return Refuse("CA_LEARN_BAD_ABILITY");
+--- a/src/server/game/Entities/Pet/Pet.cpp
++++ b/src/server/game/Entities/Pet/Pet.cpp
+@@ -1965,10 +1965,10 @@
+ {
+     uint8 level = GetLevel();
+ 
+-    if (getPetType() == HUNTER_PET && (GetEntry() == 1999412 || GetEntry() == 79010 || GetEntry() == 347310))
++    if (getPetType() == HUNTER_PET && (GetEntry() == 1999412 || GetEntry() == 79010 || GetEntry() == 347310 || GetEntry() == 1999500 || GetEntry() == 1999510))
+     {
+         // Dark Rootbound Beast uses private focus-based Shadow Bite ranks.
+-        constexpr uint32 firstRank = 1999413;
++        uint32 const firstRank = GetEntry() == 1999500 ? 1999501 : GetEntry() == 1999510 ? 1999511 : 1999413;
+         uint32 eligible = level < 10 ? 0 : firstRank + std::min<uint32>((level - 10) / 8, 8);
+         for (uint32 spell = firstRank; spell < firstRank + 9; ++spell)
+             if (spell != eligible && HasSpell(spell))
+--- a/src/server/game/Entities/Player/Player.cpp
++++ b/src/server/game/Entities/Player/Player.cpp
+@@ -11627,8 +11627,19 @@
+             rec = GetAttackTime(RANGED_ATTACK);
+ 
+         // Now we have cooldown data (if found any), time to apply mods
+-        if (rec > 0)
++        bool const startsPersonalCooldown = rec == 0 && spell && !itemId && !spellInfo->MaxCharges &&
++            !clearSpiritCooldown && AscensionFreePick::Applies(this) &&
++            std::any_of(m_spellMods[SPELLMOD_COOLDOWN].begin(), m_spellMods[SPELLMOD_COOLDOWN].end(),
++                [&](SpellModifier* mod)
++                {
++                    return mod->type == SPELLMOD_FLAT && mod->value > 0 && IsAffectedBySpellmod(spellInfo, mod, spell);
++                });
++        if (rec > 0 || startsPersonalCooldown)
++        {
+             ApplySpellMod(spellInfo->Id, SPELLMOD_COOLDOWN, rec, spell);
++            if (startsPersonalCooldown && rec > 0)
++                needsCooldownPacket = true;
++        }
+ 
+         if (catrec > 0 && !spellInfo->HasAttribute(SPELL_ATTR6_NO_CATEGORY_COOLDOWN_MODS))
+         {
+--- a/src/server/game/Entities/Unit/Unit.cpp
++++ b/src/server/game/Entities/Unit/Unit.cpp
+@@ -6859,6 +6859,34 @@
+         }
+     }
+     return diseases;
++}
++
++namespace
++{
++SpellSchoolMask RoothoundBiteSchool(uint32 id)
++{
++    if (id >= 1999413 && id <= 1999421)
++        return SPELL_SCHOOL_MASK_SHADOW;
++    if (id >= 1999501 && id <= 1999509)
++        return SPELL_SCHOOL_MASK_NATURE;
++    if (id >= 1999511 && id <= 1999519)
++        return SPELL_SCHOOL_MASK_FIRE;
++    return SPELL_SCHOOL_MASK_NONE;
++}
++
++uint32 CountRoothoundDots(Unit const* victim, ObjectGuid owner, SpellSchoolMask school)
++{
++    uint32 count = 0;
++    for (AuraType type : {SPELL_AURA_PERIODIC_DAMAGE, SPELL_AURA_PERIODIC_DAMAGE_PERCENT, SPELL_AURA_PERIODIC_LEECH})
++        for (AuraEffect const* effect : victim->GetAuraEffectsByType(type))
++        {
++            SpellInfo const* info = effect->GetSpellInfo();
++            if (effect->GetCasterGUID() == owner && ((info->GetSchoolMask() & school) ||
++                (info->GetEffectMechanicMask(effect->GetEffIndex()) & (1ULL << MECHANIC_BLEED))))
++                ++count;
++        }
++    return count;
++}
+ }
+ 
+ uint32 Unit::GetDoTsByCaster(ObjectGuid casterGUID) const
+@@ -9820,8 +9848,13 @@
+                     DoneTotalMod *= 4;
+             // Shadow Bite (15% increase from each dot)
+             if (spellProto->SpellFamilyFlags[1] & 0x00400000 && IsPet())
+-                if (uint8 count = victim->GetDoTsByCaster(GetOwnerGUID()))
++            {
++                SpellSchoolMask school = RoothoundBiteSchool(spellProto->Id);
++                uint32 count = school ? CountRoothoundDots(victim, GetOwnerGUID(), school)
++                    : victim->GetDoTsByCaster(GetOwnerGUID());
++                if (count)
+                     AddPct(DoneTotalMod, 15 * count);
++            }
+             break;
+         case SPELLFAMILY_HUNTER:
+             // Steady Shot

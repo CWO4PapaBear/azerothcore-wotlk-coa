@@ -15,6 +15,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "../../../coa/Area52DraftPet.h"
 #include "Pet.h"
 #include "../../../coa/AscensionFreePick.h"
 #include "../../../coa/AscensionPetOwnership.h"
@@ -257,7 +258,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
         return false;
     }
 
-    if (!CanRestoreArea52Pet(owner, *petInfo))
+    if (!Area52DraftPetAuthorized(owner, petInfo->PetNumber) && !CanRestoreArea52Pet(owner, *petInfo))
     {
         m_loading = false;
         return false;
@@ -286,7 +287,8 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
     if (petInfo->Type == HUNTER_PET)
     {
         CreatureTemplate const* creatureInfo = sObjectMgr->GetCreatureTemplate(petInfo->CreatureId);
-        if (!creatureInfo || !creatureInfo->IsTameable(owner->CanTameExoticPets()))
+        if (!creatureInfo || (!Area52DraftPetAuthorized(owner, petInfo->PetNumber)
+            && !creatureInfo->IsTameable(owner->CanTameExoticPets())))
             return false;
     }
 
@@ -533,8 +535,11 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
     return true;
 }
 
-void Pet::SavePetToDB(PetSaveMode mode)
+void Pet::SavePetToDB(PetSaveMode mode, CharacterDatabaseTransaction transaction)
 {
+    if (!transaction && Area52DraftPetSavePending(this))
+        return;
+
     // not save not player pets
     if (!GetOwnerGUID().IsPlayer())
         return;
@@ -559,7 +564,7 @@ void Pet::SavePetToDB(PetSaveMode mode)
     uint32 curhealth = GetHealth();
     uint32 curmana = GetPower(POWER_MANA);
 
-    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+    CharacterDatabaseTransaction trans = transaction ? transaction : CharacterDatabase.BeginTransaction();
     // save auras before possibly removing them
     _SaveAuras(trans);
 
@@ -569,13 +574,15 @@ void Pet::SavePetToDB(PetSaveMode mode)
 
     _SaveSpells(trans);
     _SaveSpellCooldowns(trans);
-    CharacterDatabase.CommitTransaction(trans);
+    if (!transaction)
+        CharacterDatabase.CommitTransaction(trans);
 
     // current/stable/not_in_slot
     if (mode >= PET_SAVE_AS_CURRENT)
     {
         ObjectGuid::LowType ownerLowGUID = GetOwnerGUID().GetCounter();
-        trans = CharacterDatabase.BeginTransaction();
+        if (!transaction)
+            trans = CharacterDatabase.BeginTransaction();
         // remove current data
 
         CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_PET_BY_ID);
@@ -583,7 +590,8 @@ void Pet::SavePetToDB(PetSaveMode mode)
         trans->Append(stmt);
 
         // prevent existence another hunter pet in PET_SAVE_AS_CURRENT and PET_SAVE_NOT_IN_SLOT
-        if (getPetType() == HUNTER_PET && (mode == PET_SAVE_AS_CURRENT || mode > PET_SAVE_LAST_STABLE_SLOT))
+        if (getPetType() == HUNTER_PET && !Area52DraftPetTracked(this)
+            && (mode == PET_SAVE_AS_CURRENT || mode > PET_SAVE_LAST_STABLE_SLOT))
         {
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_PET_BY_SLOT);
             stmt->SetData(0, ownerLowGUID);
@@ -621,19 +629,20 @@ void Pet::SavePetToDB(PetSaveMode mode)
         stmt->SetData(16, actionBar);
 
         trans->Append(stmt);
-        CharacterDatabase.CommitTransaction(trans);
+        if (!transaction)
+            CharacterDatabase.CommitTransaction(trans);
     }
     // delete
     else
     {
         RemoveAllAuras();
-        DeleteFromDB(m_charmInfo->GetPetNumber());
+        DeleteFromDB(m_charmInfo->GetPetNumber(), transaction);
     }
 }
 
-void Pet::DeleteFromDB(ObjectGuid::LowType guidlow)
+void Pet::DeleteFromDB(ObjectGuid::LowType guidlow, CharacterDatabaseTransaction transaction)
 {
-    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+    CharacterDatabaseTransaction trans = transaction ? transaction : CharacterDatabase.BeginTransaction();
 
     CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_PET_BY_ID);
     stmt->SetData(0, guidlow);
@@ -655,7 +664,8 @@ void Pet::DeleteFromDB(ObjectGuid::LowType guidlow)
     stmt->SetData(0, guidlow);
     trans->Append(stmt);
 
-    CharacterDatabase.CommitTransaction(trans);
+    if (!transaction)
+        CharacterDatabase.CommitTransaction(trans);
 }
 
 void Pet::setDeathState(DeathState s, bool /*despawn = false*/)                       // overwrite virtual Creature::setDeathState and Unit::setDeathState
@@ -1000,7 +1010,9 @@ bool Pet::CreateBaseAtCreature(Creature* creature)
 
     UpdatePositionData();
 
-    if (CreatureFamilyEntry const* cFamily = sCreatureFamilyStore.LookupEntry(cinfo->family))
+    if (getPetType() == HUNTER_PET && cinfo->type == CREATURE_TYPE_BEAST)
+        SetName(cinfo->Name);
+    else if (CreatureFamilyEntry const* cFamily = sCreatureFamilyStore.LookupEntry(cinfo->family))
         SetName(cFamily->Name[sWorld->GetDefaultDbcLocale()]);
     else
         SetName(creature->GetNameForLocaleIdx(sObjectMgr->GetDBCLocaleIndex()));
@@ -1013,7 +1025,9 @@ bool Pet::CreateBaseAtCreatureInfo(CreatureTemplate const* cinfo, Unit* owner)
     if (!CreateBaseAtTamed(cinfo, owner->GetMap(), owner->GetPhaseMask()))
         return false;
 
-    if (CreatureFamilyEntry const* cFamily = sCreatureFamilyStore.LookupEntry(cinfo->family))
+    if (getPetType() == HUNTER_PET && cinfo->type == CREATURE_TYPE_BEAST)
+        SetName(cinfo->Name);
+    else if (CreatureFamilyEntry const* cFamily = sCreatureFamilyStore.LookupEntry(cinfo->family))
         SetName(cFamily->Name[sWorld->GetDefaultDbcLocale()]);
 
     Relocate(owner->GetPositionX(), owner->GetPositionY(), owner->GetPositionZ(), owner->GetOrientation());
@@ -1629,6 +1643,15 @@ void Pet::_LoadAuras(PreparedQueryResult result, uint32 timediff)
             if (!caster_guid)
                 caster_guid = GetGUID();
             uint32 spellid = fields[1].Get<uint32>();
+            if (spellid == 25228 && AscensionFreePick::Applies(GetOwner() ? GetOwner()->ToPlayer() : nullptr))
+            {
+                Player* owner = GetOwner()->ToPlayer();
+                if (owner->HasSpell(19028) && GetCreatureType() == CREATURE_TYPE_DEMON &&
+                    GetEntry() != 416 && IsAlive() && caster_guid == GetGUID())
+                    if (PetAura const* link = sSpellMgr->GetPetAura(19028, EFFECT_0))
+                        owner->AddPetAura(link);
+                continue;
+            }
             uint8 effmask = fields[2].Get<uint8>();
             uint8 recalculatemask = fields[3].Get<uint8>();
             uint8 stackcount = fields[4].Get<uint8>();
@@ -1701,12 +1724,16 @@ void Pet::_SaveAuras(CharacterDatabaseTransaction trans)
 
     for (AuraMap::const_iterator itr = m_ownedAuras.begin(); itr != m_ownedAuras.end(); ++itr)
     {
+        bool const soulLink = itr->second->GetId() == 25228 &&
+            AscensionFreePick::Applies(GetOwner() ? GetOwner()->ToPlayer() : nullptr) &&
+            GetOwner()->ToPlayer()->HasSpell(19028) && GetCreatureType() == CREATURE_TYPE_DEMON &&
+            GetEntry() != 416 && IsAlive() && itr->second->GetCasterGUID() == GetGUID();
         // check if the aura has to be saved
-        if (!itr->second->CanBeSaved() || IsPetAura(itr->second))
+        if (!itr->second->CanBeSaved() || (IsPetAura(itr->second) && !soulLink))
             continue;
 
         Aura* aura = itr->second;
-        if (aura->GetDuration() < 60 * IN_MILLISECONDS)
+        if (!soulLink && aura->GetDuration() < 60 * IN_MILLISECONDS)
             continue;
 
         // dont save infinite negative auras! (lavas, transformations etc)
@@ -1718,7 +1745,7 @@ void Pet::_SaveAuras(CharacterDatabaseTransaction trans)
             continue;
 
         // xinef: don't save hidden auras
-        if (aura->GetSpellInfo()->HasAttribute(SPELL_ATTR1_NO_AURA_ICON))
+        if (!soulLink && aura->GetSpellInfo()->HasAttribute(SPELL_ATTR1_NO_AURA_ICON))
             continue;
 
         // Xinef: Dont save auras with model change
@@ -1937,6 +1964,18 @@ bool Pet::learnSpell(uint32 spell_id)
 void Pet::InitLevelupSpellsForLevel()
 {
     uint8 level = GetLevel();
+
+    if (getPetType() == HUNTER_PET && (GetEntry() == 1999412 || GetEntry() == 79010 || GetEntry() == 347310 || GetEntry() == 1999500 || GetEntry() == 1999510))
+    {
+        // Dark Rootbound Beast uses private focus-based Shadow Bite ranks.
+        uint32 const firstRank = GetEntry() == 1999500 ? 1999501 : GetEntry() == 1999510 ? 1999511 : 1999413;
+        uint32 eligible = level < 10 ? 0 : firstRank + std::min<uint32>((level - 10) / 8, 8);
+        for (uint32 spell = firstRank; spell < firstRank + 9; ++spell)
+            if (spell != eligible && HasSpell(spell))
+                unlearnSpell(spell, false);
+        if (eligible && !HasSpell(eligible))
+            learnSpell(eligible);
+    }
 
     if (PetLevelupSpellSet const* levelupSpells = GetCreatureTemplate()->family ? sSpellMgr->GetPetLevelupSpellList(GetCreatureTemplate()->family) : nullptr)
     {

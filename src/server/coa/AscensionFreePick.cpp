@@ -529,7 +529,7 @@ Result PlanSelection(Player const* player, Area52Build::Entry const& plan, std::
 
 Result Apply(Player* player, std::vector<KnownEntry> const& requested, bool, bool specializationChange)
 {
-    auto const wanted = IncludeJudgementMastery(requested);
+    auto const wanted = IncludeMemberMasteries(Data, requested);
     if (!Applies(player) || !player->IsInWorld())
         return { "CA_UPDATE_ENTRIES_UNKNOWN" };
     if (!player->IsAlive())
