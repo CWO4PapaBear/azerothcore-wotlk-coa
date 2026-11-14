@@ -1,3 +1,4 @@
+#include "../../coa/Area52HolyContracts.h"
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
@@ -16,6 +17,7 @@
  */
 
 #include "../../coa/AscensionFreePick.h"
+#include "../../coa/AscensionMysticEnchantCatalog.h"
 #include "../../coa/AscensionPowerSurge.h"
 #include "Spell.h"
 #include "../../coa/AscensionWhiteWalkerSupportRules.h"
@@ -733,7 +735,14 @@ Spell::~Spell()
 void Spell::InitExplicitTargets(SpellCastTargets const& targets)
 {
     m_targets = targets;
-    m_originalTargetGUID = targets.GetObjectTargetGUID();
+    constexpr uint32 RighteousDefense = 31789;
+    if (m_spellInfo->Id == RighteousDefense && AscensionFreePick::Applies(m_caster->ToPlayer()))
+        if (Unit* target = m_targets.GetUnitTarget(); target && m_caster->IsValidAttackTarget(target))
+        {
+            Unit* ally = ObjectAccessor::GetUnit(*target, target->GetTarget());
+            m_targets.SetUnitTarget(ally ? ally : target->GetVictim());
+        }
+    m_originalTargetGUID = m_targets.GetObjectTargetGUID();
     // this function tries to correct spell explicit targets for spell
     // client doesn't send explicit targets correctly sometimes - we need to fix such spells serverside
     // this also makes sure that we correctly send explicit targets to client (removes redundant data)
@@ -1286,7 +1295,13 @@ void Spell::SelectImplicitConeTargets(SpellEffIndex effIndex, SpellImplicitTarge
             if (uint32 maxTargets = m_spellValue->MaxAffectedTargets)
             {
                 maxTargets += m_caster->GetTotalAuraModifierByAffectMask(SPELL_AURA_MOD_MAX_AFFECTED_TARGETS, m_spellInfo);
-                Acore::Containers::RandomResize(targets, maxTargets);
+                if (m_targets.GetUnitTarget() && AscensionMysticEnchant::DefiasGrapeShotEligible(m_caster->ToPlayer(), m_spellInfo->Id))
+                {
+                    targets.remove(m_targets.GetUnitTarget());
+                    Acore::Containers::RandomResize(targets, 4u);
+                }
+                else
+                    Acore::Containers::RandomResize(targets, maxTargets);
             }
 
             for (std::list<WorldObject*>::iterator itr = targets.begin(); itr != targets.end(); ++itr)
@@ -1373,6 +1388,9 @@ void Spell::SelectImplicitAreaTargets(SpellEffIndex effIndex, SpellImplicitTarge
     SearchAreaTargets(targets, radius, center, referer, targetType.GetObjectType(), targetType.GetCheckType(), m_spellInfo->Effects[effIndex].ImplicitTargetConditions, Acore::WorldObjectSpellAreaTargetSearchReason::Area, targetType.GetReferenceType());
 
     CallScriptObjectAreaTargetSelectHandlers(targets, effIndex, targetType);
+
+    if (m_spellInfo->Id == 997604 && AscensionFreePick::Applies(m_caster->ToPlayer()))
+        targets.remove_if([this](WorldObject* target) { return target->GetGUID() == m_originalTargetGUID; });
 
     if (!targets.empty())
     {
@@ -2654,7 +2672,16 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
     unitTarget = effectUnit;
 
     // Reset damage/healing counter
+    struct ImpactCriticalScope
+    {
+        bool& current;
+        bool previous;
+        ~ImpactCriticalScope() { current = previous; }
+    } impactScope{m_currentUnitImpactCritical, m_currentUnitImpactCritical};
+    m_currentUnitImpactCritical = target->crit;
     m_damage = target->damage;
+    if (target->crit && m_damage > 0 && target->area52AgilityCriticalDamage > 0.0f)
+        m_damage += int32(target->area52AgilityCriticalDamage);
     m_healing = -target->damage;
 
     m_spellAura = nullptr; // Set aura to null for every target-make sure that pointer is not used for unit without aura applied
@@ -3491,6 +3518,7 @@ bool Spell::UpdateChanneledTargetList()
 
 SpellCastResult Spell::prepare(SpellCastTargets const* targets, AuraEffect const* triggeredByAura)
 {
+    m_stationaryDuringCast = !m_caster->isMoving();
     if (m_CastItem)
     {
         m_castItemGUID = m_CastItem->GetGUID();
@@ -3829,6 +3857,7 @@ void Spell::cancel(bool bySelf)
 
 void Spell::cast(bool skipCheck)
 {
+    m_stationaryDuringCast = m_stationaryDuringCast && !m_caster->isMoving();
     Player* modOwner = m_caster->GetSpellModOwner();
     Spell* lastMod = nullptr;
     if (modOwner)
@@ -4003,6 +4032,24 @@ void Spell::_cast(bool skipCheck)
 
     sScriptMgr->OnSpellBeforeEffects(this, m_caster, m_spellInfo);
 
+    if (Player* player = m_caster->ToPlayer(); AscensionFreePick::Applies(player))
+        if (AuraEffect const* sanctity = player->GetAuraEffect(965983, EFFECT_0))
+        {
+            bool holyFire = player->MatchesSpellInteraction(m_spellInfo->Id, 14914);
+            bool hammer = player->MatchesSpellInteraction(m_spellInfo->Id, 24275);
+            m_area52SanctityUsed = holyFire || hammer || player->MatchesSpellInteraction(m_spellInfo->Id, 19750);
+            m_area52SanctityDamagePct = holyFire ? -10 : hammer ? sanctity->GetAmount() : 0;
+        }
+
+    if (Player* player = m_caster->ToPlayer(); AscensionFreePick::Applies(player) &&
+        (m_spellSchoolMask & SPELL_SCHOOL_MASK_HOLY) && Area52Holy::HealingSpell(m_spellInfo))
+        if (AuraEffect const* favor = player->GetAuraEffect(20216, EFFECT_2))
+            if (!favor->GetBase()->IsUsingCharges() || favor->GetBase()->GetCharges())
+            {
+                m_area52FavorHealingPct = favor->GetAmount();
+                m_appliedMods.insert(favor->GetBase());
+            }
+
     HandleLaunchPhase();
 
     // we must send smsg_spell_go packet before m_castItem delete in TakeCastItem()...
@@ -4116,6 +4163,9 @@ void Spell::_cast(bool skipCheck)
     if (Player* player = m_caster->ToPlayer(); AscensionFreePick::Applies(player) &&
         player->MatchesSpellInteraction(m_spellInfo->Id, 12472))
         player->CastSpell(player, 854748, true);
+
+    if (m_area52SanctityUsed)
+        m_caster->RemoveAurasDueToSpell(965983);
 
     CallScriptAfterCastHandlers();
 
@@ -4471,6 +4521,9 @@ void Spell::update(uint32 difftime)
         cancel();
         return;
     }
+
+    if (m_spellState == SPELL_STATE_PREPARING && m_caster->isMoving())
+        m_stationaryDuringCast = false;
 
     // check if the player caster has moved before the spell finished
     // xinef: added preparing state (real cast, skip channels as they have other flags for this)
@@ -5751,8 +5804,69 @@ void Spell::HandleEffects(Unit* pUnitTarget, Item* pItemTarget, GameObject* pGOT
     }
 }
 
+namespace
+{
+// Preserve explicit form exclusions and requirements. The ordinary check already
+// admits spells flagged as usable while shifted, including non-damaging ones.
+bool IsMetamorphosisDamageSpell(SpellInfo const* spell)
+{
+    if (spell->Stances || (spell->StancesNot & (1u << (FORM_METAMORPHOSIS - 1))) ||
+        !(spell->GetSchoolMask() & (SPELL_SCHOOL_MASK_FIRE | SPELL_SCHOOL_MASK_SHADOW)))
+        return false;
+
+    return spell->HasEffect(SPELL_EFFECT_SCHOOL_DAMAGE) || spell->HasEffect(SPELL_EFFECT_HEALTH_LEECH) ||
+        spell->HasEffect(SPELL_EFFECT_WEAPON_DAMAGE) || spell->HasEffect(SPELL_EFFECT_WEAPON_DAMAGE_NOSCHOOL) ||
+        spell->HasEffect(SPELL_EFFECT_NORMALIZED_WEAPON_DMG) || spell->HasEffect(SPELL_EFFECT_WEAPON_PERCENT_DAMAGE) ||
+        spell->HasEffect(SPELL_EFFECT_POWER_BURN) || spell->HasAura(SPELL_AURA_PERIODIC_DAMAGE) ||
+        spell->HasAura(SPELL_AURA_PERIODIC_DAMAGE_PERCENT) || spell->HasAura(SPELL_AURA_PERIODIC_LEECH);
+}
+}
+
 SpellCastResult Spell::CheckCast(bool strict, uint32* /*param1*/, uint32* /*param2*/)
 {
+    if (Player* player = m_caster->ToPlayer(); AscensionFreePick::Applies(player) && !player->HasAura(84867))
+        if (Unit* target = m_targets.GetUnitTarget(); target && target != player && player->IsFriendlyTo(target))
+            if (Battleground const* bg = player->GetBattleground(); bg && bg->isArena() &&
+                (bg->GetArenaType() == ARENA_TYPE_2v2 || bg->GetArenaType() == ARENA_TYPE_3v3) &&
+                player->MatchesSpellInteraction(m_spellInfo->Id, 527))
+                return SPELL_FAILED_BAD_TARGETS;
+
+    if ((m_spellInfo->Id == 698 || m_spellInfo->Id == 61993 || m_spellInfo->Id == 23598 ||
+         m_spellInfo->Id == 59782 || m_spellInfo->Id == 32783 || m_spellInfo->Id == 7720) &&
+        AscensionFreePick::Applies(m_caster->ToPlayer()))
+    {
+        if (m_caster->HasAura(1004019))
+            return SPELL_FAILED_NOT_HERE;
+        if (m_caster->IsInCombat())
+            return SPELL_FAILED_AFFECTING_COMBAT;
+    }
+
+    constexpr uint32 DivineIntervention = 19752;
+    constexpr uint32 HighRiskMode = 1004019;
+    constexpr uint32 EagleEye = 6197;
+    if (m_spellInfo->Id == EagleEye && AscensionFreePick::Applies(m_caster->ToPlayer()) &&
+        m_caster->HasAura(HighRiskMode))
+        return SPELL_FAILED_NOT_HERE;
+
+    if (m_spellInfo->Id == DivineIntervention && AscensionFreePick::Applies(m_caster->ToPlayer()))
+    {
+        Unit* target = m_targets.GetUnitTarget();
+        if (m_caster->HasAura(HighRiskMode) || (target && target->HasAura(HighRiskMode)))
+            return SPELL_FAILED_NOT_HERE;
+    }
+
+    if (m_spellInfo->Id == 19028 && AscensionFreePick::Applies(m_caster->ToPlayer()))
+    {
+        Unit* demon = m_caster->ToPlayer()->GetPet();
+        if (!demon)
+            demon = m_caster->GetCharm();
+        if (!demon || !demon->IsAlive() || demon->GetCreatureType() != CREATURE_TYPE_DEMON ||
+            (demon->GetEntry() == 416 && demon->GetCharmerGUID() != m_caster->GetGUID()))
+            return SPELL_FAILED_NO_PET;
+        if (!m_caster->IsWithinDistInMap(demon, 30.0f))
+            return SPELL_FAILED_OUT_OF_RANGE;
+    }
+
     // check death state
     if (!m_caster->IsAlive() && !m_spellInfo->HasAttribute(SPELL_ATTR0_PASSIVE) && !(m_spellInfo->HasAttribute(SPELL_ATTR0_ALLOW_CAST_WHILE_DEAD) || (IsTriggered() && !m_triggeredByAuraSpell)))
         return SPELL_FAILED_CASTER_DEAD;
@@ -5839,7 +5953,9 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* /*param1*/, uint32* /*para
         {
             // Cannot be used in this stance/form
             SpellCastResult shapeError = m_spellInfo->CheckShapeshift(m_caster->GetShapeshiftForm());
-            if (shapeError != SPELL_CAST_OK)
+            if (shapeError != SPELL_CAST_OK &&
+                !(m_caster->GetShapeshiftForm() == FORM_METAMORPHOSIS && AscensionFreePick::Applies(m_caster->ToPlayer()) &&
+                  IsMetamorphosisDamageSpell(m_spellInfo)))
                 return shapeError;
 
             if (m_spellInfo->HasAttribute(SPELL_ATTR0_ONLY_STEALTHED) && !(m_caster->HasStealthAura()))
@@ -8520,6 +8636,7 @@ void Spell::HandleLaunchPhase()
         DoAllEffectOnLaunchTarget(target, multiplier);
     }
 
+    AscensionMysticEnchant::ConsumeGlacialLightFingersForCast(this);
     FinishTargetProcessing();
 }
 
@@ -8542,6 +8659,9 @@ void Spell::DoAllEffectOnLaunchTarget(TargetInfo& targetInfo, float* multiplier)
             m_damage = 0;
             m_healing = 0;
             m_damageBeforeTakenMods = 0;
+            m_area52AgilityCriticalDamage = 0.0f;
+            if (GetScriptValue(AscensionFreePick::AgilityEffectDamageKey))
+                SetScriptValue(AscensionFreePick::AgilityEffectDamageKey, 0);
 
             HandleEffects(unit, nullptr, nullptr, i, SPELL_EFFECT_HANDLE_LAUNCH_TARGET);
 
@@ -8551,21 +8671,29 @@ void Spell::DoAllEffectOnLaunchTarget(TargetInfo& targetInfo, float* multiplier)
                 if (m_spellInfo->Effects[i].IsAreaAuraEffect() || m_spellInfo->Effects[i].IsTargetingArea() || (m_spellInfo->Effects[i].ChainTarget > 1 && m_spellInfo->DmgClass != SPELL_DAMAGE_CLASS_MAGIC))
                 {
                     bool npcCaster = (m_caster && !m_caster->IsControlledByPlayer()) || GetSpellInfo()->HasAttribute(SPELL_ATTR7_TREAT_AS_NPC_AOE);
+                    if (m_area52AgilityCriticalDamage > 0.0f)
+                        m_area52AgilityCriticalDamage = unit->CalculateAOEDamageReduction(uint32(m_area52AgilityCriticalDamage), m_spellInfo->SchoolMask, npcCaster);
                     m_damage = unit->CalculateAOEDamageReduction(m_damage, m_spellInfo->SchoolMask, npcCaster);
                     if (m_caster->IsPlayer())
                     {
                         uint32 targetAmount = m_UniqueTargetInfo.size();
                         if (targetAmount > 10)
+                        {
                             m_damage = m_damage * 10 / targetAmount;
+                            m_area52AgilityCriticalDamage *= 10.0f / targetAmount;
+                        }
                     }
                 }
             }
 
             if (m_applyMultiplierMask & (1 << i))
             {
+                m_area52AgilityCriticalDamage *= m_damageMultipliers[i];
                 m_damage = int32(m_damage * m_damageMultipliers[i]);
                 m_damageMultipliers[i] *= multiplier[i];
             }
+            if (m_damage > 0)
+                targetInfo.area52AgilityCriticalDamage += m_area52AgilityCriticalDamage;
             targetInfo.damage += m_damage;
             targetInfo.damageBeforeTakenMods += m_damageBeforeTakenMods;
         }
@@ -8582,8 +8710,35 @@ void Spell::DoAllEffectOnLaunchTarget(TargetInfo& targetInfo, float* multiplier)
         caster = m_originalCaster;
 
     float critChance = caster->SpellDoneCritChance(unit, m_spellInfo, m_spellSchoolMask, m_attackType, false);
+    if (AscensionFreePick::Applies(caster->ToPlayer()) && targetInfo.damage < 0 &&
+        (m_spellSchoolMask & SPELL_SCHOOL_MASK_HOLY) && Area52Holy::HealingSpell(m_spellInfo) &&
+        Area52Holy::DamagingSpell(m_spellInfo))
+        if (AuraEffect const* illumination = caster->GetAuraEffect(31842, EFFECT_2))
+            critChance += illumination->GetAmount();
     sScriptMgr->OnSpellCritChance(this, unit, critChance);
     critChance = unit->SpellTakenCritChance(caster, m_spellInfo, m_spellSchoolMask, critChance, m_attackType, false);
+    if (caster == m_caster && AscensionFreePick::Applies(caster->ToPlayer()) &&
+        (m_spellSchoolMask & SPELL_SCHOOL_MASK_HOLY) && m_spellInfo->IsCritCapable() &&
+        !m_spellInfo->HasAttribute(SPELL_ATTR2_CANT_CRIT) && m_spellInfo->DmgClass != SPELL_DAMAGE_CLASS_NONE)
+        for (uint32 id : {20216u, 411134u})
+            if (Aura* guarantee = caster->GetAura(id))
+                if (!guarantee->IsUsingCharges() || guarantee->GetCharges())
+                    m_appliedMods.insert(guarantee);
+    if (caster == m_caster && AscensionFreePick::Applies(caster->ToPlayer()) &&
+        (m_spellSchoolMask & SPELL_SCHOOL_MASK_HOLY) && m_spellInfo->IsCritCapable() &&
+        !m_spellInfo->HasAttribute(SPELL_ATTR2_CANT_CRIT) &&
+        m_spellInfo->DmgClass != SPELL_DAMAGE_CLASS_NONE &&
+        unit->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE) > -100)
+        for (uint32 id : {20216u, 411134u})
+            if (Aura* guarantee = caster->GetAura(id))
+                if (m_appliedMods.contains(guarantee))
+                    critChance = std::max(critChance, 100.0f);
+    if (Player* player = caster->ToPlayer(); caster == m_caster && AscensionFreePick::Applies(player) &&
+        m_area52SanctityUsed && (player->MatchesSpellInteraction(m_spellInfo->Id, 14914) ||
+            player->MatchesSpellInteraction(m_spellInfo->Id, 19750)) && m_spellInfo->IsCritCapable() &&
+        !m_spellInfo->HasAttribute(SPELL_ATTR2_CANT_CRIT) && m_spellInfo->DmgClass != SPELL_DAMAGE_CLASS_NONE &&
+        unit->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE) > -100)
+        critChance = std::max(critChance, 100.0f);
     targetInfo.crit = roll_chance_f(std::max(0.0f, critChance));
     sScriptMgr->OnSpellCalculatedTarget(this, unit, targetInfo);
 }
@@ -8691,6 +8846,9 @@ void Spell::SetSpellValue(SpellValueMod mod, int32 value)
 {
     switch (mod)
     {
+        case SPELLVALUE_AREA52_AGILITY_BASE_DAMAGE:
+            m_area52AgilityBaseDamage = std::max(0, value);
+            break;
         case SPELLVALUE_BASE_POINT0:
             m_spellValue->EffectBasePoints[0] = m_spellInfo->Effects[EFFECT_0].CalcBaseValue(value);
             break;
@@ -9130,7 +9288,10 @@ void Spell::TriggerGlobalCooldown()
     {
         // gcd modifier auras are applied only to own spells and only players have such mods
         if (m_caster->IsPlayer())
+        {
             m_caster->ToPlayer()->ApplySpellMod(m_spellInfo->Id, SPELLMOD_GLOBAL_COOLDOWN, gcd, this);
+            gcd += AscensionMysticEnchant::DefiasGlobalCooldownDelta(m_caster->ToPlayer(), m_spellInfo->Id);
+        }
 
         // Apply haste rating
         if (m_spellInfo->StartRecoveryCategory == 133 && m_spellInfo->StartRecoveryTime == 1500 && m_spellInfo->DmgClass != SPELL_DAMAGE_CLASS_MELEE &&
@@ -9144,6 +9305,8 @@ void Spell::TriggerGlobalCooldown()
         else if (gcd > MAX_GCD)
             gcd = MAX_GCD;
     }
+
+    gcd = AscensionFreePick::ApplyAgileStrikes(m_caster, m_spellInfo, gcd);
 
     // Only players or controlled units have global cooldown
     if (m_caster->GetCharmInfo())

@@ -788,12 +788,26 @@ class spell_warl_siphon_life : public AuraScript
             return false;
         }
 
+        if (AscensionFreePick::Applies(GetTarget()->ToPlayer()) &&
+            (eventInfo.GetActor() != GetTarget() || !(eventInfo.GetTypeMask() & PROC_FLAG_DONE_PERIODIC)))
+            return false;
+
         return GetTarget()->IsAlive();
     }
 
     void OnProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
     {
         PreventDefaultAction();
+
+        if (AscensionFreePick::Applies(GetTarget()->ToPlayer()))
+        {
+            uint64 heal = uint64(eventInfo.GetDamageInfo()->GetDamage()) * aurEff->GetAmount() / 100;
+            if (AuraEffect const* glyph = GetTarget()->GetAuraEffect(SPELL_WARLOCK_GLYPH_OF_SIPHON_LIFE, EFFECT_0))
+                heal += heal * glyph->GetAmount() / 100;
+            int32 amount = int32(std::min<uint64>(heal, GetTarget()->GetMaxHealth() / 20));
+            GetTarget()->CastCustomSpell(SPELL_WARLOCK_SIPHON_LIFE_HEAL, SPELLVALUE_BASE_POINT0, amount, GetTarget(), true, nullptr, aurEff);
+            return;
+        }
 
         int32 amount = CalculatePct(static_cast<int32>(eventInfo.GetDamageInfo()->GetDamage()), aurEff->GetAmount());
         // Glyph of Siphon Life
@@ -1534,6 +1548,8 @@ class spell_warl_seed_of_corruption_dummy : public AuraScript
 {
     PrepareAuraScript(spell_warl_seed_of_corruption_dummy);
 
+    bool detonated = false;
+
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
         return ValidateSpellInfo({ SPELL_WARLOCK_SEED_OF_CORRUPTION_DAMAGE_R1 });
@@ -1551,13 +1567,17 @@ class spell_warl_seed_of_corruption_dummy : public AuraScript
     void Detonate(AuraEffect const* aurEff)
     {
         Unit* caster = GetCaster();
-        if (!caster)
+        if (!caster || detonated)
             return;
 
-        GetUnitOwner()->CastSpell(GetUnitOwner(), SPELL_WARLOCK_SEED_OF_CORRUPTION_VISUAL, true, nullptr, aurEff);
+        detonated = true;
+        Unit* host = GetUnitOwner();
+        host->CastSpell(host, SPELL_WARLOCK_SEED_OF_CORRUPTION_VISUAL, true, nullptr, aurEff);
 
+        // Cast at the host's location, including on death. Supplying this Seed
+        // as a triggering aura would exclude neighboring Seeds of the same rank.
         uint32 spellId = sSpellMgr->GetSpellWithRank(SPELL_WARLOCK_SEED_OF_CORRUPTION_DAMAGE_R1, GetSpellInfo()->GetRank());
-        caster->CastSpell(GetUnitOwner(), spellId, true, nullptr, aurEff);
+        caster->CastSpell(host->GetPositionX(), host->GetPositionY(), host->GetPositionZ(), spellId, true);
     }
 
     void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
@@ -1567,12 +1587,11 @@ class spell_warl_seed_of_corruption_dummy : public AuraScript
         if (!damageInfo || !damageInfo->GetDamage())
             return;
 
-        int32 amount = aurEff->GetAmount() - damageInfo->GetDamage();
-        if (amount > 0)
+        int32 remaining = aurEff->GetAmount();
+        if (remaining > 0 && damageInfo->GetDamage() < uint32(remaining))
         {
-            const_cast<AuraEffect*>(aurEff)->SetAmount(amount);
-            if (!GetTarget()->HealthBelowPctDamaged(1, damageInfo->GetDamage()))
-                return;
+            const_cast<AuraEffect*>(aurEff)->SetAmount(remaining - int32(damageInfo->GetDamage()));
+            return;
         }
 
         Remove();

@@ -16,6 +16,7 @@
  */
 
 #include "Config.h"
+#include "../../coa/AscensionFreePick.h"
 #include "GridNotifiers.h"
 #include "Player.h"
 #include "SpellAuraEffects.h"
@@ -1042,8 +1043,11 @@ class spell_pri_vampiric_embrace : public AuraScript
         if (!damageInfo || !damageInfo->GetDamage())
             return;
 
-        int32 selfHeal = CalculatePct(static_cast<int32>(damageInfo->GetDamage()), aurEff->GetAmount());
-        int32 partyHeal = selfHeal / 5;
+        uint64 const rawSelf = uint64(damageInfo->GetDamage()) * std::max(0, aurEff->GetAmount()) / 100;
+        uint32 const limit = AscensionFreePick::Applies(GetTarget()->ToPlayer())
+            ? GetTarget()->GetMaxHealth() / 20 : INT32_MAX;
+        int32 selfHeal = int32(std::min<uint64>(rawSelf, limit));
+        int32 partyHeal = int32(std::min<uint64>(rawSelf / 5, limit));
         GetTarget()->CastCustomSpell(GetTarget(), SPELL_PRIEST_VAMPIRIC_EMBRACE_HEAL, &partyHeal, &selfHeal, nullptr, true, nullptr, aurEff);
     }
 
@@ -1463,8 +1467,68 @@ public:
     }
 };
 
+class spell_area52_blood_horror : public AuraScript
+{
+    PrepareAuraScript(spell_area52_blood_horror);
+
+    bool CheckProc(ProcEventInfo& event)
+    {
+        DamageInfo* damage = event.GetDamageInfo();
+        Unit* defender = GetTarget();
+        if (!AscensionFreePick::Applies(defender->ToPlayer()) || !damage || !damage->GetDamage() || damage->GetVictim() != defender ||
+            (event.GetTypeMask() & PROC_FLAG_TAKEN_PERIODIC) ||
+            (damage->GetDamageType() != DIRECT_DAMAGE && damage->GetDamageType() != SPELL_DIRECT_DAMAGE))
+            return false;
+
+        Unit* attacker = damage->GetAttacker();
+        if (!attacker || attacker != event.GetActor() || attacker == defender ||
+            !defender->IsValidAttackTarget(attacker) || !defender->IsInMap(attacker))
+            return false;
+
+        // A retaliation must not bounce between two Blood Horror channels.
+        if (SpellInfo const* spell = damage->GetSpellInfo())
+            switch (spell->Id)
+            {
+                case 954517: case 954563: case 954565: case 954567: return false;
+            }
+
+        return defender->GetExactDistSq(attacker) <= 15.0f * 15.0f;
+    }
+
+    void Retaliate(AuraEffect const* effect, ProcEventInfo& event)
+    {
+        PreventDefaultAction();
+        GetTarget()->CastSpell(event.GetActor(), GetSpellInfo()->Effects[EFFECT_0].TriggerSpell,
+            true, nullptr, effect);
+    }
+
+    void SetProtection(bool active)
+    {
+        Unit* target = GetTarget();
+        if (active && !AscensionFreePick::Applies(target->ToPlayer())) return;
+        for (auto mechanic : {MECHANIC_INTERRUPT, MECHANIC_SILENCE, MECHANIC_STUN})
+            target->ApplySpellImmune(GetId(), IMMUNITY_MECHANIC, mechanic, active);
+        for (auto aura : {SPELL_AURA_MOD_SILENCE, SPELL_AURA_MOD_PACIFY_SILENCE, SPELL_AURA_MOD_STUN})
+            target->ApplySpellImmune(GetId(), IMMUNITY_STATE, aura, active);
+        target->ApplySpellImmune(GetId(), IMMUNITY_EFFECT, SPELL_EFFECT_INTERRUPT_CAST, active);
+    }
+
+    void Apply(AuraEffect const*, AuraEffectHandleModes) { SetProtection(true); }
+    void Remove(AuraEffect const*, AuraEffectHandleModes) { SetProtection(false); }
+
+    void Register() override
+    {
+        DoCheckProc += AuraCheckProcFn(spell_area52_blood_horror::CheckProc);
+        OnEffectProc += AuraEffectProcFn(spell_area52_blood_horror::Retaliate, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
+        AfterEffectApply += AuraEffectApplyFn(spell_area52_blood_horror::Apply, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL);
+        AfterEffectRemove += AuraEffectRemoveFn(spell_area52_blood_horror::Remove, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
+
 void AddSC_priest_spell_scripts()
 {
+    RegisterSpellScript(spell_area52_blood_horror);
     new Area52PowerWordShieldConfig();
     new Area52PowerWordShieldContract();
     RegisterSpellScript(spell_pri_shadowfiend_scaling);

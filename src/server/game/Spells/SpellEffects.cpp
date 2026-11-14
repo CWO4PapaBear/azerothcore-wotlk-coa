@@ -1,4 +1,5 @@
-/*
+#include "../../coa/AscensionMysticEnchantCatalog.h"
+ /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify
@@ -374,6 +375,8 @@ void ModifyAscensionAuraStacks(Unit* caster, Unit* target, uint32 auraSpellId, i
 }
 }
 
+bool ReduceArea52EldritchWrathCooldown(Player* player, int32 delta);
+
 void Spell::EffectAscensionModifyCooldown(SpellEffIndex effIndex)
 {
     if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
@@ -382,6 +385,8 @@ void Spell::EffectAscensionModifyCooldown(SpellEffIndex effIndex)
     Unit* target = unitTarget ? unitTarget : m_caster;
     Player* player = target ? target->ToPlayer() : nullptr;
     SpellEffectInfo const& effect = m_spellInfo->Effects[effIndex];
+    if (m_spellInfo->Id == 983724 && ReduceArea52EldritchWrathCooldown(player, damage))
+        return;
     // Ascension names the original spell; a temporarily replaced spell keeps its cooldown on the replacement.
     uint32 const spellId = player ? player->GetTemporarySpellReplacement(effect.MiscValue) : effect.MiscValue;
     ModifyAscensionCooldown(player, spellId, damage, effect.MiscValueB != 0);
@@ -682,8 +687,26 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
     if (effectHandleMode != SPELL_EFFECT_HANDLE_LAUNCH_TARGET)
         return;
 
+    if (AscensionFreePick::Applies(m_caster->ToPlayer()) &&
+        sSpellMgr->GetFirstSpellInChain(m_spellInfo->Id) == 56641 &&
+        m_spellInfo->Effects[EFFECT_2].Effect == SPELL_EFFECT_WEAPON_PERCENT_DAMAGE)
+        return;
+
     if (unitTarget && unitTarget->IsAlive())
     {
+        Player* agilityPlayer = m_caster->ToPlayer();
+        bool const trackAgility = m_originalCaster == m_caster && AscensionFreePick::Applies(agilityPlayer) &&
+            agilityPlayer->HasAura(84865) &&
+            (m_spellInfo->DmgClass == SPELL_DAMAGE_CLASS_MELEE || m_spellInfo->DmgClass == SPELL_DAMAGE_CLASS_RANGED);
+        float agilityDamage = trackAgility ? float(GetScriptValue(AscensionFreePick::AgilityEffectDamageKey)) : 0.0f;
+        if (trackAgility && effIndex == EFFECT_0)
+        {
+            agilityDamage += m_area52AgilityBaseDamage;
+            // Brutal Pummeling's Free-Pick effect-value callback replaces the base with AP.
+            if (m_spellInfo->Id == 32515)
+                agilityDamage += CalculatePct(AscensionFreePick::AgilityAttackPower(agilityPlayer, false),
+                    m_spellInfo->Effects[EFFECT_1].CalcValue(m_caster));
+        }
         bool apply_direct_bonus = true;
         switch (m_spellInfo->SpellFamilyName)
         {
@@ -732,7 +755,11 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     {
                         int32 pct = m_caster->CalculateSpellDamage(unitTarget, m_spellInfo, 2);
                         if (pct > 0)
+                        {
                             damage += int32(CalculatePct(m_caster->GetTotalAttackPowerValue(BASE_ATTACK), pct));
+                            if (trackAgility)
+                                agilityDamage += CalculatePct(AscensionFreePick::AgilityAttackPower(agilityPlayer, false), pct);
+                        }
                         break;
                     }
                     break;
@@ -843,6 +870,9 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                         float ap = m_caster->GetTotalAttackPowerValue(BASE_ATTACK);
                         float multiple = ap / 410 + m_spellInfo->Effects[effIndex].DamageMultiplier;
                         int32 energy = -(m_caster->ModifyPower(POWER_ENERGY, -30));
+                        if (trackAgility)
+                            agilityDamage += AscensionFreePick::AgilityAttackPower(agilityPlayer, false) *
+                                (energy / 410.0f + 0.07f * m_caster->GetComboPoints());
                         damage += int32(energy * multiple);
                         damage += int32(CalculatePct(m_caster->GetComboPoints() * ap, 7));
                     }
@@ -898,6 +928,8 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
 
                                     damage *= doses;
                                     damage += int32(player->GetTotalAttackPowerValue(BASE_ATTACK) * 0.09f * combo);
+                                    if (trackAgility)
+                                        agilityDamage += AscensionFreePick::AgilityAttackPower(agilityPlayer, false) * 0.09f * combo;
                                 }
 
                                 // Eviscerate and Envenom Bonus Damage (item set effect)
@@ -918,8 +950,12 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                                     sConfigMgr->GetOption<std::string>("CoA.ClassModel", "coa") == "hero" &&
                                     sConfigMgr->GetOption<std::string>("CoA.RealmType", "live") == "live" &&
                                     !(sConfigMgr->GetOption<uint32>("CoA.GameModeMask", 0) & ~uint32(0x400));
-                                damage += AscensionWhiteWalkerSupport::EviscerateScalingBonus(area52, ap,
-                                    m_caster->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC), combo);
+                                auto const sp = m_caster->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_MAGIC);
+                                int32 const scaling = AscensionWhiteWalkerSupport::EviscerateScalingBonus(area52, ap, sp, combo);
+                                damage += scaling;
+                                if (trackAgility)
+                                    agilityDamage += scaling - AscensionWhiteWalkerSupport::EviscerateScalingBonus(area52,
+                                        ap - AscensionFreePick::AgilityAttackPower(agilityPlayer, false), sp, combo);
 
                                 // Eviscerate and Envenom Bonus Damage (item set effect)
                                 if (m_caster->HasAura(37169))
@@ -1001,6 +1037,9 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                             float average = (minTotal + maxTotal) / 2;
                             int32 count = m_caster->CalculateSpellDamage(unitTarget, m_spellInfo, EFFECT_2);
                             damage += count * int32(average * IN_MILLISECONDS) / m_caster->GetAttackTime(BASE_ATTACK);
+                            if (trackAgility)
+                                agilityDamage += count * AscensionFreePick::AgilityWeaponDamage(agilityPlayer, BASE_ATTACK, false, false) *
+                                    IN_MILLISECONDS / m_caster->GetAttackTime(BASE_ATTACK);
                         }
                         break;
                     }
@@ -1024,10 +1063,29 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             if (damage < 0)
                 damage = 0;
 
-            damage = m_originalCaster->SpellDamageBonusDone(unitTarget, m_spellInfo, (uint32)damage, SPELL_DIRECT_DAMAGE, effIndex);
-            damage = unitTarget->SpellDamageBonusTaken(m_originalCaster, m_spellInfo, (uint32)damage, SPELL_DIRECT_DAMAGE);
+            damage = m_originalCaster->SpellDamageBonusDone(unitTarget, m_spellInfo, (uint32)damage, SPELL_DIRECT_DAMAGE, effIndex, 0.0f, 1, trackAgility ? &agilityDamage : nullptr);
+            damage = unitTarget->SpellDamageBonusTaken(m_originalCaster, m_spellInfo, (uint32)damage, SPELL_DIRECT_DAMAGE, 1, trackAgility ? &agilityDamage : nullptr);
         }
 
+        // Dark Ranger splits only the impact. The triggered aura calculates its own ticks.
+        if (m_spellInfo->Id == 998204 && effIndex == EFFECT_0 && AscensionFreePick::Applies(agilityPlayer))
+        {
+            auto const bonus = GetScriptValue(AscensionFreePick::DarkfallDamageKey);
+            damage += CalculatePct(damage, bonus);
+            agilityDamage += CalculatePct(agilityDamage, bonus);
+            auto const hits = std::count_if(m_UniqueTargetInfo.begin(), m_UniqueTargetInfo.end(),
+                [](TargetInfo const& target)
+                {
+                    return (target.effectMask & (1u << EFFECT_0)) && target.missCondition == SPELL_MISS_NONE;
+                });
+            if (hits > 1)
+            {
+                damage /= hits;
+                agilityDamage /= hits;
+            }
+        }
+        if (trackAgility && damage > 0)
+            m_area52AgilityCriticalDamage += agilityDamage;
         m_damage += damage;
     }
 }
@@ -1228,8 +1286,10 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
                         // remove all harmful spells on you...
                         SpellInfo const* spell = iter->second->GetBase()->GetSpellInfo();
 
-                        // Pounce Bleed shouldn't be removed by Cloak of Shadows.
-                        if (spell->GetAllEffectsMechanicMask() & (1ULL << MECHANIC_BLEED))
+                        bool const bleed = spell->GetAllEffectsMechanicMask() & (1ULL << MECHANIC_BLEED);
+                        bool const area52Cloak = m_spellInfo->Id == 31224 &&
+                            AscensionFreePick::Applies(m_caster->ToPlayer());
+                        if (bleed && !area52Cloak)
                             return;
 
                         bool dmgClassNone = false;
@@ -1247,7 +1307,8 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
                                 dmgClassNone = true;
                             }
 
-                        if ((spell->DmgClass == SPELL_DAMAGE_CLASS_MAGIC || (spell->GetDispelMask() & dispelMask) || dmgClassNone) &&
+                        if ((spell->DmgClass == SPELL_DAMAGE_CLASS_MAGIC || (spell->GetDispelMask() & dispelMask) ||
+                                dmgClassNone || (area52Cloak && bleed)) &&
                                 // ignore positive and passive auras
                                 !iter->second->IsPositive() && !iter->second->GetBase()->IsPassive() &&
                                 // Xinef: Ignore NPC spells having INVULNERABILITY attribute
@@ -1347,6 +1408,8 @@ void Spell::EffectTriggerMissileSpell(SpellEffIndex effIndex)
     }
 
     CustomSpellValues values;
+    if (m_spellInfo->Id == 998204 && triggered_spell_id == 984510 && AscensionFreePick::Applies(m_caster->ToPlayer()))
+        values.AddSpellMod(SPELLVALUE_BASE_POINT2, GetScriptValue(AscensionFreePick::DarkfallDamageKey));
     // set basepoints for trigger with value effect
     if (m_spellInfo->Effects[effIndex].Effect == SPELL_EFFECT_TRIGGER_MISSILE_SPELL_WITH_VALUE)
     {
@@ -2396,7 +2459,10 @@ void Spell::EffectEnergizePct(SpellEffIndex effIndex)
     if (unitTarget->IsPlayer() && !unitTarget->CanReceivePowerFromSpell(power) && !m_spellInfo->HasAttribute(SPELL_ATTR7_ONLY_IN_SPELLBOOK_UNTIL_LEARNED))
         return;
 
-    uint32 maxPower = unitTarget->GetMaxPower(power);
+    bool const shadowfiendMana = m_spellInfo->Id == 34650 && power == POWER_MANA &&
+        m_caster->GetEntry() == 19668 && m_caster->GetOwner() == unitTarget &&
+        AscensionFreePick::Applies(unitTarget->ToPlayer());
+    uint32 maxPower = shadowfiendMana ? unitTarget->GetCreateMana() : unitTarget->GetMaxPower(power);
     if (maxPower == 0)
         return;
 
@@ -3403,39 +3469,57 @@ void Spell::EffectEnchantItemTmp(SpellEffIndex effIndex)
         // enchanting spell selected by calculated damage-per-sec stored in Effect[1] base value
         // Note: damage calculated (correctly) with rounding int32(float(v)) but
         // RW enchantments applied damage int32(float(v)+0.5), this create  0..1 difference sometime
-        switch (damage)
+        // Area 52 AP enchants are fixed by learned rank. An effect modifier must
+        // not turn a rank identifier into another rank or a legacy DPS enchant.
+        if (AscensionFreePick::Applies(p_caster))
         {
-            // Rank 1
-            case  2:
-                spell_id = 36744;
-                break;               //  0% [ 7% == 2, 14% == 2, 20% == 2]
-            // Rank 2
-            case  4:
-                spell_id = 36753;
-                break;               //  0% [ 7% == 4, 14% == 4]
-            case  5:
-                spell_id = 36751;
-                break;               // 20%
-            // Rank 3
-            case  6:
-                spell_id = 36754;
-                break;               //  0% [ 7% == 6, 14% == 6]
-            case  7:
-                spell_id = 36755;
-                break;               // 20%
-            // Rank 4
-            case  9:
-                spell_id = 36761;
-                break;               //  0% [ 7% == 6]
-            case 10:
-                spell_id = 36758;
-                break;               // 14%
-            case 11:
-                spell_id = 36760;
-                break;               // 20%
-            default:
-                LOG_ERROR("spells.effect", "Spell::EffectEnchantItemTmp: Damage {} not handled in S'RW", damage);
-                return;
+            switch (m_spellInfo->Id)
+            {
+                case 8017:   spell_id = 13977922; break;
+                case 8018:   spell_id = 13977923; break;
+                case 8019:   spell_id = 13977924; break;
+                case 10399:  spell_id = 13977925; break;
+                case 810339: spell_id = 13977927; break;
+                case 810340: spell_id = 13977928; break;
+            }
+        }
+
+        if (!spell_id)
+        {
+            switch (damage)
+            {
+                // Rank 1
+                case  2:
+                    spell_id = 36744;
+                    break;               //  0% [ 7% == 2, 14% == 2, 20% == 2]
+                // Rank 2
+                case  4:
+                    spell_id = 36753;
+                    break;               //  0% [ 7% == 4, 14% == 4]
+                case  5:
+                    spell_id = 36751;
+                    break;               // 20%
+                // Rank 3
+                case  6:
+                    spell_id = 36754;
+                    break;               //  0% [ 7% == 6, 14% == 6]
+                case  7:
+                    spell_id = 36755;
+                    break;               // 20%
+                // Rank 4
+                case  9:
+                    spell_id = 36761;
+                    break;               //  0% [ 7% == 6]
+                case 10:
+                    spell_id = 36758;
+                    break;               // 14%
+                case 11:
+                    spell_id = 36760;
+                    break;               // 20%
+                default:
+                    LOG_ERROR("spells.effect", "Spell::EffectEnchantItemTmp: Damage {} not handled in S'RW", damage);
+                    return;
+            }
         }
 
         SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spell_id);
@@ -3515,6 +3599,34 @@ void Spell::EffectEnchantItemTmp(SpellEffIndex effIndex)
             case 36758: // Rockbiter Weapon Rank 4
             case 36760: // Rockbiter Weapon Rank 4
                 duration = 1800; // 30 mins
+                break;
+            default:
+                break;
+        }
+    }
+
+    if (AscensionFreePick::Applies(p_caster))
+    {
+        switch (m_spellInfo->Id)
+        {
+            case 13977922: case 13977923: case 13977924: case 13977925:
+            case 13977926: case 13977927: case 13977928:
+            case 36744: // Rockbiter temporary enchant children
+            case 36753:
+            case 36751:
+            case 36754:
+            case 36755:
+            case 36761:
+            case 36758:
+            case 36760:
+            case 36762:
+            case 208679:
+            case 203408:
+            case 205761:
+            case 202823:
+            case 2013219:
+            case 2026785:
+                duration = 7200;
                 break;
             default:
                 break;
@@ -3779,6 +3891,11 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
     if (!unitTarget || !unitTarget->IsAlive())
         return;
 
+    // Grape Shot awards its weapon component only to the primary target.
+    if (unitTarget != m_targets.GetUnitTarget() &&
+        AscensionMysticEnchant::DefiasGrapeShotEligible(m_caster->ToPlayer(), m_spellInfo->Id))
+        return;
+
     // multiple weapon dmg effect workaround
     // execute only the last weapon damage
     // and handle all effects at once
@@ -3797,8 +3914,16 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
 
     // some spell specific modifiers
     float totalDamagePercentMod  = 100.0f;                  // applied to final bonus+weapon damage
+    Player* agilityPlayer = m_caster->ToPlayer();
+    bool const trackAgility = AscensionFreePick::Applies(agilityPlayer) && agilityPlayer->HasAura(84865) &&
+        (m_spellInfo->DmgClass == SPELL_DAMAGE_CLASS_MELEE || m_spellInfo->DmgClass == SPELL_DAMAGE_CLASS_RANGED);
+    float agilityFlat = 0.0f;
     int32 spell_bonus = 0;                                  // bonus specific for spell
     bool normalized = false;
+    bool const area52AimedShot = AscensionFreePick::Applies(m_caster->ToPlayer()) &&
+        sSpellMgr->GetFirstSpellInChain(m_spellInfo->Id) == 19434 &&
+        m_spellInfo->Effects[EFFECT_0].Effect == SPELL_EFFECT_NORMALIZED_WEAPON_DMG &&
+        m_spellInfo->Effects[EFFECT_2].Effect == SPELL_EFFECT_WEAPON_PERCENT_DAMAGE;
 
     switch (m_spellInfo->SpellFamilyName)
     {
@@ -3889,6 +4014,8 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
                 {
                     case 20467: // Seal of Command Unleashed
                         spell_bonus += int32(0.08f * m_caster->GetTotalAttackPowerValue(BASE_ATTACK));
+                        if (trackAgility)
+                            agilityFlat += 0.08f * AscensionFreePick::AgilityAttackPower(agilityPlayer, false);
                         spell_bonus += int32(0.13f * m_caster->SpellBaseDamageBonusDone(m_spellInfo->GetSchoolMask()));
                         break;
                     case 54762:
@@ -3933,10 +4060,25 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
             }
         case SPELLFAMILY_HUNTER:
             {
+                if (area52AimedShot)
+                {
+                    spell_bonus += int32(m_caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.2f);
+                    if (trackAgility)
+                        agilityFlat += 0.2f * AscensionFreePick::AgilityAttackPower(agilityPlayer, true);
+                }
+
+                if (AscensionFreePick::Applies(m_caster->ToPlayer()) &&
+                    sSpellMgr->GetFirstSpellInChain(m_spellInfo->Id) == 56641 &&
+                    m_spellInfo->Effects[EFFECT_2].Effect == SPELL_EFFECT_WEAPON_PERCENT_DAMAGE &&
+                    unitTarget->HasDecreaseSpeedAura())
+                    spell_bonus += CalculateSpellDamage(EFFECT_1, unitTarget);
+
                 // Kill Shot
                 if (m_spellInfo->SpellFamilyFlags[1] & 0x800000)
                 {
                     spell_bonus += int32(m_caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.4f);
+                    if (trackAgility)
+                        agilityFlat += 0.4f * AscensionFreePick::AgilityAttackPower(agilityPlayer, true);
                 }
                 break;
             }
@@ -4014,6 +4156,8 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
                 if (m_spellInfo->SpellFamilyFlags[1] & 0x20000000)
                 {
                     spell_bonus += int32(0.15f * m_caster->GetTotalAttackPowerValue(BASE_ATTACK));
+                    if (trackAgility)
+                        agilityFlat += 0.15f * AscensionFreePick::AgilityAttackPower(agilityPlayer, false);
                 }
 
                 break;
@@ -4063,6 +4207,7 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
         float weapon_total_pct = m_caster->GetPctModifierValue(unitMod, TOTAL_PCT);
         fixed_bonus = int32(fixed_bonus * weapon_total_pct);
         spell_bonus = int32(spell_bonus * weapon_total_pct);
+        agilityFlat *= weapon_total_pct;
     }
 
     int32 weaponDamage = 0;
@@ -4079,12 +4224,36 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
 
     weaponDamagePercentMod *= m_scriptWeaponDamageMultiplier;
 
-    // Sequence is important
+    bool const area52CrusaderStrike = AscensionFreePick::Applies(m_caster->ToPlayer()) &&
+        sSpellMgr->GetFirstSpellInChain(m_spellInfo->Id) == 35395 &&
+        m_spellInfo->Effects[EFFECT_0].Effect == SPELL_EFFECT_NORMALIZED_WEAPON_DMG &&
+        m_spellInfo->Effects[EFFECT_1].Effect == SPELL_EFFECT_WEAPON_PERCENT_DAMAGE;
+
+    uint32 const area52WeaponRoot = AscensionFreePick::Applies(m_caster->ToPlayer()) ?
+        sSpellMgr->GetFirstSpellInChain(m_spellInfo->Id) : 0;
+    bool const area52FlatAfterPercent = (area52WeaponRoot == 2643 || area52WeaponRoot == 8676 ||
+        area52WeaponRoot == 53351) &&
+        (m_spellInfo->Effects[EFFECT_0].Effect == SPELL_EFFECT_NORMALIZED_WEAPON_DMG ||
+            m_spellInfo->Effects[EFFECT_0].Effect == SPELL_EFFECT_WEAPON_DAMAGE_NOSCHOOL) &&
+        m_spellInfo->Effects[EFFECT_1].Effect == SPELL_EFFECT_WEAPON_PERCENT_DAMAGE;
+    if (area52FlatAfterPercent)
+    {
+        if (area52WeaponRoot == 8676)
+            fixed_bonus = int32(fixed_bonus * 2.75f);
+        else if (area52WeaponRoot == 53351)
+            fixed_bonus *= 2;
+    }
+
+    float agilityDamage = trackAgility ? AscensionFreePick::AgilityWeaponDamage(agilityPlayer, m_attackType, normalized, isPhysical) : 0.0f;
+    // These Area52 tooltips add their flat bonus after their weapon percentage.
+    // Preserve the authored effect indices for spell modifiers and other spells.
     for (int j = 0; j < MAX_SPELL_EFFECTS; ++j)
     {
         // We assume that a spell have at most one fixed_bonus
         // and at most one weaponDamagePercentMod
-        switch (m_spellInfo->Effects[j].Effect)
+        uint32 const effectIndex = area52AimedShot && j != 1 ? 2 - j :
+            (area52CrusaderStrike || area52FlatAfterPercent) && j < 2 ? 1 - j : j;
+        switch (m_spellInfo->Effects[effectIndex].Effect)
         {
             case SPELL_EFFECT_WEAPON_DAMAGE:
             case SPELL_EFFECT_WEAPON_DAMAGE_NOSCHOOL:
@@ -4093,11 +4262,14 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
                 break;
             case SPELL_EFFECT_WEAPON_PERCENT_DAMAGE:
                 ApplyPct(weaponDamage, weaponDamagePercentMod);
+                ApplyPct(agilityDamage, weaponDamagePercentMod);
             default:
                 break;                                      // not weapon damage effect, just skip
         }
     }
 
+    agilityDamage += agilityFlat;
+    ApplyPct(agilityDamage, totalDamagePercentMod);
     weaponDamage += spell_bonus;
     ApplyPct(weaponDamage, totalDamagePercentMod);
 
@@ -4105,8 +4277,8 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
     uint32 eff_damage(std::max(weaponDamage, 0));
 
     // Add melee damage bonuses (also check for negative)
-    eff_damage = m_caster->MeleeDamageBonusDone(unitTarget, eff_damage, m_attackType, m_spellInfo, m_spellSchoolMask);
-    eff_damage = unitTarget->MeleeDamageBonusTaken(m_caster, eff_damage, m_attackType, m_spellInfo, m_spellSchoolMask);
+    eff_damage = m_caster->MeleeDamageBonusDone(unitTarget, eff_damage, m_attackType, m_spellInfo, m_spellSchoolMask, trackAgility ? &agilityDamage : nullptr);
+    eff_damage = unitTarget->MeleeDamageBonusTaken(m_caster, eff_damage, m_attackType, m_spellInfo, m_spellSchoolMask, trackAgility ? &agilityDamage : nullptr);
 
     // Meteor like spells (divided damage to targets)
     if (m_spellInfo->HasAttribute(SPELL_ATTR0_CU_SHARE_DAMAGE))
@@ -4116,9 +4288,12 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
             if (ihit->effectMask & (1 << effIndex))
                 ++count;
 
-        eff_damage /= count;                    // divide to all targets
+        eff_damage /= count;
+        agilityDamage /= count;                    // divide to all targets
     }
 
+    if (trackAgility && eff_damage)
+        m_area52AgilityCriticalDamage += agilityDamage;
     m_damage += eff_damage;
 }
 
@@ -4171,14 +4346,21 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
     if (!unitTarget || !unitTarget->IsAlive())
         return;
 
+    bool const area52SilencingShot = m_spellInfo->Id == 34490 && AscensionFreePick::Applies(m_caster->ToPlayer());
+    if (m_spellInfo->Id == 34490 && (!area52SilencingShot || unitTarget->IsPlayer()))
+        return;
+
     /// @todo: not all spells that used this effect apply cooldown at school spells
     // also exist case: apply cooldown to interrupted cast only and to all spells
     // there is no CURRENT_AUTOREPEAT_SPELL spells that can be interrupted
     bool interrupted = false;
+    bool wasCasting = false;
     for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_AUTOREPEAT_SPELL; ++i)
     {
         if (Spell* spell = unitTarget->GetCurrentSpell(CurrentSpellTypes(i)))
         {
+            wasCasting |= spell->getState() == SPELL_STATE_CASTING ||
+                (spell->getState() == SPELL_STATE_PREPARING && spell->GetCastTime() > 0);
             SpellInfo const* curSpellInfo = spell->m_spellInfo;
             // check if we can interrupt spell
             if ((spell->getState() == SPELL_STATE_CASTING
@@ -4190,7 +4372,8 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
             {
                 if (m_originalCaster)
                 {
-                    int32 duration = m_originalCaster->ModSpellDuration(m_spellInfo, unitTarget, m_originalCaster->CalcSpellDuration(m_spellInfo), false, 1 << effIndex);
+                    int32 const baseDuration = area52SilencingShot ? 3000 : m_originalCaster->CalcSpellDuration(m_spellInfo);
+                    int32 duration = m_originalCaster->ModSpellDuration(m_spellInfo, unitTarget, baseDuration, false, 1 << effIndex);
                     sScriptMgr->OnSpellInterruptDuration(this, unitTarget, duration);
                     unitTarget->ProhibitSpellSchool(curSpellInfo->GetSchoolMask(), uint32(std::max(0, duration)));
                 }
@@ -4199,6 +4382,14 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
                 interrupted = true;
             }
         }
+    }
+    if (!wasCasting && AscensionFreePick::Applies(unitTarget->ToPlayer()) &&
+        unitTarget->HasAura(20207) && !unitTarget->HasAura(411135) &&
+        m_caster != unitTarget && !m_caster->IsFriendlyTo(unitTarget))
+    {
+        unitTarget->CastSpell(unitTarget, 411135, true);
+        unitTarget->CastCustomSpell(54748, SPELLVALUE_BASE_POINT2, 1, unitTarget, true);
+        unitTarget->CastSpell(unitTarget, 411134, true);
     }
     if (interrupted)
         sScriptMgr->OnSpellSuccessfulInterrupt(this, unitTarget);
@@ -4416,8 +4607,9 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                             Aura* mos = unitTarget->GetAura(31665);
                             if (mos)
                             {
-                                mos->SetMaxDuration(6000);
-                                mos->SetDuration(6000, true);
+                                int32 duration = AscensionFreePick::Applies(unitTarget->ToPlayer()) ? 10000 : 6000;
+                                mos->SetMaxDuration(duration);
+                                mos->SetDuration(duration, true);
                             }
 
                             break;
@@ -4662,7 +4854,13 @@ void Spell::EffectSummonPlayer(SpellEffIndex /*effIndex*/)
     float x, y, z;
     m_caster->GetPosition(x, y, z);
 
-    player->SetSummonPoint(m_caster->GetMapId(), x, y, z);
+    bool const ritualSummon = m_spellInfo->Id == 7720;
+    if (ritualSummon && AscensionFreePick::Applies(player) &&
+        (player->HasAura(1004019) || m_caster->HasAura(1004019)))
+        return;
+
+    player->SetSummonPoint(m_caster->GetMapId(), x, y, z, 0, false,
+        ritualSummon ? m_caster->GetGUID() : ObjectGuid::Empty);
 
     WorldPacket data(SMSG_SUMMON_REQUEST, 8 + 4 + 4);
     data << m_caster->GetGUID();                                // summoner guid

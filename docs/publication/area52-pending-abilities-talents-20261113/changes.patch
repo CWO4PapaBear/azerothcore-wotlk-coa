@@ -1,0 +1,405 @@
+--- a/src/server/coa/AscensionFreePick.cpp
++++ b/src/server/coa/AscensionFreePick.cpp
+@@ -255,6 +255,32 @@
+     return spells;
+ }
+ 
++static bool SynchronizeCarefulAim(Player* player)
++{
++    constexpr std::array<uint32, 3> ranks = {34482, 34483, 34484};
++    constexpr std::array<uint32, 3> helpers = {834482, 834483, 834484};
++    uint32 wanted = 0;
++    if (player->HasActiveSpell(84865)) // Area 52 Primary Stat: Agility
++        for (std::size_t i = 0; i < ranks.size(); ++i)
++            if (player->HasActiveSpell(ranks[i]))
++                wanted = helpers[i];
++
++    bool changed = false;
++    for (uint32 helper : helpers)
++        if (helper != wanted && player->HasAura(helper, player->GetGUID()))
++        {
++            player->RemoveAurasDueToSpell(helper, player->GetGUID());
++            changed = true;
++        }
++    if (wanted && !player->HasAura(wanted, player->GetGUID()))
++    {
++        player->CastSpell(player, wanted, true);
++        changed |= player->HasAura(wanted, player->GetGUID());
++    }
++    return changed;
++}
++
++
+ bool SynchronizeTalentRanks(Player* player)
+ {
+     if (!Applies(player) || !player->IsInWorld())
+@@ -285,6 +311,14 @@
+                     player->CastSpell(player, spell, true);
+                     changed |= player->HasAura(spell);
+                 }
++            }
++    changed |= SynchronizeCarefulAim(player);
++    if (!player->HasAura(830816) || !(player->HasAura(84864) || player->HasAura(84865)))
++        for (uint32 buff : {830822u, 840822u})
++            if (player->HasAura(buff, player->GetGUID()))
++            {
++                player->RemoveAurasDueToSpell(buff, player->GetGUID());
++                changed = true;
+             }
+     return changed;
+ }
+--- a/src/server/coa/AscensionFreePickLinkedSpells.h
++++ b/src/server/coa/AscensionFreePickLinkedSpells.h
+@@ -10,7 +10,8 @@
+     std::uint32_t Parent;
+     std::array<std::uint32_t, 6> Children;
+ };
+-inline constexpr std::array<LinkedSpellGroup, 21> LinkedSpellGroups = {{
++inline constexpr std::array<LinkedSpellGroup, 22> LinkedSpellGroups = {{
++    {59672, {47241, 50581, 59671, 54785, 50589}}, // Demon form and its four form-restricted abilities.
+     {2842, {208679, 203408, 205761, 202823, 2013219, 2026785}},
+     {33917, {33876, 33878}},
+     {84864, {986202, 986203, 13977921}},
+--- a/src/server/game/Entities/Unit/Unit.cpp
++++ b/src/server/game/Entities/Unit/Unit.cpp
+@@ -7471,8 +7471,28 @@
+     SendSpellNonMeleeDamageLog(&log);
+ }
+ 
++static void TriggerArea52MentalQuickness(Unit* actor, SpellInfo const* spell, uint32 flags, uint32 phase, DamageInfo const* damage)
++{
++    if (!spell || phase != PROC_SPELL_PHASE_HIT || !damage || !damage->GetDamage() ||
++        !actor || !AscensionFreePick::Applies(actor->ToPlayer()) || !actor->HasAura(830816) ||
++        !(actor->HasAura(84864) || actor->HasAura(84865)) || (flags & AUTO_ATTACK_PROC_FLAG_MASK))
++        return;
++
++    bool const melee = spell->DmgClass == SPELL_DAMAGE_CLASS_MELEE && (flags & PROC_FLAG_DONE_SPELL_MELEE_DMG_CLASS);
++    bool const ranged = spell->DmgClass == SPELL_DAMAGE_CLASS_RANGED &&
++        (flags & (PROC_FLAG_DONE_SPELL_RANGED_DMG_CLASS | PROC_FLAG_DONE_PERIODIC));
++    if (!melee && !ranged)
++        return;
++
++    actor->RemoveAurasDueToSpell(melee ? 840822 : 830822, actor->GetGUID());
++    actor->CastSpell(actor, melee ? 830822 : 840822, true);
++}
++
++
+ void Unit::ProcSkillsAndAuras(Unit* actor, Unit* victim, uint32 procAttacker, uint32 procVictim, uint32 procExtra, uint32 amount, WeaponAttackType attType, SpellInfo const* procSpellInfo, SpellInfo const* procAura, int8 procAuraEffectIndex, Spell const* procSpell, DamageInfo* damageInfo, HealInfo* healInfo, uint32 procPhase)
+ {
++    TriggerArea52MentalQuickness(actor, procSpellInfo, procAttacker, procPhase, damageInfo);
++
+     // Handle skills and reactives for actor
+     if (procAttacker && actor)
+         actor->ProcSkillsAndReactives(false, victim, procAttacker, procExtra, attType, procSpellInfo, amount, procAura, procAuraEffectIndex, procSpell, damageInfo, healInfo, procPhase);
+@@ -9095,8 +9115,8 @@
+ {
+     uint32 heal = healInfo.GetHeal();
+     sScriptMgr->ModifyHealReceived(this, healInfo.GetTarget(), heal, healInfo.GetSpellInfo());
+-    // Apply the per-recipient Vampiric Embrace ceiling after all healing modifiers.
+-    if (healInfo.GetSpellInfo() && healInfo.GetSpellInfo()->Id == 15290 &&
++    // Apply the per-heal ceiling after all healing modifiers.
++    if (healInfo.GetSpellInfo() && (healInfo.GetSpellInfo()->Id == 15290 || healInfo.GetSpellInfo()->Id == 63106) &&
+         AscensionFreePick::Applies(ToPlayer()))
+         heal = std::min(heal, GetMaxHealth() / 20);
+ 
+@@ -9149,6 +9169,17 @@
+     return IsPlayer() && HasAnyAuras(681330, 504786, 801145);
+ }
+ 
++namespace
++{
++float MetamorphosisDamageMultiplier(Unit const* caster, Unit const* victim)
++{
++    if (victim && AscensionFreePick::Applies(caster->ToPlayer()))
++        if (AuraEffect const* effect = caster->GetAuraEffect(47241, EFFECT_2))
++            return 1.0f + (victim->IsPlayer() ? 10 : effect->GetAmount()) / 100.0f;
++    return 1.0f;
++}
++}
++
+ float Unit::SpellPctDamageModsDone(Unit* victim, SpellInfo const* spellProto, DamageEffectType damagetype)
+ {
+     if (!spellProto || !victim || damagetype == DIRECT_DAMAGE)
+@@ -9176,7 +9207,7 @@
+ 
+     // Done total percent damage auras
+     float DoneTotalMod = GetAscensionNormalTuningDamageMultiplier(victim, spellProto->GetSchoolMask()) *
+-        GetAscensionPvpTuningDamageMultiplier(victim, spellProto->GetSchoolMask());
++        GetAscensionPvpTuningDamageMultiplier(victim, spellProto->GetSchoolMask()) * MetamorphosisDamageMultiplier(this, victim);
+ 
+     if (AuraEffect const* drums = GetAuraEffect(570759, EFFECT_0))
+         AddPct(DoneTotalMod, drums->GetAmount());
+@@ -9194,6 +9225,8 @@
+                 (spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_NORMAL) &&
+                 ToPlayer()->HasItemFitToSpellRequirements(aurEff->GetSpellInfo());
+ 
++        if (aurEff->GetId() == 47241 && AscensionFreePick::Applies(ToPlayer()))
++            return false;
+         // prevent apply mods from weapon specific case to non weapon specific spells (Example: thunder clap and two-handed weapon specialization)
+         if (spellProto->EquippedItemClass == -1 && aurEff->GetSpellInfo()->EquippedItemClass != -1 &&
+             !aurEff->GetSpellInfo()->HasAttribute(SPELL_ATTR5_AURA_AFFECTS_NOT_JUST_REQ_EQUIPPED_ITEM) && aurEff->GetMiscValue() == SPELL_SCHOOL_MASK_NORMAL)
+@@ -9587,10 +9620,14 @@
+                     int32 stepPercent = CalculateSpellDamage(this, (*i)->GetSpellInfo(), 0);
+                     // count affliction effects and calc additional damage in percentage
+                     int32 modPercent = 0;
++                    bool const ownEffectsOnly = AscensionFreePick::Applies(ToPlayer()) &&
++                        ((*i)->GetId() == 17804 || (*i)->GetId() == 17805);
+                     AuraApplicationMap const& victimAuras = victim->GetAppliedAuras();
+                     for (AuraApplicationMap::const_iterator itr = victimAuras.begin(); itr != victimAuras.end(); ++itr)
+                     {
+                         Aura const* aura = itr->second->GetBase();
++                        if (ownEffectsOnly && aura->GetCasterGUID() != GetGUID())
++                            continue;
+                         SpellInfo const* m_spell = aura->GetSpellInfo();
+                         if (m_spell->SpellFamilyName != SPELLFAMILY_WARLOCK || !(m_spell->SpellFamilyFlags[1] & 0x0004071B || m_spell->SpellFamilyFlags[0] & 0x8044C402))
+                             continue;
+@@ -10098,7 +10135,15 @@
+             coeff /= 100.0f;
+         }
+ 
+-        DoneTotal += int32(DoneAdvertisedBenefit * coeff * factorMod);
++        float contribution = DoneAdvertisedBenefit * coeff * factorMod;
++        if (AscensionFreePick::Applies(ToPlayer()) && (HasAura(84864) || HasAura(84865)))
++            for (uint32 rank : {830816u, 830815u, 30814u, 30813u, 30812u})
++                if (AuraEffect const* talent = GetAuraEffect(rank, EFFECT_0))
++                {
++                    AddPct(contribution, talent->GetAmount());
++                    break;
++                }
++        DoneTotal += int32(contribution);
+     }
+ 
+     if (agilityDamage)
+@@ -10780,12 +10825,34 @@
+ 
+     if (caster)
+     {
+-        crit_mod += caster->GetTotalAuraModifier(SPELL_AURA_MOD_CRIT_DAMAGE_BONUS, [caster, spellProto](AuraEffect const* effect)
++        // Shadow Power specifies a final spell critical multiplier; the ordinary
++        // aura percentages instead scale the entire baseline critical hit.
++        uint32 shadowPowerPercent = 0;
++        if (AscensionFreePick::Applies(caster->ToPlayer()) &&
++            spellProto->DmgClass != SPELL_DAMAGE_CLASS_MELEE && spellProto->DmgClass != SPELL_DAMAGE_CLASS_RANGED &&
++            (spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_MAGIC))
++            for (uint32 rank = 33225; rank >= 33221; --rank)
++                if (caster->HasAura(rank))
++                {
++                    shadowPowerPercent = 180 + 5 * (rank - 33221);
++                    break;
++                }
++
++        auto eligible = [caster, spellProto](AuraEffect const* effect)
+         {
+             if (!(effect->GetMiscValue() & spellProto->GetSchoolMask()))
+                 return false;
+             return effect->GetId() != 986200 || !AscensionFreePick::Applies(caster->ToPlayer()) ||
+                 spellProto->DmgClass == SPELL_DAMAGE_CLASS_MELEE || spellProto->DmgClass == SPELL_DAMAGE_CLASS_RANGED;
++        };
++
++        auto similarTalent = [](AuraEffect const* effect)
++        {
++            return sSpellMgr->IsSpellMemberOfSpellGroup(effect->GetSpellInfo()->GetFirstRankSpell()->Id, SpellGroup(2106089));
++        };
++        crit_mod += caster->GetTotalAuraModifier(SPELL_AURA_MOD_CRIT_DAMAGE_BONUS, [&](AuraEffect const* effect)
++        {
++            return eligible(effect) && (!shadowPowerPercent || !similarTalent(effect));
+         });
+ 
+         if (victim)
+@@ -10794,8 +10861,17 @@
+         crit_mod += caster->GetAscensionConditionalCombatModifier(
+             victim, spellProto, ASCENSION_CONDITIONAL_CRIT_DAMAGE);
+ 
++        int32 const baseCritical = crit_bonus;
+         if (crit_bonus != 0 && crit_mod != 0.0f)
+             AddPct(crit_bonus, crit_mod);
++
++        if (shadowPowerPercent)
++        {
++            int32 const similarPercent = caster->GetTotalAuraModifier(SPELL_AURA_MOD_CRIT_DAMAGE_BONUS,
++                [&](AuraEffect const* effect) { return eligible(effect) && similarTalent(effect); });
++            int32 const talentCritical = int32(uint64(damage) * shadowPowerPercent / 100);
++            crit_bonus += std::max(talentCritical - baseCritical, CalculatePct(baseCritical, similarPercent));
++        }
+ 
+         crit_bonus -= damage;
+ 
+@@ -11647,7 +11723,7 @@
+ 
+     // Done total percent damage auras
+     float DoneTotalMod = GetAscensionNormalTuningDamageMultiplier(victim, damageSchoolMask) *
+-        GetAscensionPvpTuningDamageMultiplier(victim, damageSchoolMask);
++        GetAscensionPvpTuningDamageMultiplier(victim, damageSchoolMask) * MetamorphosisDamageMultiplier(this, victim);
+ 
+     // mods for SPELL_SCHOOL_MASK_NORMAL are already factored in base melee damage calculation
+     if (spellProto && (damageSchoolMask & SPELL_SCHOOL_MASK_NORMAL) && AscensionFreePick::Applies(ToPlayer()) &&
+@@ -11662,6 +11738,8 @@
+         // Some spells don't benefit from pct done mods
+         DoneTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, [spellProto, this, damageSchoolMask](AuraEffect const* aurEff)
+             {
++            if (aurEff->GetId() == 47241 && AscensionFreePick::Applies(ToPlayer()))
++                return false;
+             if (!spellProto || (spellProto->ValidateAttribute6SpellDamageMods(this, aurEff, false)))
+             {
+                 if ((aurEff->GetMiscValue() & damageSchoolMask))
+@@ -14054,6 +14132,8 @@
+ 
+     auto const damagePercentEligible = [attackType, this](AuraEffect const* aurEff) -> bool
+     {
++        if (aurEff->GetId() == 47241 && AscensionFreePick::Applies(ToPlayer()))
++            return false;
+         // Heavy Swings applies to physical abilities; apply it in the spell-damage paths.
+         if (aurEff->GetId() == 986202 && AscensionFreePick::Applies(ToPlayer()))
+             return false;
+--- a/src/server/game/Spells/Spell.cpp
++++ b/src/server/game/Spells/Spell.cpp
+@@ -5804,6 +5804,24 @@
+     }
+ }
+ 
++namespace
++{
++// Preserve explicit form exclusions and requirements. The ordinary check already
++// admits spells flagged as usable while shifted, including non-damaging ones.
++bool IsMetamorphosisDamageSpell(SpellInfo const* spell)
++{
++    if (spell->Stances || (spell->StancesNot & (1u << (FORM_METAMORPHOSIS - 1))) ||
++        !(spell->GetSchoolMask() & (SPELL_SCHOOL_MASK_FIRE | SPELL_SCHOOL_MASK_SHADOW)))
++        return false;
++
++    return spell->HasEffect(SPELL_EFFECT_SCHOOL_DAMAGE) || spell->HasEffect(SPELL_EFFECT_HEALTH_LEECH) ||
++        spell->HasEffect(SPELL_EFFECT_WEAPON_DAMAGE) || spell->HasEffect(SPELL_EFFECT_WEAPON_DAMAGE_NOSCHOOL) ||
++        spell->HasEffect(SPELL_EFFECT_NORMALIZED_WEAPON_DMG) || spell->HasEffect(SPELL_EFFECT_WEAPON_PERCENT_DAMAGE) ||
++        spell->HasEffect(SPELL_EFFECT_POWER_BURN) || spell->HasAura(SPELL_AURA_PERIODIC_DAMAGE) ||
++        spell->HasAura(SPELL_AURA_PERIODIC_DAMAGE_PERCENT) || spell->HasAura(SPELL_AURA_PERIODIC_LEECH);
++}
++}
++
+ SpellCastResult Spell::CheckCast(bool strict, uint32* /*param1*/, uint32* /*param2*/)
+ {
+     if (Player* player = m_caster->ToPlayer(); AscensionFreePick::Applies(player) && !player->HasAura(84867))
+@@ -5935,7 +5953,9 @@
+         {
+             // Cannot be used in this stance/form
+             SpellCastResult shapeError = m_spellInfo->CheckShapeshift(m_caster->GetShapeshiftForm());
+-            if (shapeError != SPELL_CAST_OK)
++            if (shapeError != SPELL_CAST_OK &&
++                !(m_caster->GetShapeshiftForm() == FORM_METAMORPHOSIS && AscensionFreePick::Applies(m_caster->ToPlayer()) &&
++                  IsMetamorphosisDamageSpell(m_spellInfo)))
+                 return shapeError;
+ 
+             if (m_spellInfo->HasAttribute(SPELL_ATTR0_ONLY_STEALTHED) && !(m_caster->HasStealthAura()))
+--- a/src/server/game/Spells/SpellEffects.cpp
++++ b/src/server/game/Spells/SpellEffects.cpp
+@@ -2459,7 +2459,10 @@
+     if (unitTarget->IsPlayer() && !unitTarget->CanReceivePowerFromSpell(power) && !m_spellInfo->HasAttribute(SPELL_ATTR7_ONLY_IN_SPELLBOOK_UNTIL_LEARNED))
+         return;
+ 
+-    uint32 maxPower = unitTarget->GetMaxPower(power);
++    bool const shadowfiendMana = m_spellInfo->Id == 34650 && power == POWER_MANA &&
++        m_caster->GetEntry() == 19668 && m_caster->GetOwner() == unitTarget &&
++        AscensionFreePick::Applies(unitTarget->ToPlayer());
++    uint32 maxPower = shadowfiendMana ? unitTarget->GetCreateMana() : unitTarget->GetMaxPower(power);
+     if (maxPower == 0)
+         return;
+ 
+--- a/src/server/scripts/Spells/spell_priest.cpp
++++ b/src/server/scripts/Spells/spell_priest.cpp
+@@ -1467,8 +1467,68 @@
+     }
+ };
+ 
++class spell_area52_blood_horror : public AuraScript
++{
++    PrepareAuraScript(spell_area52_blood_horror);
++
++    bool CheckProc(ProcEventInfo& event)
++    {
++        DamageInfo* damage = event.GetDamageInfo();
++        Unit* defender = GetTarget();
++        if (!AscensionFreePick::Applies(defender->ToPlayer()) || !damage || !damage->GetDamage() || damage->GetVictim() != defender ||
++            (event.GetTypeMask() & PROC_FLAG_TAKEN_PERIODIC) ||
++            (damage->GetDamageType() != DIRECT_DAMAGE && damage->GetDamageType() != SPELL_DIRECT_DAMAGE))
++            return false;
++
++        Unit* attacker = damage->GetAttacker();
++        if (!attacker || attacker != event.GetActor() || attacker == defender ||
++            !defender->IsValidAttackTarget(attacker) || !defender->IsInMap(attacker))
++            return false;
++
++        // A retaliation must not bounce between two Blood Horror channels.
++        if (SpellInfo const* spell = damage->GetSpellInfo())
++            switch (spell->Id)
++            {
++                case 954517: case 954563: case 954565: case 954567: return false;
++            }
++
++        return defender->GetExactDistSq(attacker) <= 15.0f * 15.0f;
++    }
++
++    void Retaliate(AuraEffect const* effect, ProcEventInfo& event)
++    {
++        PreventDefaultAction();
++        GetTarget()->CastSpell(event.GetActor(), GetSpellInfo()->Effects[EFFECT_0].TriggerSpell,
++            true, nullptr, effect);
++    }
++
++    void SetProtection(bool active)
++    {
++        Unit* target = GetTarget();
++        if (active && !AscensionFreePick::Applies(target->ToPlayer())) return;
++        for (auto mechanic : {MECHANIC_INTERRUPT, MECHANIC_SILENCE, MECHANIC_STUN})
++            target->ApplySpellImmune(GetId(), IMMUNITY_MECHANIC, mechanic, active);
++        for (auto aura : {SPELL_AURA_MOD_SILENCE, SPELL_AURA_MOD_PACIFY_SILENCE, SPELL_AURA_MOD_STUN})
++            target->ApplySpellImmune(GetId(), IMMUNITY_STATE, aura, active);
++        target->ApplySpellImmune(GetId(), IMMUNITY_EFFECT, SPELL_EFFECT_INTERRUPT_CAST, active);
++    }
++
++    void Apply(AuraEffect const*, AuraEffectHandleModes) { SetProtection(true); }
++    void Remove(AuraEffect const*, AuraEffectHandleModes) { SetProtection(false); }
++
++    void Register() override
++    {
++        DoCheckProc += AuraCheckProcFn(spell_area52_blood_horror::CheckProc);
++        OnEffectProc += AuraEffectProcFn(spell_area52_blood_horror::Retaliate, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
++        AfterEffectApply += AuraEffectApplyFn(spell_area52_blood_horror::Apply, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL);
++        AfterEffectRemove += AuraEffectRemoveFn(spell_area52_blood_horror::Remove, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL);
++    }
++};
++
++
+ void AddSC_priest_spell_scripts()
+ {
++    RegisterSpellScript(spell_area52_blood_horror);
+     new Area52PowerWordShieldConfig();
+     new Area52PowerWordShieldContract();
+     RegisterSpellScript(spell_pri_shadowfiend_scaling);
+--- a/src/server/scripts/Spells/spell_warlock.cpp
++++ b/src/server/scripts/Spells/spell_warlock.cpp
+@@ -788,12 +788,26 @@
+             return false;
+         }
+ 
++        if (AscensionFreePick::Applies(GetTarget()->ToPlayer()) &&
++            (eventInfo.GetActor() != GetTarget() || !(eventInfo.GetTypeMask() & PROC_FLAG_DONE_PERIODIC)))
++            return false;
++
+         return GetTarget()->IsAlive();
+     }
+ 
+     void OnProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+     {
+         PreventDefaultAction();
++
++        if (AscensionFreePick::Applies(GetTarget()->ToPlayer()))
++        {
++            uint64 heal = uint64(eventInfo.GetDamageInfo()->GetDamage()) * aurEff->GetAmount() / 100;
++            if (AuraEffect const* glyph = GetTarget()->GetAuraEffect(SPELL_WARLOCK_GLYPH_OF_SIPHON_LIFE, EFFECT_0))
++                heal += heal * glyph->GetAmount() / 100;
++            int32 amount = int32(std::min<uint64>(heal, GetTarget()->GetMaxHealth() / 20));
++            GetTarget()->CastCustomSpell(SPELL_WARLOCK_SIPHON_LIFE_HEAL, SPELLVALUE_BASE_POINT0, amount, GetTarget(), true, nullptr, aurEff);
++            return;
++        }
+ 
+         int32 amount = CalculatePct(static_cast<int32>(eventInfo.GetDamageInfo()->GetDamage()), aurEff->GetAmount());
+         // Glyph of Siphon Life

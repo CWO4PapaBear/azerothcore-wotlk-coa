@@ -1,5 +1,9 @@
+#include "Area52Worldforged.h"
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 #include "AscensionFreePick.h"
+#include "AscensionClassMechanics.h"
+#include "ClientDBC.h"
+#include "Config.h"
 #include "AscensionPrestigeReset.h"
 #include "AscensionSpecialization.h"
 #include "AscensionMysticEnchant.h"
@@ -180,6 +184,44 @@ void Initialize(bool enabled)
                     ClassSpells.insert(ability->Spell);
         ExpandGrantedSpells(ClassSpells, true);
     }
+    std::set<uint32> chargeSpells;
+    if (Active)
+    {
+        for (auto const& [id, entry] : Data.Entries)
+            chargeSpells.insert(entry.Spells.begin(), entry.Spells.end());
+        AscensionMysticEnchant::Catalog enchants;
+        if (sConfigMgr->GetOption<bool>("CoA.FreePickMysticEnchants.Enable", false) &&
+            AscensionMysticEnchant::LoadCatalog(enchants, GetClientDBCPath("MysticEnchant.dbc")))
+        {
+            for (auto const& [spell, entry] : enchants.BySpell)
+                chargeSpells.insert(spell);
+            for (auto const& grant : AscensionMysticEnchant::SpellGrants)
+                if (enchants.BySpell.contains(grant.Enchant))
+                    chargeSpells.insert(grant.Spell);
+        }
+        std::vector<uint32> pending(chargeSpells.begin(), chargeSpells.end());
+        for (std::size_t i = 0; i < pending.size(); ++i)
+        {
+            auto add = [&](uint32 spell)
+            {
+                if (spell && chargeSpells.insert(spell).second)
+                    pending.push_back(spell);
+            };
+            uint32 const spell = pending[i];
+            add(sSpellMgr->GetFirstSpellInChain(spell));
+            add(sSpellMgr->GetNextSpellInChain(spell));
+            if (auto const* info = sSpellMgr->GetSpellInfo(spell))
+                for (auto const& effect : info->GetEffects())
+                    if (effect.IsEffect())
+                        add(effect.TriggerSpell);
+            for (auto const& group : LinkedSpellGroups)
+                if (group.Parent == spell)
+                    for (auto child : group.Children)
+                        add(child);
+        }
+    }
+    RefreshArea52SpellCharges(chargeSpells);
+    Area52Worldforged::RefreshAccess();
     if (enabled)
         LOG_INFO("coa", "Free Pick advancement: enabled={}, entries={}, essence levels={}",
             Active, Data.Entries.size(), Data.Budgets.size());
@@ -213,6 +255,32 @@ std::set<std::uint32_t> AuthorizedTalentSpells(Player const* player)
     return spells;
 }
 
+static bool SynchronizeCarefulAim(Player* player)
+{
+    constexpr std::array<uint32, 3> ranks = {34482, 34483, 34484};
+    constexpr std::array<uint32, 3> helpers = {834482, 834483, 834484};
+    uint32 wanted = 0;
+    if (player->HasActiveSpell(84865)) // Area 52 Primary Stat: Agility
+        for (std::size_t i = 0; i < ranks.size(); ++i)
+            if (player->HasActiveSpell(ranks[i]))
+                wanted = helpers[i];
+
+    bool changed = false;
+    for (uint32 helper : helpers)
+        if (helper != wanted && player->HasAura(helper, player->GetGUID()))
+        {
+            player->RemoveAurasDueToSpell(helper, player->GetGUID());
+            changed = true;
+        }
+    if (wanted && !player->HasAura(wanted, player->GetGUID()))
+    {
+        player->CastSpell(player, wanted, true);
+        changed |= player->HasAura(wanted, player->GetGUID());
+    }
+    return changed;
+}
+
+
 bool SynchronizeTalentRanks(Player* player)
 {
     if (!Applies(player) || !player->IsInWorld())
@@ -244,11 +312,32 @@ bool SynchronizeTalentRanks(Player* player)
                     changed |= player->HasAura(spell);
                 }
             }
+    changed |= SynchronizeCarefulAim(player);
+    if (!player->HasAura(830816) || !(player->HasAura(84864) || player->HasAura(84865)))
+        for (uint32 buff : {830822u, 840822u})
+            if (player->HasAura(buff, player->GetGUID()))
+            {
+                player->RemoveAurasDueToSpell(buff, player->GetGUID());
+                changed = true;
+            }
     return changed;
+}
+
+std::uint32_t LinkedSpellRequiredLevel(std::uint32_t spell)
+{
+    for (auto const& group : LinkedSpellGroups)
+        if (group.Parent == 2842 && std::find(group.Children.begin(), group.Children.end(), spell) != group.Children.end())
+        {
+            auto const* info = sSpellMgr->GetSpellInfo(spell);
+            return info ? std::max(info->BaseLevel, info->SpellLevel) : uint32(-1);
+        }
+    return 0;
 }
 
 bool CanLearnSpell(Player const* player, std::uint32_t spell, bool temporary, bool alreadyOwned)
 {
+    if (Applies(player) && !alreadyOwned && player->GetLevel() < LinkedSpellRequiredLevel(spell))
+        return false;
     if (IsTalentRank(player, spell))
         return AuthorizedTalentSpells(player).contains(spell);
     if (Applies(player) && (spell == 6991 || spell == 1106991 || spell == 1356991))
@@ -342,7 +431,7 @@ bool SynchronizeLinkedSpells(Player* player)
                 if (child && sSpellMgr->GetSpellInfo(child))
                 {
                     managed.insert(child);
-                    if (player->HasSpell(group.Parent))
+                    if (player->HasSpell(group.Parent) && player->GetLevel() >= LinkedSpellRequiredLevel(child))
                         wanted.insert(child);
                 }
     std::vector<uint32> lessons(Area52CompanionTraining::Spells.begin(), Area52CompanionTraining::Spells.end());
@@ -354,6 +443,8 @@ bool SynchronizeLinkedSpells(Player* player)
             if (player->HasSpell(Area52CompanionTraining::Parent(spell)))
                 wanted.insert(spell);
         }
+    std::erase_if(wanted, [player](uint32 spell)
+        { return player->GetLevel() < LinkedSpellRequiredLevel(spell); });
     bool changed = SynchronizeTalentRanks(player);
     SpellLearningScope learning(player, wanted);
     for (auto child : managed)
@@ -464,6 +555,8 @@ Result Apply(Player* player, std::vector<KnownEntry> const& requested, bool, boo
             player->SaveToDB(false, false);
         return {};
     }
+    if (!Area52Build::BeforeManualDraftChange(player))
+        return { "CA_UPDATE_ENTRIES_UNKNOWN" };
     auto const actionSpells = AscensionRemovedSpellActionBars::Capture(player);
     RemoveSelectionBuffs(player, oldSpells, newSpells);
     auto const* settings = player->FindPlayerSettings(SelectionSetting);
@@ -789,6 +882,11 @@ bool SwitchSpecialization(Player* player, std::uint32_t index, std::string& erro
     if (!result)
     {
         error = "The saved specialization is not eligible at your current level or with the current rules.";
+        return false;
+    }
+    if (!Area52Build::BeforeManualDraftChange(player))
+    {
+        error = "The active Draft cannot be left right now.";
         return false;
     }
     StoreSlot(player, previous);
