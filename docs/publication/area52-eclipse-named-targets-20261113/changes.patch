@@ -1,0 +1,140 @@
+--- a/src/server/coa/AscensionTalentDataProcs.cpp
++++ b/src/server/coa/AscensionTalentDataProcs.cpp
+@@ -12,6 +12,7 @@
+ #include "Unit.h"
+ #include <algorithm>
+ #include <iterator>
++#include <utility>
+ 
+ namespace
+ {
+@@ -106,6 +107,78 @@
+     Milliseconds _lunarReady = 0ms;
+ };
+ 
++class aura_area52_total_eclipse_window : public AuraScript
++{
++    PrepareAuraScript(aura_area52_total_eclipse_window);
++
++    bool pending = false;
++
++    void Gain(AuraEffect const*, AuraEffectHandleModes)
++    {
++        Unit* owner = GetTarget();
++        if (AscensionFreePick::Applies(owner->ToPlayer()) && owner->HasAura(965282))
++        {
++            pending = true;
++            owner->CastSpell(owner, 48391, true); // Owlkin Frenzy
++        }
++    }
++
++public:
++    bool Consume()
++    {
++        return std::exchange(pending, false);
++    }
++
++    void Register() override
++    {
++        // Solar and Lunar have different effect-0 aura types. Only a real gain arms the window.
++        AfterEffectApply += AuraEffectApplyFn(aura_area52_total_eclipse_window::Gain, EFFECT_0, SPELL_AURA_ANY, AURA_EFFECT_HANDLE_REAL);
++    }
++};
++
++class spell_area52_total_eclipse_hit : public SpellScript
++{
++    PrepareSpellScript(spell_area52_total_eclipse_hit);
++
++    void Hit()
++    {
++        Player* player = GetCaster()->ToPlayer();
++        Unit* target = GetHitUnit();
++        if (!AscensionFreePick::Applies(player) || !target || !player->HasAura(965282))
++            return;
++
++        uint32 const root = GetSpellInfo()->GetFirstRankSpell()->Id;
++        for (uint32 phase : {uint32(SPELL_ECLIPSE_SOLAR), uint32(SPELL_ECLIPSE_LUNAR)})
++        {
++            bool const solar = phase == SPELL_ECLIPSE_SOLAR;
++            if (root != 954800 && root != (solar ? 5176u : 2912u))
++                continue;
++            Aura* aura = player->GetAura(phase);
++            if (!aura)
++                continue;
++            auto* window = aura->GetScript<aura_area52_total_eclipse_window>("aura_area52_total_eclipse_window");
++            if (!window)
++                continue;
++            uint32 dot = 0;
++            for (uint32 rank = solar ? 5570 : 8921; rank; rank = sSpellMgr->GetNextSpellInChain(rank))
++                if (player->HasSpell(rank))
++                    dot = rank;
++            if (dot && window->Consume())
++            {
++                player->CastSpell(target, dot, true);
++                return;
++            }
++        }
++    }
++
++    void Register() override
++    {
++        AfterHit += SpellHitFn(spell_area52_total_eclipse_hit::Hit);
++    }
++};
++
++
++
+ class aura_ascension_revitalize : public AuraScript
+ {
+     PrepareAuraScript(aura_ascension_revitalize);
+@@ -154,4 +227,6 @@
+ {
+     RegisterSpellScript(aura_ascension_eclipse);
+     RegisterSpellScript(aura_ascension_revitalize);
++    RegisterSpellScript(aura_area52_total_eclipse_window);
++    RegisterSpellScript(spell_area52_total_eclipse_hit);
+ }
+--- a/src/server/game/Spells/SpellInfo.cpp
++++ b/src/server/game/Spells/SpellInfo.cpp
+@@ -1473,6 +1473,23 @@
+     return uint8(std::clamp(maximum, 1.0f, 255.0f));
+ }
+ 
++namespace
++{
++    // Ascension names the targets of a modifier without a class mask in SpellAffect.dbc; a negative target
++    // stands for every rank of the chain that starts with that spell.
++    std::unordered_map<uint32, std::vector<int32>> const& SpellAffectTargets()
++    {
++        static std::unordered_map<uint32, std::vector<int32>> const targets = []
++        {
++            std::unordered_map<uint32, std::vector<int32>> byModifier;
++            for (SpellAffectEntry const* entry : sSpellAffectStore)
++                byModifier[entry->ModifierSpellID].push_back(int32(entry->AffectedSpellID));
++            return byModifier;
++        }();
++        return targets;
++    }
++}
++
+ bool SpellInfo::IsAffectedBySpellMods() const
+ {
+     return !(AttributesEx3 & SPELL_ATTR3_IGNORE_CASTER_MODIFIERS);
+@@ -1624,6 +1641,17 @@
+         (mod->op == SPELLMOD_DAMAGE || mod->op == SPELLMOD_EFFECT1 ||
+          mod->op == SPELLMOD_ALL_EFFECTS || mod->op == SPELLMOD_BONUS_MULTIPLIER))
+         return true;
++
++    if (AscensionFreePick::Enabled() && !mod->mask)
++    {
++        auto const named = SpellAffectTargets().find(mod->spellId);
++        if (named != SpellAffectTargets().end())
++        {
++            uint32 const firstRank = sSpellMgr->GetFirstSpellInChain(Id);
++            return std::any_of(named->second.begin(), named->second.end(), [&](int32 target)
++                { return target < 0 ? uint32(-target) == firstRank : uint32(target) == Id; });
++        }
++    }
+ 
+     return IsAffected(affectSpell->SpellFamilyName, mod->mask);
+ }

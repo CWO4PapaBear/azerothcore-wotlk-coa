@@ -1,3 +1,5 @@
+#include "../../coa/Area52BulwarkRules.h"
+#include "../../coa/Area52HolyContracts.h"
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
@@ -16,6 +18,7 @@
  */
 
 #include "../../coa/AscensionMageTalentTargets.h"
+#include "../../coa/AscensionFreePick.h"
 #include "SpellInfo.h"
 #include "../../coa/AscensionMysticEnchant.h"
 #include "Chat.h"
@@ -1470,6 +1473,23 @@ uint8 SpellInfo::CalcMaxAuraStacks(Unit* caster) const
     return uint8(std::clamp(maximum, 1.0f, 255.0f));
 }
 
+namespace
+{
+    // Ascension names the targets of a modifier without a class mask in SpellAffect.dbc; a negative target
+    // stands for every rank of the chain that starts with that spell.
+    std::unordered_map<uint32, std::vector<int32>> const& SpellAffectTargets()
+    {
+        static std::unordered_map<uint32, std::vector<int32>> const targets = []
+        {
+            std::unordered_map<uint32, std::vector<int32>> byModifier;
+            for (SpellAffectEntry const* entry : sSpellAffectStore)
+                byModifier[entry->ModifierSpellID].push_back(int32(entry->AffectedSpellID));
+            return byModifier;
+        }();
+        return targets;
+    }
+}
+
 bool SpellInfo::IsAffectedBySpellMods() const
 {
     return !(AttributesEx3 & SPELL_ATTR3_IGNORE_CASTER_MODIFIERS);
@@ -1477,6 +1497,18 @@ bool SpellInfo::IsAffectedBySpellMods() const
 
 bool SpellInfo::IsAffectedBySpellMod(SpellModifier const* mod) const
 {
+    if (AscensionFreePick::Enabled() && mod->spellId == 781474)
+        return Id == 781300 && (mod->op == SPELLMOD_EFFECT1 || mod->op == SPELLMOD_EFFECT2);
+
+    if (AscensionFreePick::Enabled() && (mod->spellId == 47294 || mod->spellId == 47295 || mod->spellId == 47296))
+    {
+        Unit const* owner = mod->ownerAura ? mod->ownerAura->GetUnitOwner() : nullptr;
+        if (owner && AscensionFreePick::Applies(owner->ToPlayer()) &&
+            std::none_of(Area52Bulwark::TankStances.begin(), Area52Bulwark::TankStances.end(),
+                [owner](uint32 id) { return owner->HasAura(id); }))
+            return false;
+    }
+
     // Stim's copied healing ignores caster modifiers, but Bandage Gun explicitly
     // increases its chain targets. Keep the exemption limited to that modifier;
     // its ordinary family/mask and script checks still run below.
@@ -1504,6 +1536,39 @@ bool SpellInfo::IsAffectedBySpellMod(SpellModifier const* mod) const
 
     if (mod->targetSpellId && mod->targetSpellId != Id)
         return false;
+
+    bool const camouflage = mod->spellId == 13975 || mod->spellId == 14062 ||
+        mod->spellId == 14063 || mod->spellId == 975907;
+    uint32 const camouflageRoot = camouflage ? sSpellMgr->GetFirstSpellInChain(Id) : 0;
+    bool const camouflageProwl = camouflageRoot == 5215 || camouflageRoot == 6783 || camouflageRoot == 9913;
+    if (camouflage && mod->op == SPELLMOD_EFFECT2)
+        return AscensionFreePick::Enabled() && camouflageProwl;
+    if (camouflage && mod->op == SPELLMOD_COOLDOWN && AscensionFreePick::Enabled() &&
+        camouflageProwl)
+        return true;
+
+    if (AscensionFreePick::Enabled())
+    {
+        if (mod->spellId == 965983 && mod->op == SPELLMOD_CRITICAL_CHANCE)
+        {
+            uint32 root = sSpellMgr->GetFirstSpellInChain(Id);
+            return root == 14914 || root == 997221 || root == 19750;
+        }
+        if (mod->spellId == 31842 && mod->op == SPELLMOD_CRITICAL_CHANCE)
+            return (SchoolMask & SPELL_SCHOOL_MASK_HOLY) && Area52Holy::HealingSpell(this) &&
+                !Area52Holy::DamagingSpell(this);
+        if (mod->spellId == 411134 && mod->op == SPELLMOD_CRITICAL_CHANCE)
+            return (SchoolMask & SPELL_SCHOOL_MASK_HOLY) != 0;
+        if (mod->spellId == 31834 && mod->op == SPELLMOD_CASTING_TIME)
+        {
+            uint32 root = sSpellMgr->GetFirstSpellInChain(Id);
+            return root == 635 || root == 596;
+        }
+    }
+
+    if (mod->spellId == 20216 && AscensionFreePick::Enabled())
+        return (SchoolMask & SPELL_SCHOOL_MASK_HOLY) &&
+            mod->op == SPELLMOD_CRITICAL_CHANCE && mod->value > 0;
 
     if (auto const target = AscensionMageTalentTarget(mod->spellId, Id))
         return *target;
@@ -1567,6 +1632,26 @@ bool SpellInfo::IsAffectedBySpellMod(SpellModifier const* mod) const
     if (Id == 504705 && SpellFamilyName == 35 && affectSpell->SpellFamilyName == 35 &&
         (mod->mask & flag96(0, 16384, 0)))
         return true;
+
+    // Heart's bonus hit inherits Judgement damage modifiers without becoming
+    // another Judgement event for proc masks, costs or cooldowns.
+    if (Id == 820337 && AscensionFreePick::Enabled() &&
+        SpellFamilyName == affectSpell->SpellFamilyName &&
+        (mod->mask & flag96(0x00800000u, 0, 0)) &&
+        (mod->op == SPELLMOD_DAMAGE || mod->op == SPELLMOD_EFFECT1 ||
+         mod->op == SPELLMOD_ALL_EFFECTS || mod->op == SPELLMOD_BONUS_MULTIPLIER))
+        return true;
+
+    if (AscensionFreePick::Enabled() && !mod->mask)
+    {
+        auto const named = SpellAffectTargets().find(mod->spellId);
+        if (named != SpellAffectTargets().end())
+        {
+            uint32 const firstRank = sSpellMgr->GetFirstSpellInChain(Id);
+            return std::any_of(named->second.begin(), named->second.end(), [&](int32 target)
+                { return target < 0 ? uint32(-target) == firstRank : uint32(target) == Id; });
+        }
+    }
 
     return IsAffected(affectSpell->SpellFamilyName, mod->mask);
 }
@@ -3019,6 +3104,25 @@ uint32 SpellInfo::GetRecoveryTime() const
     return RecoveryTime > CategoryRecoveryTime ? RecoveryTime : CategoryRecoveryTime;
 }
 
+int32 AscensionFreePick::ApplyAgileStrikes(Unit const* caster, SpellInfo const* spell, int32 amount)
+{
+    if (amount <= 0 || !caster || !caster->HasAura(986201) || !Applies(caster->ToPlayer()))
+        return amount;
+
+    auto eligible = [](SpellInfo const* info)
+    {
+        return info && (info->DmgClass == SPELL_DAMAGE_CLASS_MELEE || info->DmgClass == SPELL_DAMAGE_CLASS_RANGED) &&
+            Area52Holy::DamagingSpell(info);
+    };
+    if (eligible(spell))
+        return int32(int64(amount) * 92 / 100);
+
+    for (uint32 original : caster->ToPlayer()->GetSpellInteractionOrigins(spell->Id))
+        if (original != spell->Id && eligible(sSpellMgr->GetSpellInfo(original)))
+            return int32(int64(amount) * 92 / 100);
+    return amount;
+}
+
 int32 SpellInfo::CalcPowerCost(Unit const* caster, SpellSchoolMask schoolMask, Spell* spell) const
 {
     if (PowerType == POWER_MANA && caster->IsPlayer() && caster->getClass() == CLASS_TINKER &&
@@ -3111,7 +3215,7 @@ int32 SpellInfo::CalcPowerCost(Unit const* caster, SpellSchoolMask schoolMask, S
     // intrinsically instant, non-channeled mana spells; ranged animation delay
     // and temporary cast-time spellmods do not change that classification.
     float powerCostMultiplier = caster->GetFloatValue(static_cast<uint16>(UNIT_FIELD_POWER_COST_MULTIPLIER) + school);
-    powerCostMultiplier += AscensionMysticEnchant::NonstackingCostCorrection(caster, uint32(1) << school);
+    powerCostMultiplier += AscensionMysticEnchant::NonstackingCostCorrection(caster, schoolMask);
     if (PowerType == POWER_MANA && !IsChanneled() && (!CastTimeEntry || CastTimeEntry->CastTime == 0))
         powerCostMultiplier -= float(caster->GetTotalAuraModifier(SPELL_AURA_ASCENSION_MOD_INSTANT_MANA_COST_PCT)) / 100.0f;
 
@@ -3143,7 +3247,7 @@ int32 SpellInfo::CalcPowerCost(Unit const* caster, SpellSchoolMask schoolMask, S
     }
     if (powerCost < 0)
         powerCost = 0;
-    return powerCost;
+    return AscensionFreePick::ApplyAgileStrikes(caster, this, powerCost);
 }
 
 bool SpellInfo::IsRanked() const

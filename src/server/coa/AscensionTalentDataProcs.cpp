@@ -12,6 +12,7 @@
 #include "Unit.h"
 #include <algorithm>
 #include <iterator>
+#include <utility>
 
 namespace
 {
@@ -106,6 +107,78 @@ class aura_ascension_eclipse : public AuraScript
     Milliseconds _lunarReady = 0ms;
 };
 
+class aura_area52_total_eclipse_window : public AuraScript
+{
+    PrepareAuraScript(aura_area52_total_eclipse_window);
+
+    bool pending = false;
+
+    void Gain(AuraEffect const*, AuraEffectHandleModes)
+    {
+        Unit* owner = GetTarget();
+        if (AscensionFreePick::Applies(owner->ToPlayer()) && owner->HasAura(965282))
+        {
+            pending = true;
+            owner->CastSpell(owner, 48391, true); // Owlkin Frenzy
+        }
+    }
+
+public:
+    bool Consume()
+    {
+        return std::exchange(pending, false);
+    }
+
+    void Register() override
+    {
+        // Solar and Lunar have different effect-0 aura types. Only a real gain arms the window.
+        AfterEffectApply += AuraEffectApplyFn(aura_area52_total_eclipse_window::Gain, EFFECT_0, SPELL_AURA_ANY, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
+class spell_area52_total_eclipse_hit : public SpellScript
+{
+    PrepareSpellScript(spell_area52_total_eclipse_hit);
+
+    void Hit()
+    {
+        Player* player = GetCaster()->ToPlayer();
+        Unit* target = GetHitUnit();
+        if (!AscensionFreePick::Applies(player) || !target || !player->HasAura(965282))
+            return;
+
+        uint32 const root = GetSpellInfo()->GetFirstRankSpell()->Id;
+        for (uint32 phase : {uint32(SPELL_ECLIPSE_SOLAR), uint32(SPELL_ECLIPSE_LUNAR)})
+        {
+            bool const solar = phase == SPELL_ECLIPSE_SOLAR;
+            if (root != 954800 && root != (solar ? 5176u : 2912u))
+                continue;
+            Aura* aura = player->GetAura(phase);
+            if (!aura)
+                continue;
+            auto* window = aura->GetScript<aura_area52_total_eclipse_window>("aura_area52_total_eclipse_window");
+            if (!window)
+                continue;
+            uint32 dot = 0;
+            for (uint32 rank = solar ? 5570 : 8921; rank; rank = sSpellMgr->GetNextSpellInChain(rank))
+                if (player->HasSpell(rank))
+                    dot = rank;
+            if (dot && window->Consume())
+            {
+                player->CastSpell(target, dot, true);
+                return;
+            }
+        }
+    }
+
+    void Register() override
+    {
+        AfterHit += SpellHitFn(spell_area52_total_eclipse_hit::Hit);
+    }
+};
+
+
+
 class aura_ascension_revitalize : public AuraScript
 {
     PrepareAuraScript(aura_ascension_revitalize);
@@ -154,4 +227,6 @@ void AddSC_AscensionTalentDataProcs()
 {
     RegisterSpellScript(aura_ascension_eclipse);
     RegisterSpellScript(aura_ascension_revitalize);
+    RegisterSpellScript(aura_area52_total_eclipse_window);
+    RegisterSpellScript(spell_area52_total_eclipse_hit);
 }
