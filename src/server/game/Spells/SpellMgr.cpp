@@ -1,3 +1,4 @@
+#include "../../coa/AscensionMysticEnchantCatalog.h"
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
@@ -338,6 +339,10 @@ int32 GetDiminishingReturnsLimitDuration(DiminishingGroup group, SpellInfo const
     if (!IsDiminishingReturnsGroupDurationLimited(group))
         return 0;
     if (AscensionFreePick::Enabled() && spellproto->Id == 954507)
+        return 6 * IN_MILLISECONDS;
+
+    if (AscensionFreePick::Enabled() && spellproto->SpellFamilyName == SPELLFAMILY_HUNTER &&
+        (spellproto->Id == 3355 || spellproto->Id == 14308 || spellproto->Id == 14309))
         return 6 * IN_MILLISECONDS;
 
     // Stone Grip's active tooltip specifies eight seconds against players, before diminishing returns.
@@ -905,6 +910,103 @@ SpellGroupStackRule SpellMgr::GetSpellGroupStackRule(SpellGroup group) const
 
 SpellProcEntry const* SpellMgr::GetSpellProcEntry(uint32 spellId) const
 {
+    if (spellId >= 53290 && spellId <= 53292 && AscensionFreePick::Enabled() && GetSpellInfo(spellId))
+    {
+        static std::array<SpellProcEntry, 3> const huntingParty = []
+        {
+            std::array<SpellProcEntry, 3> ranks{};
+            for (unsigned i = 0; i < ranks.size(); ++i)
+            {
+                auto& proc = ranks[i];
+                proc.ProcFlags = PROC_FLAG_DONE_SPELL_MELEE_DMG_CLASS | PROC_FLAG_DONE_SPELL_RANGED_DMG_CLASS | PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG;
+                proc.SpellTypeMask = PROC_SPELL_TYPE_DAMAGE;
+                proc.SpellPhaseMask = PROC_SPELL_PHASE_HIT;
+                proc.HitMask = PROC_HIT_CRITICAL;
+                proc.AttributesMask = PROC_ATTR_TRIGGERED_CAN_PROC;
+                proc.DisableEffectsMask = (1u << EFFECT_1) | (1u << EFFECT_2);
+                proc.Chance = i == 2 ? 100 : 33 * (i + 1);
+            }
+            return ranks;
+        }();
+        return &huntingParty[spellId - 53290];
+    }
+    if (spellId >= 34497 && spellId <= 34499 && AscensionFreePick::Enabled() && GetSpellInfo(spellId))
+    {
+        static std::array<SpellProcEntry, 3> const thrill = []
+        {
+            std::array<SpellProcEntry, 3> ranks{};
+            for (unsigned i = 0; i < ranks.size(); ++i)
+            {
+                auto& proc = ranks[i];
+                proc.ProcFlags = PROC_FLAG_DONE_SPELL_RANGED_DMG_CLASS | PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG;
+                proc.SpellTypeMask = PROC_SPELL_TYPE_DAMAGE;
+                proc.SpellPhaseMask = PROC_SPELL_PHASE_HIT;
+                proc.HitMask = PROC_HIT_CRITICAL;
+                proc.AttributesMask = PROC_ATTR_TRIGGERED_CAN_PROC;
+                proc.DisableEffectsMask = 1u << EFFECT_1;
+                proc.Chance = i == 2 ? 100 : 33 * (i + 1);
+            }
+            return ranks;
+        }();
+        return &thrill[spellId - 34497];
+    }
+    if (spellId == 817323 && AscensionFreePick::Enabled() && GetSpellInfo(spellId))
+    {
+        static SpellProcEntry const shadowReach = []
+        {
+            SpellProcEntry proc{};
+            proc.ProcFlags = PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG | PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_NEG |
+                PROC_FLAG_DONE_SPELL_RANGED_DMG_CLASS | PROC_FLAG_DONE_SPELL_MELEE_DMG_CLASS |
+                PROC_FLAG_DONE_RANGED_AUTO_ATTACK | PROC_FLAG_DONE_MELEE_AUTO_ATTACK;
+            proc.SpellTypeMask = PROC_SPELL_TYPE_DAMAGE;
+            proc.SpellPhaseMask = PROC_SPELL_PHASE_HIT;
+            proc.HitMask = PROC_HIT_NORMAL | PROC_HIT_CRITICAL;
+            proc.AttributesMask = PROC_ATTR_TRIGGERED_CAN_PROC;
+            proc.DisableEffectsMask = 1u << EFFECT_0;
+            proc.Chance = 33;
+            proc.Cooldown = Milliseconds(15000);
+            return proc;
+        }();
+        return &shadowReach;
+    }
+    if ((spellId == 32512 || spellId == 32513 || spellId == 32514) && AscensionFreePick::Enabled())
+        return nullptr;
+    if ((spellId == 53486 || spellId == 53488 || spellId == 853486) &&
+        AscensionFreePick::Enabled() && GetSpellInfo(spellId))
+    {
+        static SpellProcEntry const artOfWar = []
+        {
+            SpellProcEntry proc{};
+            proc.ProcFlags = PROC_FLAG_DONE_MELEE_AUTO_ATTACK | PROC_FLAG_DONE_SPELL_MELEE_DMG_CLASS |
+                PROC_FLAG_DONE_SPELL_RANGED_DMG_CLASS | PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_NEG |
+                PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG | PROC_FLAG_DONE_PERIODIC;
+            proc.SpellTypeMask = PROC_SPELL_TYPE_DAMAGE;
+            proc.SpellPhaseMask = PROC_SPELL_PHASE_HIT;
+            proc.HitMask = PROC_HIT_NORMAL | PROC_HIT_CRITICAL;
+            proc.AttributesMask = PROC_ATTR_TRIGGERED_CAN_PROC;
+            proc.DisableEffectsMask = (1u << EFFECT_0) | (1u << EFFECT_2);
+            proc.Chance = 50.0f;
+            proc.Cooldown = Milliseconds(6000);
+            return proc;
+        }();
+        return &artOfWar;
+    }
+    if (spellId == 912298 && AscensionFreePick::Enabled() && GetSpellInfo(spellId) && GetSpellInfo(23602))
+    {
+        static SpellProcEntry const shieldSpecialization = []
+        {
+            SpellProcEntry proc{};
+            proc.ProcFlags = PROC_FLAG_TAKEN_MELEE_AUTO_ATTACK | PROC_FLAG_TAKEN_SPELL_MELEE_DMG_CLASS |
+                PROC_FLAG_TAKEN_RANGED_AUTO_ATTACK | PROC_FLAG_TAKEN_SPELL_RANGED_DMG_CLASS;
+            proc.SpellTypeMask = PROC_SPELL_TYPE_DAMAGE;
+            proc.SpellPhaseMask = PROC_SPELL_PHASE_HIT;
+            proc.HitMask = PROC_HIT_BLOCK | PROC_HIT_DODGE | PROC_HIT_PARRY;
+            proc.DisableEffectsMask = (1u << EFFECT_0) | (1u << EFFECT_2);
+            proc.Chance = 20.0f;
+            return proc;
+        }();
+        return &shieldSpecialization;
+    }
     SpellProcMap::const_iterator itr = mSpellProcMap.find(spellId);
     if (itr != mSpellProcMap.end())
         return &itr->second;
@@ -913,6 +1015,43 @@ SpellProcEntry const* SpellMgr::GetSpellProcEntry(uint32 spellId) const
 
 bool SpellMgr::CanSpellTriggerProcOnEvent(SpellProcEntry const& procEntry, ProcEventInfo& eventInfo) const
 {
+    if (AscensionFreePick::Enabled() && &procEntry == GetSpellProcEntry(53486))
+    {
+        Player const* actor = eventInfo.GetActor() ? eventInfo.GetActor()->ToPlayer() : nullptr;
+        DamageInfo const* damage = eventInfo.GetDamageInfo();
+        if (!AscensionFreePick::Applies(actor) || !damage || !damage->GetDamage())
+            return false;
+        if (eventInfo.GetTypeMask() & PROC_FLAG_DONE_MELEE_AUTO_ATTACK)
+        {
+            if (damage->GetAttackType() != BASE_ATTACK)
+                return false;
+        }
+        else
+        {
+            auto eligible = [](SpellInfo const* spell)
+            {
+                return spell && spell->IsAffected(SPELLFAMILY_PALADIN, flag96(0x00800000, 0x00028000, 0x02000000));
+            };
+            SpellInfo const* spell = eventInfo.GetSpellInfo();
+            bool matches = eligible(spell);
+            if (spell && !matches)
+                for (uint32 original : actor->GetSpellInteractionOrigins(spell->Id))
+                    matches |= eligible(GetSpellInfo(original));
+            if (!matches)
+                return false;
+        }
+    }
+    if (&procEntry == GetSpellProcEntry(817323) && AscensionFreePick::Enabled())
+    {
+        Unit* actor = eventInfo.GetActor();
+        Unit* victim = eventInfo.GetActionTarget();
+        DamageInfo const* damage = eventInfo.GetDamageInfo();
+        if (!actor || !victim || !AscensionFreePick::Applies(actor->ToPlayer()) || !actor->IsValidAttackTarget(victim) ||
+            !damage || !damage->GetDamage() || !(damage->GetSchoolMask() & SPELL_SCHOOL_MASK_MAGIC) ||
+            (damage->GetDamageType() != SPELL_DIRECT_DAMAGE && damage->GetDamageType() != DIRECT_DAMAGE) ||
+            actor->GetExactDist(victim) <= 20.0f)
+            return false;
+    }
     // proc type doesn't match
     if (!(eventInfo.GetTypeMask() & procEntry.ProcFlags))
         return false;
@@ -949,6 +1088,26 @@ bool SpellMgr::CanSpellTriggerProcOnEvent(SpellProcEntry const& procEntry, ProcE
                     for (uint32 original : actor->GetSpellInteractionOrigins(eventSpellInfo->Id))
                         if (SpellInfo const* ancestor = GetSpellInfo(original))
                             inherited |= ancestor->IsAffected(procEntry.SpellFamilyName, procEntry.SpellFamilyMask);
+                // The inherited Warlock mask omits Howl of Terror.
+                if (!inherited && eventInfo.GetActor())
+                    if (Player const* actor = eventInfo.GetActor()->ToPlayer(); AscensionFreePick::Applies(actor) &&
+                        actor->MatchesSpellInteraction(eventSpellInfo->Id, 5484))
+                        for (uint32 rank : {47201u, 47202u, 47203u})
+                            if (GetSpellProcEntry(rank) == &procEntry)
+                            {
+                                inherited = true;
+                                break;
+                            }
+                if (!inherited && eventInfo.GetActor() &&
+                    AscensionMysticEnchant::DefiasPistolProcEligible(eventInfo.GetActor()->ToPlayer(), eventSpellInfo->Id))
+                {
+                    for (uint32 talent : {53234u, 53237u, 53238u, 34506u, 34507u, 34508u, 34838u, 34839u})
+                        if (GetSpellProcEntry(talent) == &procEntry)
+                        {
+                            inherited = true;
+                            break;
+                        }
+                }
                 if (!inherited)
                     return false;
             }
@@ -2257,7 +2416,7 @@ void SpellMgr::LoadSpellProcs()
                 addTriggerFlag = true;
 
             // Many proc auras with taken procFlag mask don't have
-            // attribute "can proc with triggered" — they should
+            // attribute "can proc with triggered" â€” they should
             // proc nevertheless (e.g. mage armor spells with
             // judgement)
             if (!addTriggerFlag
@@ -3664,6 +3823,9 @@ void SpellMgr::LoadSpellInfoCustomAttributes()
         }
 
         sScriptMgr->OnLoadSpellCustomAttr(spellInfo);
+
+        if (spellInfo->Id == 978701)
+            spellInfo->_spellSpecific = spellInfo->LoadSpellSpecific();
 
         // Module hooks can change effect targets after the initial mask was cached.
         spellInfo->_InitializeExplicitTargetMask();

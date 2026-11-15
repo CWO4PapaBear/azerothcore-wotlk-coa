@@ -22,6 +22,7 @@
 #include "SpellInfo.h"
 #include "SpellMgr.h"
 #include "SpellScript.h"
+#include "../../coa/AscensionFreePick.h"
 #include "SpellScriptLoader.h"
 #include "Totem.h"
 #include "UnitAI.h"
@@ -2136,6 +2137,11 @@ class spell_dk_raise_dead : public SpellScript
 
     void CheckTargets(std::list<WorldObject*>& targets)
     {
+        if (AscensionFreePick::Applies(GetCaster()->ToPlayer()))
+        {
+            _corpse = false;
+            _result = SPELL_CAST_OK;
+        }
         targets.remove_if(RaiseDeadCheck(GetCaster()->ToPlayer()));
 
         if (targets.empty())

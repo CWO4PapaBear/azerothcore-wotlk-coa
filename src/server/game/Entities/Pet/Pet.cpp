@@ -979,7 +979,8 @@ void Pet::GivePetLevel(uint8 level)
     }
 
     InitStatsForLevel(level);
-    InitLevelupSpellsForLevel();
+    // During restore, reconcile Bite after the saved pet spells have loaded.
+    InitLevelupSpellsForLevel(!m_loading);
     InitTalentForLevel();
 }
 
@@ -1941,8 +1942,13 @@ bool Pet::addSpell(uint32 spellId, ActiveStates active /*= ACT_DECIDE*/, PetSpel
 
 bool Pet::learnSpell(uint32 spell_id)
 {
+    return learnSpell(spell_id, ACT_DECIDE);
+}
+
+bool Pet::learnSpell(uint32 spell_id, ActiveStates active)
+{
     // prevent duplicated entires in spell book
-    if (!addSpell(spell_id))
+    if (!addSpell(spell_id, active))
         return false;
 
     if (!m_loading)
@@ -1963,18 +1969,42 @@ bool Pet::learnSpell(uint32 spell_id)
 
 void Pet::InitLevelupSpellsForLevel()
 {
+    InitLevelupSpellsForLevel(true);
+}
+
+void Pet::InitLevelupSpellsForLevel(bool syncBite)
+{
     uint8 level = GetLevel();
 
-    if (getPetType() == HUNTER_PET && (GetEntry() == 1999412 || GetEntry() == 79010 || GetEntry() == 347310 || GetEntry() == 1999500 || GetEntry() == 1999510))
+    if (syncBite && getPetType() == HUNTER_PET && (GetEntry() == 1999412 || GetEntry() == 79010 || GetEntry() == 347310 || GetEntry() == 1999500 || GetEntry() == 1999510))
     {
         // Dark Rootbound Beast uses private focus-based Shadow Bite ranks.
         uint32 const firstRank = GetEntry() == 1999500 ? 1999501 : GetEntry() == 1999510 ? 1999511 : 1999413;
         uint32 eligible = level < 10 ? 0 : firstRank + std::min<uint32>((level - 10) / 8, 8);
+        ActiveStates preference = ACT_DECIDE;
         for (uint32 spell = firstRank; spell < firstRank + 9; ++spell)
-            if (spell != eligible && HasSpell(spell))
-                unlearnSpell(spell, false);
-        if (eligible && !HasSpell(eligible))
-            learnSpell(eligible);
+        {
+            if (!HasSpell(spell) || spell == eligible)
+                continue;
+
+            preference = m_spells.at(spell).active;
+            ToggleAutocast(sSpellMgr->GetSpellInfo(spell), false);
+            if (eligible)
+                for (uint8 slot = 0; slot < MAX_UNIT_ACTION_BAR_INDEX; ++slot)
+                {
+                    UnitActionBarEntry const* action = m_charmInfo->GetActionBarEntry(slot);
+                    if (action->IsActionBarForSpell() && action->GetAction() == spell)
+                        m_charmInfo->SetActionBar(slot, eligible, preference);
+                }
+            unlearnSpell(spell, false);
+        }
+        if (eligible)
+        {
+            if (!HasSpell(eligible))
+                learnSpell(eligible, preference);
+            if (HasSpell(eligible))
+                m_charmInfo->SetSpellAutocast(sSpellMgr->GetSpellInfo(eligible), m_spells.at(eligible).active == ACT_ENABLED);
+        }
     }
 
     if (PetLevelupSpellSet const* levelupSpells = GetCreatureTemplate()->family ? sSpellMgr->GetPetLevelupSpellList(GetCreatureTemplate()->family) : nullptr)

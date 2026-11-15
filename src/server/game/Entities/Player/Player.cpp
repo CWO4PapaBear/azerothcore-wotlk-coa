@@ -10307,6 +10307,22 @@ bool Player::IsAffectedBySpellmod(SpellInfo const* spellInfo, SpellModifier* mod
 
     if (AscensionFreePick::Applies(this))
     {
+        if (mod->spellId == 17322 || mod->spellId == 17323 || mod->spellId == 817323)
+        {
+            if (mod->op != SPELLMOD_RANGE || !spellInfo->RangeEntry || spellInfo->RangeEntry->RangeMax[0] <= 0 ||
+                (!spellInfo->IsChanneled() && !spellInfo->CalcCastTime()))
+                return false;
+            if (Area52Holy::DamagingSpell(spellInfo))
+                return true;
+            // Some damaging channels deal their damage through a periodic trigger.
+            for (auto const& effect : spellInfo->Effects)
+                if (effect.ApplyAuraName == SPELL_AURA_PERIODIC_TRIGGER_SPELL ||
+                    effect.Effect == SPELL_EFFECT_TRIGGER_SPELL || effect.Effect == SPELL_EFFECT_TRIGGER_MISSILE)
+                    if (SpellInfo const* child = sSpellMgr->GetSpellInfo(effect.TriggerSpell))
+                        if (Area52Holy::DamagingSpell(child))
+                            return true;
+            return false;
+        }
         // Darkfall has an empty family mask. Artillery applies its snapshotted bonus once.
         if (mod->spellId == 984509)
             return false;
@@ -10361,6 +10377,8 @@ void Player::ApplyTargetedSpellModTrackingDamage(uint32 spellId, SpellModOp op, 
     float totalmul = 1.0f;
     int32 totalflat = 0;
 
+    int32 shadowReach = 0;
+    int32 similarRange = 0;
     auto calculateSpellMod = [&](SpellModifier* mod)
     {
         // xinef: temporary pets cannot use charged mods of owner, needed for mirror image QQ they should use their own auras
@@ -10386,6 +10404,20 @@ void Player::ApplyTargetedSpellModTrackingDamage(uint32 spellId, SpellModOp op, 
             if (mod->op == SPELLMOD_THREAT)
                 flatValue /= 100;
 
+            if (op == SPELLMOD_RANGE && AscensionFreePick::Applies(this))
+                switch (mod->spellId)
+                {
+                    case 17322: case 17323: case 817323:
+                        shadowReach = std::max(shadowReach, flatValue);
+                        flatValue = 0;
+                        break;
+                    case 11100: case 12353: case 812352: // Flame Throwing
+                    case 16757: case 16758: case 816758: // Arctic Reach
+                    case 28999: case 29000: case 829000: // Elemental Reach
+                    case 829003: case 829009: case 829015: case 829024: // Spell Reach
+                        similarRange = std::max(similarRange, flatValue);
+                        break;
+                }
             totalflat += flatValue;
         }
         else if (mod->type == SPELLMOD_PCT)
@@ -10461,6 +10493,9 @@ void Player::ApplyTargetedSpellModTrackingDamage(uint32 spellId, SpellModOp op, 
 
         calculateSpellMod(mod);
     }
+
+    if (shadowReach > similarRange)
+        totalflat += shadowReach - similarRange;
 
     if (extraDamage)
         *extraDamage *= totalmul;

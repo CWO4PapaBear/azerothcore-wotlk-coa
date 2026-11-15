@@ -512,6 +512,9 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
     // default amount calculation
     amount = m_spellInfo->Effects[m_effIndex].CalcValue(caster, &m_baseAmount, nullptr);
 
+    if (GetId() == 42650 && m_effIndex == EFFECT_1 && caster && AscensionFreePick::Applies(caster->ToPlayer()))
+        amount = -int32(std::clamp(caster->GetUnitDodgeChance() + caster->GetUnitParryChance(), 0.0f, 100.0f));
+
     // check item enchant aura cast
     if (!amount && caster)
         if (ObjectGuid itemGUID = GetBase()->GetCastItemGUID())
@@ -665,7 +668,12 @@ int32 AuraEffect::CalculateAmount(Unit* caster)
     }
 
     m_area52PeriodicAgilityDamage *= GetBase()->GetStackAmount();
-    amount *= GetBase()->GetStackAmount();
+    // Hunter vs. Wild and Careful Aim gain one percentage point per additional equipped copy.
+    if (((GetId() == 956339 && m_effIndex <= EFFECT_1) || (GetId() == 934482 && m_effIndex == EFFECT_0)) &&
+        caster && AscensionFreePick::Applies(caster->ToPlayer()))
+        amount += std::clamp<int32>(GetBase()->GetStackAmount(), 1, 3) - 1;
+    else
+        amount *= GetBase()->GetStackAmount();
     return amount;
 }
 
@@ -795,6 +803,10 @@ void AuraEffect::CalculateSpellMod()
             // Lightning Strikes Twice encodes the same penalty in two custom slots.
             // Register it once through the normal family-masked damage modifier.
             int32 operation = GetMiscValue();
+            if (GetEffIndex() == EFFECT_0 && (GetId() == 17322 || GetId() == 17323 || GetId() == 817323) &&
+                AscensionFreePick::Applies(GetBase()->GetUnitOwner()->ToPlayer()))
+                operation = SPELLMOD_RANGE;
+
             if (GetId() == 81091 && GetEffIndex() == EFFECT_1 && operation == 38 &&
                 AscensionFreePick::Applies(GetBase()->GetUnitOwner()->ToPlayer()))
                 operation = SPELLMOD_DAMAGE;

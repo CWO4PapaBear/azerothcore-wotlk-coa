@@ -1069,6 +1069,55 @@ void Unit::DealDamageMods(Unit const* victim, uint32& damage, uint32* absorb)
     }
 }
 
+void Player::UpdateAutoShotFromDamage(Unit* victim, bool directAttack)
+{
+    if (!AscensionFreePick::Applies(this) || !IsAlive() || !IsInCombat() || !HasActiveSpell(75) ||
+        !victim->IsAlive() || GetSelectedUnit() != victim || !IsValidAttackTarget(victim))
+        return;
+
+    if (directAttack)
+        m_autoShotManuallyStopped = false;
+    if (m_autoShotManuallyStopped || GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL))
+        return;
+
+    CastSpell(victim, 75, false);
+    Spell* repeat = GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL);
+    if (repeat && repeat->GetSpellInfo()->Id == 75 && repeat->m_targets.GetUnitTargetGUID() == victim->GetGUID())
+    {
+        if (++m_autoShotSequence == 0)
+            ++m_autoShotSequence;
+        m_damageAutoShotActive = true;
+        SendDamageAutoShotState();
+    }
+}
+
+void Player::SendDamageAutoShotState()
+{
+    WorldPacket packet;
+    std::string message = "A52Shot\t" + std::to_string(m_damageAutoShotActive ? m_autoShotSequence : 0);
+    ChatHandler::BuildChatPacket(packet, CHAT_MSG_WHISPER, LANG_ADDON, this, this, message);
+    GetSession()->SendPacket(&packet);
+}
+
+void Player::EndDamageAutoShot()
+{
+    if (m_damageAutoShotActive)
+    {
+        m_damageAutoShotActive = false;
+        SendDamageAutoShotState();
+    }
+}
+
+void Player::CancelDamageAutoShot(std::string const& sequence)
+{
+    if (m_damageAutoShotActive && sequence == std::to_string(m_autoShotSequence))
+    {
+        SuppressDamageAutoShot();
+        InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
+    }
+}
+
+
 uint32 Unit::DealDamage(Unit* attacker, Unit* victim, uint32 damage, CleanDamage const* cleanDamage,
                         DamageEffectType damagetype, SpellSchoolMask damageSchoolMask,
                         SpellInfo const* spellProto, bool durabilityLoss, bool /*allowGM*/,
@@ -1450,6 +1499,16 @@ uint32 Unit::DealDamage(Unit* attacker, Unit* victim, uint32 damage, CleanDamage
     if (damagetype != NODAMAGE && spellProto)
         Area52Worldforged::Damage(attacker, victim, spellProto, damage, health, worldforgedMaxHealth,
             damagetype == DOT, health != 0 && health <= damage && !victim->IsAlive());
+
+    if (damage && attacker && attacker != victim && (!spellProto || spellProto->Id != 75) &&
+        (damagetype == DIRECT_DAMAGE || damagetype == SPELL_DIRECT_DAMAGE || damagetype == DOT))
+        if (Player* player = attacker->ToPlayer())
+        {
+            bool const directAttack = (damagetype == DIRECT_DAMAGE && !spellProto) ||
+                (damagetype == SPELL_DIRECT_DAMAGE && damageSpell && !damageSpell->IsTriggered() &&
+                 damageSpell->AutoShotCancelGenerationAtStart() == player->AutoShotCancelGeneration());
+            player->UpdateAutoShotFromDamage(victim, directAttack);
+        }
 
     LOG_DEBUG("entities.unit", "DealDamageEnd returned {} damage", damage);
 
@@ -4563,6 +4622,8 @@ void Unit::_UpdateSpells(uint32 time)
         if (m_currentSpells[i] && m_currentSpells[i]->getState() == SPELL_STATE_FINISHED)
         {
             m_currentSpells[i]->SetReferencedFromCurrent(false);
+            if (i == CURRENT_AUTOREPEAT_SPELL && IsPlayer())
+                ToPlayer()->EndDamageAutoShot();
             m_currentSpells[i] = nullptr;                      // remove pointer
         }
     }
@@ -4813,7 +4874,10 @@ void Unit::InterruptSpell(CurrentSpellTypes spellType, bool withDelayed, bool wi
         // send autorepeat cancel message for autorepeat spells
         if (spellType == CURRENT_AUTOREPEAT_SPELL)
             if (IsPlayer())
-                ToPlayer()->SendAutoRepeatCancel(this);
+                {
+                    ToPlayer()->EndDamageAutoShot();
+                    ToPlayer()->SendAutoRepeatCancel(this);
+                }
 
         if (spell->getState() != SPELL_STATE_FINISHED)
             spell->cancel(bySelf);
@@ -5402,6 +5466,10 @@ AuraApplication* Unit::_CreateAuraApplication(Aura* aura, uint8 effMask)
     if (AuraStateType aState = aura->GetSpellInfo()->GetAuraState())
         m_auraStateAuras.insert(AuraStateAurasMap::value_type(aState, aurApp));
 
+    if (caster && caster != this && AscensionFreePick::Applies(caster->ToPlayer()) &&
+        aura->GetSpellInfo()->HasAura(SPELL_AURA_PERIODIC_DAMAGE))
+        caster->ToPlayer()->TrackSoulHarvestTarget(GetGUID());
+
     aura->_ApplyForTarget(this, caster, aurApp);
     return aurApp;
 }
@@ -5486,6 +5554,20 @@ void Unit::_UnapplyAura(AuraApplicationMap::iterator& i, AuraRemoveMode removeMo
 
     // Remove all pointers from lists here to prevent possible pointer invalidation on spellcast/auraapply/auraremove
     m_appliedAuras.erase(i);
+
+    if (caster && caster != this && AscensionFreePick::Applies(caster->ToPlayer()) &&
+        aura->GetSpellInfo()->HasAura(SPELL_AURA_PERIODIC_DAMAGE))
+    {
+        bool const stillTracked = std::any_of(m_appliedAuras.begin(), m_appliedAuras.end(),
+            [&](auto const& entry)
+            {
+                Aura const* remaining = entry.second->GetBase();
+                return remaining->GetCasterGUID() == caster->GetGUID() &&
+                    remaining->GetSpellInfo()->HasAura(SPELL_AURA_PERIODIC_DAMAGE);
+            });
+        if (!stillTracked)
+            caster->ToPlayer()->ForgetSoulHarvestTarget(GetGUID());
+    }
 
     // xinef: do not insert our application to interruptible list if application target is not the owner (area auras)
     // xinef: event if it gets removed, it will be reapplied in a second
@@ -6945,10 +7027,36 @@ float Unit::GetTotalAuraMultiplier(AuraType auraType, std::function<bool(AuraEff
     std::map<SpellGroup, int32> sameEffectSpellGroup;
     float multiplier = 1.0f;
 
+    int32 harvest = 0;
+    int32 similar = 0;
+    bool const checkHarvest = auraType == SPELL_AURA_MOD_DAMAGE_PERCENT_DONE &&
+        ((HasAura(86395) && AscensionFreePick::Applies(ToPlayer())) ||
+         (HasAura(886395) && GetCharmerOrOwner() && AscensionFreePick::Applies(GetCharmerOrOwner()->ToPlayer())));
+
     for (AuraEffect const* aurEff : mTotalAuraList)
     {
         if (predicate(aurEff))
         {
+            if (checkHarvest && aurEff->GetAmount() > 0)
+            {
+                switch (aurEff->GetId())
+                {
+                    case 86395:
+                    case 886395:
+                        harvest = std::max(harvest, aurEff->GetAmount());
+                        continue;
+                    case 12042:  // Arcane Power
+                    case 809890: // Character Creation variant
+                    case 804035: // Tailwind
+                    case 19574:  // Bestial Wrath
+                    case 31884:  // Avenging Wrath and its Area 52 variants
+                    case 984325:
+                    case 992391:
+                    case 277875: // Guardian of Ancient Kings
+                        similar = std::max(similar, aurEff->GetAmount());
+                        break;
+                }
+            }
             // Check if the Aura Effect has a the Same Effect Stack Rule and if so, use the highest amount of that SpellGroup
             // If the Aura Effect does not have this Stack Rule, it returns false so we can add to the multiplier as usual
             if (!sSpellMgr->AddSameEffectStackRuleSpellGroups(aurEff->GetSpellInfo(), aurEff->GetEffIndex(), static_cast<uint32>(auraType), aurEff->GetAmount(), sameEffectSpellGroup))
@@ -6960,6 +7068,8 @@ float Unit::GetTotalAuraMultiplier(AuraType auraType, std::function<bool(AuraEff
     for (auto itr = sameEffectSpellGroup.begin(); itr != sameEffectSpellGroup.end(); ++itr)
         AddPct(multiplier, itr->second);
 
+    if (harvest > similar)
+        multiplier *= (100.0f + harvest) / (100.0f + similar);
     return multiplier;
 }
 
@@ -13533,6 +13643,35 @@ int32 Unit::CalcSpellDuration(SpellInfo const* spellProto)
     else
         duration = minduration;
 
+    if (spellProto->Id == 86395 && AscensionFreePick::Applies(ToPlayer()))
+    {
+        constexpr uint32 dots[] = { 172, 980, 348, 589, 2944 };
+        for (ObjectGuid guid : ToPlayer()->GetSoulHarvestTargets())
+        {
+            if (duration >= 24000)
+                break;
+            Unit* target = ObjectAccessor::GetUnit(*this, guid);
+            if (!target || !target->IsAlive())
+                continue;
+            for (auto const& application : target->GetAppliedAuras())
+            {
+                Aura const* aura = application.second->GetBase();
+                if (aura->GetCasterGUID() != GetGUID())
+                    continue;
+                if (std::any_of(std::begin(dots), std::end(dots),
+                    [&](uint32 id) { return ToPlayer()->MatchesSpellInteraction(aura->GetId(), id); }))
+                {
+                    duration += 3000;
+                    break;
+                }
+            }
+        }
+    }
+    if (spellProto->Id == 886395 && !IsPlayer())
+        if (Unit* owner = GetCharmerOrOwner(); owner && AscensionFreePick::Applies(owner->ToPlayer()))
+            if (Aura const* harvest = owner->GetAura(86395))
+                return harvest->GetDuration();
+
     return duration;
 }
 
@@ -15863,6 +16002,9 @@ void Unit::AddPetAura(PetAura const* petSpell)
     if (!IsPlayer())
         return;
 
+    if (petSpell->GetAura(0) == 886395 && !AscensionFreePick::Applies(ToPlayer()))
+        return;
+
     m_petAuras.insert(petSpell);
     if (Pet* pet = ToPlayer()->GetPet())
         pet->CastPetAura(petSpell);
@@ -15873,6 +16015,9 @@ void Unit::AddPetAura(PetAura const* petSpell)
 void Unit::RemovePetAura(PetAura const* petSpell)
 {
     if (!IsPlayer())
+        return;
+
+    if (petSpell->GetAura(0) == 886395 && !AscensionFreePick::Applies(ToPlayer()))
         return;
 
     m_petAuras.erase(petSpell);

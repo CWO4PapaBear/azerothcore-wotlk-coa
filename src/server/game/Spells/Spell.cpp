@@ -664,6 +664,8 @@ Spell::Spell(Unit* caster, SpellInfo const* info, TriggerCastFlags triggerFlags,
     m_procVictim = 0;
     m_procEx = 0;
     focusObject = nullptr;
+    if (Player* player = caster->ToPlayer())
+        m_autoShotCancelGenerationAtStart = player->AutoShotCancelGeneration();
     m_cast_count = 0;
     m_glyphIndex = 0;
     m_preCastSpell = 0;
@@ -2601,6 +2603,11 @@ void Spell::AddDestTarget(SpellDestination const& dest, uint32 effIndex)
     m_destTargets[effIndex] = dest;
 }
 
+static bool IsArea52PriestSilence(SpellInfo const* info, Unit* caster)
+{
+    return info->Id == 15487 && AscensionFreePick::Applies(caster->ToPlayer());
+}
+
 void Spell::DoAllEffectOnTarget(TargetInfo* target)
 {
     if (!target || target->processed)
@@ -3022,7 +3029,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
     }
 
     // Check for SPELL_ATTR7_CAN_CAUSE_INTERRUPT
-    if (m_spellInfo->HasAttribute(SPELL_ATTR7_CAN_CAUSE_INTERRUPT) && !effectUnit->IsPlayer())
+    if (m_spellInfo->HasAttribute(SPELL_ATTR7_CAN_CAUSE_INTERRUPT) && !IsArea52PriestSilence(m_spellInfo, m_caster) && !effectUnit->IsPlayer())
         caster->CastSpell(effectUnit, SPELL_INTERRUPT_NONPLAYER, true);
 
     if (spellHitTarget)
@@ -3151,6 +3158,10 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit* unit, uint32 effectMask, bool scaleA
         }
     }
 
+    // Interrupt the NPC cast before applying Silence, which also stops the cast.
+    if (unit->IsCreature() && IsArea52PriestSilence(m_spellInfo, m_caster))
+        m_caster->CastSpell(unit, SPELL_INTERRUPT_NONPLAYER, true);
+
     uint8 aura_effmask = 0;
     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
         if (effectMask & (1 << i) && m_spellInfo->Effects[i].IsUnitOwnedAuraEffect())
@@ -3220,6 +3231,12 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit* unit, uint32 effectMask, bool scaleA
 
             if (m_spellAura)
             {
+                if (AscensionFreePick::Applies(m_caster->ToPlayer()) &&
+                    sSpellMgr->GetFirstSpellInChain(aurSpellInfo->Id) == 53301)
+                {
+                    m_spellAura->thrillRefund = std::make_shared<int32>(int32(GetScriptValue(34720)));
+
+                }
                 // Set aura stack amount to desired value
                 if (m_spellValue->AuraStackAmount > 1)
                 {
@@ -3564,6 +3581,9 @@ SpellCastResult Spell::prepare(SpellCastTargets const* targets, AuraEffect const
     if (triggeredByAura)
     {
         m_triggeredByAuraSpell.Init(triggeredByAura);
+        if (m_spellInfo->Id == 53352)
+            thrillRefund = triggeredByAura->GetBase()->thrillRefund;
+
     }
 
     // create and add update event for this spell
@@ -3836,7 +3856,11 @@ void Spell::cancel(bool bySelf)
 
     SetReferencedFromCurrent(false);
     if (m_selfContainer && *m_selfContainer == this)
+    {
+        if (m_spellInfo->Id == 75 && m_caster->IsPlayer())
+            m_caster->ToPlayer()->EndDamageAutoShot();
         *m_selfContainer = nullptr;
+    }
 
     // Do not remove current far sight object (already done in Spell::EffectAddFarsight) to prevent from reset viewpoint to player
     if (!(bySelf && m_spellInfo->HasEffect(SPELL_EFFECT_ADD_FARSIGHT)))
@@ -4185,7 +4209,7 @@ void Spell::_cast(bool skipCheck)
 
     // Interrupt Spell casting
     // handle this here, in other places SpellHitTarget can be set to nullptr, if there is an error in this function
-    if (m_spellInfo->HasAttribute(SPELL_ATTR7_CAN_CAUSE_INTERRUPT))
+    if (m_spellInfo->HasAttribute(SPELL_ATTR7_CAN_CAUSE_INTERRUPT) && !IsArea52PriestSilence(m_spellInfo, m_caster))
         if (Unit* target = m_targets.GetUnitTarget())
             if (target->IsCreature())
                 m_caster->CastSpell(target, 32747, true);
@@ -5506,7 +5530,12 @@ void Spell::TakePower()
     }
 
     if (hit)
-        m_caster->ModifyPower(PowerType, -m_powerCost);
+    {
+        int32 change = m_caster->ModifyPower(PowerType, -m_powerCost);
+        if (PowerType == POWER_MANA && change < 0 && AscensionFreePick::Applies(m_caster->ToPlayer()) &&
+            m_caster->GetAuraOfRankedSpell(34497))
+            SetScriptValue(34720, uint32(-change));
+    }
     else
         m_caster->ModifyPower(PowerType, -irand(0, m_powerCost / 4));
 

@@ -1,0 +1,36 @@
+{
+  "build": "Dark Ranger Leveling",
+  "revision": 12,
+  "verified": {
+    "advancement": {
+      "1640": "Void Eruption",
+      "1305": "Frenzy Shot",
+      "3205": "Silence",
+      "1202": "Soul Harvest",
+      "2970": "Seed of Corruption",
+      "3721": "Chimera Shot",
+      "977": "Everlasting Affliction",
+      "2994": "Kill Command",
+      "1077": "Hunting Party",
+      "1162": "Raise Dead",
+      "929": "Thrill of the Hunt",
+      "636": "Shadow Reach",
+      "2668": "Eye of Kilrogg",
+      "1155": "Army of the Dead"
+    },
+    "mystic": {
+      "915308": "Darkness",
+      "934482": "Careful Aim",
+      "956339": "Hunter vs. Wild",
+      "84562": "Long Shadows"
+    }
+  },
+  "additional_repairs": [
+    "Auto Shot",
+    "Bone Arrow",
+    "Shadowfiend",
+    "Dark Arrow",
+    "Roothound Bite autocast"
+  ],
+  "preserve_tester_certifications": true
+}

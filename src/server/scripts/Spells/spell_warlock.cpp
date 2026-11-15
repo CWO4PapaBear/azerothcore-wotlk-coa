@@ -25,6 +25,7 @@
 #include "SpellInfo.h"
 #include "SpellMgr.h"
 #include "SpellScript.h"
+#include "ObjectAccessor.h"
 #include "SpellScriptLoader.h"
 #include "TemporarySummon.h"
 #include "Unit.h"
@@ -105,36 +106,37 @@ class spell_warl_eye_of_kilrogg : public AuraScript
 {
     PrepareAuraScript(spell_warl_eye_of_kilrogg);
 
-    void HandleAuraApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    ObjectGuid eyeGuid;
+
+    void HandleAuraApply(AuraEffect const*, AuraEffectHandleModes)
     {
         PreventDefaultAction();
-        if (Player* player = GetTarget()->ToPlayer())
-        {
-            player->UnsummonPetTemporaryIfAny();
+        Player* player = GetTarget()->ToPlayer();
+        if (!player)
+            return;
 
-            // Glyph of Kilrogg
-            if (player->HasAura(58081))
-            {
-                if (Unit* charm = player->GetCharm())
-                {
-                    if (charm->GetMapId() == MAP_OUTLAND || charm->GetMapId() == MAP_NORTHREND)
-                    {
-                        charm->CastSpell(charm, SPELL_WARLOCK_EYE_OF_KILROGG_FLY, true);
-                    }
-                }
-            }
-        }
+        Unit* charm = player->GetCharm();
+        TempSummon* eye = charm ? charm->ToTempSummon() : nullptr;
+        if (!eye || eye->GetEntry() != NPC_EYE_OF_KILROGG || eye->GetSummonerGUID() != player->GetGUID())
+            return;
+
+        eyeGuid = eye->GetGUID();
+        player->UnsummonPetTemporaryIfAny();
+        if (player->HasAura(58081) && (eye->GetMapId() == MAP_OUTLAND || eye->GetMapId() == MAP_NORTHREND))
+            eye->CastSpell(eye, SPELL_WARLOCK_EYE_OF_KILROGG_FLY, true);
     }
 
-    void HandleAuraRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    void HandleAuraRemove(AuraEffect const*, AuraEffectHandleModes)
     {
-        if (Player* player = GetTarget()->ToPlayer())
-        {
-            if (Unit* charm = player->GetCharm())
-                charm->ToTempSummon()->UnSummon();
+        Player* player = GetTarget()->ToPlayer();
+        if (!player || eyeGuid.IsEmpty())
+            return;
 
-            player->ResummonPetTemporaryUnSummonedIfAny();
-        }
+        if (Creature* creature = ObjectAccessor::GetCreature(*player, eyeGuid))
+            if (TempSummon* eye = creature->ToTempSummon(); eye && eye->GetSummonerGUID() == player->GetGUID())
+                eye->UnSummon();
+        eyeGuid.Clear();
+        player->ResummonPetTemporaryUnSummonedIfAny();
     }
 
     void Register() override
@@ -679,6 +681,9 @@ class spell_warl_everlasting_affliction : public SpellScript
 
     void HandleScriptEffect(SpellEffIndex /*effIndex*/)
     {
+        // Ascension records use native refresh effects; legacy script-effect records use this callback.
+        if (GetSpellInfo()->Effects[EFFECT_0].Effect != SPELL_EFFECT_SCRIPT_EFFECT)
+            return;
         if (Unit* unitTarget = GetHitUnit())
             // Refresh corruption on target
             if (AuraEffect* aur = unitTarget->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_WARLOCK, 0x2, 0, 0, GetCaster()->GetGUID()))
@@ -690,7 +695,7 @@ class spell_warl_everlasting_affliction : public SpellScript
 
     void Register() override
     {
-        OnEffectHitTarget += SpellEffectFn(spell_warl_everlasting_affliction::HandleScriptEffect, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
+        OnEffectHitTarget += SpellEffectFn(spell_warl_everlasting_affliction::HandleScriptEffect, EFFECT_0, SPELL_EFFECT_ANY);
     }
 };
 

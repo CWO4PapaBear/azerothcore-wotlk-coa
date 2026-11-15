@@ -437,7 +437,10 @@ void Spell::EffectAscensionRefreshAura(SpellEffIndex effIndex)
     if (!target || !effect.MiscValue)
         return;
 
-    Aura* aura = target->GetAura(effect.MiscValue);
+    // Each slot names one Corruption variant. Refresh only this player's application.
+    Aura* aura = m_spellInfo->Id == 47422 && AscensionFreePick::Applies(m_caster->ToPlayer())
+        ? target->GetAuraOfRankedSpell(effect.MiscValue, m_caster->GetGUID())
+        : target->GetAura(effect.MiscValue);
     if (!aura)
         return;
 
@@ -6707,6 +6710,17 @@ void Spell::SummonGuardian(uint32 i, uint32 entry, SummonPropertiesEntry const* 
         if (!summon)
             return;
 
+        if (AscensionFreePick::Applies(caster->ToPlayer()) &&
+            ((m_spellInfo->Id == 34433 && entry == 19668) || (m_spellInfo->Id == 46585 && entry == 26125)))
+        {
+            std::list<Creature*> siblings;
+            caster->GetAllMinionsByEntry(siblings, entry);
+            for (Creature* previous : siblings)
+                if (previous != summon && !previous->IsPet() &&
+                    previous->GetUInt32Value(UNIT_CREATED_BY_SPELL) == m_spellInfo->Id)
+                    previous->ToTempSummon()->UnSummon();
+        }
+
         // xinef: set calculated level
         summon->SetLevel(summonLevel);
 
@@ -6732,6 +6746,21 @@ void Spell::SummonGuardian(uint32 i, uint32 entry, SummonPropertiesEntry const* 
 
         if (properties && properties->Category == SUMMON_CATEGORY_ALLY)
             summon->SetFaction(caster->GetFaction());
+
+        if (m_spellInfo->Id == 81280 && entry == 375036 && AscensionFreePick::Applies(caster->ToPlayer()))
+        {
+            summon->SetReactState(REACT_AGGRESSIVE);
+            if (!summon->GetVictim())
+            {
+                Unit* target = caster->GetVictim();
+                if (!target || !summon->CanStartAttack(target))
+                    target = summon->SelectNearestTargetInAttackDistance(MAX_AGGRO_RADIUS);
+                if (target && caster->IsValidAttackTarget(target) &&
+                    (!target->IsPlayer() || !target->IsPvP() || caster->IsPvP()))
+                    summon->AI()->AttackStart(target);
+            }
+        }
+
 
         ExecuteLogEffectSummonObject(i, summon);
     }

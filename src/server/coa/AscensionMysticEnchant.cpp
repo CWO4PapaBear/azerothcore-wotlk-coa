@@ -1,5 +1,12 @@
+#include "Area52FeaturedPets.h"
+#include "Area52DraftPet.h"
+#include "Area52DraftVanity.h"
+#include "Area52WorldforgedCatalog.h"
+#include "Area52Worldforged.h"
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 #include "AscensionMysticEnchantCatalog.h"
+#include "Area52BuildProtocol.h"
+#include "Area52ActiveBuild.h"
 #include "AscensionMysticSpellGrants.h"
 #include "AscensionFreePick.h"
 #include "AscensionCompatOpcodes.h"
@@ -10,12 +17,15 @@
 #include "DBCStores.h"
 #include "GameObject.h"
 #include "Item.h"
+#include "Mail.h"
+#include "MailMgr.h"
 #include "LootMgr.h"
 #include "Random.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "ScriptMgr.h"
+#include "SpellScriptLoader.h"
 #include "SpellAuraEffects.h"
 #include "SpellAuras.h"
 #include "SpellInfo.h"
@@ -36,6 +46,7 @@
 using namespace Acore::ChatCommands;
 
 bool HasArea52EpicEquipmentHandlers(uint32 spell);
+bool HasArea52WhiteWalkerHandlers(uint32 spell);
 bool HasArea52HopliteHandlers(uint32 spell);
 
 extern pAuraEffectHandler AuraEffectHandler[TOTAL_AURAS];
@@ -70,6 +81,8 @@ extern pEffect SpellEffects[TOTAL_SPELL_EFFECTS];
 #include "Area52HopliteSupport.inc"
 #include "Area52HopliteRemaining.inc"
 
+namespace { void ClearInvalidDefiasBuffs(Player* player); }
+
 namespace AscensionMysticEnchant
 {
 namespace
@@ -78,17 +91,20 @@ Catalog Data;
 std::map<std::uint32_t, std::uint32_t> Connected;
 bool Active = false;
 std::set<std::uint32_t> TestAccess;
-void AddTestAccess(std::set<std::uint32_t>& known)
+std::set<std::uint32_t> TestAccessExcludedAccounts;
+void AddTestAccess(Player* player, std::set<std::uint32_t>& known)
 {
-    known.insert(TestAccess.begin(), TestAccess.end());
+    if (player && player->GetSession())
+        AddVerifiedTestAccess(known, TestAccess, TestAccessExcludedAccounts, player->GetSession()->GetAccountId());
 }
 std::atomic<std::uint64_t> NextGeneration{0};
 constexpr char StateKey[] = "coa.freepick.mystic";
 constexpr std::array<std::uint32_t, 6> Prices = {0, 0, 300000, 600000, 1000000, 2500000};
-constexpr std::array<std::uint32_t, 6> Tokens = {0, 0, 500, 1000, 2500, 5000};
+constexpr std::array<std::uint32_t, 6> Tokens = {0, 0, 250, 500, 1000, 2000};
 struct State : DataMap::Base
 {
     std::set<std::uint32_t> Known;
+    std::set<std::uint32_t> DraftEntitlement;
     std::set<std::uint32_t> Applied;
     std::uint64_t Generation = ++NextGeneration;
     bool Loaded = false;
@@ -275,14 +291,36 @@ bool NearAltar(Player* player)
     return false;
 }
 
+bool ValidateOwnedSlots(State const& state, Slots const& slots, std::uint32_t level)
+{
+    if (state.DraftEntitlement.empty())
+        return ValidateSlots(Data, slots, level, state.Known, Connected);
+    auto owned = state.DraftEntitlement;
+    for (auto spell : slots)
+        if (state.Known.contains(spell))
+            owned.insert(spell);
+    return ValidateSlots(Data, slots, level, owned, Connected);
+}
+
 void Synchronize(Player* player)
 {
     auto* state = player->CustomData.Get<State>(StateKey);
     if (!state || !state->Loaded || !player->IsInWorld())
         return;
     std::map<std::uint32_t, std::uint32_t> wanted;
-    auto const slots = ReadSlots(player);
-    if (Applies(player) && player->IsAlive() && ValidateSlots(Data, slots, player->GetLevel(), state->Known, Connected))
+    auto slots = ReadSlots(player);
+    auto arranged = slots;
+    if (Applies(player) && player->IsAlive() && ArrangeSlots(Data, arranged) && arranged != slots &&
+        ValidateOwnedSlots(*state, arranged, player->GetLevel()))
+    {
+        auto const setting = Setting(player);
+        for (std::uint32_t i = 0; i < arranged.size(); ++i)
+            player->UpdatePlayerSetting(setting, i, arranged[i]);
+        slots = arranged;
+        player->SaveToDB(false, false);
+        SendSlots(player);
+    }
+    if (Applies(player) && player->IsAlive() && ValidateOwnedSlots(*state, slots, player->GetLevel()))
         for (auto spell : slots)
             if (spell && InvestmentMet(player, Data.BySpell.at(spell), false) &&
                 InvestmentMet(player, Data.BySpell.at(spell), true))
@@ -302,16 +340,25 @@ void Synchronize(Player* player)
             state->Applied.insert(spell);
         }
     }
+    if (Applies(player) && !state->Applied.contains(982743))
+        player->RemoveAurasDueToSpell(982745, player->GetGUID());
+    if (Applies(player) && !state->Applied.contains(997115))
+        for (uint32 helper : {997412u, 997539u, 984509u})
+            player->RemoveAurasDueToSpell(helper, player->GetGUID());
+
     for (auto const& grant : SpellGrants)
     {
         bool const enabled = GrantsActive(player, grant.Enchant) &&
+            ((grant.Enchant != 997115 && grant.Enchant != 997047) || state->Applied.contains(grant.Enchant)) &&
+            ((grant.Enchant != 982330 && grant.Enchant != 997047) || player->HasSpell(grant.Requires)) &&
+            (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
             (grant.Enchant != 81248 || player->HasActiveSpell(33831)) && GrantRequirementMet(player, grant.Requires);
         std::set<std::uint32_t> visited;
         for (auto rank = grant.Spell; rank && visited.insert(rank).second;
-            rank = sSpellMgr->GetNextSpellInChain(rank))
+            rank = (grant.Enchant == 997220 || grant.Enchant == 982330 || grant.Enchant == 997047) ? 0 : sSpellMgr->GetNextSpellInChain(rank))
         {
             SpellInfo const* info = sSpellMgr->GetSpellInfo(rank);
-            bool const rankDue = grant.Enchant == 979740 && grant.Spell == 826679 ?
+            bool const rankDue = (grant.Enchant == 982743 || (grant.Enchant == 979740 && grant.Spell == 826679)) ?
                 info && GrantRankDue(rank == grant.Spell, player->HasSpell(rank), info->SpellLevel, player->GetLevel()) :
                 rank == grant.Spell || player->HasSpell(rank);
             SetGrantedSpell(player, grant.Enchant, rank, enabled && info &&
@@ -357,7 +404,7 @@ void Load(Player* player)
                     if (Data.BySpell.contains(spell))
                         current->Known.insert(spell);
                 } while (result->NextRow());
-            AddTestAccess(current->Known);
+            AddTestAccess(owner, current->Known);
             if (!current->Loaded)
                 for (auto const& [spell, entry] : Data.BySpell)
                     if (auto const* aura = owner->GetAura(spell, owner->GetGUID()))
@@ -394,25 +441,24 @@ bool Equip(Player* player, Slots const& wanted, bool administrator,
         return reject("RE_COLLECTION_REFORGE_DISABLED");
     auto const before = ReadSlots(player);
     if (before == wanted)
-        return true;
+        return ValidateOwnedSlots(*state, wanted, player->GetLevel());
+    if (!administrator && Area52Build::IsFeaturedDraft(player))
+        return Area52Build::BeforeManualDraftChange(player);
+
     if (!administrator && !NearAltar(player))
         return reject("RE_COLLECTION_REFORGE_NO_MYSTIC_ALTAR");
     if (!IsRemovalOnly(before, wanted))
     {
         for (auto spell : wanted)
-            if (spell && !state->Known.contains(spell))
+            if (spell && !state->Known.contains(spell) && !state->DraftEntitlement.contains(spell))
                 return reject("RE_COLLECTION_REFORGE_NOT_KNOWN_ENCHANTMENT");
-        if (!ValidateSlots(Data, wanted, player->GetLevel(), state->Known, Connected))
+        if (!ValidateOwnedSlots(*state, wanted, player->GetLevel()))
             return reject("RE_COLLECTION_REFORGE_BAD_ENCHANTMENT");
         std::uint32_t worldforged = 0;
         for (auto spell : wanted)
             if (spell)
             {
                 auto const& entry = Data.BySpell.at(spell);
-                if (!InvestmentMet(player, entry, false))
-                    return reject("RE_COLLECTION_REFORGE_REQUIRED_AE_INVESTMENT");
-                if (!InvestmentMet(player, entry, true))
-                    return reject("RE_COLLECTION_REFORGE_REQUIRED_TE_INVESTMENT");
                 worldforged += entry.Worldforged && entry.Quality == 3;
             }
         if (worldforged > 3)
@@ -446,11 +492,12 @@ bool Equip(Player* player, Slots const& wanted, bool administrator,
         player->UpdatePlayerSetting(setting, i, wanted[i]);
     Synchronize(player);
     player->SaveToDB(false, false);
-    for (std::uint32_t i = 0; i < wanted.size(); ++i)
-        if (wanted[i] != before[i])
+    auto const equipped = ReadSlots(player);
+    for (std::uint32_t i = 0; i < equipped.size(); ++i)
+        if (equipped[i] != before[i])
         {
             WorldPacket update(0x5FE, 8);
-            update << i << wanted[i];
+            update << i << equipped[i];
             player->GetSession()->SendPacket(&update);
         }
     return true;
@@ -477,7 +524,8 @@ bool Handle(WorldSession* session, WorldPacket const& incoming)
         if (packet.size() == 4 && CanChange(player, state))
         {
             auto const preset = packet.read<std::uint32_t>(0);
-            if (preset < PresetCount(player))
+            if (preset < PresetCount(player) && (preset == ActivePreset(player)
+                || Area52Build::BeforeManualDraftChange(player)))
             {
                 player->UpdatePlayerSetting(ActivePresetSetting, 0, preset);
                 Synchronize(player);
@@ -582,6 +630,23 @@ bool HasSpiritualAttunementHandler(uint32 spell)
     return found;
 }
 
+bool HasBlessingOfEternalsHandler(uint32 spell)
+{
+    auto const* info = spell == 951554 ? sSpellMgr->GetSpellInfo(spell) : nullptr;
+    if (!info || info->Effects[EFFECT_0].ApplyAuraName != SPELL_AURA_MOD_SPELL_CRIT_CHANCE_SCHOOL ||
+        info->Effects[EFFECT_1].ApplyAuraName != SPELL_AURA_DUMMY || !sSpellMgr->GetSpellProcEntry(51940))
+        return false;
+    std::list<AuraScript*> scripts;
+    sScriptMgr->CreateAuraScripts(51940, scripts);
+    bool found = false;
+    for (auto* script : scripts)
+    {
+        found |= *script->_GetScriptName() == "spell_sha_earthliving_weapon";
+        delete script;
+    }
+    return found;
+}
+
 bool HasHopliteSupportHandlers(uint32 spell)
 {
     if (spell != 782246 && spell != 912326)
@@ -605,6 +670,63 @@ bool HasHopliteSupportHandlers(uint32 spell)
         delete script;
     }
     return expected.empty();
+}
+
+bool HasDefiasHandlers()
+{
+    for (uint32 helper : {997050u, 997054u, 997430u, 997429u, 997416u, 997051u})
+        if (!sSpellMgr->GetSpellInfo(helper))
+            return false;
+    uint32 script = sObjectMgr->GetScriptId("spell_area52_defias_weapon");
+    if (!script || !ScriptRegistry<SpellScriptLoader>::GetScriptById(script))
+        return false;
+    for (auto const& grant : SpellGrants)
+        if (grant.Enchant == 997047)
+        {
+            auto [first, last] = sObjectMgr->GetSpellScriptsBounds(grant.Spell);
+            if (!sSpellMgr->GetSpellInfo(grant.Spell) ||
+                std::none_of(first, last, [script](auto const& binding) { return binding.second == script; }))
+                return false;
+        }
+    return true;
+}
+
+bool HasDarkRangerHandlers()
+{
+    for (uint32 spell : {997517u, 990236u, 997526u, 300073u, 998204u, 984510u, 984509u,
+                         997412u, 997539u, 997742u, 17941u})
+        if (!sSpellMgr->GetSpellInfo(spell))
+            return false;
+    for (auto [id, name] : {std::pair{998204u, "spell_area52_dark_ranger_artillery"},
+                            std::pair{984510u, "spell_area52_darkfall_periodic"},
+                            std::pair{997526u, "spell_area52_dark_ranger_shadow_arrow"}})
+    {
+        uint32 script = sObjectMgr->GetScriptId(name);
+        auto [first, last] = sObjectMgr->GetSpellScriptsBounds(id);
+        if (!script || !ScriptRegistry<SpellScriptLoader>::GetScriptById(script) ||
+            std::none_of(first, last, [script](auto const& binding) { return binding.second == script; }))
+            return false;
+    }
+    return true;
+}
+
+bool HasShieldFinesseHandlers()
+{
+    // This enchant reacts to casts through spell_area52_shield_tools.
+    auto hasBinding = [](uint32 spell, uint32 script)
+    {
+        auto [first, last] = sObjectMgr->GetSpellScriptsBounds(spell);
+        return script && ScriptRegistry<SpellScriptLoader>::GetScriptById(script) &&
+            std::any_of(first, last, [script](auto const& binding) { return binding.second == script; });
+    };
+    auto const tools = sObjectMgr->GetScriptId("spell_area52_shield_tools");
+    if (!sSpellMgr->GetSpellInfo(986126) || !hasBinding(986125, sObjectMgr->GetScriptId("aura_area52_bulwark_cleanup")) ||
+        !hasBinding(871, tools) || !hasBinding(2565, tools))
+        return false;
+    for (uint32 rank = 23922; rank; rank = sSpellMgr->GetNextSpellInChain(rank))
+        if (!hasBinding(rank, tools))
+            return false;
+    return true;
 }
 
 bool HasSeedOfLifeHandlers()
@@ -684,6 +806,7 @@ bool HasEpicDruidHandlers(uint32 spell)
     return found;
 }
 
+#include "Area52WorldforgedCatalog.h"
 void LoadConnections()
 {
     Active = false;
@@ -750,6 +873,43 @@ void LoadConnections()
         if (entry.Quality < 2 || entry.Quality > 5 || !info || !info->IsPassive() ||
             info->HasAttribute(SPELL_ATTR0_CU_FORCE_AURA_SAVING))
             continue;
+        if (spell == 81279 || spell == 982743)
+        {
+            if (sSpellMgr->GetSpellProcEntry(spell) &&
+                (spell == 81279 ? sObjectMgr->GetCreatureTemplate(375036) != nullptr : sSpellMgr->GetSpellInfo(982744) != nullptr))
+                Connected.emplace(spell, 1);
+            continue;
+        }
+        if (spell == 997047)
+        {
+            if (HasDefiasHandlers())
+                Connected.emplace(spell, 1);
+            continue;
+        }
+        if (spell == 997115)
+        {
+            if (HasDarkRangerHandlers())
+                Connected.emplace(spell, 1);
+            continue;
+        }
+        if (spell == 986125)
+        {
+            if (HasShieldFinesseHandlers())
+                Connected.emplace(spell, 1);
+            continue;
+        }
+        if (Area52Worldforged::Find(spell))
+        {
+            if (HasArea52EpicEquipmentHandlers(spell))
+                Connected.emplace(spell, std::max<std::uint32_t>(1, info->StackAmount));
+            continue;
+        }
+        if (spell == Area52Legendary::UnboundedDeathbringer)
+        {
+            if (HasArea52UnboundedDeathbringerHandler())
+                Connected.emplace(spell, 1);
+            continue;
+        }
         if (spell == 81248 || spell == 81501 || spell == 415012)
         {
             if (HasEpicDruidHandlers(spell))
@@ -767,6 +927,11 @@ void LoadConnections()
             Connected.emplace(spell, std::max<std::uint32_t>(1, info->StackAmount));
             continue;
         }
+        if (HasBlessingOfEternalsHandler(spell))
+        {
+            Connected.emplace(spell, std::max<std::uint32_t>(1, info->StackAmount));
+            continue;
+        }
         if (Area52LegendaryBatch::Managed(spell))
         {
             if (HasArea52LegendaryBatchHandlers(spell))
@@ -777,6 +942,11 @@ void LoadConnections()
         {
             if (HasHopliteSupportHandlers(spell))
                 Connected.emplace(spell, std::max<std::uint32_t>(1, info->StackAmount));
+            continue;
+        }
+        if (HasArea52WhiteWalkerHandlers(spell))
+        {
+            Connected.emplace(spell, std::max<std::uint32_t>(1, info->StackAmount));
             continue;
         }
         if (HasEldritchEquipmentHandlers(spell) || HasArea52EpicEquipmentHandlers(spell) ||
@@ -819,6 +989,8 @@ void RefreshTestAccess()
     {
         try
         {
+            TestAccessExcludedAccounts = ParseTestAccessExcludedAccounts(sConfigMgr->GetOption<std::string>(
+                "CoA.FreePickMysticEnchants.VerifiedTestAccessExcludedAccounts", ""));
             boost::property_tree::ptree report;
             boost::property_tree::read_json(sConfigMgr->GetOption<std::string>(
                 "CoA.FreePickMysticEnchants.VerificationFile", ""), report);
@@ -845,11 +1017,11 @@ void ClientConfig(AscensionClientConfig& config)
         {"CONFIG_MAX_RARE_RANDOM_ENCHANTS", 17}, {"CONFIG_MAX_EPIC_RANDOM_ENCHANTS", 4},
         {"CONFIG_MAX_LEGENDARY_RANDOM_ENCHANTS", 1}, {"CONFIG_MAX_ARTIFACT_RANDOM_ENCHANTS", 0}};
     values["CONFIG_MYSTIC_ENCHANT_REFORGE_TOKEN_COST"] =
-        sConfigMgr->GetOption<uint32>("CoA.FreePickMysticEnchants.ReforgeRuneCost", 250);
+        sConfigMgr->GetOption<uint32>("CoA.FreePickMysticEnchants.ReforgeRuneCost", 50);
     values["CONFIG_MYSTIC_ENCHANT_REFORGE_MONEY_COST"] =
         sConfigMgr->GetOption<uint32>("CoA.FreePickMysticEnchants.ReforgeMoneyCost", 25000);
     for (char const* quality : {"UNCOMMON", "RARE", "EPIC", "LEGENDARY", "ARTIFACT"})
-        values[std::string("CONFIG_MYSTIC_ENCHANT_EXTRACT_") + quality + "_TOKEN_COST"] = 1;
+        values[std::string("CONFIG_MYSTIC_ENCHANT_EXTRACT_") + quality + "_TOKEN_COST"] = 0;
     constexpr std::array<char const*, 4> names = {"UNCOMMON", "RARE", "EPIC", "LEGENDARY"};
     for (std::size_t i = 0; i < names.size(); ++i)
     {
@@ -953,6 +1125,12 @@ class spell_freepick_ancient_altar_scroll : public SpellScript
     }
 };
 
+bool IsRangedEnchantPrerequisite(uint32 spell)
+{
+    uint32 first = sSpellMgr->GetFirstSpellInChain(spell);
+    return first == 689 || first == 172 || first == 686 || first == 1752 || first == 2643;
+}
+
 class MysticPlayer final : public PlayerScript
 {
 public:
@@ -962,7 +1140,8 @@ public:
         PLAYERHOOK_ON_FORGOT_SPELL}) { }
     void OnPlayerLearnSpell(Player* player, uint32 spell) override
     {
-        if (spell == 33831)
+        if (spell == 33831 || spell == 6117 || IsRangedEnchantPrerequisite(spell) ||
+            sSpellMgr->GetFirstSpellInChain(spell) == 14914)
             Synchronize(player);
         if (Applies(player) && std::find(AscensionFreePick::SpecializationSpells.begin(),
             AscensionFreePick::SpecializationSpells.end(), spell) != AscensionFreePick::SpecializationSpells.end())
@@ -970,19 +1149,26 @@ public:
     }
     void OnPlayerForgotSpell(Player* player, uint32 spell) override
     {
-        if (spell == 33831)
+        if (spell == 33831 || spell == 6117 || IsRangedEnchantPrerequisite(spell) ||
+            sSpellMgr->GetFirstSpellInChain(spell) == 14914)
             Synchronize(player);
     }
     void OnPlayerLogin(Player* player) override
     {
         Load(player);
+        RefreshArea52MarksmanTalentHelpers(player);
         if (Applies(player))
         {
             SendScrollProgress(player);
             SendSpecLinks(player);
         }
     }
-    void OnPlayerUpdate(Player* player, uint32) override { ProcessScrollRequests(player); }
+    void OnPlayerUpdate(Player* player, uint32) override
+    {
+        ProcessScrollRequests(player);
+        ClearInvalidDefiasBuffs(player);
+        RefreshArea52MarksmanTalentHelpers(player);
+    }
     void OnPlayerLogout(Player* player) override
     {
         std::lock_guard<std::mutex> lock(ScrollRequestLock);
@@ -1027,9 +1213,9 @@ public:
         Load(handler->GetPlayer());
         return true;
     }
-    static bool AdminEquip(ChatHandler* handler, std::uint32_t slot, std::uint32_t spell, Optional<std::string> name)
+    static bool AdminEquip(ChatHandler* handler, std::uint32_t slot, std::uint32_t spell, Optional<Tail> name)
     {
-        Player* player = name ? ObjectAccessor::FindPlayerByName(*name) : handler->GetPlayer();
+        Player* player = name ? ObjectAccessor::FindPlayerByName(std::string(*name)) : handler->GetPlayer();
         if (!Applies(player) || !slot || slot > 17)
             return false;
         auto wanted = ReadSlots(player);
@@ -1038,9 +1224,9 @@ public:
         handler->SendSysMessage(success ? "Mystic Enchant equipped." : "Mystic Enchant selection rejected.");
         return success;
     }
-    static bool Grant(ChatHandler* handler, std::uint32_t spell, Optional<std::string> name)
+    static bool Grant(ChatHandler* handler, std::uint32_t spell, Optional<Tail> name)
     {
-        Player* player = name ? ObjectAccessor::FindPlayerByName(*name) : handler->GetPlayer();
+        Player* player = name ? ObjectAccessor::FindPlayerByName(std::string(*name)) : handler->GetPlayer();
         if (!player)
             return false;
         auto* state = player->CustomData.Get<State>(StateKey);
@@ -1091,7 +1277,7 @@ bool GrantsActive(Player const* player, std::uint32_t enchant)
     return InvestmentMet(player, entry, false) && InvestmentMet(player, entry, true);
 }
 
-void SetGrantedSpell(Player* player, std::uint32_t enchant, std::uint32_t spell, bool enabled)
+void SetGrantedSpell(Player* player, std::uint32_t enchant, std::uint32_t spell, bool enabled, bool announce)
 {
     if (!player || !player->GetSession() || player->GetSession()->PlayerLogout() || !Applies(player))
         return;
@@ -1121,7 +1307,7 @@ void SetGrantedSpell(Player* player, std::uint32_t enchant, std::uint32_t spell,
         {
             std::set<std::uint32_t> const allowed = {spell};
             AscensionFreePick::SpellLearningScope scope(player, allowed);
-            player->learnSpell(spell);
+            player->learnSpell(spell, false, false, announce);
             auto const learned = player->GetSpellMap().find(spell);
             if (learned != player->GetSpellMap().end() && player->HasSpell(spell))
                 learned->second->State = PLAYERSPELL_NEW;
@@ -1129,6 +1315,264 @@ void SetGrantedSpell(Player* player, std::uint32_t enchant, std::uint32_t spell,
     }
     else if (!preserve)
         player->removeSpell(spell, SPEC_MASK_ALL, false);
+}
+
+bool DraftEquipmentReady(Player* player)
+{
+    auto const* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
+    return state && CanChange(player, state) && !player->IsNonMeleeSpellCast(false);
+}
+
+bool CanApplyDraftEnchants(Player* player, std::vector<Area52Build::Enchant> const& enchants)
+{
+    if (!DraftEquipmentReady(player))
+        return false;
+    Slots slots{};
+    std::set<std::uint32_t> owned;
+    std::size_t next = 0;
+    std::uint32_t worldforged = 0;
+    for (auto const& enchant : enchants)
+    {
+        if (!enchant.Stacks || enchant.Stacks > slots.size() - next)
+            return false;
+        owned.insert(enchant.Id);
+        for (std::uint32_t i = 0; i < enchant.Stacks; ++i)
+            slots[next++] = enchant.Id;
+    }
+    if (!ArrangeSlots(Data, slots) || !ValidateSlots(Data, slots, player->GetLevel(), owned, Connected))
+        return false;
+    for (auto spell : slots)
+        if (spell)
+        {
+            auto const& entry = Data.BySpell.at(spell);
+            worldforged += entry.Worldforged && entry.Quality == 3;
+        }
+    if (worldforged > 3)
+        return false;
+    for (std::size_t i = 0; i < slots.size(); ++i)
+        for (std::size_t j = i + 1; j < slots.size(); ++j)
+            if (slots[i] && slots[j] && slots[i] != slots[j] &&
+                sSpellMgr->CheckSpellGroupStackRules(sSpellMgr->GetSpellInfo(slots[i]),
+                    sSpellMgr->GetSpellInfo(slots[j])) != SPELL_GROUP_STACK_RULE_DEFAULT)
+                return false;
+    return true;
+}
+
+bool ApplyDraftEnchants(Player* player, std::vector<Area52Build::Enchant> const& enchants)
+{
+    auto* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
+    if (!state || !CanChange(player, state))
+        return false;
+    Slots wanted{};
+    std::size_t slot = 0;
+    std::set<std::uint32_t> entitlement;
+    for (auto const& enchant : enchants)
+    {
+        if (!enchant.Stacks || enchant.Stacks > wanted.size() - slot)
+            return false;
+        entitlement.insert(enchant.Id);
+        for (std::uint32_t i = 0; i < enchant.Stacks; ++i)
+            wanted[slot++] = enchant.Id;
+    }
+    if (!ArrangeSlots(Data, wanted) || !ValidateSlots(Data, wanted, player->GetLevel(), entitlement, Connected))
+        return false;
+    auto const previous = state->DraftEntitlement;
+    state->DraftEntitlement = std::move(entitlement);
+    if (!Equip(player, wanted, true))
+    {
+        state->DraftEntitlement = previous;
+        return false;
+    }
+    Synchronize(player);
+    return true;
+}
+
+bool ClearDraftEnchants(Player* player)
+{
+    auto* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
+    if (!state || !CanChange(player, state) || !Equip(player, Slots{}, true))
+        return false;
+    state->DraftEntitlement.clear();
+    Synchronize(player);
+    return true;
+}
+
+bool ReleaseDraftEnchants(Player* player, std::uint64_t build, std::uint32_t revision)
+{
+    auto* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
+    if (!state || !CanChange(player, state) || !build || !revision)
+        return false;
+
+    // The character-wide rewarded flag can refer to a different build or revision.
+    auto claim = CharacterDatabase.Query(
+        "SELECT EXISTS(SELECT 1 FROM area52_draft_reward WHERE guid={} AND account={} AND build_id={} AND revision={})",
+        player->GetGUID().GetCounter(), player->GetSession()->GetAccountId(), build, revision);
+    if (!claim)
+        return false;
+    if (!claim->Fetch()[0].Get<std::uint32_t>())
+        return ClearDraftEnchants(player);
+
+    // Ownership must already be loaded before releasing the temporary entitlement.
+    for (auto spell : ReadSlots(player))
+        if (spell && !state->Known.contains(spell))
+            return false;
+    state->DraftEntitlement.clear();
+    Synchronize(player);
+    return true;
+}
+bool GrantDraftReward(Player* player, std::uint64_t build, std::uint32_t revision,
+    std::vector<Area52Build::Enchant> const& enchants)
+{
+    auto* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
+    if (!state || !CanChange(player, state) || !build || !revision)
+        return false;
+    std::set<std::uint32_t> spells;
+    for (auto const& enchant : enchants)
+    {
+        if (!Data.BySpell.contains(enchant.Id))
+            return false;
+        spells.insert(enchant.Id);
+    }
+    if (!Area52DraftPetRewardReady(player, build, revision))
+        return false;
+    Area52DraftAppearanceRewards appearances;
+    if (!PrepareArea52DraftVanityReward(player, build, revision, appearances))
+        return false;
+    auto const guid = player->GetGUID();
+    auto const account = player->GetSession()->GetAccountId();
+    auto const generation = state->Generation;
+    auto* session = player->GetSession();
+    auto transaction = CharacterDatabase.BeginTransaction();
+    auto* claim = CharacterDatabase.GetPreparedStatement(CHAR_INS_A52_DRAFT_REWARD_GUARDED);
+    claim->SetData(0, guid.GetCounter());
+    claim->SetData(1, account);
+    claim->SetData(2, build);
+    claim->SetData(3, revision);
+    auto const petContext = Area52Build::GetDraftVanityContext(player);
+    claim->SetData(4, Area52Build::FeaturedHunterPet(petContext.Pet, petContext.Archetype));
+    claim->SetData(5, guid.GetCounter());
+    claim->SetData(6, build);
+    claim->SetData(7, revision);
+    transaction->Append(claim);
+    auto trophy = std::make_shared<std::unique_ptr<Item>>(Item::CreateItem(1297306, 1, player));
+    if (!*trophy)
+        return false;
+    uint32 mailId = sObjectMgr->GenerateMailID();
+    uint32 itemGuid = (*trophy)->GetGUID().GetCounter();
+    uint32 now = GameTime::GetGameTime().count();
+    transaction->Append(
+        "INSERT INTO area52_build_trophy_claim (account, build_id, completion_guid, completion_revision, mail_id) "
+        "SELECT account, build_id, guid, revision, {} FROM area52_draft_reward "
+        "WHERE guid={} AND account={} AND build_id={} AND revision={} "
+        "ON DUPLICATE KEY UPDATE build_id=area52_build_trophy_claim.build_id",
+        mailId, guid.GetCounter(), account, build, revision);
+    // Item serialization and conditional delivery share the guarded completion transaction.
+    (*trophy)->SaveToDB(transaction);
+    transaction->Append("INSERT INTO mail (id,messageType,stationery,mailTemplateId,sender,receiver,subject,body,"
+        "has_items,expire_time,deliver_time,money,cod,checked) SELECT mail_id,0,{},0,0,completion_guid,"
+        "'Featured Draft completion','Your first completion of this Featured Draft earned one Build Master trophy.',"
+        "1,{},{},0,0,0 FROM area52_build_trophy_claim WHERE account={} AND build_id={} AND mail_id={}",
+        uint32(MAIL_STATIONERY_GM), now + 90 * DAY, now, account, build, mailId);
+    transaction->Append("INSERT INTO mail_items (mail_id,item_guid,receiver) SELECT mail_id,{},completion_guid "
+        "FROM area52_build_trophy_claim WHERE account={} AND build_id={} AND mail_id={}", itemGuid, account, build, mailId);
+    transaction->Append("DELETE FROM item_instance WHERE guid={} AND NOT EXISTS "
+        "(SELECT 1 FROM area52_build_trophy_claim WHERE account={} AND build_id={} AND mail_id={})",
+        itemGuid, account, build, mailId);
+    for (auto spell : spells)
+    {
+        auto* grant = CharacterDatabase.GetPreparedStatement(CHAR_INS_A52_DRAFT_REWARD_ENCHANT);
+        grant->SetData(0, account);
+        grant->SetData(1, spell);
+        grant->SetData(2, guid.GetCounter());
+        grant->SetData(3, account);
+        grant->SetData(4, build);
+        grant->SetData(5, revision);
+        transaction->Append(grant);
+    }
+    auto* petReward = CharacterDatabase.GetPreparedStatement(CHAR_UPD_A52_DRAFT_PET_REWARD);
+    petReward->SetData(0, guid.GetCounter());
+    petReward->SetData(1, build);
+    petReward->SetData(2, revision);
+    petReward->SetData(3, account);
+    transaction->Append(petReward);
+    for (auto const& [appearance, item] : appearances)
+    {
+        auto* grant = CharacterDatabase.GetPreparedStatement(CHAR_INS_A52_DRAFT_REWARD_APPEARANCE);
+        grant->SetData(0, account);
+        grant->SetData(1, appearance);
+        grant->SetData(2, item);
+        grant->SetData(3, guid.GetCounter());
+        grant->SetData(4, account);
+        grant->SetData(5, build);
+        grant->SetData(6, revision);
+        transaction->Append(grant);
+    }
+    state->Busy = true;
+    session->AddTransactionCallback(CharacterDatabase.AsyncCommitTransaction(transaction)).AfterComplete(
+        [session, guid, account, generation, build, revision, spells, appearances, mailId, trophy, now](bool success)
+        {
+            auto* owner = session->GetPlayer();
+            auto* current = owner && owner->GetGUID() == guid ? owner->CustomData.Get<State>(StateKey) : nullptr;
+            if (!current || current->Generation != generation)
+                return;
+            if (!success)
+            {
+                current->Busy = false;
+                return;
+            }
+            if (CharacterDatabase.Query("SELECT 1 FROM area52_build_trophy_claim WHERE mail_id={}", mailId))
+            {
+                sMailMgr->OnMailSent(guid.GetCounter());
+                auto letter = std::make_unique<Mail>();
+                letter->messageID = mailId;
+                letter->messageType = MAIL_NORMAL;
+                letter->stationery = MAIL_STATIONERY_GM;
+                letter->receiver = guid.GetCounter();
+                letter->subject = "Featured Draft completion";
+                letter->body = "Your first completion of this Featured Draft earned one Build Master trophy.";
+                letter->deliver_time = now;
+                letter->expire_time = now + 90 * DAY;
+                letter->state = MAIL_STATE_UNCHANGED;
+                letter->AddItem((*trophy)->GetGUID().GetCounter(), (*trophy)->GetEntry());
+                owner->AddNewMailDeliverTime(now);
+                if (!owner->GetMail(mailId))
+                    owner->AddMail(letter.release());
+                if (!owner->GetMItem((*trophy)->GetGUID().GetCounter()))
+                    owner->AddMItem(trophy->release());
+            }
+            auto* query = CharacterDatabase.GetPreparedStatement(CHAR_SEL_A52_DRAFT_REWARD);
+            query->SetData(0, guid.GetCounter());
+            query->SetData(1, account);
+            session->GetQueryProcessor().AddCallback(CharacterDatabase.AsyncQuery(query).WithPreparedCallback(
+                [session, guid, generation, build, revision, spells, appearances](PreparedQueryResult result)
+                {
+                    auto* player = session->GetPlayer();
+                    auto* state = player && player->GetGUID() == guid
+                        ? player->CustomData.Get<State>(StateKey) : nullptr;
+                    if (!state || state->Generation != generation)
+                        return;
+                    state->Busy = false;
+                    if (!result)
+                        return;
+                    if (result->Fetch()[0].Get<std::uint64_t>() == build
+                        && result->Fetch()[1].Get<std::uint32_t>() == revision)
+                    {
+                        state->Known.insert(spells.begin(), spells.end());
+                        SendKnown(player, *state);
+                        ConfirmArea52DraftVanityReward(player, appearances);
+                        ConfirmArea52DraftPetReward(player, build, revision);
+                    }
+                    player->UpdatePlayerSetting("core.area52.draft_progress", 1, 1);
+                    player->SaveToDB(false, false);
+                }));
+        });
+    return true;
+}
+
+bool CollectionLoaded(Player* player)
+{
+    auto const* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
+    return state && state->Loaded;
 }
 
 void RefreshEquipped(Player* player)
@@ -1140,18 +1584,31 @@ float NonstackingCostCorrection(Unit const* caster, std::uint32_t schoolMask)
 {
     if (!Active)
         return 0.0f;
+    uint32 const primarySchool = 1u << GetFirstSchoolInMask(SpellSchoolMask(schoolMask));
     AuraEffect const* athletic = caster->GetAuraEffect(84561, EFFECT_0);
-    if (!athletic || athletic->GetAmount() >= 0 || athletic->GetAuraType() != SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT ||
-        !(athletic->GetMiscValue() & schoolMask))
+    AuraEffect const* shadows = caster->GetAuraEffect(84562, EFFECT_0);
+    auto matches = [](AuraEffect const* effect, uint32 mask)
+    {
+        return effect && effect->GetAuraType() == SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT &&
+            effect->GetAmount() < 0 && (effect->GetMiscValue() & mask);
+    };
+    if (!matches(athletic, primarySchool) && !matches(shadows, schoolMask))
         return 0.0f;
+
     int32 sum = 0;
     int32 strongest = 0;
     for (AuraEffect const* effect : caster->GetAuraEffectsByType(SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT))
     {
-        if (effect->GetAmount() >= 0 || !(effect->GetMiscValue() & schoolMask) || !Data.BySpell.contains(effect->GetId()))
+        if (!Data.BySpell.contains(effect->GetId()))
             continue;
-        sum += effect->GetAmount();
-        strongest = std::min(strongest, effect->GetAmount());
+        // The normal cost field already contains modifiers for the primary school.
+        if (matches(effect, primarySchool))
+        {
+            sum += effect->GetAmount();
+            strongest = std::min(strongest, effect->GetAmount());
+        }
+        else if (effect == shadows && matches(effect, schoolMask))
+            strongest = std::min(strongest, effect->GetAmount());
     }
     return float(strongest - sum) / 100.0f;
 }
@@ -1342,8 +1799,512 @@ public:
     }
 };
 
+class area52_dark_arrows : public AllSpellScript
+{
+public:
+    area52_dark_arrows() : AllSpellScript("area52_dark_arrows",
+        {ALLSPELLHOOK_ON_BEFORE_EFFECTS, ALLSPELLHOOK_ON_HIT_RESULT}) { }
+
+    // Preserve eligibility from launch through missile travel.
+    enum : uint32 { OldBoltCharge = 0xDA520001, Spent = 0xDA520002 };
+
+    void OnSpellBeforeEffects(Spell* spell, Unit* caster, SpellInfo const* info) override
+    {
+        Player* player = caster ? caster->ToPlayer() : nullptr;
+        if (!AscensionFreePick::Applies(player) || !player->HasAura(997115) || spell->IsTriggered())
+            return;
+        bool bolt = player->MatchesSpellInteraction(info->Id, 686);
+        if (!bolt && !player->MatchesSpellInteraction(info->Id, 27243))
+            return;
+        Aura* old = player->GetAura(997412, player->GetGUID());
+        if (bolt && old && old->GetCharges())
+        {
+            spell->SetScriptValue(OldBoltCharge, 1);
+            old->ModCharges(-1);
+        }
+        if (Aura* arrows = player->AddAura(997412, player))
+            arrows->SetCharges(6);
+    }
+
+    void OnSpellHitResult(Spell* spell, Unit* target, uint8 miss, uint32, uint32, bool) override
+    {
+        Player* player = spell->GetCaster()->ToPlayer();
+        if (!AscensionFreePick::Applies(player) || !player->HasAura(997115) || spell->IsTriggered() ||
+            !target || miss != SPELL_MISS_NONE || spell->GetScriptValue(Spent))
+            return;
+        uint32 id = spell->GetSpellInfo()->Id;
+        if (!spell->GetScriptValue(OldBoltCharge))
+        {
+            if (player->MatchesSpellInteraction(id, 686) || player->MatchesSpellInteraction(id, 27243))
+                return;
+            SpellInfo const* rapid = sSpellMgr->GetSpellInfo(3045);
+            auto isShot = [rapid](SpellInfo const* info)
+            {
+                return rapid && info && info->SpellFamilyName == SPELLFAMILY_HUNTER &&
+                    bool(info->SpellFamilyFlags & rapid->Effects[EFFECT_1].SpellClassMask);
+            };
+            bool eligible = id == 997517 || id == 997526 || isShot(spell->GetSpellInfo());
+            if (!eligible)
+                for (uint32 origin : player->GetSpellInteractionOrigins(id))
+                    if (origin == 997517 || origin == 997526 || isShot(sSpellMgr->GetSpellInfo(origin)))
+                    {
+                        eligible = true;
+                        break;
+                    }
+            Aura* arrows = player->GetAura(997412, player->GetGUID());
+            if (!eligible || !arrows || !arrows->GetCharges())
+                return;
+            arrows->ModCharges(-1);
+        }
+        spell->SetScriptValue(Spent, 1);
+        player->CastSpell(target, 997742, true);
+        player->CastSpell(player, 997539, true);
+    }
+};
+class spell_area52_dark_ranger_shadow_arrow : public SpellScript
+{
+    PrepareSpellScript(spell_area52_dark_ranger_shadow_arrow);
+
+    void Landed(SpellEffIndex)
+    {
+        Player* caster = GetCaster()->ToPlayer();
+        if (!AscensionFreePick::Applies(caster) || !caster->HasAura(997115) ||
+            !GetHitUnit())
+            return;
+
+        Aura* nightfall = caster->GetAura(18095, caster->GetGUID());
+        SpellProcEntry const* proc = sSpellMgr->GetSpellProcEntry(18095);
+        auto now = GameTime::SteadyNow();
+        if (!nightfall || !proc || nightfall->IsProcOnCooldown(now))
+            return;
+        nightfall->AddProcCooldown(proc, now);
+        caster->CastSpell(caster, 17941, true);
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_area52_dark_ranger_shadow_arrow::Landed, EFFECT_0, SPELL_EFFECT_WEAPON_PERCENT_DAMAGE);
+    }
+};
+class spell_area52_dark_ranger_artillery : public SpellScript
+{
+    PrepareSpellScript(spell_area52_dark_ranger_artillery);
+
+    bool Load() override
+    {
+        return AscensionFreePick::Applies(GetCaster()->ToPlayer());
+    }
+
+    SpellCastResult Check()
+    {
+        Unit* caster = GetCaster();
+        Aura* shells = caster->GetAura(997539, caster->GetGUID());
+        return caster->HasAura(997115) && shells && shells->GetStackAmount() >= 3
+            ? SPELL_CAST_OK : SPELL_FAILED_CASTER_AURASTATE;
+    }
+
+    void Launched()
+    {
+        Unit* caster = GetCaster();
+        if (Aura* shells = caster->GetAura(997539, caster->GetGUID()))
+            shells->ModStackAmount(-3);
+        caster->EnergizeBySpell(caster, GetSpellInfo()->Id, CalculatePct(caster->GetCreateMana(), 35), POWER_MANA);
+    }
+
+    void CycleDarkfall()
+    {
+        Unit* caster = GetCaster();
+        Aura* previous = caster->GetAura(984509, caster->GetGUID());
+        if (previous)
+            if (AuraEffect* bonus = previous->GetEffect(EFFECT_0))
+                GetSpell()->SetScriptValue(AscensionFreePick::DarkfallDamageKey, bonus->GetAmount());
+        if (previous && previous->GetStackAmount() >= 3)
+            previous->Remove();
+        else
+            caster->AddAura(984509, caster);
+    }
+
+    void Register() override
+    {
+        OnCheckCast += SpellCheckCastFn(spell_area52_dark_ranger_artillery::Check);
+        OnCast += SpellCastFn(spell_area52_dark_ranger_artillery::Launched);
+        OnCast += SpellCastFn(spell_area52_dark_ranger_artillery::CycleDarkfall);
+    }
+};
+
+class spell_area52_darkfall_periodic : public SpellScript
+{
+    PrepareSpellScript(spell_area52_darkfall_periodic);
+
+    void SnapshotTick()
+    {
+        int32 const bonus = GetSpellValue()->EffectBasePoints[EFFECT_2] - GetSpellInfo()->Effects[EFFECT_2].CalcBaseValue(0);
+        if (!AscensionFreePick::Applies(GetCaster()->ToPlayer()) || bonus <= 0)
+            return;
+        if (Aura* aura = GetHitAura())
+            if (AuraEffect* tick = aura->GetEffect(EFFECT_0))
+                tick->SetAmount(tick->GetAmount() + CalculatePct(tick->GetAmount(), bonus));
+    }
+
+    void Register() override
+    {
+        AfterHit += SpellHitFn(spell_area52_darkfall_periodic::SnapshotTick);
+    }
+};
+
+#include "SpellAuraEffects.h"
+
+class aura_area52_dark_arrow_mark : public AuraScript
+{
+    PrepareAuraScript(aura_area52_dark_arrow_mark);
+    void Removed(AuraEffect const*, AuraEffectHandleModes)
+    {
+        Unit* caster = GetCaster();
+        Unit* victim = GetTarget();
+        if (GetTargetApplication()->GetRemoveMode() == AURA_REMOVE_BY_DEATH &&
+            caster && AscensionFreePick::Applies(caster->ToPlayer()) && caster->HasAura(81279))
+            caster->CastSpell(victim->GetPositionX(), victim->GetPositionY(), victim->GetPositionZ(), 81280, true);
+    }
+    void Register() override
+    {
+        AfterEffectRemove += AuraEffectRemoveFn(aura_area52_dark_arrow_mark::Removed, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
+class aura_area52_bone_arrow_charges : public AuraScript
+{
+    PrepareAuraScript(aura_area52_bone_arrow_charges);
+    void Charge(AuraEffect const*, ProcEventInfo& event)
+    {
+        PreventDefaultAction();
+        Unit* owner = GetTarget();
+        if (!AscensionFreePick::Applies(owner->ToPlayer()) || event.GetActor() != owner ||
+            !event.GetDamageInfo() || !event.GetDamageInfo()->GetDamage())
+            return;
+        Aura* old = owner->GetAura(982745, owner->GetGUID());
+        uint8 next = old ? std::min<uint32>(3, old->GetCharges() + 1) : 1;
+        if (Aura* charge = owner->AddAura(982745, owner))
+            charge->SetCharges(next);
+    }
+    void Register() override
+    {
+        OnEffectProc += AuraEffectProcFn(aura_area52_bone_arrow_charges::Charge, EFFECT_1, SPELL_AURA_PROC_TRIGGER_SPELL);
+    }
+};
+
+class spell_area52_bone_arrow : public SpellScript
+{
+    PrepareSpellScript(spell_area52_bone_arrow);
+    bool Load() override { return AscensionFreePick::Applies(GetCaster()->ToPlayer()); }
+    SpellCastResult Check()
+    {
+        Unit* caster = GetCaster();
+        Aura* charges = caster->GetAura(982745, caster->GetGUID());
+        return caster->HasAura(982743) && charges && charges->GetCharges() ? SPELL_CAST_OK : SPELL_FAILED_CASTER_AURASTATE;
+    }
+    void Spend()
+    {
+        if (Aura* charges = GetCaster()->GetAura(982745, GetCaster()->GetGUID()))
+            charges->ModCharges(-1);
+    }
+    void Register() override
+    {
+        OnCheckCast += SpellCheckCastFn(spell_area52_bone_arrow::Check);
+        OnCast += SpellCastFn(spell_area52_bone_arrow::Spend);
+    }
+};
+
+class area52_bone_arrow_rapid_killing : public AllSpellScript
+{
+public:
+    area52_bone_arrow_rapid_killing() : AllSpellScript("area52_bone_arrow_rapid_killing", {ALLSPELLHOOK_ON_HIT_RESULT}) { }
+    void OnSpellHitResult(Spell* spell, Unit*, uint8 miss, uint32 damage, uint32, bool) override
+    {
+        Player* player = spell->GetCaster()->ToPlayer();
+        if (miss != SPELL_MISS_NONE || !damage || !AscensionFreePick::Applies(player) ||
+            !player->HasAura(982743) || sSpellMgr->GetFirstSpellInChain(spell->GetSpellInfo()->Id) != 982744 ||
+            player->HasSpellCooldown(901080))
+            return;
+        for (uint32 talent : {834949u, 34949u, 34948u})
+            if (player->GetAura(talent, player->GetGUID()))
+            {
+                SpellInfo const* buff = sSpellMgr->GetSpellInfo(talent == 834949 ? 835099 : talent == 34949 ? 35099 : 35098);
+                if (!buff)
+                    return;
+                CustomSpellValues values;
+                values.AddSpellMod(SPELLVALUE_BASE_POINT0, buff->Effects[EFFECT_0].CalcValue(player) / 2);
+                values.AddSpellMod(SPELLVALUE_AURA_DURATION, buff->GetDuration() / 2);
+                if (player->CastCustomSpell(901090, values, player, TRIGGERED_FULL_MASK) == SPELL_CAST_OK)
+                    player->AddSpellCooldown(901080, 0, 10 * IN_MILLISECONDS);
+                return;
+            }
+    }
+};
+
+
+class spell_area52_dark_ranger_auto_shot : public SpellScript
+{
+    PrepareSpellScript(spell_area52_dark_ranger_auto_shot);
+
+    void StartAutoShot()
+    {
+        Player* player = GetCaster()->ToPlayer();
+        Unit* target = GetExplTargetUnit();
+        uint32 const enchant = sSpellMgr->GetFirstSpellInChain(GetSpellInfo()->Id) == 982744 ? 982743 : 997115;
+        if (!AscensionFreePick::Applies(player) || !player->HasAura(enchant) ||
+            !player->HasSpell(75) || !target || !player->IsValidAttackTarget(target))
+            return;
+        Spell* current = player->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL);
+        if (current && current->GetSpellInfo()->Id == 75 &&
+            current->m_targets.GetUnitTargetGUID() == target->GetGUID())
+            return;
+        player->CastSpell(target, 75, false);
+    }
+
+    void Register() override
+    {
+        AfterCast += SpellCastFn(spell_area52_dark_ranger_auto_shot::StartAutoShot);
+    }
+};
+
+namespace
+{
+bool DefiasWeaponReady(Player* player)
+{
+    if (!player || !AscensionFreePick::Applies(player) || !player->HasAura(997047) ||
+        player->GetShapeshiftForm() != FORM_NONE ||
+        player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
+        return false;
+    Item const* main = player->GetWeaponForAttack(BASE_ATTACK, true);
+    if (!main)
+        return false;
+    uint32 type = main->GetTemplate()->InventoryType;
+    return type == INVTYPE_WEAPON || type == INVTYPE_WEAPONMAINHAND;
+}
+
+bool IsDefiasPistol(Player* player, uint32 id)
+{
+    return player->MatchesSpellInteraction(id, 997048) || (id >= 998100 && id <= 998110);
+}
+
+bool IsDefiasGrape(Player* player, uint32 id)
+{
+    return player->MatchesSpellInteraction(id, 997052) || id == 300191 || (id >= 300147 && id <= 300153);
+}
+
+constexpr uint32 DefiasLandedKey = 997049;
+class area52_defias_combat final : public AllSpellScript
+{
+public:
+    area52_defias_combat() : AllSpellScript("area52_defias_combat",
+        {ALLSPELLHOOK_ON_BEFORE_EFFECTS, ALLSPELLHOOK_ON_HIT_RESULT}) { }
+
+    void OnSpellBeforeEffects(Spell* spell, Unit* caster, SpellInfo const* info) override
+    {
+        Player* player = caster ? caster->ToPlayer() : nullptr;
+        if (spell->IsTriggered() || !DefiasWeaponReady(player) ||
+            (!IsDefiasPistol(player, info->Id) && !IsDefiasGrape(player, info->Id)))
+            return;
+        SpellInfo const* helper = sSpellMgr->GetSpellInfo(997416);
+        if (!helper)
+            return;
+        for (SpellEffIndex i : {EFFECT_0, EFFECT_1})
+        {
+            SpellEffectInfo const& effect = helper->Effects[i];
+            int32 delta = effect.CalcValue(player);
+            if (delta >= 0)
+                continue;
+            for (auto const& entry : player->GetSpellMap())
+                if (player->HasSpellCooldown(entry.first) &&
+                    player->MatchesSpellInteraction(entry.first, effect.MiscValue))
+                    player->ModifySpellCooldown(entry.first, -int32(std::min<uint32>(uint32(-delta), player->GetSpellCooldownDelay(entry.first))));
+        }
+    }
+
+    void OnSpellHitResult(Spell* spell, Unit* target, uint8 miss, uint32, uint32, bool) override
+    {
+        Player* player = spell->GetCaster()->ToPlayer();
+        if (spell->IsTriggered() || miss != SPELL_MISS_NONE || !target ||
+            spell->GetScriptValue(DefiasLandedKey) || !DefiasWeaponReady(player) || target != spell->m_targets.GetUnitTarget())
+            return;
+        uint32 id = spell->GetSpellInfo()->Id;
+        if (IsDefiasPistol(player, id))
+        {
+            spell->SetScriptValue(DefiasLandedKey, 1);
+            player->CastSpell(player, 997050, true);
+            player->CastSpell(player, 997054, true);
+        }
+        else if (player->MatchesSpellInteraction(id, 1495) && player->GetAura(997054, player->GetGUID()))
+        {
+            spell->SetScriptValue(DefiasLandedKey, 1);
+            player->RemoveAurasDueToSpell(997054, player->GetGUID());
+            player->CastSpell(target, 997430, true);
+        }
+    }
+};
+}
+
+
+namespace
+{
+void ClearInvalidDefiasBuffs(Player* player)
+{
+    if (!AscensionFreePick::Applies(player))
+        return;
+    auto guid = player->GetGUID();
+    if ((!player->GetAura(997050, guid) && !player->GetAura(997054, guid)) || DefiasWeaponReady(player))
+        return;
+    player->RemoveAurasDueToSpell(997050, guid);
+    player->RemoveAurasDueToSpell(997054, guid);
+}
+}
+
+
+
+class spell_area52_defias_weapon final : public SpellScript
+{
+    PrepareSpellScript(spell_area52_defias_weapon);
+    bool Load() override { return AscensionFreePick::Applies(GetCaster()->ToPlayer()); }
+    SpellCastResult Check()
+    {
+        return DefiasWeaponReady(GetCaster()->ToPlayer()) ? SPELL_CAST_OK : SPELL_FAILED_CASTER_AURASTATE;
+    }
+    void Register() override
+    {
+        OnCheckCast += SpellCheckCastFn(spell_area52_defias_weapon::Check);
+    }
+};
+
+std::int32_t AscensionMysticEnchant::DefiasGlobalCooldownDelta(Player* player, std::uint32_t spell)
+{
+    if (!DefiasWeaponReady(player) || !player->MatchesSpellInteraction(spell, 1495))
+        return 0;
+    SpellInfo const* tactics = sSpellMgr->GetSpellInfo(997051);
+    return tactics ? tactics->Effects[EFFECT_1].CalcValue(player) : 0;
+}
+bool AscensionMysticEnchant::DefiasPistolProcEligible(Player* player, std::uint32_t spellId)
+{
+    return DefiasWeaponReady(player) && IsDefiasPistol(player, spellId);
+}
+bool AscensionMysticEnchant::DefiasGrapeShotEligible(Player* player, std::uint32_t spellId)
+{
+    return DefiasWeaponReady(player) && IsDefiasGrape(player, spellId);
+}
+
+#include "CellImpl.h"
+#include "GridNotifiersImpl.h"
+class aura_area52_frenzied_cleave : public AuraScript
+{
+    PrepareAuraScript(aura_area52_frenzied_cleave);
+
+    bool Validate(SpellInfo const*) override { return ValidateSpellInfo({954584}); }
+
+    bool Load() override
+    {
+        return AscensionFreePick::Applies(GetCaster() ? GetCaster()->ToPlayer() : nullptr);
+    }
+
+    void Cleave(AuraEffect const* effect, ProcEventInfo& event)
+    {
+        PreventDefaultAction();
+        Unit* pet = GetTarget();
+        DamageInfo* hit = event.GetDamageInfo();
+        if (!hit || !hit->GetDamage() || hit->GetSpellInfo() || event.GetActor() != pet ||
+            !(event.GetTypeMask() & PROC_FLAG_DONE_MELEE_AUTO_ATTACK) ||
+            !GetCaster() || GetCaster()->GetGuardianPet() != pet)
+            return;
+
+        std::list<Unit*> nearby;
+        Acore::AnyUnfriendlyNoTotemUnitInObjectRangeCheck check(pet, pet, NOMINAL_MELEE_RANGE);
+        Acore::UnitListSearcher<Acore::AnyUnfriendlyNoTotemUnitInObjectRangeCheck> search(pet, nearby, check);
+        Cell::VisitObjects(pet, search, NOMINAL_MELEE_RANGE);
+        nearby.remove_if([&](Unit* unit)
+        {
+            return unit == hit->GetVictim() || !pet->IsValidAttackTarget(unit) || !pet->IsWithinLOSInMap(unit);
+        });
+        Acore::Containers::RandomResize(nearby, 5);
+        std::vector<ObjectGuid> targets;
+        for (Unit* unit : nearby)
+            targets.push_back(unit->GetGUID());
+
+        CustomSpellValues values;
+        values.AddSpellMod(SPELLVALUE_BASE_POINT0, hit->GetUnmitigatedDamage());
+        values.AddSpellMod(SPELLVALUE_FORCED_CRIT_RESULT, int32(event.GetHitMask() & PROC_EX_CRITICAL_HIT));
+        for (ObjectGuid guid : targets)
+            if (Unit* unit = ObjectAccessor::GetUnit(*pet, guid))
+                pet->CastCustomSpell(954584, values, unit, TRIGGERED_FULL_MASK, nullptr, effect);
+    }
+
+    void Register() override
+    {
+        OnEffectProc += AuraEffectProcFn(aura_area52_frenzied_cleave::Cleave, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
+    }
+};
+
+class spell_area52_void_eruption : public SpellScript
+{
+    PrepareSpellScript(spell_area52_void_eruption);
+
+    bool Validate(SpellInfo const*) override
+    {
+        return ValidateSpellInfo({589, 760185, 760186});
+    }
+
+    bool Load() override
+    {
+        return AscensionFreePick::Applies(GetCaster()->ToPlayer());
+    }
+
+    void Landed(SpellEffIndex)
+    {
+        Player* caster = GetCaster()->ToPlayer();
+        Unit* enemy = GetHitUnit();
+        if (!enemy || !caster->IsValidAttackTarget(enemy))
+            return;
+
+        // The default launch effect has already granted this cast's personal buff.
+        if (Aura* buff = caster->GetAura(760185, caster->GetGUID()))
+        {
+            int32 extension = sSpellMgr->GetSpellInfo(760186)->Effects[EFFECT_0].CalcValue();
+            buff->SetDuration(buff->GetDuration() + extension);
+        }
+
+        // The original tooltip exposes Worgen Form only with the Wildcard rune.
+        if (caster->GetShapeshiftForm() != FORM_SHADOW &&
+            !(caster->HasSpell(973827) && caster->GetShapeshiftForm() == FORM_CAT &&
+              (caster->HasAura(275737) || caster->HasAura(982807) || caster->HasAura(1575492))))
+            return;
+
+        for (uint32 rank = sSpellMgr->GetLastSpellInChain(589); rank; rank = sSpellMgr->GetPrevSpellInChain(rank))
+            if (caster->HasActiveSpell(rank))
+            {
+                // Apply to the already-hit target, preserving aura immunities and caster ownership.
+                caster->AddAura(rank, enemy);
+                break;
+            }
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_area52_void_eruption::Landed, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+    }
+};
+
 void AddSC_AscensionMysticEnchant()
 {
+    new area52_defias_combat();
+    RegisterSpellScript(spell_area52_defias_weapon);
+    RegisterSpellScript(aura_area52_dark_arrow_mark);
+    RegisterSpellScript(aura_area52_bone_arrow_charges);
+    RegisterSpellScript(spell_area52_dark_ranger_auto_shot);
+    RegisterSpellScript(aura_area52_frenzied_cleave);
+    RegisterSpellScript(spell_area52_void_eruption);
+    RegisterSpellScript(spell_area52_bone_arrow);
+    new area52_bone_arrow_rapid_killing();
+    new area52_dark_arrows();
+    RegisterSpellScript(spell_area52_dark_ranger_shadow_arrow);
+    RegisterSpellScript(spell_area52_dark_ranger_artillery);
+    RegisterSpellScript(spell_area52_darkfall_periodic);
     RegisterSpellScript(spell_area52_everliving_swiftmend);
     RegisterSpellScript(aura_area52_everliving);
     RegisterSpellScript(aura_area52_everliving_stacks);
@@ -1371,6 +2332,7 @@ void AddSC_AscensionMysticEnchant()
     RegisterSpellScript(aura_area52_siegebreaker_collision);
     new area52_dependency_damage();
     new area52_dependency_metadata();
+    new area52_improved_sprint();
     new area52_dependency_casts();
     RegisterSpellScript(spell_area52_corrupted_bear_instant);
     new area52_corrupted_bear_casts();
@@ -1392,7 +2354,6 @@ void AddSC_AscensionMysticEnchant()
     RegisterSpellScript(spell_area52_compound_power);
     RegisterSpellScript(spell_area52_compound_power_slice_and_dice);
     RegisterSpellScript(spell_area52_sniper);
-    RegisterSpellScript(aura_area52_archetype_cleanup);
     RegisterSpellScript(spell_area52_compound_shot);
     RegisterSpellScript(aura_area52_compound_shot_recast);
     RegisterSpellScript(spell_area52_combo_shot_volley);
@@ -1405,7 +2366,9 @@ void AddSC_AscensionMysticEnchant()
     new area52_unstoppable_force();
     new area52_pr37_metadata();
     RegisterSpellScript(spell_area52_skull_crusher_cooldown);
+    RegisterSpellScript(aura_area52_archetype_cleanup);
     RegisterSpellScript(spell_area52_legendary_proc);
+    RegisterSpellScript(spell_area52_unbounded_deathbringer);
     new area52_legendary_metadata();
     new area52_cast_movement_metadata();
     RegisterSpellScript(spell_area52_purification_hit);
@@ -1448,7 +2411,7 @@ void RestoreArea52MysticSpellsForLogin(Player* player, PreparedQueryResult resul
             known.insert(result->Fetch()[0].Get<std::uint32_t>());
         } while (result->NextRow());
     auto const slots = ReadSlots(player);
-    AddTestAccess(known);
+    AddTestAccess(player, known);
     if (!ValidateSlots(Data, slots, player->GetLevel(), known, Connected))
         return;
     for (auto const& grant : SpellGrants)
@@ -1457,6 +2420,8 @@ void RestoreArea52MysticSpellsForLogin(Player* player, PreparedQueryResult resul
             auto const& entry = Data.BySpell.at(grant.Enchant);
             if (InvestmentMet(player, entry, false) && InvestmentMet(player, entry, true) &&
                 (grant.Enchant != 978724 || player->HasSpell(2565)) &&
+                ((grant.Enchant != 982330 && grant.Enchant != 997047) || player->HasSpell(grant.Requires)) &&
+            (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
                 (grant.Enchant != 81248 || player->HasActiveSpell(33831)) &&
                 GrantRequirementMet(player, grant.Requires))
                 SetGrantedSpell(player, grant.Enchant, grant.Spell, true);
@@ -1470,4 +2435,16 @@ void RestoreArea52MysticSpellsForLogin(Player* player, PreparedQueryResult resul
         if (InvestmentMet(player, entry, false) && InvestmentMet(player, entry, true))
             player->AddAura(enchant, player);
     }
+}
+
+void Area52Worldforged::RefreshAccess()
+{
+    AscensionMysticEnchant::LoadConnections();
+    AscensionMysticEnchant::RefreshTestAccess();
+}
+
+bool Area52Worldforged::OwnerReady(Player* player)
+{
+    auto state = player ? player->CustomData.Get<AscensionMysticEnchant::State>(AscensionMysticEnchant::StateKey) : nullptr;
+    return state && state->Loaded;
 }

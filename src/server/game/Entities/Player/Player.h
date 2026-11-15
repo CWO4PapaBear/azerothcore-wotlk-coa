@@ -1818,6 +1818,9 @@ public:
     void SetTemporarySpellReplacement(uint32 original, uint32 replacement);
     [[nodiscard]] uint32 GetTemporarySpellReplacement(uint32 original) const;
     [[nodiscard]] std::vector<uint32> GetSpellInteractionOrigins(uint32 spellId) const;
+    GuidSet const& GetSoulHarvestTargets() const { return m_soulHarvestTargets; }
+    void TrackSoulHarvestTarget(ObjectGuid guid) { m_soulHarvestTargets.insert(guid); }
+    void ForgetSoulHarvestTarget(ObjectGuid guid) { m_soulHarvestTargets.erase(guid); }
     [[nodiscard]] bool MatchesSpellInteraction(uint32 spellId, uint32 original) const;
     [[nodiscard]] bool CanUseTwoHandWithShield(ItemTemplate const* main, ItemTemplate const* off) const;
     [[nodiscard]] float GetMeleeAbilityRangeBonus() const;
@@ -2088,6 +2091,12 @@ public:
     void SendAttackSwingDeadTarget();
     void SendAttackSwingNotInRange();
     void SendAttackSwingBadFacingAttack();
+    void UpdateAutoShotFromDamage(Unit* victim, bool directAttack);
+    void SendDamageAutoShotState();
+    void EndDamageAutoShot();
+    void CancelDamageAutoShot(std::string const& sequence);
+    uint32 AutoShotCancelGeneration() const { return m_autoShotCancelGeneration; }
+    void SuppressDamageAutoShot() { ++m_autoShotCancelGeneration; m_autoShotManuallyStopped = true; }
     void SendAutoRepeatCancel(Unit* target);
     void SendExplorationExperience(uint32 Area, uint32 Experience);
 
@@ -2723,6 +2732,7 @@ public:
     uint32 m_pendingSpectatorForBG;
     uint32 m_pendingSpectatorInviteInstanceId;
     GuidSet m_receivedSpectatorResetFor;
+    GuidSet m_soulHarvestTargets;
 
     // Dancing Rune weapon
     void setRuneWeaponGUID(ObjectGuid guid) { m_drwGUID = guid; };
@@ -3184,6 +3194,10 @@ private:
     bool _expectingChangeTransport;
     uint32 _pendingFlightChangeCounter;
     uint32 _mapChangeOrderCounter;
+    uint32 m_autoShotSequence = 0;
+    uint32 m_autoShotCancelGeneration = 0;
+    bool m_damageAutoShotActive = false;
+    bool m_autoShotManuallyStopped = false;
 };
 
 void AddItemsSetItem(Player* player, Item* item);
