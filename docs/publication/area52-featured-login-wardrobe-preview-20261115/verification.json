@@ -1,0 +1,22 @@
+{
+  "server": {
+    "server_sha256": "1036b15ea3f3cd32825b5d30716dbd1c8f1b5d056fcaa35d33d1d3aba79e95a9",
+    "baseline_sha256": "f6976258ecff5d5d06ede8d32ad17b6b11aecc8d33b574bc853dec2dd7d2322a",
+    "build": "2aad318bf073e8028fec062c4d9d701547e54cebc483c8b9d71aa2f22ac33461",
+    "regression": "eee6fec64c9280f98d2bae35f7ec0a1d2822c290468bd62589714347a8f6c59b"
+  },
+  "archive": {
+    "changed": [
+      "Interface\\AddOns\\Ascension_AppearanceUI\\AppearanceModelMixin.lua",
+      "Interface\\AddOns\\Ascension_AppearanceUI\\AppearanceUI.xml",
+      "Interface\\AddOns\\Ascension_AppearanceUI\\AppearancePlayerModelMixin.lua"
+    ],
+    "preserved": 72,
+    "before": "11e352e2d618c36429f0e5f8f800f6c28d6378f541b8982011d297e56475247d",
+    "after": "91d3d2d808cb810e8212b7ebf64ad72c85c673fd601a3308a794573cabec4bbe"
+  },
+  "reports": {
+    "server-check": "9bc03594efe5b6cc0c016e04f0bf6628a8fcad1c28477406c104c13f20143944",
+    "preview-check": "e2d46a436d5033df695e3be92e94402a16218000f246ab003daa7d78e65f4fd7"
+  }
+}
