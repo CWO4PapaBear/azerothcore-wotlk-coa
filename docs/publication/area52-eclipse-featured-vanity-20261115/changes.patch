@@ -1,0 +1,314 @@
+--- a/src/server/coa/AscensionMysticSpellGrants.h
++++ b/src/server/coa/AscensionMysticSpellGrants.h
+@@ -13,7 +13,21 @@
+     std::uint32_t Requires = 0;
+     std::uint32_t Replaces = 0;
+ };
+-inline constexpr std::array<SpellGrant, 64> SpellGrants = {{
++inline constexpr std::array<SpellGrant, 78> SpellGrants = {{
++    {977831, 977832, 8921},
++    {977831, 977834, 8924},
++    {977831, 977835, 8925},
++    {977831, 977836, 8926},
++    {977831, 977837, 8927},
++    {977831, 977838, 8928},
++    {977831, 977839, 8929},
++    {977831, 977840, 9833},
++    {977831, 977841, 9834},
++    {977831, 977842, 9835},
++    {977831, 977843, 26987},
++    {977831, 977844, 26988},
++    {977831, 977845, 48462},
++    {977831, 977846, 48463},
+     {982330, 982331, 686},
+     {982330, 982332, 695},
+     {982330, 982333, 705},
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -350,12 +350,12 @@
+     {
+         bool const enabled = GrantsActive(player, grant.Enchant) &&
+             ((grant.Enchant != 997115 && grant.Enchant != 997047) || state->Applied.contains(grant.Enchant)) &&
+-            ((grant.Enchant != 982330 && grant.Enchant != 997047) || player->HasSpell(grant.Requires)) &&
++            ((grant.Enchant != 977831 && grant.Enchant != 982330 && grant.Enchant != 997047) || player->HasSpell(grant.Requires)) &&
+             (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
+             (grant.Enchant != 81248 || player->HasActiveSpell(33831)) && GrantRequirementMet(player, grant.Requires);
+         std::set<std::uint32_t> visited;
+         for (auto rank = grant.Spell; rank && visited.insert(rank).second;
+-            rank = (grant.Enchant == 997220 || grant.Enchant == 982330 || grant.Enchant == 997047) ? 0 : sSpellMgr->GetNextSpellInChain(rank))
++            rank = (grant.Enchant == 977831 || grant.Enchant == 997220 || grant.Enchant == 982330 || grant.Enchant == 997047) ? 0 : sSpellMgr->GetNextSpellInChain(rank))
+         {
+             SpellInfo const* info = sSpellMgr->GetSpellInfo(rank);
+             bool const rankDue = (grant.Enchant == 982743 || (grant.Enchant == 979740 && grant.Spell == 826679)) ?
+@@ -892,6 +892,28 @@
+                 Connected.emplace(spell, 1);
+             continue;
+         }
++        if (spell == 81214)
++        {
++            auto bound = [](uint32 id, char const* name)
++            {
++                auto script = sObjectMgr->GetScriptId(name);
++                auto [begin, end] = sObjectMgr->GetSpellScriptsBounds(id);
++                return script && ScriptRegistry<SpellScriptLoader>::GetScriptById(script) &&
++                    std::any_of(begin, end, [script](auto const& row) { return row.second == script; });
++            };
++            if (sSpellMgr->GetSpellProcEntry(spell) && sSpellMgr->GetSpellInfo(760198) &&
++                sSpellMgr->GetSpellInfo(983846) && sSpellMgr->GetSpellInfo(983848) &&
++                bound(spell, "aura_area52_new_moon") && bound(983848, "spell_area52_waxing_moon_explosion"))
++                Connected.emplace(spell, 1);
++            continue;
++        }
++        if (spell == 977782)
++        {
++            if (sSpellMgr->GetSpellInfo(48517) && sSpellMgr->GetSpellInfo(48518) &&
++                sSpellMgr->GetSpellInfo(5570) && sSpellMgr->GetSpellInfo(8921))
++                Connected.emplace(spell, 1);
++            continue;
++        }
+         if (spell == 986125)
+         {
+             if (HasShieldFinesseHandlers())
+@@ -1141,7 +1163,7 @@
+     void OnPlayerLearnSpell(Player* player, uint32 spell) override
+     {
+         if (spell == 33831 || spell == 6117 || IsRangedEnchantPrerequisite(spell) ||
+-            sSpellMgr->GetFirstSpellInChain(spell) == 14914)
++            (sSpellMgr->GetFirstSpellInChain(spell) == 14914 || sSpellMgr->GetFirstSpellInChain(spell) == 8921))
+             Synchronize(player);
+         if (Applies(player) && std::find(AscensionFreePick::SpecializationSpells.begin(),
+             AscensionFreePick::SpecializationSpells.end(), spell) != AscensionFreePick::SpecializationSpells.end())
+@@ -1150,7 +1172,7 @@
+     void OnPlayerForgotSpell(Player* player, uint32 spell) override
+     {
+         if (spell == 33831 || spell == 6117 || IsRangedEnchantPrerequisite(spell) ||
+-            sSpellMgr->GetFirstSpellInChain(spell) == 14914)
++            (sSpellMgr->GetFirstSpellInChain(spell) == 14914 || sSpellMgr->GetFirstSpellInChain(spell) == 8921))
+             Synchronize(player);
+     }
+     void OnPlayerLogin(Player* player) override
+@@ -2420,7 +2442,7 @@
+             auto const& entry = Data.BySpell.at(grant.Enchant);
+             if (InvestmentMet(player, entry, false) && InvestmentMet(player, entry, true) &&
+                 (grant.Enchant != 978724 || player->HasSpell(2565)) &&
+-                ((grant.Enchant != 982330 && grant.Enchant != 997047) || player->HasSpell(grant.Requires)) &&
++                ((grant.Enchant != 977831 && grant.Enchant != 982330 && grant.Enchant != 997047) || player->HasSpell(grant.Requires)) &&
+             (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
+                 (grant.Enchant != 81248 || player->HasActiveSpell(33831)) &&
+                 GrantRequirementMet(player, grant.Requires))
+--- a/src/server/game/Spells/Auras/SpellAuraEffects.cpp
++++ b/src/server/game/Spells/Auras/SpellAuraEffects.cpp
+@@ -6730,7 +6730,18 @@
+ 
+     // calculate crit chance
+     bool crit = false;
+-    if ((crit = roll_chance_f(GetCritChance())))
++    float tickCritChance = GetCritChance();
++    if (caster && AscensionFreePick::Applies(caster->ToPlayer()) && caster->HasAura(977782))
++    {
++        uint32 const root = m_spellInfo->GetFirstRankSpell()->Id;
++        if ((root == 5570 && caster->HasAura(48517)) || (root == 8921 && caster->HasAura(48518)))
++        {
++            AddPct(damage, target->GetTypeId() == TYPEID_PLAYER ? 10 : 50);
++            float done = caster->SpellDoneCritChance(target, m_spellInfo, m_spellInfo->GetSchoolMask(), BASE_ATTACK, true);
++            tickCritChance = target->SpellTakenCritChance(caster, m_spellInfo, m_spellInfo->GetSchoolMask(), done, BASE_ATTACK, true);
++        }
++    }
++    if ((crit = roll_chance_f(tickCritChance)))
+     {
+         uint32 const beforeCritical = damage;
+         damage = Unit::SpellCriticalDamageBonus(caster, m_spellInfo, damage + uint32(std::max(0.0f, agilityDamage)), target);
+--- a/src/server/coa/AscensionTalentDataProcs.cpp
++++ b/src/server/coa/AscensionTalentDataProcs.cpp
+@@ -9,6 +9,7 @@
+ #include "SpellInfo.h"
+ #include "SpellMgr.h"
+ #include "SpellScript.h"
++#include "Spell.h"
+ #include "Unit.h"
+ #include <algorithm>
+ #include <iterator>
+@@ -105,6 +106,122 @@
+ 
+     Milliseconds _solarReady = 0ms;
+     Milliseconds _lunarReady = 0ms;
++};
++
++class aura_area52_new_moon : public AuraScript
++{
++    PrepareAuraScript(aura_area52_new_moon);
++
++    bool Validate(SpellInfo const*) override
++    {
++        return ValidateSpellInfo({8921, 760198, 983846, 983848});
++    }
++
++    void Proc(ProcEventInfo& event)
++    {
++        PreventDefaultAction();
++        auto* caster = GetTarget()->ToPlayer();
++        auto* target = event.GetActionTarget();
++        auto* damage = event.GetDamageInfo();
++        auto* info = event.GetSpellInfo();
++        if (!AscensionFreePick::Applies(caster) || !target || event.GetActor() != caster ||
++            !info || !damage || !damage->GetDamage() || info->Id == 983848)
++            return;
++        bool const moonfire = info->GetFirstRankSpell()->Id == 8921;
++        if (event.GetTypeMask() & PROC_FLAG_DONE_PERIODIC)
++        {
++            if (moonfire)
++                caster->CastSpell(caster, 760198, true);
++            return;
++        }
++        if (moonfire)
++        {
++            Aura* waxing = caster->GetAura(983846, caster->GetGUID());
++            if (waxing && waxing->GetStackAmount() >= 5)
++            {
++                waxing->Remove();
++                caster->CastCustomSpell(983848, SPELLVALUE_MAX_TARGETS, 6, target, true);
++            }
++        }
++        auto* cast = event.GetProcSpell();
++        if (!cast || cast->GetCastTime() <= 0)
++            return;
++        if (Aura* dot = target->GetAuraOfRankedSpell(8921, caster->GetGUID()))
++        {
++            int32 duration = dot->GetDuration();
++            if (duration > 0 && duration <= INT32_MAX - 3000)
++            {
++                dot->SetMaxDuration(std::max(dot->GetMaxDuration(), duration + 3000));
++                dot->SetDuration(duration + 3000);
++                caster->CastSpell(caster, 983846, true);
++            }
++        }
++    }
++
++    void Register() override { OnProc += AuraProcFn(aura_area52_new_moon::Proc); }
++};
++
++class spell_area52_waxing_moon_explosion : public SpellScript
++{
++    PrepareSpellScript(spell_area52_waxing_moon_explosion);
++
++    void Select(std::list<WorldObject*>& targets)
++    {
++        auto* primary = GetExplTargetUnit();
++        if (!primary || std::find(targets.begin(), targets.end(), primary) == targets.end())
++            return;
++        targets.remove(primary);
++        while (targets.size() > 5)
++            targets.pop_back();
++        targets.push_front(primary);
++    }
++
++    void Register() override
++    {
++        OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_area52_waxing_moon_explosion::Select,
++            EFFECT_0, TARGET_UNIT_DEST_AREA_ENEMY);
++    }
++};
++
++class aura_area52_total_eclipse_bonus : public AuraScript
++{
++    PrepareAuraScript(aura_area52_total_eclipse_bonus);
++
++    bool Validate(SpellInfo const*) override
++    {
++        return ValidateSpellInfo({965282, SPELL_ECLIPSE_SOLAR, SPELL_ECLIPSE_LUNAR, 986116, 986117});
++    }
++
++    void Refresh(bool applying)
++    {
++        Unit* owner = GetTarget();
++        if (!AscensionFreePick::Applies(owner->ToPlayer()))
++            return;
++        for (auto [phase, helper] : {std::pair<uint32,uint32>{SPELL_ECLIPSE_SOLAR, 986117},
++                                     {SPELL_ECLIPSE_LUNAR, 986116}})
++        {
++            uint32 const changed = GetId();
++            if (changed != 965282 && changed != phase)
++                continue;
++            bool const equipped = changed == 965282 ? applying : owner->HasAura(965282);
++            bool const active = changed == phase ? applying : owner->HasAura(phase);
++            if (equipped && active)
++            {
++                if (!owner->HasAura(helper, owner->GetGUID()))
++                    owner->CastSpell(owner, helper, true);
++            }
++            else
++                owner->RemoveAurasDueToSpell(helper, owner->GetGUID());
++        }
++    }
++
++    void Gain(AuraEffect const*, AuraEffectHandleModes) { Refresh(true); }
++    void Lose(AuraEffect const*, AuraEffectHandleModes) { Refresh(false); }
++    void Register() override
++    {
++        AfterEffectApply += AuraEffectApplyFn(aura_area52_total_eclipse_bonus::Gain, EFFECT_0, SPELL_AURA_ANY, AURA_EFFECT_HANDLE_REAL);
++        AfterEffectRemove += AuraEffectRemoveFn(aura_area52_total_eclipse_bonus::Lose, EFFECT_0, SPELL_AURA_ANY, AURA_EFFECT_HANDLE_REAL);
++    }
+ };
+ 
+ class aura_area52_total_eclipse_window : public AuraScript
+@@ -227,6 +344,9 @@
+ {
+     RegisterSpellScript(aura_ascension_eclipse);
+     RegisterSpellScript(aura_ascension_revitalize);
++    RegisterSpellScript(aura_area52_total_eclipse_bonus);
+     RegisterSpellScript(aura_area52_total_eclipse_window);
++    RegisterSpellScript(aura_area52_new_moon);
++    RegisterSpellScript(spell_area52_waxing_moon_explosion);
+     RegisterSpellScript(spell_area52_total_eclipse_hit);
+ }
+--- a/src/server/game/Entities/Unit/Unit.cpp
++++ b/src/server/game/Entities/Unit/Unit.cpp
+@@ -10364,7 +10364,7 @@
+         {
+             uint32 const id = effect->GetId();
+             bool const reviewed = (id >= 887000 && id <= 887090) || IsAdventureModeDamageDoneAura(id) ||
+-                (id == Area52HopliteRemaining::HungerBuff && AscensionFreePick::Applies(ToPlayer()));
++                ((id == 986116 || id == Area52HopliteRemaining::HungerBuff) && AscensionFreePick::Applies(ToPlayer()));
+             return reviewed && (effect->GetMiscValue() & schoolMask);
+         });
+ }
+@@ -10381,7 +10381,7 @@
+         {
+             bool const hunger = effect->GetId() == Area52HopliteRemaining::HungerBuff &&
+                 AscensionFreePick::Applies(ToPlayer());
+-            return (hunger || IsAscensionPvpTuningAura(effect->GetId())) && (effect->GetMiscValue() & schoolMask);
++            return (hunger || (effect->GetId() == 986116 && AscensionFreePick::Applies(ToPlayer())) || IsAscensionPvpTuningAura(effect->GetId())) && (effect->GetMiscValue() & schoolMask);
+         });
+ }
+ 
+@@ -10424,6 +10424,30 @@
+             return (effect->GetMiscValue() & spellProto->GetSchoolMask()) &&
+                 IsAscensionTuningDamageTakenSource(effect, caster, this);
+         });
++    if (Player* player = caster ? caster->ToPlayer() : nullptr;
++        AscensionFreePick::Applies(player) && player->HasAura(957849) &&
++        (spellProto->GetSchoolMask() & (SPELL_SCHOOL_MASK_NATURE | SPELL_SCHOOL_MASK_ARCANE)))
++    {
++        auto const school = spellProto->GetSchoolMask();
++        auto const& dots = GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
++        bool const eligible = std::any_of(dots.begin(), dots.end(), [&](AuraEffect const* effect)
++        {
++            if (effect->GetCasterGUID() != player->GetGUID())
++                return false;
++            return ((school & SPELL_SCHOOL_MASK_NATURE) && player->MatchesSpellInteraction(effect->GetId(), 5570)) ||
++                   ((school & SPELL_SCHOOL_MASK_ARCANE) && player->MatchesSpellInteraction(effect->GetId(), 8921));
++        });
++        if (eligible)
++            if (AuraEffect const* bonus = player->GetAuraEffect(957849, EFFECT_0))
++                AddPct(TakenTotalMod, bonus->GetAmount());
++    }
++    if (Player* player = caster ? caster->ToPlayer() : nullptr;
++        AscensionFreePick::Applies(player) && player->HasAura(965282) &&
++        (player->MatchesSpellInteraction(spellProto->Id, 5570) ||
++         player->MatchesSpellInteraction(spellProto->Id, 8921) ||
++         (spellProto->SpellFamilyName == SPELLFAMILY_DRUID && (spellProto->SpellFamilyFlags[1] & 0x800000))))
++        if (AuraEffect const* bonus = player->GetAuraEffect(965282, IsCharmedOwnedByPlayerOrPlayer() ? EFFECT_0 : EFFECT_1))
++            AddPct(TakenTotalMod, bonus->GetAmount());
+     TakenTotalMod *= GetHealthBasedDamageTakenMultiplier();
+     if (AscensionFreePick::Applies(ToPlayer()) && HasAura(71) && caster &&
+         caster->IsCharmedOwnedByPlayerOrPlayer())
