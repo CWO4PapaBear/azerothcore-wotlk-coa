@@ -1,0 +1,60 @@
+{
+  "source": "https://wago.tools/api/casc/{fileDataID}",
+  "build": "unversioned response",
+  "files": [
+    {
+      "fileDataID": 1239941,
+      "file": "vsnightmareancient.m2",
+      "size": 681976,
+      "sha256": "ffbfdda7d120e597b1a0e79e327a71ea9907552706b9c1e532d9172d11dc8618"
+    },
+    {
+      "fileDataID": 1239948,
+      "file": "1239948.skin",
+      "size": 48800,
+      "sha256": "55a26360f94f61e604bbaa650203edf112da5a61d401e88abcfa05908154bafd"
+    },
+    {
+      "fileDataID": 1239947,
+      "file": "1239947.skin",
+      "size": 49024,
+      "sha256": "fb02e3f8135287354c91ec114ef922d53a4003608ebe7962c3d3bb0238316127"
+    },
+    {
+      "fileDataID": 1239942,
+      "file": "1239942.blp",
+      "size": 350724,
+      "sha256": "49381ca52aa6fe8343b5985c5ecf84c1e2a1fb12f4de315aca61ce5a262f1afe"
+    },
+    {
+      "fileDataID": 1239943,
+      "file": "1239943.blp",
+      "size": 3916,
+      "sha256": "b1bb3e5b572250e0d5f03a2c5cb8d3c10e25f6ff77fc2e1fe8be8ca6e6c2a835"
+    },
+    {
+      "fileDataID": 1239944,
+      "file": "1239944.blp",
+      "size": 350724,
+      "sha256": "d244ed937387278105f530f52c7a8cf1c27964dbc892668deb452687a2068ab2"
+    },
+    {
+      "fileDataID": 1239945,
+      "file": "1239945.blp",
+      "size": 350724,
+      "sha256": "5c0c3f53e982c6d87d42f01d60e718273329e81fe40bbfa04e68a8b353ab69b9"
+    },
+    {
+      "fileDataID": 1239946,
+      "file": "1239946.blp",
+      "size": 88580,
+      "sha256": "343816235a6d04e39d90fe657066cb0b7e14754a2028b1ab1dbcc0835964f17f"
+    },
+    {
+      "fileDataID": 1375938,
+      "file": "1375938.blp",
+      "size": 23044,
+      "sha256": "a51847d8f2616c5004afbc6c30dbf61c0626a92bd4ac8770bcc9e81fa6a12be0"
+    }
+  ]
+}

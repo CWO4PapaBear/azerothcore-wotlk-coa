@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "before": "2fa24b9a1f41ab0eeaf88f37af4408242a41e09b7fd35827778ead304825fc5a",
+  "after": "c415bf17409b7d0f4e462d16bf8923dece405cb515cca0d3af7f66d1d3634635",
+  "public_before": "9b4545bf1f3f14e19fe4ac55dd23a181e66339be432afaa4356dd6370f490b24",
+  "catalog_delta": [
+    "DBFilesClient\\CharacterCreationArchetypeDetails.dbc",
+    "Interface\\GlueXML\\CharacterCreate.lua",
+    "DBFilesClient\\ItemSet.dbc",
+    "DBFilesClient\\VanityCollection.dbc"
+  ],
+  "members": 74,
+  "changed": [
+    "Interface\\AddOns\\Ascension_AppearanceUI\\AppearanceModelMixin.lua",
+    "Interface\\AddOns\\Ascension_AppearanceUI\\AppearancePlayerModelMixin.lua",
+    "creature\\vsancient\\vsnightmareancient.m2",
+    "creature\\vsancient\\vsnightmareancient00.skin",
+    "creature\\vsancient\\vsnightmareancient01.skin",
+    "creature\\vsancient\\tree47640\\armorreflect_hard.blp",
+    "creature\\vsancient\\tree47640\\fog_ground01.blp",
+    "creature\\vsancient\\tree47640\\vsnightmareancient1.blp",
+    "creature\\vsancient\\tree47640\\vsnightmareancient2.blp",
+    "creature\\vsancient\\tree47640\\vsnightmareancientglow1.blp",
+    "creature\\vsancient\\tree47640\\vsnightmareancientglow2.blp"
+  ]
+}
