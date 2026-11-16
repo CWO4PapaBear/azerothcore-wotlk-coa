@@ -1,0 +1,356 @@
+{
+  "package": "area52-playerbots-startup-recovery-20261029",
+  "sql_fingerprint": "eb3006088965aa3c6d807d6125007228ba3e0b7774838292e54ee6ce41104ccf",
+  "sql": [
+    {
+      "artifact": "sql/data/sql/playerbots/base/ai_playerbot_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "f8d9756ce074099175a6a4423e96c04aa6925c2c0833708ce75a57da076c1a10"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/ai_playerbot_texts_chance.sql",
+      "database": "acore_playerbots",
+      "sha256": "6cf69c74695f3fff91947f167f1698d6cdd5a8d5de2daa98028203dea2932282"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_account_keys.sql",
+      "database": "acore_playerbots",
+      "sha256": "e35cdde22b850718639ab4442f5038cc0fb096853aae20baac87b6d5a309ea84"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_account_links.sql",
+      "database": "acore_playerbots",
+      "sha256": "9c3343d276f3d1af7dfd7c78b3530605530cbc6817852fbe9ca31ded610e8b39"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_account_type.sql",
+      "database": "acore_playerbots",
+      "sha256": "3fcd9c190213acbc566155f5259b0db6e34592c47f6320f795349222502066ee"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_custom_strategy.sql",
+      "database": "acore_playerbots",
+      "sha256": "593dbe1a4dabf7288e7240c0630964c0d37a7e1288ef985aaf9807076b6f03ca"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_db_store.sql",
+      "database": "acore_playerbots",
+      "sha256": "bcbf7e2daa2518ddadff0d4fe29c0e82a94a62989ee6a1d7785a283db11ad7af"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_dungeon_suggestion_abbrevation.sql",
+      "database": "acore_playerbots",
+      "sha256": "1ddb3ed494cbae26a38feac55922c0433d7ef5336a9933a3e2624a2f33a77fe5"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_dungeon_suggestion_definition.sql",
+      "database": "acore_playerbots",
+      "sha256": "088e3d2b2a9a053e68a44d3ffc379ade4084c768a497791732557e2d6e34c2d7"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_dungeon_suggestion_strategy.sql",
+      "database": "acore_playerbots",
+      "sha256": "03f7cc96157dc2a21c3dbf9768634fe6dae9f13c288ff9da950f2247fba1f3e9"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_enchants.sql",
+      "database": "acore_playerbots",
+      "sha256": "4d61c364208ebc2e66e97da5e50d522fcc1e7c0e123792f1a97e63717d3b8039"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_equip_cache.sql",
+      "database": "acore_playerbots",
+      "sha256": "5500b27cfa0d901ac5438b05b9a6882cc261286a746f4565152bb240f86734ba"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_guild_tasks.sql",
+      "database": "acore_playerbots",
+      "sha256": "84c010f8521c5afddb582dc6b86304e881fbe276cacaa85bd5c058f75e76ee60"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_item_info_cache.sql",
+      "database": "acore_playerbots",
+      "sha256": "d40c398f6cbfbbafdd751b133580b10768e8efa682528db26b6bf4b5b76466ae"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_preferred_mounts.sql",
+      "database": "acore_playerbots",
+      "sha256": "fbd61d48bd4b2939d30539651e52dab2f37f8595a4d7429eb426424ddd05f2e9"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_random_bots.sql",
+      "database": "acore_playerbots",
+      "sha256": "e4d8981adca3f33ea7a875e61a8a65abce0c9d0fd36abc30913ccd67ed7d8d8b"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_rarity_cache.sql",
+      "database": "acore_playerbots",
+      "sha256": "9dcbdace7bd386489b0439fe0639ff689d92fdcd766eff3a46cc0387324b9b56"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_rnditem_cache.sql",
+      "database": "acore_playerbots",
+      "sha256": "6c3b5bdc46a8edf04c694addbf03bf621882c69e2d4ee3073af78f25992f8c68"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_speech.sql",
+      "database": "acore_playerbots",
+      "sha256": "cac557be6cb9c0bf887cb421ac4b051d26fede9c28d9a926739c373a36355c11"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_speech_probability.sql",
+      "database": "acore_playerbots",
+      "sha256": "33eda298fe1b60f0570dde63cdcbf200dc05ca3c33295cdd2a2999736fc8e252"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_tele_cache.sql",
+      "database": "acore_playerbots",
+      "sha256": "6024de05040fc479cbd8cc3cfe0c184a668d03f357fb8d87507a869c8fbd7644"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_travelnode.sql",
+      "database": "acore_playerbots",
+      "sha256": "7cc36729eb05d224d93beaab38028faa2566db6012e361642658dc0c07ebb179"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_travelnode_link.sql",
+      "database": "acore_playerbots",
+      "sha256": "93cb9e3582609fe9c910fcda4c810eef2095ca6544a0b84224cd25fb13bdf916"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_travelnode_path.sql",
+      "database": "acore_playerbots",
+      "sha256": "d5100d3675bf278a9f311bbf161e587306217980146e137e06df9509e176f2cb"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_weightscale_data.sql",
+      "database": "acore_playerbots",
+      "sha256": "ed1585c50ff11d814cc9b1c4fcd2b769a43e4f511f174f52bd3601cca0390f71"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/playerbots_weightscales.sql",
+      "database": "acore_playerbots",
+      "sha256": "4c4bd99b620c7b0da851c6e0dc56b1aa915a4414f40b80f4d1f6e6925604be72"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/updates.sql",
+      "database": "acore_playerbots",
+      "sha256": "05007b1e118bedf24fff0e333c04057c48a633219802e488d828fcdece6dffed"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/updates_include.sql",
+      "database": "acore_playerbots",
+      "sha256": "55ef28a9f5aff22a26cc59824c5d56a585778424456127609128f625c8811aca"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/base/version_db_playerbots.sql",
+      "database": "acore_playerbots",
+      "sha256": "2a54b6268969178e7339ab602069072a19c27a17d9255a1e1cbc2ee712c04cbb"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2024_08_07_00.sql",
+      "database": "acore_playerbots",
+      "sha256": "6c2aeec7989b4d54743ade1681f913a43edaa63443b1acab39ace00f5e490577"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2024_11_25_00.sql",
+      "database": "acore_playerbots",
+      "sha256": "9ad4468df0bbe0b0142322699bba96f37c3e3ba9998bebcb977886402e7ba2ec"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2025_02_24_00.sql",
+      "database": "acore_playerbots",
+      "sha256": "725150d69eb8d0df1edb8e0424aaf2761691101564a241fe2669042176876fbe"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2025_03_03_00.sql",
+      "database": "acore_playerbots",
+      "sha256": "934a4d791dfbe1f1ddcbd9ac103f3651d0410a52c954e98cbe3f5d8969043855"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2025_04_26_00.sql",
+      "database": "acore_playerbots",
+      "sha256": "6daf04daf7169b97094e0934680aee49881c8c5798113811e5241a6c99956f78"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2025_05_05_00_accountlinking.sql",
+      "database": "acore_playerbots",
+      "sha256": "93e5e2ee1a625d0d81a62255c7a407eccd09e918cdf555c9ea521e0c80447cec"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2025_05_09_00.sql",
+      "database": "acore_playerbots",
+      "sha256": "7dd127d43cf24b0fe165ef77f224afb0684d476ea3be29c8642b32a812d6a315"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2025_07_01_00_account_type.sql",
+      "database": "acore_playerbots",
+      "sha256": "53ad180977fc9f6deb897d9e88e72028ae766299b8b1932743417fd422e00d1b"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2025_09_16_00.sql",
+      "database": "acore_playerbots",
+      "sha256": "58b70af243db98066084d5ab2d8e630505bd766ea209c5e86bfb88a8d4d65cc2"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2025_09_17_00_paladin_buff_reagent_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "db188a620046fef5caa0074500f8e585ce491c32986344c35e2aba5015df0dde"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2025_09_18_00_ai_playerbot_french_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "3e57e5bd53f2ad3fe79bc71149e10ab53cea8d6150c94ce2858bc2374d430cb3"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2025_09_28_00_netherspite_beam_blocker_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "febc0984fdfa03184df43e5411f949052efba5c7d7c8f76d1d04c8c0e2cbcf11"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2025_10_09_00_ai_playerbot_texts_fix.sql",
+      "database": "acore_playerbots",
+      "sha256": "e0ba712f2557711bc365333f3385fde0e783b34f436b5e9e1dd94914a32680c9"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2025_10_27_00_ai_playerbot_german_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "c16983dc65f5ed60abf666313480961f51f714d2321faf184a0561922c0c5d59"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2025_11_25_00_ai_playerbot_pet_action_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "54d6140ec7b6f0343492c30fd845d1db4340474d734b4823202f158f0e210e01"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2025_12_27_ai_playerbot_fishing_text.sql",
+      "database": "acore_playerbots",
+      "sha256": "16035604e02045df8f938281da3af8a20f8b989b5d9c947b52e758de409bfdc6"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2026_01_31_00_ai_playerbot_multi_pvp_text_variables.sql",
+      "database": "acore_playerbots",
+      "sha256": "7a7bd9896663270482b3452dc0e9b9bb8ee8e2d6b59a84efd31f37ebac7fd35b"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2026_02_13_00_ai_playerbot_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "cdfbbdad15b5ac920dd1b2a77435a4a246046348371a1376ce01b11b2bbccb62"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2026_03_14_00_ai_playerbot_wait_for_attack_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "8140a4106a547734bbdc1543368e208b8dcb0a45be69f75ba4d5185e7127dfe9"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2026_03_26_ai_playerbot_logout_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "b63388a89e0b4db5111931ec42b38c4835ea4b9bacb82c7f31f9276a95036375"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2026_03_28_00_ai_playerbot_focus_heal_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "26da7354fb0e8894a9fb6fd3954331a9d78790412f203d110234e4e7184ea01a"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2026_04_12_00_ai_playerbot_pull_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "1e54e85b0628b6b643635aba58aa7ad095b39995aef65ec8b821292422d4ff09"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2026_04_28_00_playerbots_bis_gear.sql",
+      "database": "acore_playerbots",
+      "sha256": "54730140f6f566503507539110c2d8789ca2e453fe9f31d75af5c6d531fe7c8e"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2026_04_28_01_ai_playerbot_bis_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "fe245ec17fb8ddc43702bbd08c0d70045219976474abef54d03548e206048f8a"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2026_05_08_00_ai_playerbot_rpg_status_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "f53bf552506dd575b79d4dbd4a678cbefa84fb48fac37404772e67918035fca7"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2026_05_19_00_ai_playerbot_audit_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "603b0770ed17d31cf8a790af63384f5eb48cc9566dfc309a2cd7cf744759f07e"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2026_05_22_00_ai_playerbot_send_mail_disabled_text.sql",
+      "database": "acore_playerbots",
+      "sha256": "9ae57be367d48173a159801eb40d39fc034e940ae0d7aac63686613401ed5910"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2026_06_13_00_ai_playerbot_missing_group_buff_reagent.sql",
+      "database": "acore_playerbots",
+      "sha256": "0a35ab02d755f2d7e5d91ca7ee19fbb9324f7848602958f6b88d55adef6dc4fa"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2026_06_19_00_ai_playerbot_cache_cleanup.sql",
+      "database": "acore_playerbots",
+      "sha256": "cfb5ed9ca71da7bbcdb2b48e13f4c6705fd50523fa799bfbec5b5099a555c5a1"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2026_07_05_00_ai_playerbot_korean_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "c252bbceef11f074171c6dc37e3e64144a97e50c2d21c9f0a8483230a3c539f3"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/updates/2026_07_26_00_ai_playerbot_autogear_texts.sql",
+      "database": "acore_playerbots",
+      "sha256": "ce5848824824d8ed3afbd5b018a554505835e6e271b2c40eb3b49d35fe71035f"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/custom/area52_hoplite.sql",
+      "database": "acore_playerbots",
+      "sha256": "28e5b9873cf8d888ef60c7a763624f96cfced957963306864f6c77e01f19f40f"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/custom/area52_legendary_classes.sql",
+      "database": "acore_playerbots",
+      "sha256": "eef50d8a785d1fb383fbc411ec69e2674d10dfbe62b217965f433a608aa84aef"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/custom/area52_mystic_knight.sql",
+      "database": "acore_playerbots",
+      "sha256": "c0574d10b2a09a9a5f823c61d68b4e6a1490fad60f50e92c3abdaab63c6a34b2"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/custom/area52_naturalist.sql",
+      "database": "acore_playerbots",
+      "sha256": "5e3a5f7684e6f1be8523f5c478fa83454d9b662d242a61fd62625cc25e2877c5"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/custom/area52_pilot_ownership.sql",
+      "database": "acore_playerbots",
+      "sha256": "6025748b4f798064f7b3a029081d4ce621ca37ad4ac83d87bbc844caa7595635"
+    },
+    {
+      "artifact": "sql/data/sql/playerbots/custom/zzzz_area52_library_pilot.sql",
+      "database": "acore_playerbots",
+      "sha256": "777bf204e3000d42ea08d08bcc17af19ebd828a6b821707c0cba1b92ee86f8fe"
+    },
+    {
+      "artifact": "sql/data/sql/characters/base/playerbots_arena_team_names.sql",
+      "database": "acore_characters",
+      "sha256": "c95698da81313764acd8e0c0bed7cb33526f494a0213e518c908e556ff8264fb"
+    },
+    {
+      "artifact": "sql/data/sql/characters/base/playerbots_guild_names.sql",
+      "database": "acore_characters",
+      "sha256": "cc898c89d15da98c89ebe18fb46c208d546628b54ee66ddb89751c12f37bfdc5"
+    },
+    {
+      "artifact": "sql/data/sql/characters/base/playerbots_names.sql",
+      "database": "acore_characters",
+      "sha256": "183edef3053aec99e153d39cabf36d5248a0c2a98a86d242a7b7578f4ab207a2"
+    },
+    {
+      "artifact": "sql/data/sql/world/base/playerbots_rpg_races.sql",
+      "database": "acore_world",
+      "sha256": "e140ed72c8f0734ccec472e218fe9f3ec979275be83ae0d9aa0512461ca91d80"
+    }
+  ]
+}
