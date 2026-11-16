@@ -1,0 +1,51 @@
+{
+  "acore_auth": {
+    "seed_entries": 16,
+    "live_tables": 22,
+    "replayed_tables": 22,
+    "missing_tables": [],
+    "extra_tables": [],
+    "different_common_table_definitions": [],
+    "matching_table_definitions": 22,
+    "live_only_ledger_entries": 0,
+    "fixture_only_ledger_entries": 0
+  },
+  "acore_characters": {
+    "seed_entries": 20,
+    "live_tables": 185,
+    "replayed_tables": 185,
+    "missing_tables": [],
+    "extra_tables": [],
+    "different_common_table_definitions": [],
+    "matching_table_definitions": 185,
+    "live_only_ledger_entries": 0,
+    "fixture_only_ledger_entries": 0
+  },
+  "acore_world": {
+    "seed_entries": 3027,
+    "live_tables": 356,
+    "replayed_tables": 356,
+    "missing_tables": [],
+    "extra_tables": [],
+    "different_common_table_definitions": [],
+    "matching_table_definitions": 356,
+    "live_only_ledger_entries": 0,
+    "fixture_only_ledger_entries": 0
+  },
+  "acore_playerbots": {
+    "seed_entries": 0,
+    "live_tables": 36,
+    "replayed_tables": 36,
+    "missing_tables": [],
+    "extra_tables": [],
+    "different_common_table_definitions": [],
+    "matching_table_definitions": 36,
+    "live_only_ledger_entries": 0,
+    "fixture_only_ledger_entries": 0
+  },
+  "limits": [
+    "Table definitions exclude auto-increment counters and normalize equivalent explicit utf8mb4 column character sets.",
+    "Ledger comparisons cover name, hash and state. Historical timing is pinned separately.",
+    "This check does not compare every world row or restore player progress."
+  ]
+}

@@ -1,0 +1,122 @@
+[
+  {
+    "activation": "ability-rank-repair",
+    "utc": "2026-10-05T04:00:15.652195+00:00",
+    "path": "early-world/ability-rank-repair.sql",
+    "sha256": "d549e4d6e89199d7fb3f33fb79ab5fed385c15b72822e96026b60da7eb5b1bd8"
+  },
+  {
+    "activation": "upstream-spells-20261005",
+    "utc": "2026-10-05T13:47:53+00:00",
+    "path": "early-world/upstream-spells-20261005.sql",
+    "sha256": "1a3501b8c2f56b35e9fd94777d4a0534552e5105278589461384b7348891447b"
+  },
+  {
+    "activation": "native-pets-20261005",
+    "utc": "2026-10-05T15:09:47+00:00",
+    "path": "early-world/native-pets-20261005.sql",
+    "sha256": "3dd4b782a10892b4a058f9ead3345bd1a9ca261d80fd21c223d4ebf830e9deb8"
+  },
+  {
+    "activation": "combo-victory-20261005",
+    "utc": "2026-10-05T22:58:15+00:00",
+    "path": "early-world/combo-victory-20261005.sql",
+    "sha256": "3eeae7b56b534e65374b731302c2af85a57b5026210232ab1035c39beeaf81ba"
+  },
+  {
+    "activation": "achievement-scroll-alpha-20261005",
+    "utc": "2026-10-06T04:11:03+00:00",
+    "path": "october05-mystic-scroll.sql",
+    "sha256": "424f6aea9dd7feb0b0281cb30162ce2a13072136ca40be69b9de87d9204eb13a"
+  },
+  {
+    "activation": "eldritch-knight-20261006",
+    "utc": "2026-10-06T05:03:36+00:00",
+    "path": "early-world/eldritch-knight-20261006.sql",
+    "sha256": "e68b6c39179e34da632ffae1e0e43c57ce18d5b2b33a49da119c60031df0760d"
+  },
+  {
+    "activation": "eldritch-knight-equip-20261006",
+    "utc": "2026-10-06T11:38:04+00:00",
+    "path": "early-world/eldritch-knight-20261006.sql",
+    "sha256": "e68b6c39179e34da632ffae1e0e43c57ce18d5b2b33a49da119c60031df0760d"
+  },
+  {
+    "activation": "eldritch-knight-load-20261006",
+    "utc": "2026-10-06T11:46:07+00:00",
+    "path": "early-world/eldritch-knight-20261006.sql",
+    "sha256": "e68b6c39179e34da632ffae1e0e43c57ce18d5b2b33a49da119c60031df0760d"
+  },
+  {
+    "activation": "eldritch-knight-wrath-20261006",
+    "utc": "2026-10-06T12:19:40+00:00",
+    "path": "early-world/eldritch-knight-20261006.sql",
+    "sha256": "e68b6c39179e34da632ffae1e0e43c57ce18d5b2b33a49da119c60031df0760d"
+  },
+  {
+    "activation": "mystic-knight-epics-20261006",
+    "utc": "2026-10-06T13:31:57+00:00",
+    "path": "early-world/mystic-knight-epics-20261006.sql",
+    "sha256": "053850f27be8f1295908bed0868863d55b1cd2d13a043cd808302e28ca204348"
+  },
+  {
+    "activation": "spiritual-hoplite-20261006",
+    "utc": "2026-10-06T19:02:07+00:00",
+    "path": "early-world/spiritual-hoplite-20261006.sql",
+    "sha256": "5fd3642e6a07883e2d031b09ad271a190b9e515303a47be72e824a393cfe67a0"
+  },
+  {
+    "activation": "guardian-heirlooms-20261006",
+    "utc": "2026-10-06T20:54:56+00:00",
+    "path": "early-world/guardian-heirlooms-20261006.sql",
+    "sha256": "d5c194bb5515b5d18ce380bfa7b706953e064c075f440c07d8943226ac2620be"
+  },
+  {
+    "activation": "rev_20261006_60_area52_buff_rank_alignment",
+    "utc": "2026-10-07T11:19:56.342593+00:00",
+    "path": "early-world/rev_20261006_60_area52_buff_rank_alignment.sql",
+    "sha256": "b181f44727dd505bfe14f0e9d03e6e099670af961c2098be19d92ad32d1de222"
+  },
+  {
+    "activation": "rev_20261006_61_area52_thrust_ranks",
+    "utc": "2026-10-07T11:19:56.342593+00:00",
+    "path": "early-world/rev_20261006_61_area52_thrust_ranks.sql",
+    "sha256": "8c6e8abd3d1ca9d91c06bd1e055b520c8c4b124c34fb5b9fddfbcaaf96485632"
+  },
+  {
+    "activation": "rev_20261006_62_area52_mystic_replacement_ranks",
+    "utc": "2026-10-07T11:19:56.342593+00:00",
+    "path": "early-world/rev_20261006_62_area52_mystic_replacement_ranks.sql",
+    "sha256": "295e99f1f122ad86bc8ef06336047af9b4b4a62a6e4eb22cb16d32c249ec56b4"
+  },
+  {
+    "activation": "rev_20261006_63_area52_spellblade_proc",
+    "utc": "2026-10-07T11:19:56.342593+00:00",
+    "path": "early-world/rev_20261006_63_area52_spellblade_proc.sql",
+    "sha256": "bd50a57319d7ae31bd6af640fa949cb669463b8d736db8737c27adcd7c7457f0"
+  },
+  {
+    "activation": "rev_20261006_64_area52_omen_of_clarity",
+    "utc": "2026-10-07T11:19:56.342593+00:00",
+    "path": "early-world/rev_20261006_64_area52_omen_of_clarity.sql",
+    "sha256": "aa3c3d93e2a26e1458e3d5bedf046b35d476c366ec0d33c2d64f325e31b33826"
+  },
+  {
+    "activation": "rev_20261006_65_area52_mystic_grant_ranks",
+    "utc": "2026-10-07T11:19:56.342593+00:00",
+    "path": "early-world/rev_20261006_65_area52_mystic_grant_ranks.sql",
+    "sha256": "c0e7d755fb4deaf1b4e2919a836aae4dce6f70ef14544d913e50f79345294130"
+  },
+  {
+    "activation": "rev_20261006_66_area52_clearcasting_consumption",
+    "utc": "2026-10-07T11:19:56.342593+00:00",
+    "path": "early-world/rev_20261006_66_area52_clearcasting_consumption.sql",
+    "sha256": "b7dbb3756c401a203694c480947f128df46f36a7eebddf52264b341b2c417177"
+  },
+  {
+    "activation": "rev_20261006_68_area52_second_wind_proc",
+    "utc": "2026-10-07T11:19:56.342593+00:00",
+    "path": "early-world/rev_20261006_68_area52_second_wind_proc.sql",
+    "sha256": "75e634cff95b44969d1f03979303938e8ad94316780662b98e696dde5be7f9fc"
+  }
+]
