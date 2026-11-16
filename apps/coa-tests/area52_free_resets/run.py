@@ -66,6 +66,12 @@ namespace AscensionMysticEnchant {
 }
 struct Result {const char* Status="OK"; const char* Learn="";};
 struct KnownEntry {};
+struct EmptyCatalog {} Data;
+std::vector<KnownEntry> IncludeMemberMasteries(EmptyCatalog const&, std::vector<KnownEntry> const& requested)
+{
+    assert(requested.empty());
+    return requested;
+}
 bool Applies(Player*) {return true;}
 """
     for signature in ('void ExpandGrantedSpells(', 'void ExpandBuffSources(', 'void RemoveSelectionBuffs('):
@@ -97,10 +103,10 @@ int main() {
  AscensionMysticEnchant::SpellGrants={{1,10}};
  a.aura.caster=1;p.auras={{10,&a},{12,&c}};
  RemoveSelectionBuffs(&p,{10},{});assert(p.auras.size()==2);
- assert(std::string_view(Apply(&p,{},false).Status)=="OK");
- p.combat=true;assert(std::string_view(Apply(&p,{},false).Learn)=="CA_LEARN_NOT_IN_COMBAT");p.combat=false;
- p.bg=true;assert(std::string_view(Apply(&p,{},false).Learn)=="CA_LEARN_NOT_IN_BATTLEGROUNDS");p.bg=false;
- p.arena=true;assert(std::string_view(Apply(&p,{},false).Learn)=="CA_LEARN_NOT_IN_BATTLEGROUNDS");
+ assert(std::string_view(Apply(&p,{},false,false).Status)=="OK");
+ p.combat=true;assert(std::string_view(Apply(&p,{},false,false).Learn)=="CA_LEARN_NOT_IN_COMBAT");p.combat=false;
+ p.bg=true;assert(std::string_view(Apply(&p,{},false,false).Learn)=="CA_LEARN_NOT_IN_BATTLEGROUNDS");p.bg=false;
+ p.arena=true;assert(std::string_view(Apply(&p,{},false,false).Learn)=="CA_LEARN_NOT_IN_BATTLEGROUNDS");
 }
 """
     code = '#include <string_view>\n' + code

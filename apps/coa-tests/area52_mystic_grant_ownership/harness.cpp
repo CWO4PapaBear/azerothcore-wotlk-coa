@@ -36,7 +36,7 @@ struct Player
         row.resize(std::max(row.size(), std::size_t(index + 1)));
         row[index].value = value;
     }
-    void learnSpell(uint32 spell)
+    void learnSpell(uint32 spell, bool = false, bool = false, bool = true)
     {
         ++learns;
         spells[spell] = &storage[spell];
@@ -60,34 +60,34 @@ GRANT_FUNCTION
 int main()
 {
     Player p;
-    SetGrantedSpell(&p, 1, 100, true);
+    SetGrantedSpell(&p, 1, 100, true, true);
     assert(p.HasSpell(100) && p.spells[100]->State == PLAYERSPELL_NEW);
-    SetGrantedSpell(&p, 1, 100, true);
+    SetGrantedSpell(&p, 1, 100, true, true);
     assert(p.learns == 1 && p.removes == 0);
-    SetGrantedSpell(&p, 2, 100, true);
-    SetGrantedSpell(&p, 1, 100, false);
+    SetGrantedSpell(&p, 2, 100, true, true);
+    SetGrantedSpell(&p, 1, 100, false, true);
     assert(p.HasSpell(100) && p.removes == 0);
     p.session.logout = true;
-    SetGrantedSpell(&p, 2, 100, false);
+    SetGrantedSpell(&p, 2, 100, false, true);
     assert(p.HasSpell(100) && p.removes == 0);
     p.session.logout = false;
-    SetGrantedSpell(&p, 2, 100, true);
+    SetGrantedSpell(&p, 2, 100, true, true);
     assert(p.learns == 1 && p.removes == 0);
-    SetGrantedSpell(&p, 2, 100, false);
+    SetGrantedSpell(&p, 2, 100, false, true);
     assert(!p.HasSpell(100) && p.removes == 1);
     p.learnSpell(101);
-    SetGrantedSpell(&p, 1, 101, true);
-    SetGrantedSpell(&p, 1, 101, false);
+    SetGrantedSpell(&p, 1, 101, true, true);
+    SetGrantedSpell(&p, 1, 101, false, true);
     assert(p.HasSpell(101) && p.removes == 1);
     p.learnSpell(102);
     p.spells[102]->State = PLAYERSPELL_TEMPORARY;
     unsigned const before = p.learns;
-    SetGrantedSpell(&p, 1, 102, true);
+    SetGrantedSpell(&p, 1, 102, true, true);
     assert(p.spells[102]->State == PLAYERSPELL_NEW && p.learns == before && p.removes == 1);
-    SetGrantedSpell(&p, 1, 102, false);
+    SetGrantedSpell(&p, 1, 102, false, true);
     assert(!p.HasSpell(102) && p.removes == 2);
     p.applies = false;
-    SetGrantedSpell(&p, 1, 103, true);
+    SetGrantedSpell(&p, 1, 103, true, true);
     assert(!p.HasSpell(103));
-    SetGrantedSpell(nullptr, 1, 103, true);
+    SetGrantedSpell(nullptr, 1, 103, true, true);
 }

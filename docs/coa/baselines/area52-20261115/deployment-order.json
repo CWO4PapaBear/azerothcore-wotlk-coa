@@ -1,0 +1,3120 @@
+[
+  {
+    "package": "white-walker-verification-20261014",
+    "completed": 1792108752.7099552,
+    "manifest_sha256": "b10cc1b8803f994ab3c0f9d95f5eb10e1c5c6a73d1935473029bf9c94d9cf173",
+    "apply_hooks": [
+      {
+        "path": "hooks/white_walker.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "9141d72aaefc02819e7b4c69dc597c578215426a9f226c63bd3bfc59cb2c84bb"
+      }
+    ],
+    "sql_artifacts": {
+      "source/data/sql/updates/pending_db_world/rev_20261014000000_area52_white_walker_proc.sql": "2d264ad867ea948a03e003e6a7fb9b7f9cf59550f1125aaa54f8a2ea385e75b5",
+      "source/data/sql/updates/pending_db_world/rev_20261014000001_area52_benediction.sql": "9a7313bee7a4b8b452ff0a2f2d9bc229750590110c53dc64698ac5281f35de29",
+      "source/data/sql/updates/pending_db_world/rev_20261014000002_area52_frozen_power_proc.sql": "fe39b81653e81aa6541a8c62a87e8a1959bcaba865a39d082b5d6533ed580954",
+      "source/data/sql/updates/pending_db_world/rev_20261014000003_area52_cut_to_the_chase.sql": "ddfec1aaaa4ec405e799ec385263e84d7d6bc3508f9c742fd9e5b2937950604d",
+      "source/data/sql/updates/pending_db_world/rev_20261014000004_area52_freezing_blood.sql": "e32f32147fd67c06ff4903c27fe8b8f34be1d53b0d9227a1091fe3210bf35458",
+      "source/data/sql/updates/pending_db_world/rev_20261014000005_area52_slice_and_ice_proc.sql": "29563c49458c6b94345063bdc0466c075fe87ec0fce88772c1cb9326ab9122fa",
+      "source/data/sql/updates/pending_db_world/rev_20261014000006_area52_ice_spear_availability.sql": "60aad2b4c80c7db49230b298da40d8a79bc10ecadf1dab6411421faf859e163d",
+      "source/data/sql/updates/pending_db_world/rev_20261014000007_area52_fighters_proc.sql": "90f20a1b0eebd1abf1ffa0f2fb03fcb61e5bc7ec6501d4b4838b9f8e722e3fea",
+      "source/data/sql/updates/pending_db_world/rev_20261014000008_area52_ebb_drain.sql": "53610b4670362015125345fead453b70dabe4826293e6a4fd9c10f4623f1d3ed",
+      "source/data/sql/updates/pending_db_world/rev_20261014_00_area52_honed_ice.sql": "dcd10e2535325ff4ff6fca5fb274d07ea74ad6c9f304cac1c1446119a3473e87"
+    }
+  },
+  {
+    "package": "white-walker-tooltip-correction-20261015",
+    "completed": 1792110177.5539122,
+    "manifest_sha256": "2c43b26cf37e9e43b7fa81ff6af64a2db493d7a90b3d1352fe1a518265c9d573",
+    "apply_hooks": [
+      {
+        "path": "hooks/tooltip_correction.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "6204b53d92e31cddcd129cfdf84ac80d618ad1ba69ad75d2f9546ed6719ec8c4"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "mage-talent-targeting-correction-20261015",
+    "completed": 1792124446.343983,
+    "manifest_sha256": "cad5e6f2502e02c3bc54beb58296b890c14a955105a165cea4564043cc8c5b0f",
+    "apply_hooks": [
+      {
+        "path": "hooks/tooltip_correction.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "6204b53d92e31cddcd129cfdf84ac80d618ad1ba69ad75d2f9546ed6719ec8c4"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "xp-hotspot-map-correction-20261016",
+    "completed": 1792149187.7029858,
+    "manifest_sha256": "79800bc283d3d747879c44a15fc41b45feeec8027d9b3079dcf031b1612d34d5",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "talent-rank-restoration-20261016",
+    "completed": 1792157250.2347476,
+    "manifest_sha256": "1a8f3f8d0deff261bda6caf9af5252b997b68b164ea289557a3cc3fd619409f2",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "hotspot-path-ui-correction-20261016",
+    "completed": 1792159479.2404187,
+    "manifest_sha256": "0f0d1b8ad3ef55e0208d6ce1a33c5a67a9eb07aa726a15a4fa19ecdb615e14b6",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_ui.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "3ee400ccfae5e4d6891c63921c248439e571b9a043e7eb8fc4108f2e882eb916"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "hotspot-consolidation-recovery-20261016",
+    "completed": 1792163341.0941138,
+    "manifest_sha256": "fb481d2cdaecd7472d54d5a14a298e6875e1ce97c50a03598004771d541d51dc",
+    "apply_hooks": [
+      {
+        "path": "hooks/consolidation.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "b8f28275191d2b69c1afd7dd35b3df0b1ad4537e46985ccf5775adad24f7c5a3"
+      },
+      {
+        "path": "hooks/client_ui.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "3ee400ccfae5e4d6891c63921c248439e571b9a043e7eb8fc4108f2e882eb916"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "hotspot-lightweight-perimeters-20261016",
+    "completed": 1792165593.1605892,
+    "manifest_sha256": "3fc91bccda07cedf6c6ed9a6de9105e1f5df0e029b149ed898dd0d54554178e7",
+    "apply_hooks": [
+      {
+        "path": "hooks/consolidation.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "b517d814cac27de6ae0247a2cff931b5dcd6ec5b5dba13924cdc8339eaf3d99e"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "hotspot-large-paint-20261016",
+    "completed": 1792171199.1762774,
+    "manifest_sha256": "77736d3cb1c36b69f49e03197074a3c2a3e0b4afd28b1c71f75693c92b65a40e",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_ui.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "3ee400ccfae5e4d6891c63921c248439e571b9a043e7eb8fc4108f2e882eb916"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "creature-corpse-cleanup-20261017",
+    "completed": 1792259009.5171506,
+    "manifest_sha256": "69d7bf524917054914925dca5a51034b7d4f5edf4e24b0c404a00a447046f8d3",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "riposte-verification-20261017",
+    "completed": 1792279232.1075234,
+    "manifest_sha256": "a9f9a60e3e37dd4acc8894fed2b863d11a6915c98e8f5e1033ca11baf454474e",
+    "apply_hooks": [
+      {
+        "path": "hooks/slow_group.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "bc2dfd59b84e9666f06ab825d169b8aad788440e94559bb39f3419fdff85534a"
+      }
+    ],
+    "sql_artifacts": {
+      "source/data/sql/updates/pending_db_world/rev_20261017000000_riposte_slow_group.sql": "18c4eb598b345d8db7e7adaf577c9dc02df35f84be295f765e9fe0a9e6dec409"
+    }
+  },
+  {
+    "package": "ghostly-blow-verification-20261017",
+    "completed": 1792284529.1397028,
+    "manifest_sha256": "5b571004e4cd154421c4e7f1781d32f06661b4032f9b69112a3daf849f1f2996",
+    "apply_hooks": [
+      {
+        "path": "hooks/strike_bindings.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "21b29730b8a4d23e5b57eb905c95b50030f3ad782cd85af068bc16664dec0616"
+      },
+      {
+        "path": "hooks/bindings.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "e997ecf3581379494f7441e8bf1c1862c42d37c046d1bf5a1be58d014eb18023"
+      }
+    ],
+    "sql_artifacts": {
+      "source/data/sql/updates/pending_db_world/rev_20261017000001_ghostly_strike.sql": "1bf4469bf3fb857251df9db95976a0f0d5fccb22732281326208034f6dd5e2f6",
+      "source/data/sql/updates/pending_db_world/rev_20261017000002_ghostly_blow.sql": "60d18f933fa5624e48307f0e9663d75794e51d982dd8fb9d36fc4cd9ccdce42b"
+    }
+  },
+  {
+    "package": "paladin-judgements-repair-20261017",
+    "completed": 1792297569.0989144,
+    "manifest_sha256": "f405047364f50bf58400406c758deedcb28c5ff0b68082cfc8f9b91911fc1653",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "judgements-ghostly-sql-recovery-20261018",
+    "completed": 1792332255.5737493,
+    "manifest_sha256": "4ab8a17a378b1efcf4fe3c5f0fb55958a5d68e327d3a31eb0d4de4797739311b",
+    "apply_hooks": [
+      {
+        "path": "hooks/coefficients.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "9c6c7f7853d3a935fcc36994a24e50deec1a7b5d2c438e27dd78de5e4edb7de5"
+      },
+      {
+        "path": "hooks/client_labels.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "6ba0172deecb811e7835e13c381afc3b8d7c963b895195946dba657509ad9048"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/rev_20261017_judgement_vengeance_coefficients.sql": "08841e65ff05ed53a259d4adcc74808abdac1175c46fd9cbad44aefed448ea6d",
+      "source/data/sql/updates/pending_db_world/rev_20261017_judgement_vengeance_coefficients.sql": "08841e65ff05ed53a259d4adcc74808abdac1175c46fd9cbad44aefed448ea6d"
+    }
+  },
+  {
+    "package": "callboard-restoration-20261018",
+    "completed": 1792347505.1081195,
+    "manifest_sha256": "d314db3b415676b5a31d772bdb06b55c35b21c9dff35b7a37afee2e9ee21c925",
+    "apply_hooks": [
+      {
+        "path": "hooks/wisdomball.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "10138e3b90863e35e1d23acc5739c1966b7044d4b973d41f8288c020e8be2a5c"
+      },
+      {
+        "path": "hooks/callboard.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "0bc0bbd047733af04eb448c8288252e7419cb84273ed8059aaf2cca48980fc3b"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/rev_1792336847021274106.sql": "3876967c33312f0a1bdf74b47010a7d4a1bae8627c8a80bb85f38afb0b75d6d5",
+      "publication/rev_20261006_40_ascension_callboard_cache_points.sql": "ee2a365c2b3ec9e3dcf69a06ff1c92d73f67b97df51ef27f1dfe94df87ea51b3",
+      "publication/rev_20261007_61_callboard_dungeon_caches.sql": "08d0703c2bcf3338d072b499c50e968a6c025bdb1c98b7bb0ff81a98e391fed3",
+      "publication/rev_20261011_98_coa_heros_call_board_spawns.sql": "99f099caa3a2eaacdf33e5658541bf531c322835aeb26d5977a71bd9104618e0",
+      "publication/rev_20261011_99_coa_heros_call_board.sql": "35cca53091b26c45d54dfaf09f933a51b84d76cfdc7cfc98967c61347854ddb3",
+      "publication/rev_20261014_95_coa_quest_5682_callboard_poi.sql": "9fb65815edd35e80daec9cdaefe54d278b8c8fa60aab0338f2d2fb4a7c53e4dc",
+      "publication/rev_20261018_01_area52_crossroads_callboard.sql": "c767d44cee2e137636eaf9c8a1e9d48b763b45c1c5f4cb97eec1e1a08e3bde8c",
+      "source/data/sql/updates/pending_db_world/rev_20261006_40_ascension_callboard_cache_points.sql": "ee2a365c2b3ec9e3dcf69a06ff1c92d73f67b97df51ef27f1dfe94df87ea51b3",
+      "source/data/sql/updates/pending_db_world/rev_20261007_61_callboard_dungeon_caches.sql": "08d0703c2bcf3338d072b499c50e968a6c025bdb1c98b7bb0ff81a98e391fed3",
+      "source/data/sql/updates/pending_db_world/rev_20261011_98_coa_heros_call_board_spawns.sql": "99f099caa3a2eaacdf33e5658541bf531c322835aeb26d5977a71bd9104618e0",
+      "source/data/sql/updates/pending_db_world/rev_20261011_99_coa_heros_call_board.sql": "35cca53091b26c45d54dfaf09f933a51b84d76cfdc7cfc98967c61347854ddb3",
+      "source/data/sql/updates/pending_db_world/rev_20261014_95_coa_quest_5682_callboard_poi.sql": "9fb65815edd35e80daec9cdaefe54d278b8c8fa60aab0338f2d2fb4a7c53e4dc",
+      "source/data/sql/updates/pending_db_world/rev_20261018_01_area52_crossroads_callboard.sql": "c767d44cee2e137636eaf9c8a1e9d48b763b45c1c5f4cb97eec1e1a08e3bde8c"
+    }
+  },
+  {
+    "package": "duality-realm-reminders-20261018",
+    "completed": 1792350136.9835804,
+    "manifest_sha256": "c23e0b1b6366bbfb0abc31b5bf7c4b797f9f90d816981b9c675e9424595b6298",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_ui.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "05933c7c7b211c5aca8693739ffb1a9d4a59333661af8c3ee35e3ecfb97592f9"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "seed-of-life-verification-20261018",
+    "completed": 1792362626.5031972,
+    "manifest_sha256": "ae621d665c2269395eb182da373a86386a55047804a6c4c2b09514b2baa35df3",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_labels.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "1531443a1d7e7e1905f35230695094b71ab3943a75052ec8f92d781cb56c626e"
+      },
+      {
+        "path": "hooks/seed_life.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "95c3737ecca9d0c269775447522be4f197eec7e078b8306130459520ec077df3"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/rev_20261018000020_area52_seed_of_life.sql": "747530874b12fe24b65d750758ef7069745ffae26f23146b4c203137d74bb916",
+      "source/data/sql/updates/pending_db_world/rev_20261018000020_area52_seed_of_life.sql": "747530874b12fe24b65d750758ef7069745ffae26f23146b4c203137d74bb916"
+    }
+  },
+  {
+    "package": "area52-running-aura-20261018",
+    "completed": 1792375853.0619307,
+    "manifest_sha256": "021ed3d7b739e64783ff81df17fed812c0eb5583ba5d4c77fab078f07e065b2c",
+    "apply_hooks": [
+      {
+        "path": "hooks/speed_config.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "31116ac71f3ce979a96de81dab463da837645951885fde89ca9f8eb2bea75e23"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-coefficient-pilot-20261018",
+    "completed": 1792386866.7175658,
+    "manifest_sha256": "fd2b46de6b83d88465276ce5c3a24c4a478f0caef6b2a81f41aa473ebc9c9bec",
+    "apply_hooks": [
+      {
+        "path": "hooks/repair_coefficients.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "75573c0544aadb7b79a813cfe6f4550bd9740306c044b79e22f1d480ce0ebd83"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/rev_20261019000001_area52_pilot_coefficients.sql": "0255a75077aff6408fd8ac750cbf3432d409d86771b1ff9f2fb751bcba1b9203",
+      "source/data/sql/updates/pending_db_world/rev_20261019000001_area52_pilot_coefficients.sql": "0255a75077aff6408fd8ac750cbf3432d409d86771b1ff9f2fb751bcba1b9203"
+    }
+  },
+  {
+    "package": "power-word-shield-talent-login-20261019",
+    "completed": 1792428769.575691,
+    "manifest_sha256": "a5165068bcfc721ed69a49bc078c67f730913e2f27e5d32a4c216b605def862e",
+    "apply_hooks": [
+      {
+        "path": "hooks/grace_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "cac7793c96b37f25730e06fb354ef9642bbe58a42fde68d5df548432e3df68c7"
+      },
+      {
+        "path": "hooks/client_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "fc97d271b0e298d0bfdbd26e160f71c82ab47566005902369bf32c36409fc287"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/rev_20261019000002_area52_shield_grace.sql": "c2fd2451891409abeb04e0d90ba216cd30a67ec9a8a7b2f46b64136eee674d9e",
+      "source/data/sql/updates/pending_db_world/rev_20261019000002_area52_shield_grace.sql": "c2fd2451891409abeb04e0d90ba216cd30a67ec9a8a7b2f46b64136eee674d9e"
+    }
+  },
+  {
+    "package": "area52-warrior-stance-rage-20261019",
+    "completed": 1792446152.53116,
+    "manifest_sha256": "833c48428432df955168366e894c9ed5b19702608dea195481cf03e383ffd27f",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-charge-recharge-20261019",
+    "completed": 1792448978.8962739,
+    "manifest_sha256": "202813560298fe2033000f2d09eaa90daff36a6bc433c8c4fa47b0d2de204d21",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-mastery-removal-20261019",
+    "completed": 1792453037.2112272,
+    "manifest_sha256": "f772baf88e85c68ce4c76d6e40c7e9882e0dacf037130e8caa1b5fd97ca2f7a4",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_archive.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "b21de9c696d5eec68fe5690005588695dddcf7bc5359ca3dc1a34e623b18871f"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-epic-druid-verification-20261020",
+    "completed": 1792512519.1965122,
+    "manifest_sha256": "7a757cd4d790aadbfaf38a8a981d07e86c5666fb97e411354a59a531c2596bba",
+    "apply_hooks": [
+      {
+        "path": "hooks/epic_druid.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "950172e0788c4d8356aa001d93880f17f35369440284aa60d0e0d8102ff7d078"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "c7d2434f530038bea9df6ea5b6fb92eb4992c0fbc37b0a0879c95b2cf6c588ff"
+      }
+    ],
+    "sql_artifacts": {
+      "source/data/sql/updates/pending_db_world/rev_20261020000000_area52_epic_druid.sql": "596a085df55ff915da146c3e18b528a7963325c312fbb5ac1169250e3182a806"
+    }
+  },
+  {
+    "package": "area52-druid-combat-certification-recovery-20261020",
+    "completed": 1792532078.135449,
+    "manifest_sha256": "26e95bbf01054e58044804e9400501348d147d42f4f85852c1cbf8a698a47015",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "cebae3c9e751cc5aa0e029a3d4c17c42654358d362354f3ff304d07f768b5175"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-demonic-leap-blessings-20261020",
+    "completed": 1792558126.8167253,
+    "manifest_sha256": "914b4582fb5fad2e57eb8e90a7bbe5a403d2a7f237798cd37b2cea8a98957d8d",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-prestige-specializations-20261021",
+    "completed": 1792593504.378216,
+    "manifest_sha256": "8a3c3ba136cbfe968ce2ff5837e9c062c97df8f7a53b9bdbc21cb7c8e1cb123a",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "da9b99ddfc8ad02eca6ceb900f8534aeff02eea96b268e371c9ad14f6ebdba61"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-blessing-startup-20261021",
+    "completed": 1792598694.505862,
+    "manifest_sha256": "77bc3f593cd0fdec8f2334cee29c3d8b4e14bc3c1ad78504bf7a7ef4afb63cc6",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-specialization-links-leap-20261021",
+    "completed": 1792601581.0628262,
+    "manifest_sha256": "14f3e0b1265cb7f84951c3f696488fd10e664bdd8cb43bb482e1f77db9ee880d",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-priority1-integration-20261021",
+    "completed": 1792617783.5699224,
+    "manifest_sha256": "868f28d8762e1f77e0373e1203d35c0744d9e92089b56743c5849b89b4a29112",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-world-sql-batch2-20261021",
+    "completed": 1792623414.3381543,
+    "manifest_sha256": "25cd782d264df4c54781e21a4ae4a58f01e4a679b2eb402660f59485fc123e9d",
+    "apply_hooks": [
+      {
+        "path": "hooks/world_sql.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "ddb7e6a28560b85b7cfafbd8b5cdc51683fb3d5eaa412b92ea16e08a50767b54"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world-sql-batch2.sql": "2eaaf111048eec958ade6c8b2c1ef7328c05a92fa509c4e63a41bdbd7745031a"
+    }
+  },
+  {
+    "package": "area52-quest-corrections-batch3-20261021",
+    "completed": 1792624967.393857,
+    "manifest_sha256": "199e94b80289560da0f6fddf38ff7de37663ccc1c4e96334bd8e90db2c5fbfd2",
+    "apply_hooks": [
+      {
+        "path": "hooks/markers.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "2e5d095294306410090deab310a3894160e26c6994f057e7a351bd28222599ca"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/rev_20261003_33_coa_uneasy_citizen_objective_marker.sql": "7c8ce6073a7ee6fec806d58216238fabe08123e35ade8f05c999273bd7ba7868",
+      "publication/rev_20261006_01_coa_the_balnirs_rest_objective_markers.sql": "b00c2c0bb4fa46209c289ce0fe2ab767462168106be8843a09508d169ffb73b6",
+      "publication/rev_20261006_02_coa_bring_the_end_objective_map.sql": "127d45147070a6484aa2d7990cad7b441c719072dadc19b8406196ab38f966cb",
+      "publication/rev_20261021_91_area52_quest_objective_areas.sql": "d721074d5c82070f7ae3616c1c737db92cb107c4ff19e84420cf0a1be4cd1b24",
+      "publication/rev_20261021_92_area52_uneasy_citizens.sql": "c9b22214d1353db6466a596b301df91c2435f165166e1c3689c110a4511ab9f7"
+    }
+  },
+  {
+    "package": "area52-world-quest-batch4-expanded-20261021",
+    "completed": 1792628742.0934722,
+    "manifest_sha256": "d893bf8cdcfd9938009ee63be1e9d99c7dc975a574469d5c95a2715a792ec238",
+    "apply_hooks": [
+      {
+        "path": "hooks/markers.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "6238d0c566b69787bca975675df0fbb6b4744929eb2b840270740e337a0a233d"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/rev_20261006_00_coa_a_humble_duty_objective_markers.sql": "ced308cdce3c7e51511434554072a0e58c41a718a91a28314e9a343d35ccb355",
+      "publication/rev_20261006_30_coa_a_humble_duty_gravestone_cooldown.sql": "b9971d2ab36ab6cd0590294aac9bce94eaa130852a20ef032716bc119ec1afea",
+      "publication/rev_20261017_12_silithid_protector_hostile_faction.sql": "91004f5e5f2e3708d8c894277fec4e7b439e103050d0deb802fe2066e92a8b77",
+      "publication/rev_20261021_93_area52_compatible_quest_markers.sql": "add180be002e23ec3dc4507e14988ec1c68bafc3721f2a7004ded97edbf6c3e3",
+      "publication/rev_20261021_94_area52_quest_race_access.sql": "057b29155ff894af103d306a40b906d0e2a472128cafa12b28a786e4e393d814",
+      "publication/rev_20261021_95_area52_produce_quest_link.sql": "effe7285d876e349530533a7ce8b4ca138048f5eda6b41d34a49a75e723885ae",
+      "publication/rev_20261021_96_area52_quest_pin_corrections.sql": "8bb2603f1720f303dbc62f4a75633c9127c05e3ff5dc4c62a7463dcc3db241fc",
+      "publication/rev_20261021_97_area52_creature_quest_hints.sql": "01e24f0ed992c92ba3b6a55b489727df7af80667da0fb850cff0de3794e7cbde",
+      "publication/rev_20261021_98_area52_defias_disruption.sql": "a5dcb8a87b205a6431bc50184073510251ba5904896dd3b904ed0623c97ee1df",
+      "publication/rev_20261021_99_area52_coleman_dialogue.sql": "dfb6a9848abe492295185e5db4e0b4658b0fff57ce51d34f685f23af041e2047"
+    }
+  },
+  {
+    "package": "area52-world-npc-batch5-expanded-20261021",
+    "completed": 1792634278.5238595,
+    "manifest_sha256": "3d43b51dc73abaefd4dd59c2c6b313c6df6a4f89c14db0a598ffc69e0c25745f",
+    "apply_hooks": [
+      {
+        "path": "hooks/markers.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "6238d0c566b69787bca975675df0fbb6b4744929eb2b840270740e337a0a233d"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/rev_20261021_100_area52_npc_health_events.sql": "cd5d398294c6e0ebc64ddcf96102f56faf62ded37fd5b2e907772f05974ba833",
+      "publication/rev_20261021_101_area52_thermal_anvil.sql": "df0df3bbe41ffd93075ade7b37729bdf37c9a30b514dfe2660e4e4ae15242a1c",
+      "publication/rev_20261021_102_area52_vendor_foods.sql": "7afef1b00721d9e091997189e102a90da0209f8d310efc591b9f155c4ac463c1",
+      "publication/rev_20261021_103_area52_sawmill_cooldowns.sql": "eb2bf5fab3ee3d28a16bf3729d0fbb6949da0fa6d5d06ad246d8b0957340d68e",
+      "publication/rev_20261021_104_area52_gorn_riding_trainer.sql": "d9d90ea2de54b0e30ca5ff28b845a99f2b4860bde2f2c54cf1d81ce533e55e99",
+      "publication/rev_20261021_105_area52_companion_live_scales.sql": "cda96005953d2b14f61e0f523a9d485e795d405b9e10894c0ebf58a3e21deef7"
+    }
+  },
+  {
+    "package": "area52-world-dungeon-batch6-20261021",
+    "completed": 1792645089.1844041,
+    "manifest_sha256": "956ae928af838308906e9ad0424065de2cd9c99e2fd2b3ad26968b035fea4433",
+    "apply_hooks": [
+      {
+        "path": "hooks/markers.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "6238d0c566b69787bca975675df0fbb6b4744929eb2b840270740e337a0a233d"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/rev_20261021_110_area52_low_level_loot.sql": "7d00bf2a91fafdfccf0d8ba5e59dc7a4d9c2c5e35e36ab2543d5f16e1df41c47",
+      "publication/rev_20261021_111_area52_dungeon_casting.sql": "f7e501a255d7d86da646d76fea8a555576d558489c84094d90b7f2bf749b5f4a",
+      "publication/rev_20261021_112_area52_naralex_event_access.sql": "dae4e06831535957f86debb79d23c85764cda9c38673c328fcf9ddd08ed183eb",
+      "publication/rev_20261021_113_area52_worldforged_positions.sql": "5074cbd5c7bb9ec64cd59c99de0f02b035ffce526a5850fcb68c535c04294ef8"
+    }
+  },
+  {
+    "package": "area52-fel-warchest-20261021",
+    "completed": 1792648898.3124175,
+    "manifest_sha256": "bb6a234ef2f6cf3b16255bca8ab4664712fa1e4f0feebe3fc9a7507998c54da8",
+    "apply_hooks": [
+      {
+        "path": "hooks/markers.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "2515909aa07fc01b55a47c60a0622941da83deaf6ead65be9353e14841528330"
+      },
+      {
+        "path": "hooks/gift.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "97d4bb0afcfc277b3e92706aa3d9589725ff38f482d2f5d12f86b2243e49e6d0"
+      }
+    ],
+    "sql_artifacts": {
+      "hooks/gift.sql": "6a886cbe9c4c619a3936d8d82e9bf2c9e317bf9e2bfea7d9dce44253c72b2dd4",
+      "publication/rev_20261021_130_fel_enchanted_warchest.sql": "89cb5bd728ca11df5cca0c2b03f1ec7ee6c34b684fe4f42363530a0a701c3814",
+      "publication/rev_20261021_131_area52_warchest_delivery.sql": "6a886cbe9c4c619a3936d8d82e9bf2c9e317bf9e2bfea7d9dce44253c72b2dd4"
+    }
+  },
+  {
+    "package": "area52-warchest-transaction-repair-20261022",
+    "completed": 1792673912.5071344,
+    "manifest_sha256": "ac7c55fe13f8c17b450e43265e46c51e31ed72ab0529607aaa605945a6879b6d",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-warchest-vanity-20261022",
+    "completed": 1792677715.3167803,
+    "manifest_sha256": "e2b3cf81e5b81b50b9fd9331315e282103e8e30f582efae2a12ff76b5e91c2de",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "11744759c90719f750198e02fa467f753f8cf23ab0bda258bb98d9bbe010af3a"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-warchest-five-rewards-20261022",
+    "completed": 1792695967.863792,
+    "manifest_sha256": "3a8be11c3db3c9b7c74591c9a350a218449079f6407e2a612789d04b9654895e",
+    "apply_hooks": [
+      {
+        "path": "hooks/markers.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "be59f67a8ad0abbc15481c6c568e765c65f74c0d6684010587619cbac2f154b4"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/remove-empty-cache.sql": "d85237950ce86c44462e88172a0cc08549b32f196f3e238a2f6b3407160689ed"
+    }
+  },
+  {
+    "package": "area52-epic-mystic-trio-20261022",
+    "completed": 1792709472.181442,
+    "manifest_sha256": "b18bf9492153dfc87b6cd862a239a4887ce8007f7bc6e8b73b8b19031f34005e",
+    "apply_hooks": [
+      {
+        "path": "hooks/bindings.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "e6cc4260be77f70c904a17f7a0b28fc4c912393f966d353ff0bb913a372fb80a"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "12d531e6719bd02772c2235963e377ca813ea38daacb48c5a039825d9bbb79b3"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/replacement-bindings.sql": "35265b32b99afb5139f13a8b1ae6a4d3bb7ef13f026fa1344a00388e23847d1c",
+      "source/data/sql/updates/pending_db_world/2026_10_22_09_epic_replacement_bindings.sql": "35265b32b99afb5139f13a8b1ae6a4d3bb7ef13f026fa1344a00388e23847d1c"
+    }
+  },
+  {
+    "package": "area52-combined-repairs-20261023",
+    "completed": 1792776291.7157428,
+    "manifest_sha256": "a73dfc218f486c120aa623039f2503aefc97e14d7e16518eae574ea36d6d0e22",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "b60bfc256868f535f0a7afc64df81ed939edc8b13ea1ac0065a1b43e1af4eedc"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-invocation-fire-totem-warning-20261023",
+    "completed": 1792847190.215035,
+    "manifest_sha256": "8a90e8b30bb152f0cc7b9053b06fae5b3511d6f49e74daf58b82b19df9971cf4",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "b60bfc256868f535f0a7afc64df81ed939edc8b13ea1ac0065a1b43e1af4eedc"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-sprint-mastery-bugreports-20261024",
+    "completed": 1792857228.988021,
+    "manifest_sha256": "4a8b6f8b18b1d53d03a5e7570435d5c8496e1f32b5ada7cde39ff43b6f5fe590",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "b60bfc256868f535f0a7afc64df81ed939edc8b13ea1ac0065a1b43e1af4eedc"
+      },
+      {
+        "path": "hooks/bug_receiver.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "2c26159e74fa4af9a6a7581962e885c9ec532bf2e4fffafdfbff8efcdd73bb25"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-first-character-test-boost-20261024",
+    "completed": 1792862030.1958406,
+    "manifest_sha256": "43f6927f8e0a4172abd4a0beb333df2ef8f75f6100da395243d17214d326cb92",
+    "apply_hooks": [
+      {
+        "path": "hooks/boost_sql.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "8e1fe5fafae13e5b42bc496c1244aee9c6092cde5c0b5999606c3fcb03c376da"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "d46c7cb74b2a0880a6b454d765bd4dccf3b67399cabaf9d6e980f866e8b85829"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/characters.sql": "f0eaf1a2348b839daae85a082964afc7c77f32d7c7a3cf051888108972d91998",
+      "publication/world.sql": "630f30e7588ad9aea6fd51a01ec2c16f86ced05c9b64b23113fe9b5c9653c6a4",
+      "sql/characters.sql": "f0eaf1a2348b839daae85a082964afc7c77f32d7c7a3cf051888108972d91998",
+      "sql/world.sql": "630f30e7588ad9aea6fd51a01ec2c16f86ced05c9b64b23113fe9b5c9653c6a4"
+    }
+  },
+  {
+    "package": "area52-nine-entry-verification-20261024",
+    "completed": 1792869130.8188312,
+    "manifest_sha256": "72669892e0d62fe6a84cdc3763825ea345d3f95399360a941fece19c8db4bbb5",
+    "apply_hooks": [
+      {
+        "path": "hooks/talent_sql.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "970f3e711aa381bb9eacad9d8e997f19d24beb30d90abb0dc06e50181ad6bc04"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "da54785d1573692f902459c9174f5f042c8cf72b153ca2a6118105de21353b87"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "197c8d01bc2618da399692b9844c3edfa20436a5d07b27df86ac4d3f4fb7d85c",
+      "sql/world.sql": "197c8d01bc2618da399692b9844c3edfa20436a5d07b27df86ac4d3f4fb7d85c"
+    }
+  },
+  {
+    "package": "area52-mystic-free-collection-20261024-retry1",
+    "completed": 1792885740.735599,
+    "manifest_sha256": "cb79b2140f0cbc902bb2fa5fa684a7a7ef7618f11b624eaa7db96f2cc52dd29c",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "42b22ed7d7868b38c1676fbfa5d0cdce8c7efdd9d25f073f1ff53f622b0d35b6"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-mystic-runeforge-20261024",
+    "completed": 1792889749.2063892,
+    "manifest_sha256": "e84f45589691435271f64c833553469ffd258808f01020bcf3598a8b3ed8ac23",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "42b22ed7d7868b38c1676fbfa5d0cdce8c7efdd9d25f073f1ff53f622b0d35b6"
+      },
+      {
+        "path": "hooks/runeforge.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "dd5d04c11df254b74614ff62230741cce4e4738533c320902dd45fe91393b536"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/rev_20261024_90_area52_orgrimmar_runeforge_directions.sql": "63e4217bf9187c10b983beb45e68e1edec7a9732629d9ad6d33e33690104e385",
+      "publication/rev_20261024_91_area52_runeforge_half_size.sql": "74604c899dfb60538b55826b29bbf5429596ab66f8879d0e87d90116e7d156a7",
+      "runeforge-apply.sql": "63e4217bf9187c10b983beb45e68e1edec7a9732629d9ad6d33e33690104e385",
+      "source/data/sql/updates/pending_db_world/rev_20261024_90_area52_orgrimmar_runeforge_directions.sql": "63e4217bf9187c10b983beb45e68e1edec7a9732629d9ad6d33e33690104e385",
+      "source/data/sql/updates/pending_db_world/rev_20261024_91_area52_runeforge_half_size.sql": "74604c899dfb60538b55826b29bbf5429596ab66f8879d0e87d90116e7d156a7"
+    }
+  },
+  {
+    "package": "area52-holy-stormwind-20261025",
+    "completed": 1792933205.6114235,
+    "manifest_sha256": "1f8fbfa7697c1efb58ee5fcabb1db3de3cedb97cd92acf4afc98b3edade3bc5f",
+    "apply_hooks": [
+      {
+        "path": "hooks/certifications.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "0b1e67a4a3350e0d881fe583b3b90a1655ad45e95c4cce8d0db827cf08ef52c7"
+      },
+      {
+        "path": "hooks/holy_sql.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "80cc9de71275e6bc4bfe7fbdab6eb84524512f6eecd5a44915702a2364d970ca"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "162712d6c77e198bc3e000afcf5d633ca933e97ce1ae5437ec553722ee8c9d7c"
+      },
+      {
+        "path": "hooks/runeforge.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "2ea32e6ad7872377a9e068f219dedd82fa7e7856cd050db0773ad72f01dea77d"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/stormwind-runeforge.sql": "7b5b8689de6489a59b1660890049e03c1584f31e424608d87434f718d071b0ed",
+      "source/data/sql/updates/pending_db_world/rev_20261024_02_area52_exorcist_slash.sql": "0b2fc55bcc27e48fc1aeb0cba40319a5341f49cc6f400940123e75931d792cee",
+      "source/data/sql/updates/pending_db_world/rev_20261025_90_area52_stormwind_runeforge.sql": "7b5b8689de6489a59b1660890049e03c1584f31e424608d87434f718d071b0ed",
+      "sql/world.sql": "0b2fc55bcc27e48fc1aeb0cba40319a5341f49cc6f400940123e75931d792cee"
+    }
+  },
+  {
+    "package": "area52-shared-charge-policy-20261025",
+    "completed": 1792942743.4530911,
+    "manifest_sha256": "931e566387eb54191f9523bf8b894db568678a639452e8444cb0538627b460db",
+    "apply_hooks": [
+      {
+        "path": "hooks/input_guard.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "32d5da634c9b587b0a4cfa7bd8ec4230bd3d5bd19c582c663b6c8f9b7cd0d3f6"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "162712d6c77e198bc3e000afcf5d633ca933e97ce1ae5437ec553722ee8c9d7c"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-deathbringer-20261025",
+    "completed": 1792990027.232078,
+    "manifest_sha256": "c19284f39405e11cb7c5cf884dbb47b1bfa61a6639d81a865ac986068018f22b",
+    "apply_hooks": [
+      {
+        "path": "hooks/input_guard.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "2351e8f5332247f7514ad276a27ea874841554f3495d67b6e60178223acae463"
+      },
+      {
+        "path": "hooks/certifications.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "0b1e67a4a3350e0d881fe583b3b90a1655ad45e95c4cce8d0db827cf08ef52c7"
+      },
+      {
+        "path": "hooks/deathbringer_sql.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "c48f5e9a00bc2ca834f2ef0b16eeb35aec131b111d8ea0213f81822ec46de8b4"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "162712d6c77e198bc3e000afcf5d633ca933e97ce1ae5437ec553722ee8c9d7c"
+      }
+    ],
+    "sql_artifacts": {
+      "source/data/sql/updates/pending_db_world/rev_20261025000000_area52_deathbringer.sql": "93c56512d5a8da8da411431263a7632b22f5668d8ed3fdc222aa6bc16b00f1c7",
+      "sql/world.sql": "93c56512d5a8da8da411431263a7632b22f5668d8ed3fdc222aa6bc16b00f1c7"
+    }
+  },
+  {
+    "package": "area52-slash-crusader-20261025",
+    "completed": 1793013495.1341574,
+    "manifest_sha256": "665e77e1a188fb87917a4780dbbcfe369b100ad325c87d0a0751a34460b2aec9",
+    "apply_hooks": [
+      {
+        "path": "hooks/certifications.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "0b1e67a4a3350e0d881fe583b3b90a1655ad45e95c4cce8d0db827cf08ef52c7"
+      },
+      {
+        "path": "hooks/slash_crusader_sql.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "71c285cb4fc2a581484b3109b5e8d235e6ac65eeb2fa6dc772cdc0826e92c7b5"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "162712d6c77e198bc3e000afcf5d633ca933e97ce1ae5437ec553722ee8c9d7c"
+      }
+    ],
+    "sql_artifacts": {
+      "source/data/sql/updates/pending_db_world/2026_10_25_04_area52_exorcist_cooldowns.sql": "26a8d9c4cd410c6f05c9d42716b441b2293cd447a580d959a7acda671b60c6e0",
+      "sql/world.sql": "26a8d9c4cd410c6f05c9d42716b441b2293cd447a580d959a7acda671b60c6e0"
+    }
+  },
+  {
+    "package": "area52-ability-verification-20261026",
+    "completed": 1793036038.3708203,
+    "manifest_sha256": "e850f8b7138fd7ae84c7a750a7b758e7376af6cb73fed07144db157c226f9d3c",
+    "apply_hooks": [
+      {
+        "path": "hooks/certifications.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "0b1e67a4a3350e0d881fe583b3b90a1655ad45e95c4cce8d0db827cf08ef52c7"
+      },
+      {
+        "path": "hooks/haste_group.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "3f01c63f451e414ff939500c5954f70e4127154f8ae0a50dd008d507111dcdf2"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "162712d6c77e198bc3e000afcf5d633ca933e97ce1ae5437ec553722ee8c9d7c"
+      }
+    ],
+    "sql_artifacts": {
+      "source/data/sql/updates/pending_db_world/rev_20261026_icy_veins_haste_group.sql": "6439eee9fc83e801dfd2910eef55e61492a3842b9425ed74a8c7a4ce694c36bd"
+    }
+  },
+  {
+    "package": "area52-ability-verification-20261026-r2",
+    "completed": 1793040670.619343,
+    "manifest_sha256": "53ab9987538d818042d41faa1f1bfa1b66fd61d2329da9983e5a3554bd41ac2f",
+    "apply_hooks": [
+      {
+        "path": "hooks/certifications.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "0b1e67a4a3350e0d881fe583b3b90a1655ad45e95c4cce8d0db827cf08ef52c7"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "162712d6c77e198bc3e000afcf5d633ca933e97ce1ae5437ec553722ee8c9d7c"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-combat-corrections-20261026",
+    "completed": 1793060419.2515674,
+    "manifest_sha256": "1ba0c1a714ed8766832c1a636e71ce8fd4a1703486c2fe48e5f8b830173bc4d1",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-cross-faction-20261027",
+    "completed": 1793112178.476444,
+    "manifest_sha256": "df1cfaf45d53dada89f1039d18f5d4bdce1b230f7b774c4352e65acfc8aa1917",
+    "apply_hooks": [
+      {
+        "path": "hooks/source.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "e022518791c18fedaa9af2c851023ec6a0fe7dcfe192ade9e31b5786336d30e9"
+      },
+      {
+        "path": "hooks/data.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "43c5c657b00a8298c068cdb66b63af065cc66985f9e319b2e35d011ab24178b5"
+      },
+      {
+        "path": "hooks/config.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "2c0f381d51a0d42ede843eb53eacb7fc68c92974b232a605cc3d2285456610fc"
+      }
+    ],
+    "sql_artifacts": {
+      "source/data/sql/updates/pending_db_auth/rev_20261026_52_area52_cross_faction.sql": "481c71ccf0fe60c1f4fd8ae862da8e817808d20e264f28c6ade5b31977e3ae53",
+      "source/data/sql/updates/pending_db_world/rev_20261026_52_area52_cross_faction.sql": "bd21491db4847b99f127cfdd813a5f708b095654c5aa7a4367079320b541adb8"
+    }
+  },
+  {
+    "package": "area52-account-friends-20261027",
+    "completed": 1793117878.3727515,
+    "manifest_sha256": "41222760c6eec13094552f89bba117a958bf876db343925b6981fde42aa90cc9",
+    "apply_hooks": [
+      {
+        "path": "hooks/source.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "c2209750829646cfd236965a8b78502a9e53dcf60662c03b8d68e202bb8d227f"
+      },
+      {
+        "path": "hooks/friends.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "88731ec1744461e1c442d64a828872d58638635ce010aebd6a020f775c79b229"
+      }
+    ],
+    "sql_artifacts": {
+      "data/rev_20261027_area52_account_friends.sql": "f0e2e512096f5eaa19d5901737563179d3fc4395f2ff40832060160be7619355",
+      "source/data/sql/updates/pending_db_characters/rev_20261027_area52_account_friends.sql": "f0e2e512096f5eaa19d5901737563179d3fc4395f2ff40832060160be7619355"
+    }
+  },
+  {
+    "package": "area52-deathknell-statue-20261027",
+    "completed": 1793133964.5447855,
+    "manifest_sha256": "d303dd7afe8b25756122017ce605a2195021a0666ac748e49e4b433ab0039d60",
+    "apply_hooks": [
+      {
+        "path": "hooks/data.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "264ea971b51e6a4b822883e577f0e8fddea9113d63fffbac65bab76ff3fba00e"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/rev_20261001_12_coa_hidden_statue_western_hills.sql": "51e83737662968193e65f166d62b42e5f1c83537379d5b6106285ff56835b4db",
+      "publication/rev_20261002_02_coa_hidden_statue_safe_model.sql": "6320094c44bf60aa217542f4e36f83427035c4f01041287bc7ef73ba70da7463"
+    }
+  },
+  {
+    "package": "area52-account-friends-routing-20261027",
+    "completed": 1793142144.5272803,
+    "manifest_sha256": "5657b6a284865a3effe5bd4571fa76f3fd30994d312f9215c4827273a796f699",
+    "apply_hooks": [
+      {
+        "path": "hooks/source.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "fb90380aee7655cca6e067968b3293145d5f28e396e78cc6ad2ac09fe4718402"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-cryotherapist-verification-20261027",
+    "completed": 1793157878.415111,
+    "manifest_sha256": "c2ef467ed7df8ead033bb0f9476aa0295bd1c386dc913d194deb40e326443fd0",
+    "apply_hooks": [
+      {
+        "path": "hooks/bindings.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "32ab3b55f349d8d15ff3032b01c4d878c6bb72b48c29236b0bda660aaf07aa0b"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "752e233b0602af9cfae315246f3be84291cc008e9a9c6b4abeb00f5fc09bb94e"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "9623adb16cc9f713b67ecc177d70502b675798e6bad80b20903ed3341df42e2f"
+    }
+  },
+  {
+    "package": "area52-cryomancer-vanity-20261027",
+    "completed": 1793163036.4661002,
+    "manifest_sha256": "123132e0b83cabc680c0951e1cbfabd76ea3ea9a5301f174798ebbb181ab8bf9",
+    "apply_hooks": [
+      {
+        "path": "hooks/files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "3f3795995c7d9c4123b602fb269f3ab9ba1d4d5fb711069250f8054d313cdf3d"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-cryotherapy-crash-20261028",
+    "completed": 1793207193.4470344,
+    "manifest_sha256": "6319d22c7656bf0d81c76019b7c57b19aa00242f4256703e93745381e83d07ea",
+    "apply_hooks": [
+      {
+        "path": "hooks/files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "3f3795995c7d9c4123b602fb269f3ab9ba1d4d5fb711069250f8054d313cdf3d"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-soul-link-repair-20261028",
+    "completed": 1793211225.336954,
+    "manifest_sha256": "c43a36c759f888fc142588f2bbff834dc6ab146a165082e7e654f1ce4f7a43a1",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-pr37-full-verification-20261028",
+    "completed": 1793220408.9131875,
+    "manifest_sha256": "16eace7ff8ec1e45dc2265df205862848ad8be163ee6936a248260e3abdd8c51",
+    "apply_hooks": [
+      {
+        "path": "hooks/pr37_sql.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "dbffbb9fe8892fadb8aebce4d0baf97bb444f3918716458b3e8beeff3e7aa98b"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "0d82b99367d4a5d6b799292aded6824199bde3f240f9602bd675365e14d04e8b"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "8318c02065253ba55924b7b108aa9a33f8893d4a870e9825fbc6a9077499b097",
+      "source/data/sql/updates/pending_db_world/rev_20261028_10_compound_power_build.sql": "bee0e4f3fedea47edfc5211f03c131570a69cc44a5f6a2c34d95b8a4ae88e4a0",
+      "source/data/sql/updates/pending_db_world/rev_20261028_20_dragon_warrior_build.sql": "7252d830fdd8c842cea25609f16cdf9ff694203e265d78934074cc868d2209b8",
+      "source/data/sql/updates/pending_db_world/rev_20261028_21_dragon_warrior_charge.sql": "10f6b3631a16879cf465c3cc46d1780dbd13ef9e860f235d1a167a924407e4ac",
+      "source/data/sql/updates/pending_db_world/rev_20261028_30_compound_shot_recast.sql": "4e94f072e63f7eef10b7afe6c6ab92fec0561e3dbb6151c48b00a2173dcec92e",
+      "source/data/sql/updates/pending_db_world/rev_20261028_31_syndicate_sniper_capstone.sql": "42b7e85d06a0818ee5e31e1d2901c751fbdb0698a432ff2a1bc78841a636478a",
+      "source/data/sql/updates/pending_db_world/rev_20261028_40_pr37_qualification.sql": "cf3f473c4ae30808d57d1fa7c6600fcd3fba856ddcc37e09e6e52f47514698b6",
+      "source/data/sql/updates/pending_db_world/rev_20261028_50_archetype_verification.sql": "4a9d36f17375ca0c3b081375a84ab9f382796b22bebde9500a20d505979f9f92",
+      "sql/world.sql": "8318c02065253ba55924b7b108aa9a33f8893d4a870e9825fbc6a9077499b097"
+    }
+  },
+  {
+    "package": "area52-cryotherapist-epic-enchants-20261028",
+    "completed": 1793240517.808434,
+    "manifest_sha256": "3bc1a80594a2efe71c615ce309f07bd2bc324d6ddc32c938c2e55579ac51c9ef",
+    "apply_hooks": [
+      {
+        "path": "hooks/epic_sql.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "5d9197a88de6fd63770676d8d6038f0f1ab1c37bb28dca73fa53cb156082fea4"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "b266cdf01c9faf545d89d5a23bb65fa07be7e7097936e9e85a788943bc266379"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "e2fef3693ef69ba6e3ec037fe25fbd7c82ff67011bf58fad4b2f0283e5fef450",
+      "source/data/sql/updates/pending_db_world/glacial_light_ranks.sql": "05648c45eeb035ad2f49529df8e937a2713d7fa18dc063ad15468c3c944ab8af",
+      "source/data/sql/updates/pending_db_world/stay_frosty_binding.sql": "00092303be68ba4ed445ab52ac59b4131323220c625cc17e2a049963342de060",
+      "sql/world.sql": "e2fef3693ef69ba6e3ec037fe25fbd7c82ff67011bf58fad4b2f0283e5fef450"
+    }
+  },
+  {
+    "package": "area52-wizard-frostbolt-20261028",
+    "completed": 1793248141.8110223,
+    "manifest_sha256": "e6e4cfe522a6368dd7720895bb90e1fad923a3767940e106993398df14af16f9",
+    "apply_hooks": [
+      {
+        "path": "hooks/aura_schema.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "542698d1812b60e28bbe93a5cf41230021e0b6377edeaab909f629a10f079903"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "f1aec131f344f2bc1e79539fb405afb7767db07692328c39ce04755fc97d1b96"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/characters.sql": "c081cec3978cee67134d9c4f5c8e9b81d8a27c9879d982a8bf6cb41c291a9cb7",
+      "source/data/sql/updates/pending_db_characters/wizard_frostbolt_aura_source.sql": "c081cec3978cee67134d9c4f5c8e9b81d8a27c9879d982a8bf6cb41c291a9cb7"
+    }
+  },
+  {
+    "package": "area52-playerbots-startup-recovery-20261029",
+    "completed": 1793289596.7592525,
+    "manifest_sha256": "7383a610304ea4c6c0e059e01b81312b016b7b076f449f74c7bdaff728066b57",
+    "apply_hooks": [
+      {
+        "path": "hooks/roster_recovery.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "5104ed4306856770fca0444c6885f59ed0aab8ee1a1e07085287552a3ce55f02"
+      },
+      {
+        "path": "hooks/pilot.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "2478b3b89e48e9864e1f3d7b6e8e47d08f6e507f07ab414400414fc80cff1ecd"
+      },
+      {
+        "path": "hooks/module_source.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "333d18007be1836b80c8ab5980ad6f6cc8c17da6ee30e460f142d507614f0d7d"
+      }
+    ],
+    "sql_artifacts": {
+      "sql/data/sql/characters/base/playerbots_arena_team_names.sql": "c95698da81313764acd8e0c0bed7cb33526f494a0213e518c908e556ff8264fb",
+      "sql/data/sql/characters/base/playerbots_guild_names.sql": "cc898c89d15da98c89ebe18fb46c208d546628b54ee66ddb89751c12f37bfdc5",
+      "sql/data/sql/characters/base/playerbots_names.sql": "183edef3053aec99e153d39cabf36d5248a0c2a98a86d242a7b7578f4ab207a2",
+      "sql/data/sql/playerbots/base/ai_playerbot_texts.sql": "f8d9756ce074099175a6a4423e96c04aa6925c2c0833708ce75a57da076c1a10",
+      "sql/data/sql/playerbots/base/ai_playerbot_texts_chance.sql": "6cf69c74695f3fff91947f167f1698d6cdd5a8d5de2daa98028203dea2932282",
+      "sql/data/sql/playerbots/base/playerbots_account_keys.sql": "e35cdde22b850718639ab4442f5038cc0fb096853aae20baac87b6d5a309ea84",
+      "sql/data/sql/playerbots/base/playerbots_account_links.sql": "9c3343d276f3d1af7dfd7c78b3530605530cbc6817852fbe9ca31ded610e8b39",
+      "sql/data/sql/playerbots/base/playerbots_account_type.sql": "3fcd9c190213acbc566155f5259b0db6e34592c47f6320f795349222502066ee",
+      "sql/data/sql/playerbots/base/playerbots_custom_strategy.sql": "593dbe1a4dabf7288e7240c0630964c0d37a7e1288ef985aaf9807076b6f03ca",
+      "sql/data/sql/playerbots/base/playerbots_db_store.sql": "bcbf7e2daa2518ddadff0d4fe29c0e82a94a62989ee6a1d7785a283db11ad7af",
+      "sql/data/sql/playerbots/base/playerbots_dungeon_suggestion_abbrevation.sql": "1ddb3ed494cbae26a38feac55922c0433d7ef5336a9933a3e2624a2f33a77fe5",
+      "sql/data/sql/playerbots/base/playerbots_dungeon_suggestion_definition.sql": "088e3d2b2a9a053e68a44d3ffc379ade4084c768a497791732557e2d6e34c2d7",
+      "sql/data/sql/playerbots/base/playerbots_dungeon_suggestion_strategy.sql": "03f7cc96157dc2a21c3dbf9768634fe6dae9f13c288ff9da950f2247fba1f3e9",
+      "sql/data/sql/playerbots/base/playerbots_enchants.sql": "4d61c364208ebc2e66e97da5e50d522fcc1e7c0e123792f1a97e63717d3b8039",
+      "sql/data/sql/playerbots/base/playerbots_equip_cache.sql": "5500b27cfa0d901ac5438b05b9a6882cc261286a746f4565152bb240f86734ba",
+      "sql/data/sql/playerbots/base/playerbots_guild_tasks.sql": "84c010f8521c5afddb582dc6b86304e881fbe276cacaa85bd5c058f75e76ee60",
+      "sql/data/sql/playerbots/base/playerbots_item_info_cache.sql": "d40c398f6cbfbbafdd751b133580b10768e8efa682528db26b6bf4b5b76466ae",
+      "sql/data/sql/playerbots/base/playerbots_preferred_mounts.sql": "fbd61d48bd4b2939d30539651e52dab2f37f8595a4d7429eb426424ddd05f2e9",
+      "sql/data/sql/playerbots/base/playerbots_random_bots.sql": "e4d8981adca3f33ea7a875e61a8a65abce0c9d0fd36abc30913ccd67ed7d8d8b",
+      "sql/data/sql/playerbots/base/playerbots_rarity_cache.sql": "9dcbdace7bd386489b0439fe0639ff689d92fdcd766eff3a46cc0387324b9b56",
+      "sql/data/sql/playerbots/base/playerbots_rnditem_cache.sql": "6c3b5bdc46a8edf04c694addbf03bf621882c69e2d4ee3073af78f25992f8c68",
+      "sql/data/sql/playerbots/base/playerbots_speech.sql": "cac557be6cb9c0bf887cb421ac4b051d26fede9c28d9a926739c373a36355c11",
+      "sql/data/sql/playerbots/base/playerbots_speech_probability.sql": "33eda298fe1b60f0570dde63cdcbf200dc05ca3c33295cdd2a2999736fc8e252",
+      "sql/data/sql/playerbots/base/playerbots_tele_cache.sql": "6024de05040fc479cbd8cc3cfe0c184a668d03f357fb8d87507a869c8fbd7644",
+      "sql/data/sql/playerbots/base/playerbots_travelnode.sql": "7cc36729eb05d224d93beaab38028faa2566db6012e361642658dc0c07ebb179",
+      "sql/data/sql/playerbots/base/playerbots_travelnode_link.sql": "93cb9e3582609fe9c910fcda4c810eef2095ca6544a0b84224cd25fb13bdf916",
+      "sql/data/sql/playerbots/base/playerbots_travelnode_path.sql": "d5100d3675bf278a9f311bbf161e587306217980146e137e06df9509e176f2cb",
+      "sql/data/sql/playerbots/base/playerbots_weightscale_data.sql": "ed1585c50ff11d814cc9b1c4fcd2b769a43e4f511f174f52bd3601cca0390f71",
+      "sql/data/sql/playerbots/base/playerbots_weightscales.sql": "4c4bd99b620c7b0da851c6e0dc56b1aa915a4414f40b80f4d1f6e6925604be72",
+      "sql/data/sql/playerbots/base/updates.sql": "05007b1e118bedf24fff0e333c04057c48a633219802e488d828fcdece6dffed",
+      "sql/data/sql/playerbots/base/updates_include.sql": "55ef28a9f5aff22a26cc59824c5d56a585778424456127609128f625c8811aca",
+      "sql/data/sql/playerbots/base/version_db_playerbots.sql": "2a54b6268969178e7339ab602069072a19c27a17d9255a1e1cbc2ee712c04cbb",
+      "sql/data/sql/playerbots/custom/area52_hoplite.sql": "28e5b9873cf8d888ef60c7a763624f96cfced957963306864f6c77e01f19f40f",
+      "sql/data/sql/playerbots/custom/area52_legendary_classes.sql": "eef50d8a785d1fb383fbc411ec69e2674d10dfbe62b217965f433a608aa84aef",
+      "sql/data/sql/playerbots/custom/area52_mystic_knight.sql": "c0574d10b2a09a9a5f823c61d68b4e6a1490fad60f50e92c3abdaab63c6a34b2",
+      "sql/data/sql/playerbots/custom/area52_naturalist.sql": "5e3a5f7684e6f1be8523f5c478fa83454d9b662d242a61fd62625cc25e2877c5",
+      "sql/data/sql/playerbots/custom/area52_pilot_ownership.sql": "6025748b4f798064f7b3a029081d4ce621ca37ad4ac83d87bbc844caa7595635",
+      "sql/data/sql/playerbots/custom/zzzz_area52_library_pilot.sql": "777bf204e3000d42ea08d08bcc17af19ebd828a6b821707c0cba1b92ee86f8fe",
+      "sql/data/sql/playerbots/updates/2024_08_07_00.sql": "6c2aeec7989b4d54743ade1681f913a43edaa63443b1acab39ace00f5e490577",
+      "sql/data/sql/playerbots/updates/2024_11_25_00.sql": "9ad4468df0bbe0b0142322699bba96f37c3e3ba9998bebcb977886402e7ba2ec",
+      "sql/data/sql/playerbots/updates/2025_02_24_00.sql": "725150d69eb8d0df1edb8e0424aaf2761691101564a241fe2669042176876fbe",
+      "sql/data/sql/playerbots/updates/2025_03_03_00.sql": "934a4d791dfbe1f1ddcbd9ac103f3651d0410a52c954e98cbe3f5d8969043855",
+      "sql/data/sql/playerbots/updates/2025_04_26_00.sql": "6daf04daf7169b97094e0934680aee49881c8c5798113811e5241a6c99956f78",
+      "sql/data/sql/playerbots/updates/2025_05_05_00_accountlinking.sql": "93e5e2ee1a625d0d81a62255c7a407eccd09e918cdf555c9ea521e0c80447cec",
+      "sql/data/sql/playerbots/updates/2025_05_09_00.sql": "7dd127d43cf24b0fe165ef77f224afb0684d476ea3be29c8642b32a812d6a315",
+      "sql/data/sql/playerbots/updates/2025_07_01_00_account_type.sql": "53ad180977fc9f6deb897d9e88e72028ae766299b8b1932743417fd422e00d1b",
+      "sql/data/sql/playerbots/updates/2025_09_16_00.sql": "58b70af243db98066084d5ab2d8e630505bd766ea209c5e86bfb88a8d4d65cc2",
+      "sql/data/sql/playerbots/updates/2025_09_17_00_paladin_buff_reagent_texts.sql": "db188a620046fef5caa0074500f8e585ce491c32986344c35e2aba5015df0dde",
+      "sql/data/sql/playerbots/updates/2025_09_18_00_ai_playerbot_french_texts.sql": "3e57e5bd53f2ad3fe79bc71149e10ab53cea8d6150c94ce2858bc2374d430cb3",
+      "sql/data/sql/playerbots/updates/2025_09_28_00_netherspite_beam_blocker_texts.sql": "febc0984fdfa03184df43e5411f949052efba5c7d7c8f76d1d04c8c0e2cbcf11",
+      "sql/data/sql/playerbots/updates/2025_10_09_00_ai_playerbot_texts_fix.sql": "e0ba712f2557711bc365333f3385fde0e783b34f436b5e9e1dd94914a32680c9",
+      "sql/data/sql/playerbots/updates/2025_10_27_00_ai_playerbot_german_texts.sql": "c16983dc65f5ed60abf666313480961f51f714d2321faf184a0561922c0c5d59",
+      "sql/data/sql/playerbots/updates/2025_11_25_00_ai_playerbot_pet_action_texts.sql": "54d6140ec7b6f0343492c30fd845d1db4340474d734b4823202f158f0e210e01",
+      "sql/data/sql/playerbots/updates/2025_12_27_ai_playerbot_fishing_text.sql": "16035604e02045df8f938281da3af8a20f8b989b5d9c947b52e758de409bfdc6",
+      "sql/data/sql/playerbots/updates/2026_01_31_00_ai_playerbot_multi_pvp_text_variables.sql": "7a7bd9896663270482b3452dc0e9b9bb8ee8e2d6b59a84efd31f37ebac7fd35b",
+      "sql/data/sql/playerbots/updates/2026_02_13_00_ai_playerbot_texts.sql": "cdfbbdad15b5ac920dd1b2a77435a4a246046348371a1376ce01b11b2bbccb62",
+      "sql/data/sql/playerbots/updates/2026_03_14_00_ai_playerbot_wait_for_attack_texts.sql": "8140a4106a547734bbdc1543368e208b8dcb0a45be69f75ba4d5185e7127dfe9",
+      "sql/data/sql/playerbots/updates/2026_03_26_ai_playerbot_logout_texts.sql": "b63388a89e0b4db5111931ec42b38c4835ea4b9bacb82c7f31f9276a95036375",
+      "sql/data/sql/playerbots/updates/2026_03_28_00_ai_playerbot_focus_heal_texts.sql": "26da7354fb0e8894a9fb6fd3954331a9d78790412f203d110234e4e7184ea01a",
+      "sql/data/sql/playerbots/updates/2026_04_12_00_ai_playerbot_pull_texts.sql": "1e54e85b0628b6b643635aba58aa7ad095b39995aef65ec8b821292422d4ff09",
+      "sql/data/sql/playerbots/updates/2026_04_28_00_playerbots_bis_gear.sql": "54730140f6f566503507539110c2d8789ca2e453fe9f31d75af5c6d531fe7c8e",
+      "sql/data/sql/playerbots/updates/2026_04_28_01_ai_playerbot_bis_texts.sql": "fe245ec17fb8ddc43702bbd08c0d70045219976474abef54d03548e206048f8a",
+      "sql/data/sql/playerbots/updates/2026_05_08_00_ai_playerbot_rpg_status_texts.sql": "f53bf552506dd575b79d4dbd4a678cbefa84fb48fac37404772e67918035fca7",
+      "sql/data/sql/playerbots/updates/2026_05_19_00_ai_playerbot_audit_texts.sql": "603b0770ed17d31cf8a790af63384f5eb48cc9566dfc309a2cd7cf744759f07e",
+      "sql/data/sql/playerbots/updates/2026_05_22_00_ai_playerbot_send_mail_disabled_text.sql": "9ae57be367d48173a159801eb40d39fc034e940ae0d7aac63686613401ed5910",
+      "sql/data/sql/playerbots/updates/2026_06_13_00_ai_playerbot_missing_group_buff_reagent.sql": "0a35ab02d755f2d7e5d91ca7ee19fbb9324f7848602958f6b88d55adef6dc4fa",
+      "sql/data/sql/playerbots/updates/2026_06_19_00_ai_playerbot_cache_cleanup.sql": "cfb5ed9ca71da7bbcdb2b48e13f4c6705fd50523fa799bfbec5b5099a555c5a1",
+      "sql/data/sql/playerbots/updates/2026_07_05_00_ai_playerbot_korean_texts.sql": "c252bbceef11f074171c6dc37e3e64144a97e50c2d21c9f0a8483230a3c539f3",
+      "sql/data/sql/playerbots/updates/2026_07_26_00_ai_playerbot_autogear_texts.sql": "ce5848824824d8ed3afbd5b018a554505835e6e271b2c40eb3b49d35fe71035f",
+      "sql/data/sql/world/base/playerbots_rpg_races.sql": "e140ed72c8f0734ccec472e218fe9f3ec979275be83ae0d9aa0512461ca91d80"
+    }
+  },
+  {
+    "package": "area52-playerbot-companions-20261029",
+    "completed": 1793319108.7167377,
+    "manifest_sha256": "b832c4a90bd552131558528fd5860af72d8cb7e7b14f5b49fde314c993853fd3",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-worldforged-verification-20261030",
+    "completed": 1793372563.3709319,
+    "manifest_sha256": "bb9927f898390736a7a7b13bfebcbdbcf5ebf127fd29628dfd84f80860e6a0dd",
+    "apply_hooks": [
+      {
+        "path": "hooks/aura_rollback.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "6d2129ff5cb3e9b85caf8bd345212681a1d34c4e6b7ec362986fad33bcd1e874"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "62bada4f11b92f288888a3325270c887d16d6e2a9209829d8e9c4ee9a77af4f2"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-playerbot-readiness-repair-20261030",
+    "completed": 1793375409.6638105,
+    "manifest_sha256": "f3897c62d78962ffcb06d055c0cadeae60285b2b9541a547a2a11d61016586c3",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-featured-drafts-20261030",
+    "completed": 1793395501.9891036,
+    "manifest_sha256": "1f7e1cbbd904cf8a96fc2449d2b62a70c140a6304dde8c19e9b6a7ee7f2eb6e5",
+    "apply_hooks": [
+      {
+        "path": "hooks/draft_schema.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "6af620fe697627b7dd3a4c86056a3db39e07f63e1c01b091b64e9d08846586df"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "4a468a31851b11dafc195b06184963d3e9c5cc793a0fd6d790a5bfd5c67b503c"
+      }
+    ],
+    "sql_artifacts": {
+      "sql/draft.sql": "57c53774339d14b5b52b9b8615af38b1c242af30cbaeaabe58812a1d1b5b12da"
+    }
+  },
+  {
+    "package": "area52-reported-me-repairs-20261030",
+    "completed": 1793398800.5091,
+    "manifest_sha256": "38d4ea947dcd842cbc6e4c7b3a6948384b2a2beb2c7d885209bb3418b6fbc578",
+    "apply_hooks": [
+      {
+        "path": "hooks/data_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "a9d665d885e7eb963be8c20e5dfd871ec0444a66b59f14c5dd7498bce403fca2"
+      },
+      {
+        "path": "collection/collection.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "5e25a821fa7f0e6c19bb155646cbf9bf668977c4878d19e6ec0ad67a55b7ee59"
+      },
+      {
+        "path": "cosmic/proc_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "86fcc5cab9eb470acb204c6cbdc8fe78e7f65bc6366619d41f5b750db846b958"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "4a468a31851b11dafc195b06184963d3e9c5cc793a0fd6d790a5bfd5c67b503c"
+      }
+    ],
+    "sql_artifacts": {
+      "cosmic/candidate/data/sql/updates/pending_db_world/2026_10_30_01_area52_cosmic_reprisal.sql": "10def6761be68d1e70e65c18e71d8a4707a19eab6453ef7d53d645dc0b4bfa7d",
+      "source/data/sql/updates/pending_db_world/2026_10_30_01_area52_cosmic_reprisal.sql": "10def6761be68d1e70e65c18e71d8a4707a19eab6453ef7d53d645dc0b4bfa7d"
+    }
+  },
+  {
+    "package": "area52-bot-idle-build-buttons-20261030",
+    "completed": 1793419496.8991206,
+    "manifest_sha256": "e5ac5625f0e44b075350394945b94d4545d4dbd0059c9920f44e594a7c19a7c3",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "4a468a31851b11dafc195b06184963d3e9c5cc793a0fd6d790a5bfd5c67b503c"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-shared-build-library-20261031",
+    "completed": 1793475481.0888412,
+    "manifest_sha256": "a355577951654a60660f78a4ff96f462f6337b0012cbfb832da3b13a3ea5475a",
+    "apply_hooks": [
+      {
+        "path": "hooks/library_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "e9065949de79ad607862109274297c537f2f233fc51c24d729009e660c0b6059"
+      },
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "4a468a31851b11dafc195b06184963d3e9c5cc793a0fd6d790a5bfd5c67b503c"
+      }
+    ],
+    "sql_artifacts": {
+      "migrations/2026_10_31_00_area52_library_import.sql": "b88b7b34113da3b6459a137a9cd0a19224733d0bd8e7fd2bf697d6d5765746d0",
+      "migrations/2026_10_31_01_area52_library_refresh.sql": "d27c27c05df16d9f8dde03fed14e694f77be2ae0e0508bf9d4a217e3e468a5a0",
+      "migrations/2026_10_31_02_area52_library_publication.sql": "d6a91cc514e1da08980db10ae1f6ea5cb9e902f2af3f9e6f23f72ca5fc5e6cbe",
+      "source/data/sql/updates/pending_db_characters/2026_10_31_00_area52_library_import.sql": "b88b7b34113da3b6459a137a9cd0a19224733d0bd8e7fd2bf697d6d5765746d0",
+      "source/data/sql/updates/pending_db_characters/2026_10_31_01_area52_library_refresh.sql": "d27c27c05df16d9f8dde03fed14e694f77be2ae0e0508bf9d4a217e3e468a5a0",
+      "source/data/sql/updates/pending_db_characters/2026_10_31_02_area52_library_publication.sql": "d6a91cc514e1da08980db10ae1f6ea5cb9e902f2af3f9e6f23f72ca5fc5e6cbe"
+    }
+  },
+  {
+    "package": "area52-build-editor-fixes-20261031",
+    "completed": 1793478275.0073,
+    "manifest_sha256": "d537d8a5d43d3daf2270f5e207b0727cdb30d85b92bd2fabf2c6f3555979a04d",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "4a468a31851b11dafc195b06184963d3e9c5cc793a0fd6d790a5bfd5c67b503c"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-featured-creation-reference-20261031",
+    "completed": 1793480641.74604,
+    "manifest_sha256": "0bb791478b2a94c9c3f674d9349100d1c0975a5771bb7086fe061edbfe0f3006",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "4a468a31851b11dafc195b06184963d3e9c5cc793a0fd6d790a5bfd5c67b503c"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-featured-enchant-slots-20261031",
+    "completed": 1793483808.565897,
+    "manifest_sha256": "c142ef053ab4f7cf8a8b96c1984f4c8716058ee138d444c3f871896d9eb0c8d0",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-startup-bars-riding-20261031",
+    "completed": 1793488074.3490179,
+    "manifest_sha256": "5ad5a7348aabbd0ebbc45ca94444074c192259aa8fad07b8a39df66419dc0d1f",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-startup-lifecycle-20261031",
+    "completed": 1793490776.9882824,
+    "manifest_sha256": "eef754bb69c9edc8dd3a5b22e4100e4a9958d461b03b9a9f3b068f2cede146d9",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-replacement-buttons-local-test-20261031",
+    "completed": 1793493027.8269298,
+    "manifest_sha256": "afff2f0569bf92bf2009df633d361b2861753494a5ca168384dfe054d85c8b58",
+    "apply_hooks": [
+      {
+        "path": "client_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "2b2320fa948f2e050fb1d5066336bf39f64b541c4d4b3747dc7745fa748e50bd"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-me-tester-exclusions-20261031",
+    "completed": 1793508350.3766866,
+    "manifest_sha256": "06dc8c6527a4c2f5ac2e11dff645dde2b7f8f5d618c12eb5cda1263dbec9b7eb",
+    "apply_hooks": [
+      {
+        "path": "config_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "9624682ca0c3c365c6688528379c6694559213417eeb5925c4c87a52309157bd"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-featured-publish-20261101",
+    "completed": 1793550508.3365464,
+    "manifest_sha256": "104606f1004bc5de427cf16dc2b0e08a2840a3bcc7475aa6d5dc34b9346f4135",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "05e2fd5a182508c5f78838a031e0b7ed3e3755b534bba8c3a9a6fd42f8b7c363"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-build-save-validation-20261101",
+    "completed": 1793561613.4451916,
+    "manifest_sha256": "be7ba041ba3a8377fa89dc6983a14ea697b4f85d40ea6cd3750ed5d7afc20527",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "50f21dfdd0e903bb13af344abb3357c1ef491b9daa9a76e237e97fc11603b2d9"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-featured-editor-rewards-20261101",
+    "completed": 1793590842.7879846,
+    "manifest_sha256": "a83ce77a5badd0ae4b3bdd92aca94a531eb44c0a4fd155bb262b411cb7c56d54",
+    "apply_hooks": [
+      {
+        "path": "hooks/reward_schema.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "e223a2baa557e9a9e8af27e3ef0bc51055587ffd832d48fb333447f71b5a8f73"
+      },
+      {
+        "path": "hooks/files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "31b0eb63ed0ddfe576354b3140b063a082af52b1d16ad373c93d6f3c5e669b80"
+      }
+    ],
+    "sql_artifacts": {
+      "sql/featured-milestones.sql": "b92d95a3a6b2404f452ebabdbdd6355a78561568b1b9342d94efbc4232af3a41"
+    }
+  },
+  {
+    "package": "area52-featured-editor-load-order-20261101",
+    "completed": 1793591867.058038,
+    "manifest_sha256": "8a901a6178c4458abdc7e27e03035af9e538251df2095ccb52d6e16325d26c55",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "50f21dfdd0e903bb13af344abb3357c1ef491b9daa9a76e237e97fc11603b2d9"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-featured-wardrobe-editor-20261101",
+    "completed": 1793593097.3342533,
+    "manifest_sha256": "330bec7401243bda717198a48c4e3795ef7a91a85a23a8194e91f5280f4a00e8",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "50f21dfdd0e903bb13af344abb3357c1ef491b9daa9a76e237e97fc11603b2d9"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-featured-native-wardrobe-20261101",
+    "completed": 1793627659.457061,
+    "manifest_sha256": "fbfa8f6483268cc98cd8d2e4c500336ab9ce69a4dca0a7ece5be655b3cea8378",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_files.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "50f21dfdd0e903bb13af344abb3357c1ef491b9daa9a76e237e97fc11603b2d9"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-featured-build-mystic-knight-fully-verified-20261102",
+    "completed": 1793636941.9826238,
+    "manifest_sha256": "f3159bd0c7e9048e498647578bcf70e52f2b49e5f91d09af6ad29d26b3d13359",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "3cdb375f208bf9576e5030ec2808c699201c669dccfe4e745324b2a223753435"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-featured-vanity-catalog-bridge-20261102",
+    "completed": 1793656314.2824476,
+    "manifest_sha256": "cd9ac1f4dfdfacdd6e2acebdfd2e37751f5b8044fcd8657b4f1ecedf4a87cd79",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "db161aa223ff183723e29dbe789dbc6beeb571c345cc795d2eb76385b3ae3d6e"
+      }
+    ],
+    "sql_artifacts": {
+      "sql/locust.sql": "439b7a293d70755f571ecde6587f5040527abbf9af7758f1bec960763da5de26",
+      "sql/pet.sql": "207f540bf7cee92ac2ab006cf9a945f91830d43b990bf36c2ec5c5f09ed1bb1a"
+    }
+  },
+  {
+    "package": "area52-featured-catalog-events-20261102",
+    "completed": 1793659374.956445,
+    "manifest_sha256": "e8d5e58551931e14f127f65332e9611a83fc0a2e323b0e9a596b6e5538226f2d",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "5fc687c780ec98efa34f3ac2ec9ca61c57e4726d199c63ea1600016a35ad255d"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-featured-editor-session-20261102",
+    "completed": 1793665977.327855,
+    "manifest_sha256": "5702387cee945290b36be4e7aa4c721348fdea11c59f884cc62c91ad46a515e6",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "4f327aee26accfd6fd8c8472674a6a80411e5cff5009c0612b4a1155517c92c1"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-eldritch-wrath-cooldown-20261102",
+    "completed": 1793680092.4683502,
+    "manifest_sha256": "340c845548a9c333fee58cbad1d5dd9d881aee1141d06e7be1c33adea6eccd41",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-featured-build-white-walker-fully-verified-20261102",
+    "completed": 1793707128.6691995,
+    "manifest_sha256": "e475b9cfff684dcec1f6f85161fabe73d540f1847bc30c0b0b6eca58702807fd",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "38bc8ced484224d078fee78c4721bcb39c691f3b1826520cff777566cc81d959"
+      }
+    ],
+    "sql_artifacts": {
+      "sql/apply.sql": "db9762e7e5307d27a90e0f5b69e7f7cf1fe55103ac482561d6d38986c5b8ead4",
+      "sql/rollback.sql": "97675db054370e46d54b1af3df3a53fc03190e1857298a5621086c7f53d4deb3"
+    }
+  },
+  {
+    "package": "area52-vanity-bazaar-20261103",
+    "completed": 1793732168.2836418,
+    "manifest_sha256": "51210aae6e83ca9e3ff27df613630af59ee1aa3f089e0dcae5371d2fdb64f4f8",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "38a35cf96f6ca79e9fe62c70c0cbeac2272fa55cdbb33d8e7c8bf6b3e06bd093"
+      }
+    ],
+    "sql_artifacts": {
+      "sql/apply.sql": "e52ebf22968484b7dad46c1d4532d904a2cf0fd78c8f3585b00b48e64fad0af9",
+      "sql/rollback.sql": "5893642b166f50df784a4a285dcc9f0079ea43b26527548257c8a76cb2613618",
+      "sql/schema.sql": "4ff8329d265057d6032e3f70d94f7f3f8af32e64f7a06c9b313189a2fa2b7e5d"
+    }
+  },
+  {
+    "package": "area52-featured-mounts-20261103",
+    "completed": 1793798655.1112812,
+    "manifest_sha256": "977a83a50620f2be421bf0b5bf24746d945dced98eb76eb02392e9bf2a0e4677",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "87f3e8e0c670a97b8268010a6d77401d52e4b15e87ed2a9580027ef763909c4e"
+      }
+    ],
+    "sql_artifacts": {
+      "sql/apply.sql": "6f02aceead9ab798ec8e902f826e73f33c7b6d1bd48058565246f2cc6c369a50",
+      "sql/rollback.sql": "98406afdb18c1734e351a7ea9acc3ae8439c9233448620f535f1122bc728563b"
+    }
+  },
+  {
+    "package": "area52-marksman-fully-verified-20261104",
+    "completed": 1793809503.849995,
+    "manifest_sha256": "bc8f8fba17397045950170645ac5dd58bc5598251f16387a30dc94dc8db46038",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "b5c597ad716941924a762ef3b39bdb9702ceb96ae39cb04c0d5d86775e4f1a7e"
+      }
+    ],
+    "sql_artifacts": {
+      "source/data/sql/updates/pending_db_world/rev_20261103_marksman_expose_weakness.sql": "c2977f7bb0c86e50272809e4a9a84dbd0569db9a454f2c7fd209a6b7a1840cff",
+      "source/data/sql/updates/pending_db_world/rev_20261103_marksman_hawk_auto_attacks.sql": "02c3aa7df819fa18cf544b2ad4fe5e49313537c4dc7e0bdfa2201f9e6688141b",
+      "source/data/sql/updates/pending_db_world/rev_20261103_marksman_mark_armor.sql": "b12bcff41b2da7fbafcd0cefbaf4f185700bf243d810d8967302cbdd7a84a85e",
+      "source/data/sql/updates/pending_db_world/rev_20261103_marksman_proc_masks.sql": "3707500809359fb80910544372da8bbcf64e98c826a4ddd86106f8d203da394a",
+      "source/data/sql/updates/pending_db_world/rev_20261103_marksman_steady_capstone.sql": "b0691b2665fde05ee938be540351d94ca9f479b85e5c88f4821d3d2ff0884efc",
+      "sql/apply.sql": "739f25632fbc3ac0e6d9dd6365606801db0a923e406768dc6082bc02397ceb25",
+      "sql/rollback.sql": "9d4fa7197b3f09dc67575180483478d3884a7c5e3f3dc125ff5a0ec8415026f5"
+    }
+  },
+  {
+    "package": "area52-uther-tomb-20261104",
+    "completed": 1793819533.9674194,
+    "manifest_sha256": "2a0673f7a2c93d2bafaf5a85e1c4b0dd8481e950be858e43840bde6f5d198396",
+    "apply_hooks": [
+      {
+        "path": "hooks/uther.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "dac8d1cde29f2a8205c288decbb76ecc04d4563d7d73e568aefd7308d35ec5cf"
+      }
+    ],
+    "sql_artifacts": {
+      "apply.sql": "5a66bb0ca2042e2b697ac1b15d0113115e60d01bdfef4afba3c12f737489f8de",
+      "rollback.sql": "6f42031573377260c3f375837ea40fbe61fc168e4fde952ca3f9f724324b4d6d",
+      "publication/rev_20261103_20_coa_uther_statue_crash.sql": "dabd4662f53558d15d39921a274f7b92312d2d1fea18ec20dc583b8eecfd6b33"
+    }
+  },
+  {
+    "package": "area52-celestial-turtle-local-test-20261104",
+    "completed": 1793828881.4678426,
+    "manifest_sha256": "e5e91c963deb755dc2a0ee677814c9cd470e940d612bd4eb4bda9b5d690b36b7",
+    "apply_hooks": [
+      {
+        "path": "hooks/turtle.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "152ebb7f62617dc616857c8788ed52fc32967c2fcac99ebd9f4ceccc416117db"
+      }
+    ],
+    "sql_artifacts": {
+      "apply.sql": "ac8a754fc29b5fb21518fcad1907e75a2511d383b8ba095073d37435ae1648f7",
+      "rollback.sql": "fecd5d8eb24e6ab1998277b46ea36414795ce15ddf24441920a2bb6c9b7cf2ea"
+    }
+  },
+  {
+    "package": "area52-celestial-turtle-particle-fix-20261104",
+    "completed": 1793829859.3511834,
+    "manifest_sha256": "bea02241bd17508bfefc109d852516780c371488622b42e015cafc0869da0dee",
+    "apply_hooks": [
+      {
+        "path": "hooks/client.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "353b81856edc89334b366f5ec979ef5ab389c3db082fcf76f22415b5069dc1b3"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-celestial-turtle-visual-r3-20261104",
+    "completed": 1793831660.599978,
+    "manifest_sha256": "1e933541b289e0ac0d0104bdb516028cca1c964e9d6acdf0f4803863ec177c07",
+    "apply_hooks": [
+      {
+        "path": "hooks/client.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "353b81856edc89334b366f5ec979ef5ab389c3db082fcf76f22415b5069dc1b3"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-celestial-turtle-visual-r4-20261104",
+    "completed": 1793833297.9605567,
+    "manifest_sha256": "fe5c75a15535c1d92b284f47da1b96f9829df970177757253c3eff6e28bfb1e0",
+    "apply_hooks": [
+      {
+        "path": "hooks/client.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "353b81856edc89334b366f5ec979ef5ab389c3db082fcf76f22415b5069dc1b3"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-celestial-turtle-visual-r5-20261104",
+    "completed": 1793833610.3672473,
+    "manifest_sha256": "e9120cbf1a1c42766f23b7aa0e4c0b8589ac30c67161b75cb6953506eecde17a",
+    "apply_hooks": [
+      {
+        "path": "hooks/client.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "353b81856edc89334b366f5ec979ef5ab389c3db082fcf76f22415b5069dc1b3"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-celestial-turtle-visual-r6-20261104",
+    "completed": 1793834546.6445215,
+    "manifest_sha256": "ff72b9e45d0d1815e4d64ced2b3bdaecb191b93e16325618fed234a896e2d4a8",
+    "apply_hooks": [
+      {
+        "path": "hooks/client.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "353b81856edc89334b366f5ec979ef5ab389c3db082fcf76f22415b5069dc1b3"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-celestial-turtle-visual-r7-20261104",
+    "completed": 1793835075.4189622,
+    "manifest_sha256": "fa0483d7beab0d0f7500dd00151904ccc78a962a1880f2853c57de57dc981a01",
+    "apply_hooks": [
+      {
+        "path": "hooks/client.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "353b81856edc89334b366f5ec979ef5ab389c3db082fcf76f22415b5069dc1b3"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-celestial-vanity-20261104",
+    "completed": 1793845528.9099684,
+    "manifest_sha256": "b81a7b822e71e097db812dde50ece46c76d36f6db97439cfaa6f7d562eba862d",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "c1ca4e47bf5387248c126aea9b41acbfd03e17399b61550720cda093d7f5ef05"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/rev_20261104_celestial_turtle.sql": "ac8a754fc29b5fb21518fcad1907e75a2511d383b8ba095073d37435ae1648f7"
+    }
+  },
+  {
+    "package": "area52-luna-mount-20261104",
+    "completed": 1793848504.8796062,
+    "manifest_sha256": "c248a0e65f47254c3a855be7e3aede472e4cc3de2d03b388de6160331a39bdc9",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "db4fd938bc65d98181ae42ebbb9a4e74840c0f5ea48fdd7ca6099c3f12057150"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/rev_20261104_luna_gift.sql": "fe0857001b23bcdcabbab0c2143b480c42cdc9ac40752eb005afbbf4049b5d41",
+      "sql/apply.sql": "fe0857001b23bcdcabbab0c2143b480c42cdc9ac40752eb005afbbf4049b5d41",
+      "sql/rollback.sql": "459a3af4a43657917dd8feb18056a9890d0f3e7b449f0b49a268fc0cdd2b8cdb"
+    }
+  },
+  {
+    "package": "area52-shardling-heirlooms-20261104",
+    "completed": 1793862801.5489802,
+    "manifest_sha256": "4279ffdb5cbfde1beabe5d01ce6c3a5b4ea31fd55148f3e133b590c8dd2bb217",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "46191aa322bdc7b176a1d8d6757b097e839b752fd1710cc1510058560f5b567a"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-stats-capture-baseline-20261105",
+    "completed": 1793921602.174336,
+    "manifest_sha256": "19e4f1b3eb3f23e0b471ae01ec6abab8f8f35c71aa99821b3be5da9c485ae0df",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "b97fff8c3603ea4b76f9a86b62fb26febd396c78ebbae674ed08ec813d651af8"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-stance-stealth-20261105",
+    "completed": 1793931454.6707644,
+    "manifest_sha256": "b79dd1a2931035114e04a0e92601b4c2a21bff7f43e7e11d5f2c10768b87c4e0",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "b97fff8c3603ea4b76f9a86b62fb26febd396c78ebbae674ed08ec813d651af8"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-primary-stat-paths-20261105-r3",
+    "completed": 1793947082.9366624,
+    "manifest_sha256": "f3954bacdc69bb2febca3bf9f53627ecdd00a094e0c776b0d9c6bb6b0ac66c20",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "4a8a1f62c6507ae79149fba3e93e4ad38f03f6fbcaf0c17fda6d26dd712093e3"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-primary-bonuses-vanity-20261106",
+    "completed": 1793976910.2064185,
+    "manifest_sha256": "b317463561f4497ed2847f3d596af91ad744935c2f086904caaf5bfd894da834",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "4a8a1f62c6507ae79149fba3e93e4ad38f03f6fbcaf0c17fda6d26dd712093e3"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-prestigious-cache-level-20261106",
+    "completed": 1793991840.5823195,
+    "manifest_sha256": "989108c98ada09b9675a6f1444ebd76c7ecc0189c5eb200700b4200ed2c69471",
+    "apply_hooks": [
+      {
+        "path": "hooks/cache_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "3af1c4e5174fd7603e80a8b5ded375775412a64b05bb8599ca78e28fb7a79ab5"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-bank-access-20261106",
+    "completed": 1793998360.6986744,
+    "manifest_sha256": "3a7742e0668e414be23d82c11011fa69dd1e2e50fe3b6244f420cc2148826b9b",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "d820dfa11898a908a41be5b24a4b7d9e43ca35a20d493aabba626eb57ec47cea"
+      }
+    ],
+    "sql_artifacts": {
+      "sql/apply.sql": "d566b4d7902eff6f148e26e81b686acdec376289b115978bd39598619193f5eb",
+      "sql/read-only-guard.sql": "76849fa7b0b96f5195369dbda812b3a6404a4f06c32e507d6130c53917455621",
+      "sql/rollback.sql": "7fd89217017580cea8c9670574db450ab96600a49244c7faf06f1d0626f11ad9"
+    }
+  },
+  {
+    "package": "area52-tiered-cache-rewards-20261106",
+    "completed": 1794013093.1451316,
+    "manifest_sha256": "b28defe086b8f042164937a73d82487fc9d47a7ea5650341ee3edf7f384a21e5",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "ffe57b2215d026bb53202ba3f8df1fe33e1b2166f64ec790989f6957822c20b8"
+      }
+    ],
+    "sql_artifacts": {
+      "sql/attempt-schema.sql": "dcb3d35e32ad60bd6f5ea21e18421f93b43b27d5e26d176cd7dcc4239f7ea232"
+    }
+  },
+  {
+    "package": "area52-callboard-temporal-contracts-20261106",
+    "completed": 1794020412.9722493,
+    "manifest_sha256": "8368f827e92a97a958f6717c20067b817249418b4f8b4037584cb73fa3346c9d",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "a3681d139a804efe90428407cc94531951d26ae5225851267ae1f2c7952d4bf5"
+      }
+    ],
+    "sql_artifacts": {
+      "sql/contracts.sql": "fed74f4c5dfa32847c17ad824f6c7ec75b26a901df1885158117d55e3b635eb7",
+      "sql/ledger.sql": "924385782806ada239749782f2d36780a679ebcdea6c24692cb6ab3cd1ed3f9e"
+    }
+  },
+  {
+    "package": "area52-callboard-progression-20261106-r4",
+    "completed": 1794064933.6708531,
+    "manifest_sha256": "748d961513d35ac9ef56e054b6044d2e4189994aaad10e38b51b55407c7b2fe1",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "6afa3f749ea9f30ac3c04052110330fe5979c8a602f11a962504bdce64826594"
+      }
+    ],
+    "sql_artifacts": {
+      "source/data/sql/updates/pending_db_world/rev_20261106_120_area52_callboard_tiers.sql": "ff85dd4d45ccc74edecd44e016477daa9c10959a7709e6ce6df1e55d587730f7",
+      "source/data/sql/updates/pending_db_world/rev_20261106_121_area52_callboard_bounties.sql": "ab41e47c09c4af9d9804bb2787c89484758882439c08fcec727549b503b39e41",
+      "sql/apply.sql": "151a706696e7e7f381cb497a0f633306475226f582d4eed5b165f23965f1ba4e",
+      "sql/rollback.sql": "99a9816c7c5ed11aa2740d6b3f22641d16556bcf1fde0c82cf19ac08c02c4e61",
+      "sql/spawn-preflight.sql": "f05be025c39afdf84584d83bc4dd45f98062314720b1fd4afc3cb6d4d6ccbc98",
+      "sql/state.sql": "11c0043fdeffdf799b36b885cf67adb78155c63186ac232df03d08edbed6cfa2"
+    }
+  },
+  {
+    "package": "area52-shield-finesse-20261107",
+    "completed": 1794082364.428451,
+    "manifest_sha256": "538a0808be86585ffccf807296d78a13dcfbd72580e7a1fbfbcc6d0ccbb465c5",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-featured-bot-rotations-20261109",
+    "completed": 1794285799.5908384,
+    "manifest_sha256": "be917febc7d9af0017535363b833aa2d652eea3cf200cb0d7ed5bcc778c2b248",
+    "apply_hooks": [
+      {
+        "path": "hooks/bot_profiles.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "0e3c12ef3d93d6c54002993def08002daab93c3b8daf905475c30233ddf60588"
+      }
+    ],
+    "sql_artifacts": {
+      "hooks/bulwark.sql": "37c6e8f2c3943b3f3cf96f6db7e06342af22608f5330937be7206712dbf0ae73",
+      "hooks/marksman.sql": "62affeef815ecc28d51f840d097749058b929e36d13488b9ccd2b6067f18bf3e",
+      "hooks/white-walker.sql": "ac18c9716010765ddd7fe77f3b33ea903e7ec1fb2942c758412fc9f8064374e4",
+      "publication/bulwark.sql": "37c6e8f2c3943b3f3cf96f6db7e06342af22608f5330937be7206712dbf0ae73",
+      "publication/marksman.sql": "62affeef815ecc28d51f840d097749058b929e36d13488b9ccd2b6067f18bf3e",
+      "publication/white-walker.sql": "ac18c9716010765ddd7fe77f3b33ea903e7ec1fb2942c758412fc9f8064374e4"
+    }
+  },
+  {
+    "package": "area52-cryotherapist-bot-20261109-r2",
+    "completed": 1794289246.6196682,
+    "manifest_sha256": "3d24da559f35791a250843e04dc3e9464f27b2203854a4c7025896107099c57c",
+    "apply_hooks": [
+      {
+        "path": "hooks/bot_profiles.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "75d2d9ef5bf1b3fad80785c3bcb435e9ab2e725f35facc6ab0612b4e4e593e78"
+      }
+    ],
+    "sql_artifacts": {
+      "hooks/cryotherapist.sql": "a99c6d2b38ca521f24d3e94fe3a9d1e207e597092b3b59e17f29d1b2b9d4e05d",
+      "publication/cryotherapist.sql": "a99c6d2b38ca521f24d3e94fe3a9d1e207e597092b3b59e17f29d1b2b9d4e05d"
+    }
+  },
+  {
+    "package": "area52-banner-party-draft-20261110",
+    "completed": 1794329113.6522887,
+    "manifest_sha256": "b9dbef159af0916699c02b16e10dd02c3061a75078c11d10e64111be548c5bf8",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-trophy-stores-20261110",
+    "completed": 1794336850.4201021,
+    "manifest_sha256": "ac8cbc9eaca5824bde7bbbeabf4102e2404acefce37a1e2a561ff0701ab9d85d",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "6b133e49cafdee572beac35fb0610fa932f042505212d89fd6ac2597812fd581"
+      }
+    ],
+    "sql_artifacts": {
+      "sql/apply.sql": "addf49df2c21ed1b278d93810863e9596c878cb12e88f4e393ee803a87c9957c",
+      "sql/rollback.sql": "f66ec4fbaf53d34d20f1eee6bc000c51bfffacbbdbd94370009afffab7b1b8c8"
+    }
+  },
+  {
+    "package": "area52-dummy-timeout-20261110",
+    "completed": 1794348441.3898363,
+    "manifest_sha256": "fdad2fe1240e2e37ac117dea3bf38b9c2a22145c09a7448df3b3e570e4e9a0ae",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-heirloom-dark-ranger-20261110",
+    "completed": 1794373031.78639,
+    "manifest_sha256": "cec9e5492bb43f5240d49ec0994a16291106758f5b932e129ddf4ff6443385a2",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "419f8fdd58cd9b8c808b0919d267ab7b7269d487974170eb8c75c264a8a48d5e"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "29ceca860a848ce733a44d5b8779fb755d13a9183372a45620548f764f06a216",
+      "sql/apply.sql": "eedc005000c53f3364e1640c75be99eb262bbefd22e24e0446b24c97e71a6fe3",
+      "sql/rollback.sql": "e7c419ea7fc42a00b790411f83bfed41beea90ddd22942abd15b98d072f4cef5"
+    }
+  },
+  {
+    "package": "area52-dark-ranger-epics-20261111",
+    "completed": 1794448287.706572,
+    "manifest_sha256": "fdc8bb4b8a20659ba5c26bcb9b6b095ac0f928ab2a9121672121ae3a4f45d87b",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "d37d2befd632c47deff10b8bfc93d3ce07e208d396e2b58ccb735c87faa0c38d"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "eff7b06c2fe60b3aeef31a5af4b3ed8d70dfcce88353edfe1e7847b394410a8e",
+      "sql/apply.sql": "e356c061113254d5e7a6564b33c91fe8275366a161697a456c55b8c2916c8376",
+      "sql/rollback.sql": "233aa1bf638d2a0adf387efd4cdac6ccda9a87f30f88b104277db191bc4a892e"
+    }
+  },
+  {
+    "package": "area52-defias-gunslinger-20261112",
+    "completed": 1794498582.7187579,
+    "manifest_sha256": "a526f797f5b78dfb928ee72590d98e9c2b0f2a40de35e78e56b1c8bc1ec6765f",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "50e95bc187d87682bb2de3ac78ea1f80cc9a331a4ad81ec631266ed7469ecc0f"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "3ae662e23b659ce0850506427d04fd9c95d70c17ad4e552f93383a7005238cb4",
+      "sql/apply.sql": "c6fb78e56ea68057312f020eb9b1e61d915a4b8287046aac502a26d86c40ec51",
+      "sql/rollback.sql": "48eeaa21f5d948d70e09f6d3bb32cbf821f58a4136e8da77989d054f2cc869c6"
+    }
+  },
+  {
+    "package": "area52-featured-summary-scene-20261112",
+    "completed": 1794505844.6584225,
+    "manifest_sha256": "2f7568c542cd2ad3c84860de15d4399cc0310bf2923498208bc14c4e797adfc0",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "734d23626251596d375d51ea2c4a8d56fcbcd4a6e35ce1c2c950ec3a2ae24d0e"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-featured-preview-viewport-20261112",
+    "completed": 1794509713.348574,
+    "manifest_sha256": "2257823298489df83b29a5fd22d7a34595b49ad91da63f1d0262898ef2a1cf44",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "52d12c410922d0f15a7b803d604ee1d30b8a24dc9217d592c948df92414745cb"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-combined-abilities-20261112",
+    "completed": 1794520643.0019274,
+    "manifest_sha256": "13469138b1849c501e697c8e1395d9df851ee8e82d612022fa2c0f811be44d36",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "f86dc0992f0068750d0f691f0c5814ba5fc3772d4327cedf80a9491316932d58"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "244a54382b303912ae5dec9fd6a63be5b99b9381c64b366cfb1ce220c6178d78",
+      "sql/apply.sql": "c3005da36c5d60ebcb94644a8b543575889d1e8a1dd581fee199440ee446bb4c",
+      "sql/rollback.sql": "6925350d94b63899cc217594f802cdaf20d5924c7ba51df16e75e15a27eebc1c"
+    }
+  },
+  {
+    "package": "area52-wardrobe-incarnations-beasts-20261112",
+    "completed": 1794543837.7264285,
+    "manifest_sha256": "3bcbca3fe42b85fd545e10ae26598d2bbad8168ade5ecdf4fa1e9a30112f4db9",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "5a89eefb744233f9bb8a730a83711db1bdd7a19e913d6b8475c45586b7508e20"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/apply.sql": "d6e724f33bff7b01dba06e076a01e555fe6c7ece61f8af2f1473416377127d9a",
+      "publication/characters-apply.sql": "adcc1c150d139932ce9de0859b5b2c15740abde2371a23b10002b17fa8a255f8",
+      "publication/characters-rollback.sql": "5bfde2b0af34c1d1817e51e83b601775877ef578c01bf3154d438006d925f479",
+      "publication/rollback.sql": "8441ba1c7ec55f7e9a7f09ed601fd6337afe320ddd31434af33eb7822cef07f5",
+      "sql/apply.sql": "d6e724f33bff7b01dba06e076a01e555fe6c7ece61f8af2f1473416377127d9a",
+      "sql/characters-apply.sql": "adcc1c150d139932ce9de0859b5b2c15740abde2371a23b10002b17fa8a255f8",
+      "sql/characters-rollback.sql": "5bfde2b0af34c1d1817e51e83b601775877ef578c01bf3154d438006d925f479",
+      "sql/rollback.sql": "8441ba1c7ec55f7e9a7f09ed601fd6337afe320ddd31434af33eb7822cef07f5"
+    }
+  },
+  {
+    "package": "area52-wardrobe-whistles-20261112",
+    "completed": 1794546342.6058593,
+    "manifest_sha256": "2b2ae2e32272b799e4f28c8bd1c387e034eccedb78ca8a2d0881b8c8016563c4",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "cf7c9de766fc66d661fbafcb1b7f018cf387267c7f83e2219c14ebd26e65c877"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "d8a04aaff8e2b682b4ac67d13af6155ec958f24b1756d5bd9ee70d568798ced1",
+      "sql/apply.sql": "d8a04aaff8e2b682b4ac67d13af6155ec958f24b1756d5bd9ee70d568798ced1",
+      "sql/rollback.sql": "f280b0ab520571a09d3e607d67a689ffb89e4da51db233d486cefac9f7efa95a"
+    }
+  },
+  {
+    "package": "area52-worldforged-rootbound-20261112",
+    "completed": 1794548786.7272499,
+    "manifest_sha256": "5a98c3775c3dd9a09cbe7c7062a74d631ca183590426360a3aa8252cd426222f",
+    "apply_hooks": [
+      {
+        "path": "hooks/worldforged.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "aed9a0a309452b4504f38158c34d6185a9dd867dfa210160b817d948781e191e"
+      },
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "cf7c9de766fc66d661fbafcb1b7f018cf387267c7f83e2219c14ebd26e65c877"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "4e74b0628dd0775413b68c590a7f3d3992ca909fb86b1721d323b85c35f9a9bb",
+      "sql/apply.sql": "97882533e670bdb9d95dfc7495c52ab9310689caa9c6290f1947c40373eadbfb",
+      "sql/rollback.sql": "7e9b8ed9e15b8d99e2f55cab886ef001c0e8ccca54694e295369f253c6d38dbf",
+      "worldforged/sql/apply.sql": "b188d1cb9b38f6aee089a87c8bed9aca4830bd748438e36df4f5e533083976d4",
+      "worldforged/sql/rollback.sql": "82f62bd9c7ae9d12ad2e990d46c1aaf47579de2d8f7fcaecffd183bc5666e573"
+    }
+  },
+  {
+    "package": "area52-rootbound-client-lookup-20261112-r2",
+    "completed": 1794550413.3932288,
+    "manifest_sha256": "8d19bddfbdcd45edfd4e06c3808402c48af05f41237dff07ffaf1776aef921d0",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "e4847997103489d133e508fe21b2b963e489dd5e814a3944a778e1052a967b37"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-rootbound-mount-pets-filters-20261112",
+    "completed": 1794577178.2919984,
+    "manifest_sha256": "c3eae9253126bc60565b06b3aabd12435945fb573a549ee78041ab2289893a24",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "cf7c9de766fc66d661fbafcb1b7f018cf387267c7f83e2219c14ebd26e65c877"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "e0e96cc976e065930dfcda0c016e9dfbe3214f3ce3204329a0ebb171b1f6bcaf",
+      "sql/apply.sql": "e0e96cc976e065930dfcda0c016e9dfbe3214f3ce3204329a0ebb171b1f6bcaf",
+      "sql/rollback.sql": "88ba2b73c1028891ce460a5b5f27b6f8f0e4ef71c02bcbfd9d12b30e42d156e2"
+    }
+  },
+  {
+    "package": "area52-wardrobe-beast-catalog-20261113",
+    "completed": 1794583821.4331768,
+    "manifest_sha256": "bf0667357a953a16497a94f4e4e6ebfc4a4f1828675ea68d87df10bdd3268f01",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "cf7c9de766fc66d661fbafcb1b7f018cf387267c7f83e2219c14ebd26e65c877"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "910afebc0eeab8212d751200139d7b2f70802d60c7f948b7ac777da55e13bf46",
+      "sql/apply.sql": "910afebc0eeab8212d751200139d7b2f70802d60c7f948b7ac777da55e13bf46",
+      "sql/rollback.sql": "f30eb11f208ad49536e736ff3f714210ec0bc71f35e548cc0b904ae6ba4aa8a4"
+    }
+  },
+  {
+    "package": "area52-wardrobe-beast-catalog-20261113-riders",
+    "completed": 1794586600.5149882,
+    "manifest_sha256": "d5a0fdfbd0ef6d13728ab345ebcc4a4359b4721b0f34e3c83f98466462277a3a",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "e4847997103489d133e508fe21b2b963e489dd5e814a3944a778e1052a967b37"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-shadow-waste-wardrobe-filter-20261113",
+    "completed": 1794591411.376762,
+    "manifest_sha256": "32a7097cedb81a0ab81179a7c873154a8426b26e8876084243b375a7fe3cb600",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "e4847997103489d133e508fe21b2b963e489dd5e814a3944a778e1052a967b37"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-beast-filter-backdrop-20261113",
+    "completed": 1794592919.1284091,
+    "manifest_sha256": "07dace13c0df809157aa0de934d04912f09b9f61ec74a4914c883c150e532c07",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "e4847997103489d133e508fe21b2b963e489dd5e814a3944a778e1052a967b37"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-tirisfal-fog-profile40-test-20261113",
+    "completed": 1794594342.48272,
+    "manifest_sha256": "c65f47dbb7940dcbb8c0a2a74237f1d89df5eaa2cae060f420563f639efcaf30",
+    "apply_hooks": [
+      {
+        "path": "hooks/client.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "4a54bb1c8a548438b2dcbdbb2aac88ec15c14156eab80332de13585b649a49fb"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-tirisfal-magenta-profile40-test-20261113",
+    "completed": 1794594930.2731357,
+    "manifest_sha256": "7a8a040842823671a67980287f7ea4d932aff68e8da83ad2e1e29c4f28d3b936",
+    "apply_hooks": [
+      {
+        "path": "hooks/client.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "095367083078f4449bf1bdc5d62c5190f56dd2d0d79318e481f9b272edf592a9"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-tirisfal-profile40-provider-test-20261113",
+    "completed": 1794595377.6100113,
+    "manifest_sha256": "fec42cc326530601e10f5e8c5d5450c1c6aab102f8acb26139b9d02eeb106da3",
+    "apply_hooks": [
+      {
+        "path": "hooks/client.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "ff9781b7865f2fa5bea9391907483f25d0dd8329276fec6af051a587f618c98c"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-tirisfal-profile40-cloud-test-20261113",
+    "completed": 1794595997.6523266,
+    "manifest_sha256": "89ee455ebf254f00169064a6a8c5f4e6f240fefe58a2ef905d3efe3ed7dd9793",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_M.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "27d66bb174f72f92d196bc9103cb9a7884143d0de03d07a2fc30a70039368dea"
+      },
+      {
+        "path": "hooks/client_E.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "fd2f65023f8b7bc1aa23c1965358c77f73c50639cfa2aea826fd06c5a3651425"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-tirisfal-ambient-test-20261113",
+    "completed": 1794596732.4333096,
+    "manifest_sha256": "278e2a18971946ef58ff0bfdb69e1a5a0f478304f02cd5d676699df859801cd3",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_M.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "8f55853289fcc8a4c8e6234fd3762ba46bb0ae08d45a6dd340a60006e7f6ff75"
+      },
+      {
+        "path": "hooks/client_E.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "b6ec459f72e6bd09b836a1e48a3b6996f61866f8ffcdf819b6cc6bee5778652b"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-light-placement-once-local-20261113",
+    "completed": 1794598733.7507536,
+    "manifest_sha256": "596a2e7069c39b21c28d817dd18d4c1ee7cae94819b6d00d50ade15a15614157",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_M.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "1e90e05213bf8febc35a235b5d9a35b9b6c2de0e6e5a57ed36799ac59c23e45e"
+      },
+      {
+        "path": "hooks/client_E.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "1e12c8b2f13d6090e188dc18b947a7f786a6d7d6f17c2eb51a596911f591a648"
+      },
+      {
+        "path": "hooks/client_exe.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "0afeb7fee0746df31d92051d1cd389af07b964d8f13b8582e8e3a505acd4af46"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-profile40-fog-provider-local-20261113",
+    "completed": 1794600924.736571,
+    "manifest_sha256": "bb8c12c8f5ccd17edd729a82210b72bb674edb07c51d5713064f48216b60e6c4",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_M.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "1e90e05213bf8febc35a235b5d9a35b9b6c2de0e6e5a57ed36799ac59c23e45e"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-profile40-fog-5000-local-20261113",
+    "completed": 1794601738.7854815,
+    "manifest_sha256": "c92a16e4df271798c275488d75caea196a612429e5830a4739528925497493d9",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_M.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "1e90e05213bf8febc35a235b5d9a35b9b6c2de0e6e5a57ed36799ac59c23e45e"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-profile40-fog-start-005-local-20261113",
+    "completed": 1794602233.679694,
+    "manifest_sha256": "b86bcba0b6d66c970c5a7f131df6eac5fd9746583bcea23bfbfe864f65f7f41c",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_M.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "1e90e05213bf8febc35a235b5d9a35b9b6c2de0e6e5a57ed36799ac59c23e45e"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-profile40-stock-fog-comparison-20261113",
+    "completed": 1794602799.0298264,
+    "manifest_sha256": "e904dd872db766575041c50383006c3e66d144b8d632cf54801f5cb74604940e",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_M.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "1e90e05213bf8febc35a235b5d9a35b9b6c2de0e6e5a57ed36799ac59c23e45e"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-profile40-ascension-fog-comparison-20261113",
+    "completed": 1794603007.8633423,
+    "manifest_sha256": "cfc2bfebd62c47246ab161066ee1b215e4f09759a5bf810f958dce5e30813675",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_M.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "1e90e05213bf8febc35a235b5d9a35b9b6c2de0e6e5a57ed36799ac59c23e45e"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-brill-mist-height-local-20261113",
+    "completed": 1794604406.3420277,
+    "manifest_sha256": "dce925bc2dccc3a6705d0034bd9e6f545557f42965bca49e00b12676cefe0268",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_WB1.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "09774d771479d0b174c0505889d1d4eed655ea3378782cf5b1b20e60b18e0dbb"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-brill-all-mist-ground-local-20261113",
+    "completed": 1794605149.2126725,
+    "manifest_sha256": "869ccc67a5a535d48977dc1ba7a7b34c9ab3826a25f977ac887121072bc58cef",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_WB1.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "09774d771479d0b174c0505889d1d4eed655ea3378782cf5b1b20e60b18e0dbb"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-tirisfal-flat-street-mist-local-20261113",
+    "completed": 1794606930.0752788,
+    "manifest_sha256": "140f96bc73e4e572b1e744d2b1cca674a187b39bec87fa41c5679665e4ef18ee",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_WB1.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "09774d771479d0b174c0505889d1d4eed655ea3378782cf5b1b20e60b18e0dbb"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-brill-visible-inn-control-20261113",
+    "completed": 1794607663.765968,
+    "manifest_sha256": "280f706749d6d23af7df6b160002dd5db0be4d7f334b2ef44c702bb0de6afdf0",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_WB1.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "09774d771479d0b174c0505889d1d4eed655ea3378782cf5b1b20e60b18e0dbb"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-brill-visible-ground-all-20261113",
+    "completed": 1794608179.363172,
+    "manifest_sha256": "897f3155891506a117ac3648c5de5dbd94faf722ef78b3506e65a1ed4abae853",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_WB1.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "09774d771479d0b174c0505889d1d4eed655ea3378782cf5b1b20e60b18e0dbb"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-brill-large-minus-two-20261113",
+    "completed": 1794609287.8976994,
+    "manifest_sha256": "fdf497d37970110065e719d4529dfe7589762bdbdf8ae642aaabc1e46046e485",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_WB1.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "09774d771479d0b174c0505889d1d4eed655ea3378782cf5b1b20e60b18e0dbb"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-brill-street-contact-20261113",
+    "completed": 1794610019.232283,
+    "manifest_sha256": "ff34de505c5216c0c0c73bdf3202a9a35324f11f38610fdc270916c56ccfb576",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_WB1.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "09774d771479d0b174c0505889d1d4eed655ea3378782cf5b1b20e60b18e0dbb"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-brill-half-rise-20261113",
+    "completed": 1794610544.7972054,
+    "manifest_sha256": "8b9a3a427e19c40b67c78ad8006e9cffbabc70081e22c027894f2d1fa3092f6a",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_WB1.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "09774d771479d0b174c0505889d1d4eed655ea3378782cf5b1b20e60b18e0dbb"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-brill-graveyard-20261113",
+    "completed": 1794611422.613343,
+    "manifest_sha256": "71550dae6586e8b0ceab976c980df056f83d962c6be8103a9a11c0bdfbfc7ed9",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_WB1.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "09774d771479d0b174c0505889d1d4eed655ea3378782cf5b1b20e60b18e0dbb"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-brill-size-fit-20261113",
+    "completed": 1794612071.6217623,
+    "manifest_sha256": "965abc06a0a0ab49b1802d8a028096d7e78f0a4df4941cccdd97f8f7ff95705e",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_WB1.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "09774d771479d0b174c0505889d1d4eed655ea3378782cf5b1b20e60b18e0dbb"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-brill-apothecary-20261113",
+    "completed": 1794613097.8348596,
+    "manifest_sha256": "c4fa4ca7d35d8e7c8ded1432c21c6f35ba71428de78f07066db9a3c027222a9c",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_WB1.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "09774d771479d0b174c0505889d1d4eed655ea3378782cf5b1b20e60b18e0dbb"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-brill-stable-road-20261113",
+    "completed": 1794613973.9436488,
+    "manifest_sha256": "5426997158989338ba9d7f8fcfc53807bc27959c5f438cbb13c1d08c808a85b4",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_WB1.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "09774d771479d0b174c0505889d1d4eed655ea3378782cf5b1b20e60b18e0dbb"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-brill-roofline-20261113",
+    "completed": 1794614871.643122,
+    "manifest_sha256": "b7574f75ee1b758d3e79946a4ad75acfc3ffbfba5fcbe191c5654bd37821cc5f",
+    "apply_hooks": [
+      {
+        "path": "hooks/client_WB1.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "09774d771479d0b174c0505889d1d4eed655ea3378782cf5b1b20e60b18e0dbb"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-pending-abilities-talents-20261113",
+    "completed": 1794626341.9081278,
+    "manifest_sha256": "8561703a210c0f80bde949d06452df98dcf2a8464534eca0c1e7d3442a697d92",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "f86dc0992f0068750d0f691f0c5814ba5fc3772d4327cedf80a9491316932d58"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "f14b57db48b70e07617792ed7ab055a5143cd537101d39443661a1f9347c0cf5",
+      "sql/apply.sql": "ee7faa91554dfe9b48bbf635251576233d4e57476b42f052d013999f44f26cfd",
+      "sql/rollback.sql": "5bec55e5cca204e2ec70eb1d3b1b79a798b8dc44f471fe81b237f36995518443"
+    }
+  },
+  {
+    "package": "area52-embrace-lightning-20261113",
+    "completed": 1794633038.4880924,
+    "manifest_sha256": "9bbe9768aabb6e77fd7a256833180e7b05c207279f0e1575815c916d8ddaccdb",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "f86dc0992f0068750d0f691f0c5814ba5fc3772d4327cedf80a9491316932d58"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "caf9096f654ff217e277c8711843d191cbca01dffde79f4003b61d6bacddbb5b",
+      "sql/apply.sql": "caf9096f654ff217e277c8711843d191cbca01dffde79f4003b61d6bacddbb5b",
+      "sql/rollback.sql": "2b59e1f4de82663e8772e68598c10d9fcaef7df920e108ec3e1bbf660e6a78cc"
+    }
+  },
+  {
+    "package": "area52-eclipse-named-targets-20261113",
+    "completed": 1794638721.1014109,
+    "manifest_sha256": "997d80abefaacb49819dde29d0b71c9bf4b70fc93c2d6640fabf8f6482e4d954",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "f86dc0992f0068750d0f691f0c5814ba5fc3772d4327cedf80a9491316932d58"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "3d43ff6bf5f5f6644f73218770459b8bf7c9fea77b77b945817a6aa8b40f8507",
+      "sql/apply.sql": "b18da8b72bbefa1627189176ec6e2e15d08b76e073baffe26eb038c339c91a66",
+      "sql/rollback.sql": "c2aacb72fdb227c7089c37b456de8fcb09396a0b527ae79d494ec9b485c08749"
+    }
+  },
+  {
+    "package": "area52-mastery-alacrity-gift-roothounds-20261113",
+    "completed": 1794643316.7728162,
+    "manifest_sha256": "ff0a15eb9b3035d00dac5c9a5356b77fba532c5d85f4920b9cfcb79ad4e1e16d",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "cf7c9de766fc66d661fbafcb1b7f018cf387267c7f83e2219c14ebd26e65c877"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "3b245d27117816050fd50c3a8cec73909e706760a1274bbc0c409574d9e33798",
+      "sql/apply.sql": "3b245d27117816050fd50c3a8cec73909e706760a1274bbc0c409574d9e33798",
+      "sql/rollback.sql": "f78f1e7ab15d32bd3fddd148a7c698494dcff996aa262371de1bbb7c1cb39741"
+    }
+  },
+  {
+    "package": "area52-might-heirlooms-20261114",
+    "completed": 1794673650.2935588,
+    "manifest_sha256": "3861d413817ee081fa433da9bddf53daa9445d4b521ab99b4037fd8a4dd83e13",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "cf7c9de766fc66d661fbafcb1b7f018cf387267c7f83e2219c14ebd26e65c877"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "54bb90425e5da6f103d7eef66986a536a69b9f38f62c3079dfc0e3ab10ed2d0a",
+      "sql/apply.sql": "54bb90425e5da6f103d7eef66986a536a69b9f38f62c3079dfc0e3ab10ed2d0a",
+      "sql/rollback.sql": "0d5a4c8006a6594cd531f166455c40a6d9a834060f0a33f9f3c539404f956262"
+    }
+  },
+  {
+    "package": "area52-heirloom-vanity-followup-20261114",
+    "completed": 1794676963.167776,
+    "manifest_sha256": "6e99ebaad5f24d2433be6a3fb5dc0c65844f791e5bfb6af160486b87a64cd29d",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "cf7c9de766fc66d661fbafcb1b7f018cf387267c7f83e2219c14ebd26e65c877"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "34b2d91037c3cb02a2c1d27a88f76852078d1b3998f88f7706220e060452589e",
+      "sql/apply.sql": "34b2d91037c3cb02a2c1d27a88f76852078d1b3998f88f7706220e060452589e",
+      "sql/rollback.sql": "34b2d91037c3cb02a2c1d27a88f76852078d1b3998f88f7706220e060452589e"
+    }
+  },
+  {
+    "package": "area52-fused-sanctuary-refresh-20261114",
+    "completed": 1794685394.8768134,
+    "manifest_sha256": "bac79ac21adff7b22a791324172bf879828eec190770c1ecaf7ac2c10f96f00d",
+    "apply_hooks": [],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-fused-sanctuary-tooltip-20261114",
+    "completed": 1794706319.5062878,
+    "manifest_sha256": "fafa3d7272d18e90ecf14392f8c5765f5bd8ab172d2a93fadd429f32aaef110a",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "e4847997103489d133e508fe21b2b963e489dd5e814a3944a778e1052a967b37"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-roothound-bite-tooltip-20261114",
+    "completed": 1794713951.2034225,
+    "manifest_sha256": "0de5960c42870d7e0a16433439006a77c2816805a614cc56d649009e0e084b44",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "e4847997103489d133e508fe21b2b963e489dd5e814a3944a778e1052a967b37"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-dark-ranger-leveling-20261115",
+    "completed": 1794755946.6616976,
+    "manifest_sha256": "44ea60f51bb7ed1fd73fd1cf96b6ce4b01279791992cd19ab833c858dde2a1a3",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "082e627731d51072b2f1469de7bfb949fd6929b87a6012f8fc09b6b9d4e55f6b"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "16f0f9093d167b1814d1b461776b50e6848c026dafe353769648606c3bfe52bb",
+      "sql/apply.sql": "5a10e63e02dba86c4b7d7b5cc14c5c7a83e9a6ccc0ee19016597b9a2f6f59e38",
+      "sql/rollback.sql": "12a8b9ba0172de87d06dcf3fe4f63d5ed9c3919e6df31d964e27403bf92ca167"
+    }
+  },
+  {
+    "package": "area52-wardrobe-incarnation-previews-20261115",
+    "completed": 1794762947.4336522,
+    "manifest_sha256": "b5b044090c7296c6fae3373e0fa3592cb443bb6867dbf21b95bb2c1d8e6e29ef",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "e4847997103489d133e508fe21b2b963e489dd5e814a3944a778e1052a967b37"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-eclipse-featured-vanity-20261115",
+    "completed": 1794775116.267759,
+    "manifest_sha256": "f78510d4d7d79c57101f09bd3d853d56fdcc6b1e3db53aee7a3231e0c70823ec",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "9fb35fce36ebfec1d2586520dbce3d6ce6de29e3053e169f0271e1d8de16318b"
+      }
+    ],
+    "sql_artifacts": {
+      "publication/world.sql": "3c7b9d9a29106dd95044ae191d7b71ba062f7121a749be6f59236b0af7fb365a",
+      "sql/apply.sql": "3c7b9d9a29106dd95044ae191d7b71ba062f7121a749be6f59236b0af7fb365a",
+      "sql/rollback.sql": "b384ddd5af0772dd3ae6aa2beae26fecdc818280077ef912d43b69999ecc90aa"
+    }
+  },
+  {
+    "package": "area52-featured-login-wardrobe-preview-20261115",
+    "completed": 1794777580.8921628,
+    "manifest_sha256": "78bf5717dfe2a9eeabc91d4daf7d4c173934e8d13809eb0570840991b3819a2f",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "eda6d7dfb24873090b30322019c3ad66c808a2d269fa7ef5107b9e8c15699fa1"
+      }
+    ],
+    "sql_artifacts": {}
+  },
+  {
+    "package": "area52-creature-spawn-restoration-20261115",
+    "completed": 1794803292.612016,
+    "manifest_sha256": "81b6919a0371e656bb4f191359eb32bb2155733473ba624ef383f205b0608136",
+    "apply_hooks": [
+      {
+        "path": "hooks/package_hook.py",
+        "args": [
+          "apply"
+        ],
+        "sha256": "eb21fa508cc1488a0e6773e1ef4be920d03b89001e9029e1f3120eb2afa8a2bb"
+      }
+    ],
+    "sql_artifacts": {
+      "hooks/sql/apply-guarded.sql": "d6ddb0536b1b8d8cf70dba37a5e439601a2619f46eb056127337aa1176e8b687",
+      "hooks/sql/empty.sql": "97ccc68ef02e5289930cfa049a159a829c1ebc799189f0066aa27260662c62c2",
+      "hooks/sql/preflight.sql": "a6c394b06eba83aea9c5affbb328460146d39db977eca850f5d12e40a996c870",
+      "hooks/sql/rollback.sql": "fc281a6c04597336410418d70b6d4d95858c9870480c953d7cc431fb42bee1bf",
+      "hooks/sql/verify-installed.sql": "466a9cb8aadc8c4d0b678ed237c563704d8eb53a2763385645767d2f327f55d5",
+      "publication/combined-restoration.sql": "c1b4a7517625e2692778b2945886863c539d5afb6e6281032b732b0bcc3a0be1"
+    }
+  }
+]
