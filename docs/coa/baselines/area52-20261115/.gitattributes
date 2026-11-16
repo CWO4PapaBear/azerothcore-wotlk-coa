@@ -1,3 +1,4 @@
 playerbots.patch -text
 replay-inputs/** -text
 october05-mystic-scroll.sql -text
+early-world/** -text
