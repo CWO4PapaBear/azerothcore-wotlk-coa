@@ -1,5 +1,6 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 #include "AscensionCacheRewards.h"
+#include "Area52CacheRuntime.h"
 #include "Chat.h"
 #include "Config.h"
 #include "DatabaseEnv.h"
@@ -194,6 +195,17 @@ bool PickToken(Player* player, uint32 cacheItemId, AscensionCacheRewards::Reward
 
 bool OpenPrestigiousCache(Player* player, Item* item)
 {
+    uint32 const original = item->GetEntry();
+    if (original == GenericCacheAll || original == GenericCacheTbc || original == GenericCacheWotlk
+        || std::find(ClassicLadder.begin(), ClassicLadder.end(), original) != ClassicLadder.end()
+        || std::find(TbcLadder.begin(), TbcLadder.end(), original) != TbcLadder.end() || GetPool(original))
+    {
+        Area52CacheRuntime::Options options;
+        options.prestige = true;
+        options.tokenChance = g_tokenChancePercent;
+        options.secondTokenChance = g_secondTokenChancePercent;
+        if (Area52CacheRuntime::QueueOpen(player, item, options)) return true;
+    }
     uint32 cacheItemId = ResolveCache(item->GetEntry());
     CachePool const* pool = GetPool(cacheItemId);
     if (!pool)
@@ -280,6 +292,7 @@ public:
 
 void AddSC_AscensionPrestigiousCache()
 {
+    AddArea52CacheRuntime();
     new item_ascension_prestigious_cache();
     new ascension_prestigious_cache_open();
     new ascension_prestigious_cache_pools();

@@ -1,5 +1,22 @@
+#include "Area52FeaturedIncarnations.h"
+#include "Area52FeaturedPets.h"
+#include "Area52DraftPet.h"
+#include "Pet.h"
+#include "ObjectMgr.h"
+#include "Map.h"
 #include "Area52ActiveBuild.h"
 #include "Area52BuildProtocol.h"
+#include "Area52DraftAssignment.h"
+#include "Area52DraftLifecycle.h"
+#include "Area52FeaturedRewardValidation.h"
+#include "Area52FeaturedMilestoneCollection.h"
+#include "GameTime.h"
+#include "Item.h"
+#include "Mail.h"
+#include "MailMgr.h"
+#include <memory>
+#include <set>
+#include "AscensionMysticEnchantCatalog.h"
 #include "AscensionCompatOpcodes.h"
 #include "AscensionCoAConfig.h"
 #include "AscensionFreePick.h"
@@ -12,6 +29,7 @@
 #include "Trainer.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
+#include "World.h"
 #include <algorithm>
 #include <atomic>
 #include <charconv>
@@ -40,6 +58,11 @@ struct State : DataMap::Base
     bool Loaded = false;
     bool Busy = false;
     bool Automatic = false;
+    bool Draft = false;
+    bool RewardsLoaded = false;
+    std::set<std::uint32_t> RewardLevels;
+    Clock::time_point NextReward{};
+    bool InternalSelection = false;
     bool Pending = false;
     std::string LastFailure;
     Clock::time_point NextRequest{};
@@ -52,7 +75,7 @@ bool Applies(Player* player)
 
 bool Safe(Player* player)
 {
-    return player->IsInWorld() && player->FindMap() && player->IsAlive() && !player->IsInCombat()
+    return !Area52DraftPetBusy(player) && player->IsInWorld() && player->FindMap() && player->IsAlive() && !player->IsInCombat()
         && !player->InBattleground() && !player->InArena() && !player->IsBeingTeleported();
 }
 
@@ -115,6 +138,7 @@ void Store(Player* player, State const& state)
     player->UpdatePlayerSetting(Setting, 1, std::uint32_t(id >> 32));
     player->UpdatePlayerSetting(Setting, 2, state.Revision);
     player->UpdatePlayerSetting(Setting, 3, state.Automatic ? 1 : 0);
+    player->UpdatePlayerSetting(Setting, 4, state.Draft ? 1 : 0);
 }
 
 bool Learn(Player* player, State& state, std::uint32_t maximumLevel, bool learnSpells = true)
@@ -129,7 +153,11 @@ bool Learn(Player* player, State& state, std::uint32_t maximumLevel, bool learnS
         return true;
     }
     if (result)
+    {
+        state.InternalSelection = true;
         result = AscensionFreePick::Apply(player, wanted, false);
+        state.InternalSelection = false;
+    }
     if (!result)
     {
         std::string const failure = std::string(result.Status) + " " + result.Learn;
@@ -143,18 +171,31 @@ bool Learn(Player* player, State& state, std::uint32_t maximumLevel, bool learnS
     return true;
 }
 
+#include "Area52FeaturedRewardMail.inc"
+
 void Fetch(Player* player, std::uint64_t id, std::uint32_t revision, bool automatic, bool restore)
 {
+    auto const archetype = CreationArchetypeFromReference(id);
+    if (id >= CreationReferenceBase && (!archetype || restore || player->GetLevel() != 1))
+    {
+        Reply(player, true, "ACTIVATE_BUILD_NOT_AVAILABLE");
+        return;
+    }
+    if (archetype)
+        automatic = true;
+
     auto* state = player->CustomData.GetDefault<State>(StateKey);
     state->Busy = true;
     WorldSession* session = player->GetSession();
     ObjectGuid const guid = player->GetGUID();
     auto const generation = state->Generation;
-    auto* query = CharacterDatabase.GetPreparedStatement(restore ? CHAR_SEL_A52_ACTIVE_REVISION : CHAR_SEL_A52_BUILD_PUBLIC);
-    query->SetData(0, id);
-    query->SetData(1, restore ? revision : session->GetAccountId());
+    auto* query = CharacterDatabase.GetPreparedStatement(archetype ? CHAR_SEL_A52_CREATION_DRAFT
+        : restore ? CHAR_SEL_A52_ACTIVE_REVISION : CHAR_SEL_A52_BUILD_PUBLIC);
+    query->SetData(0, archetype ? archetype : id);
+    if (!archetype)
+        query->SetData(1, restore ? revision : session->GetAccountId());
     session->GetQueryProcessor().AddCallback(CharacterDatabase.AsyncQuery(query).WithPreparedCallback(
-        [session, guid, generation, automatic, restore, id](PreparedQueryResult rows)
+        [session, guid, generation, automatic, restore, id, archetype](PreparedQueryResult rows)
         {
             Player* owner = session->GetPlayer();
             if (!Applies(owner) || owner->GetGUID() != guid)
@@ -164,7 +205,9 @@ void Fetch(Player* player, std::uint64_t id, std::uint32_t revision, bool automa
                 return;
             current->Busy = false;
             Entry plan;
-            if (!rows || !DecodeHex(rows->Fetch()[2].Get<std::string>(), plan) || plan.Id != std::to_string(id))
+            if (!rows || !DecodeHex(rows->Fetch()[2].Get<std::string>(), plan)
+                || (!archetype && plan.Id != std::to_string(id))
+                || (archetype && DraftArchetype(plan) != archetype))
             {
                 if (restore)
                 {
@@ -180,10 +223,30 @@ void Fetch(Player* player, std::uint64_t id, std::uint32_t revision, bool automa
                     Reply(owner, true, "ACTIVATE_BUILD_NOT_FOUND");
                 return;
             }
-            if (!restore && rows->Fetch()[3].Get<std::uint8_t>())
+            bool const drafted = restore ? owner->GetPlayerSetting(Setting, 4).value != 0
+                : rows->Fetch()[3].Get<std::uint8_t>() != 0;
+            if ((drafted && (plan.Category != FeaturedDraftCategory || !DraftArchetype(plan)))
+                || (!restore && (drafted || current->Draft) && !AscensionMysticEnchant::DraftEquipmentReady(owner)))
             {
                 Reply(owner, true, "ACTIVATE_BUILD_NOT_AVAILABLE");
-                ChatHandler(session).SendSysMessage("Featured Draft activation is not enabled in this candidate.");
+                return;
+            }
+            std::uint64_t previousId = 0;
+            ParseId(current->Plan.Id, previousId);
+            std::uint64_t nextId = 0;
+            ParseId(plan.Id, nextId);
+            DraftLifecycle progress{current->Draft ? previousId : 0, current->Draft ? current->Revision : 0,
+                owner->GetPlayerSetting("core.area52.draft_progress", 0).value != 0,
+                owner->GetPlayerSetting("core.area52.draft_progress", 1).value != 0,
+                owner->GetPlayerSetting("core.area52.draft_progress", 2).value != 0};
+            if (!restore)
+                progress = SwitchFeaturedDraft(progress, owner->GetLevel(), nextId,
+                    rows->Fetch()[1].Get<std::uint32_t>(), drafted);
+            bool const learnAutomatically = drafted || automatic;
+            bool const grantDraftEnchants = drafted && !progress.EntitlementForfeited;
+            if (!restore && grantDraftEnchants && !AscensionMysticEnchant::CanApplyDraftEnchants(owner, plan.Enchants))
+            {
+                Reply(owner, true, "ACTIVATE_BUILD_NOT_AVAILABLE");
                 return;
             }
             if (!restore && !Safe(owner))
@@ -192,25 +255,39 @@ void Fetch(Player* player, std::uint64_t id, std::uint32_t revision, bool automa
                 return;
             }
             std::vector<AscensionFreePick::KnownEntry> wanted;
-            auto result = AscensionFreePick::PlanSelection(owner, plan, wanted, false, 80, automatic);
+            auto result = AscensionFreePick::PlanSelection(owner, plan, wanted, false, 80, learnAutomatically);
             if (!result && !restore)
             {
                 Reply(owner, true, *result.Learn ? result.Learn : result.Status);
                 return;
             }
             Entry const previousPlan = current->Plan;
+            bool const previousDraft = current->Draft;
+            auto const previousSelection = AscensionFreePick::KnownEntries(owner);
             auto const previousRevision = current->Revision;
             bool const previousAutomatic = current->Automatic;
             current->Plan = std::move(plan);
             current->Revision = rows->Fetch()[1].Get<std::uint32_t>();
-            current->Automatic = automatic;
+            current->Automatic = learnAutomatically;
+            current->Draft = drafted;
             current->Loaded = true;
             if (!restore)
             {
-                Store(owner, *current);
+                current->InternalSelection = true;
                 result = AscensionFreePick::Apply(owner, wanted);
+                current->InternalSelection = false;
+                if (result && ((grantDraftEnchants
+                    && !AscensionMysticEnchant::ApplyDraftEnchants(owner, current->Plan.Enchants))
+                    || (!grantDraftEnchants && previousDraft && !AscensionMysticEnchant::ReleaseDraftEnchants(owner, previousId, previousRevision))))
+                    result = { "ACTIVATE_BUILD_NOT_AVAILABLE" };
                 if (!result)
                 {
+                    current->InternalSelection = true;
+                    AscensionFreePick::Apply(owner, previousSelection);
+                    current->InternalSelection = false;
+                    current->Draft = previousDraft;
+                    if (previousDraft && !owner->GetPlayerSetting("core.area52.draft_progress", 2).value)
+                        AscensionMysticEnchant::ApplyDraftEnchants(owner, previousPlan.Enchants);
                     current->Plan = previousPlan;
                     current->Revision = previousRevision;
                     current->Automatic = previousAutomatic;
@@ -218,6 +295,9 @@ void Fetch(Player* player, std::uint64_t id, std::uint32_t revision, bool automa
                     Reply(owner, true, *result.Learn ? result.Learn : result.Status);
                     return;
                 }
+                owner->UpdatePlayerSetting("core.area52.draft_progress", 0, progress.Forfeited ? 1 : 0);
+                owner->UpdatePlayerSetting("core.area52.draft_progress", 2, progress.EntitlementForfeited ? 1 : 0);
+                Store(owner, *current);
                 owner->SaveToDB(false, false);
                 SendArea52Advancement(owner);
             }
@@ -316,14 +396,48 @@ public:
     }
     void OnPlayerUpdate(Player* player, std::uint32_t) override
     {
+        UpdateArea52DraftPet(player);
         auto* state = player->CustomData.Get<State>(StateKey);
         if (!Applies(player) || !state || state->Busy || Clock::now() < state->NextRequest)
             return;
         if (state->Pending && state->Loaded && Safe(player))
         {
+            if (state->Draft && !AscensionMysticEnchant::DraftEquipmentReady(player))
+                return;
             state->Pending = false;
-            if (Learn(player, *state, 80, state->Automatic) && state->Automatic)
-                AscensionFreePick::LearnAvailableRanks(player);
+            if (Learn(player, *state, 80, state->Automatic))
+            {
+                if (state->Automatic)
+                    AscensionFreePick::LearnAvailableRanks(player);
+                if (state->Draft && !player->GetPlayerSetting("core.area52.draft_progress", 2).value
+                    && !AscensionMysticEnchant::ApplyDraftEnchants(player, state->Plan.Enchants))
+                {
+                    state->Pending = true;
+                    state->NextRequest = Clock::now() + std::chrono::seconds(2);
+                    return;
+                }
+            }
+            else if (state->Draft)
+            {
+                state->Pending = true;
+                state->NextRequest = Clock::now() + std::chrono::seconds(2);
+                return;
+            }
+        }
+        DeliverFeaturedRewards(player, *state);
+        if (state->Busy)
+            return;
+        if (state->Draft && state->Loaded && !state->Pending)
+        {
+            std::uint64_t build = 0;
+            ParseId(state->Plan.Id, build);
+            DraftLifecycle progress{build, state->Revision,
+                player->GetPlayerSetting("core.area52.draft_progress", 0).value != 0,
+                player->GetPlayerSetting("core.area52.draft_progress", 1).value != 0,
+                player->GetPlayerSetting("core.area52.draft_progress", 2).value != 0};
+            if (DraftRewardDue(progress, player->GetLevel(), sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
+                && AscensionMysticEnchant::GrantDraftReward(player, build, state->Revision, state->Plan.Enchants))
+                state->NextRequest = Clock::now() + std::chrono::seconds(2);
         }
         WorldPacket packet;
         {
@@ -347,9 +461,19 @@ public:
             Reply(player, activate, "ACTIVATE_BUILD_NOT_AVAILABLE");
             return;
         }
+        if (activate && id == state->Plan.Id && state->Draft && player->GetLevel() < 10)
+        {
+            Fetch(player, numericId, 0, true, false);
+            return;
+        }
         if (id == state->Plan.Id)
         {
-            state->Automatic = activate && automatic;
+            if (!activate && state->Draft && !BeforeManualDraftChange(player))
+            {
+                Reply(player, false, "ACTIVATE_BUILD_NOT_AVAILABLE");
+                return;
+            }
+            state->Automatic = activate && (state->Draft || automatic);
             state->Pending = activate;
             if (!activate)
             {
@@ -412,6 +536,86 @@ void RestoreSpecialization(Player* player)
     }
 }
 
+std::optional<std::uint32_t> GetReadyFeaturedArchetype(Player* player)
+{
+    if (!Applies(player))
+        return 0;
+    auto const* state = player->CustomData.Get<State>(StateKey);
+    if (!state || !state->Loaded || state->Busy || state->Pending)
+        return std::nullopt;
+    return state->Draft ? DraftArchetype(state->Plan) : 0;
+}
+
+CacheBuildContext GetCacheBuildContext(Player* player)
+{
+    if (!Applies(player))
+        return {};
+    auto const* state = player->CustomData.Get<State>(StateKey);
+    if (!state || !state->Loaded || state->Busy || state->Pending)
+        return {};
+    if (state->Plan.Id.empty())
+        return { true, {}, 0, 0, 0 };
+    return { true, state->Plan.Id, state->Revision, state->Plan.Roles, state->Plan.PrimaryStat };
+}
+
+DraftVanityContext GetDraftVanityContext(Player* player)
+{
+    if (!Applies(player))
+        return { 0, 0, 0, true };
+    auto const* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
+    if (!state || !state->Loaded || state->Busy || state->Pending)
+        return {};
+    if (!state->Draft || player->GetPlayerSetting("core.area52.draft_progress", 2).value)
+        return { 0, 0, 0, true };
+    std::uint64_t build = 0;
+    if (!ParseId(state->Plan.Id, build))
+        return {};
+    DraftVanityContext context{ build, state->Revision, DraftArchetype(state->Plan), true };
+    FeaturedPreviewEffects preview{};
+    if (!ReadFeaturedIncarnations(state->Plan.Description, context.Incarnations)
+        || !ReadFeaturedPreview(state->Plan.Description, preview) || !ValidFeaturedPet(preview[0]))
+        return {};
+    context.Pet = preview[0];
+    return context;
+}
+
+bool IsFeaturedDraft(Player* player)
+{
+    auto const* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
+    return Applies(player) && state && state->Draft;
+}
+
+bool BeforeManualDraftChange(Player* player)
+{
+    if (!Applies(player))
+        return true;
+    auto* state = player->CustomData.Get<State>(StateKey);
+    if (!state || state->InternalSelection || !state->Draft)
+        return true;
+    std::uint64_t build = 0;
+    if (state->Busy || !Safe(player) || !ParseId(state->Plan.Id, build) ||
+        !AscensionMysticEnchant::ReleaseDraftEnchants(player, build, state->Revision))
+        return false;
+    player->UpdatePlayerSetting("core.area52.draft_progress", 0, 1);
+    player->UpdatePlayerSetting("core.area52.draft_progress", 2, 1);
+    for (std::uint32_t spec = 0; spec < AscensionFreePick::SpecializationSpells.size(); ++spec)
+    {
+        auto const key = "core.area52.spec." + std::to_string(spec) + ".active_build";
+        if (player->GetPlayerSetting(key, 4).value)
+            for (std::uint32_t index = 0; index < 5; ++index)
+                player->UpdatePlayerSetting(key, index, 0);
+    }
+    state->Draft = false;
+    state->Automatic = false;
+    state->Pending = false;
+    state->Plan = {};
+    state->Revision = 0;
+    Store(player, *state);
+    player->SaveToDB(false, false);
+    SendState(player, *state);
+    return true;
+}
+
 void PauseAutoLearnForReset(Player* player)
 {
     if (!Applies(player))
@@ -428,6 +632,8 @@ void PauseAutoLearnForReset(Player* player)
     SendState(player, *state);
 }
 }
+
+#include "Area52DraftPet.inc"
 
 void AddArea52ActiveBuildScripts()
 {

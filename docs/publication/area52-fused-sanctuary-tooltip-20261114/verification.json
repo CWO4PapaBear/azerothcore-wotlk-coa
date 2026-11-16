@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "before": "6427b20ddca7acd1bdf02986ab17d4c709e95265ad4912f54bd974593ea30311",
+  "after": "25dbb5ed6341284470c5dba4e5f1505170ecaacf7d0aeaaee241da1b43c45c10",
+  "spell": 1999520,
+  "members_checked": 64,
+  "description": "Increases defense rating by ${1+$FLOOR(($PL-1)/3)} and armor by ${5*$PL} while equipped."
+}

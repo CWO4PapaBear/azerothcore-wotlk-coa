@@ -1,0 +1,38 @@
+--- a/src/server/game/Spells/Auras/SpellAuraEffects.cpp
++++ b/src/server/game/Spells/Auras/SpellAuraEffects.cpp
+@@ -788,10 +788,17 @@
+     {
+         case SPELL_AURA_ADD_FLAT_MODIFIER:
+         case SPELL_AURA_ADD_PCT_MODIFIER:
++        {
+             // Ascension spells carry MiscValues outside the 3.3.5a SpellModOp
+             // range. Player::AddSpellMod indexes m_spellMods[op] directly, so an
+             // out-of-range op corrupts memory instead of failing visibly.
+-            if (GetMiscValue() < 0 || GetMiscValue() >= MAX_SPELLMOD)
++            // Lightning Strikes Twice encodes the same penalty in two custom slots.
++            // Register it once through the normal family-masked damage modifier.
++            int32 operation = GetMiscValue();
++            if (GetId() == 81091 && GetEffIndex() == EFFECT_1 && operation == 38 &&
++                AscensionFreePick::Applies(GetBase()->GetUnitOwner()->ToPlayer()))
++                operation = SPELLMOD_DAMAGE;
++            if (operation < 0 || operation >= MAX_SPELLMOD)
+             {
+                 LOG_DEBUG("spells.aura",
+                     "AuraEffect::CalculateSpellMod: spell {} effect {} has out-of-range SpellModOp {}, ignored",
+@@ -802,7 +809,7 @@
+             if (!m_spellmod)
+             {
+                 m_spellmod = new SpellModifier(GetBase());
+-                m_spellmod->op = SpellModOp(GetMiscValue());
++                m_spellmod->op = SpellModOp(operation);
+ 
+                 m_spellmod->type = SpellModType(GetAuraType()); // SpellModType value == spell aura types
+                 m_spellmod->spellId = GetId();
+@@ -810,6 +817,7 @@
+             }
+             m_spellmod->value = GetAmount();
+             break;
++        }
+         default:
+             break;
+     }

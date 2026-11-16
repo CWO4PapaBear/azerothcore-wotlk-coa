@@ -20,6 +20,7 @@
 #include "CellImpl.h"
 #include "GridNotifiers.h"
 #include "Pet.h"
+#include "Spell.h"
 #include "SpellAuraEffects.h"
 #include "SpellAuras.h"
 #include "SpellMgr.h"
@@ -436,6 +437,8 @@ class spell_hun_ascpect_of_the_viper : public AuraScript
     void OnApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
     {
         // Hunter T7 4P Bonus
+        if (AscensionFreePick::Applies(GetTarget()->ToPlayer()))
+            GetTarget()->RemoveAurasDueToSpell(701463);
         if (GetTarget()->HasAura(SPELL_HUNTER_VIPER_ATTACK_SPEED))
             GetTarget()->CastSpell(GetTarget(), SPELL_HUNTER_VICIOUS_VIPER, true, nullptr, aurEff);
     }
@@ -450,7 +453,12 @@ class spell_hun_ascpect_of_the_viper : public AuraScript
     void Register() override
     {
         DoCheckProc += AuraCheckProcFn(spell_hun_ascpect_of_the_viper::CheckProc);
-        OnEffectProc += AuraEffectProcFn(spell_hun_ascpect_of_the_viper::HandleProc, EFFECT_2, SPELL_AURA_DUMMY);
+        AuraType const procAura = sSpellMgr->AssertSpellInfo(m_scriptSpellId)->Effects[EFFECT_2].ApplyAuraName;
+        if (procAura == SPELL_AURA_MOD_HEALING_DONE_PERCENT)
+            OnEffectProc += AuraEffectProcFn(spell_hun_ascpect_of_the_viper::HandleProc,
+                EFFECT_2, SPELL_AURA_MOD_HEALING_DONE_PERCENT);
+        else
+            OnEffectProc += AuraEffectProcFn(spell_hun_ascpect_of_the_viper::HandleProc, EFFECT_2, SPELL_AURA_DUMMY);
         AfterEffectApply += AuraEffectApplyFn(spell_hun_ascpect_of_the_viper::OnApply, EFFECT_0, SPELL_AURA_OBS_MOD_POWER, AURA_EFFECT_HANDLE_REAL);
         AfterEffectRemove += AuraEffectRemoveFn(spell_hun_ascpect_of_the_viper::OnRemove, EFFECT_0, SPELL_AURA_OBS_MOD_POWER, AURA_EFFECT_HANDLE_REAL);
     }
@@ -466,11 +474,61 @@ class spell_hun_chimera_shot : public SpellScript
         return ValidateSpellInfo({ SPELL_HUNTER_CHIMERA_SHOT_SERPENT, SPELL_HUNTER_CHIMERA_SHOT_VIPER, SPELL_HUNTER_CHIMERA_SHOT_SCORPID });
     }
 
+    void HandleArea52Stings(Player* hunter, Unit* target)
+    {
+        struct Trigger { uint32 spell; int32 amount; };
+        std::vector<Trigger> triggers;
+        for (auto const& application : target->GetAppliedAuras())
+        {
+            Aura* aura = application.second->GetBase();
+            if (aura->GetCasterGUID() != hunter->GetGUID())
+                continue;
+            AuraEffect* tick = aura->GetEffect(EFFECT_0);
+            if (!tick)
+                continue;
+
+            if (hunter->MatchesSpellInteraction(aura->GetId(), 1978))
+            {
+                int32 amount = CalculatePct(int64(tick->GetAmount()) * tick->GetTotalTicks(), 90);
+                amount = target->SpellDamageBonusTaken(hunter, aura->GetSpellInfo(), amount, DOT, aura->GetStackAmount());
+                triggers.push_back({SPELL_HUNTER_CHIMERA_SHOT_SERPENT, amount});
+            }
+            else if (hunter->MatchesSpellInteraction(aura->GetId(), 3034))
+            {
+                int64 drain = std::min<int64>(CalculatePct(int64(target->GetMaxPower(POWER_MANA)), tick->GetAmount()),
+                    int64(tick->GetAmount()) * hunter->GetMaxPower(POWER_MANA) / 50);
+                int32 amount = CalculatePct(drain * tick->GetTotalTicks(), 30);
+                triggers.push_back({SPELL_HUNTER_CHIMERA_SHOT_VIPER, amount});
+            }
+            else if (hunter->MatchesSpellInteraction(aura->GetId(), 3043))
+            {
+                if (!hunter->HasSpellCooldown(SPELL_HUNTER_CHIMERA_SHOT_SCORPID))
+                {
+                    hunter->AddSpellCooldown(SPELL_HUNTER_CHIMERA_SHOT_SCORPID, 0, 60000);
+                    triggers.push_back({SPELL_HUNTER_CHIMERA_SHOT_SCORPID, 0});
+                }
+            }
+            else
+                continue;
+
+            aura->RefreshDuration();
+            tick->ChangeAmount(tick->CalculateAmount(hunter), false);
+        }
+        // Triggered damage can remove auras or kill the target.
+        for (Trigger& trigger : triggers)
+            hunter->CastCustomSpell(target, trigger.spell, &trigger.amount, nullptr, nullptr, true);
+    }
+
     void HandleScriptEffect(SpellEffIndex /*effIndex*/)
     {
         Unit* caster = GetCaster();
         if (Unit* unitTarget = GetHitUnit())
         {
+            if (Player* hunter = caster->ToPlayer(); GetSpellInfo()->Id == 53209 && AscensionFreePick::Applies(hunter))
+            {
+                HandleArea52Stings(hunter, unitTarget);
+                return;
+            }
             uint32 spellId = 0;
             int32 basePoint = 0;
             Unit::AuraApplicationMap& Auras = unitTarget->GetAppliedAuras();
@@ -1381,9 +1439,76 @@ class spell_hun_thrill_of_the_hunt : public AuraScript
         return ValidateSpellInfo({ SPELL_HUNTER_THRILL_OF_THE_HUNT_MANA });
     }
 
+    void RewardArea52(Player* player, AuraEffect const* effect, ProcEventInfo& event)
+    {
+        Spell const* cast = event.GetProcSpell();
+        DamageInfo const* damage = event.GetDamageInfo();
+        if (!cast || cast->GetCaster() != player || !damage || !damage->GetDamage() ||
+            damage->GetDamageType() == DOT || !(event.GetHitMask() & PROC_HIT_CRITICAL))
+            return;
+
+        SpellInfo const* shot = cast->GetSpellInfo();
+        uint32 paid = cast->GetScriptValue(SPELL_HUNTER_THRILL_OF_THE_HUNT_MANA);
+        if (shot->Id == 53352)
+        {
+            // Splash targets share the charge on the original target.
+            shot = cast->GetTriggeredByAuraSpellInfo();
+            if (!shot || sSpellMgr->GetFirstSpellInChain(shot->Id) != 53301)
+                return;
+            if (!cast->thrillRefund || *cast->thrillRefund < 0)
+                return;
+            paid = cast->GetTriggeredByAuraTickNumber() == 1 ? uint32(*cast->thrillRefund) : 0;
+            *cast->thrillRefund = -1;
+        }
+        else
+        {
+            if (cast->IsTriggered())
+                return;
+            auto isShot = [](SpellInfo const* info)
+            {
+                return info && info->SpellFamilyName == SPELLFAMILY_HUNTER &&
+                    info->DmgClass == SPELL_DAMAGE_CLASS_RANGED;
+            };
+            if (!isShot(shot))
+            {
+                bool inherited = false;
+                for (uint32 origin : player->GetSpellInteractionOrigins(shot->Id))
+                    inherited |= isShot(sSpellMgr->GetSpellInfo(origin));
+                if (!inherited)
+                    return;
+            }
+            constexpr uint8 thrillOfTheHuntEvent = 24;
+            if (!cast->TryMarkScriptEventHandled(thrillOfTheHuntEvent))
+                return;
+        }
+
+        uint32 reduction = 0;
+        if (player->MatchesSpellInteraction(shot->Id, 3044) || player->MatchesSpellInteraction(shot->Id, 53301))
+            reduction = 1000;
+        else if (player->MatchesSpellInteraction(shot->Id, 53209) || player->MatchesSpellInteraction(shot->Id, 2643) ||
+            player->MatchesSpellInteraction(shot->Id, 19434))
+            reduction = 2000;
+        if (reduction)
+        {
+            uint32 remaining = player->GetSpellCooldownDelay(shot->Id);
+            if (remaining)
+                player->ModifySpellCooldown(shot->Id, -int32(std::min(reduction, remaining)));
+        }
+        int32 refund = int32(uint64(paid) * effect->GetAmount() / 100);
+        if (refund > 0)
+            player->CastCustomSpell(SPELL_HUNTER_THRILL_OF_THE_HUNT_MANA, SPELLVALUE_BASE_POINT0, refund,
+                player, true, nullptr, effect);
+    }
+
+
     void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
     {
         PreventDefaultAction();
+        if (Player* player = GetTarget()->ToPlayer(); AscensionFreePick::Applies(player))
+        {
+            RewardArea52(player, aurEff, eventInfo);
+            return;
+        }
         SpellInfo const* procSpell = eventInfo.GetSpellInfo();
         if (!procSpell)
             return;
@@ -1444,6 +1569,40 @@ class spell_hun_hunting_party : public AuraScript
         return ValidateSpellInfo({ SPELL_HUNTER_REPLENISHMENT });
     }
 
+    bool CheckShot(ProcEventInfo& event)
+    {
+        Player* player = GetTarget()->ToPlayer();
+        if (!AscensionFreePick::Applies(player))
+            return true;
+
+        Spell const* cast = event.GetProcSpell();
+        auto damage = event.GetDamageInfo();
+        if (!cast || cast->GetCaster() != player || !damage || !damage->GetDamage() ||
+            damage->GetDamageType() == DOT || !(event.GetHitMask() & PROC_HIT_CRITICAL))
+            return false;
+
+        uint32 id = cast->GetSpellInfo()->Id;
+        if (id == 53352)
+        {
+            auto charge = cast->GetTriggeredByAuraSpellInfo();
+            return charge && player->MatchesSpellInteraction(charge->Id, 53301);
+        }
+        for (uint32 root : {3044u, 53301u, 954821u, 56641u, 1495u, 19306u})
+        {
+            if (player->MatchesSpellInteraction(id, root))
+                return true;
+        }
+
+        // Glaive Toss deals damage through the two child spells of each learned rank.
+        for (uint32 parent : {954821u, 955253u, 955254u, 955255u, 955256u, 955257u, 955258u})
+            if (auto info = sSpellMgr->GetSpellInfo(parent))
+                for (auto const& effect : info->Effects)
+                    if (effect.TriggerSpell == id)
+                        return true;
+        return false;
+    }
+
+
     void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
     {
         PreventDefaultAction();
@@ -1452,6 +1611,7 @@ class spell_hun_hunting_party : public AuraScript
 
     void Register() override
     {
+        DoCheckProc += AuraCheckProcFn(spell_hun_hunting_party::CheckShot);
         OnEffectProc += AuraEffectProcFn(spell_hun_hunting_party::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
     }
 };
@@ -1628,6 +1788,54 @@ class spell_hun_rapid_recuperation_trigger : public AuraScript
     }
 };
 
+class spell_hun_area52_improved_steady_shot : public AuraScript
+{
+    PrepareAuraScript(spell_hun_area52_improved_steady_shot);
+
+    enum Spells : uint32
+    {
+        SteadyShot = 56641,
+        Capstone = 53224,
+        Empowerment = 53220
+    };
+
+    bool Load() override
+    {
+        return AscensionFreePick::Applies(GetUnitOwner()->ToPlayer());
+    }
+
+    bool Validate(SpellInfo const*) override
+    {
+        return ValidateSpellInfo({Empowerment});
+    }
+
+    bool CheckProc(ProcEventInfo& event)
+    {
+        Player* player = GetTarget()->ToPlayer();
+        SpellInfo const* spell = event.GetSpellInfo();
+        return player && event.GetActor() == player && spell && event.GetDamageInfo() &&
+            event.GetDamageInfo()->GetDamage() &&
+            !(event.GetTypeMask() & (PROC_FLAG_DONE_PERIODIC | PROC_FLAG_TAKEN_PERIODIC)) &&
+            player->MatchesSpellInteraction(spell->Id, SteadyShot);
+    }
+
+    void HandleProc(AuraEffect const* effect, ProcEventInfo& event)
+    {
+        PreventDefaultAction();
+        int32 armor = GetId() == Capstone && event.GetProcSpell() &&
+            event.GetProcSpell()->WasStationaryDuringCast() ? -30 : 0;
+        GetTarget()->CastCustomSpell(Empowerment, SPELLVALUE_BASE_POINT2, armor,
+            GetTarget(), true, nullptr, effect);
+    }
+
+    void Register() override
+    {
+        DoCheckProc += AuraCheckProcFn(spell_hun_area52_improved_steady_shot::CheckProc);
+        OnEffectProc += AuraEffectProcFn(spell_hun_area52_improved_steady_shot::HandleProc,
+            EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
+    }
+};
+
 // -53234 - Piercing Shots
 class spell_hun_piercing_shots : public AuraScript
 {
@@ -1700,6 +1908,34 @@ class spell_hun_t9_4p_bonus : public AuraScript
     }
 };
 
+class spell_hun_area52_expose_weakness : public AuraScript
+{
+    PrepareAuraScript(spell_hun_area52_expose_weakness);
+
+    bool Load() override
+    {
+        return AscensionFreePick::Applies(GetUnitOwner()->ToPlayer());
+    }
+
+    bool CheckProc(ProcEventInfo& event)
+    {
+        Player* player = GetTarget()->ToPlayer();
+        SpellInfo const* spell = event.GetSpellInfo();
+        if (!player || event.GetActor() != player || !spell ||
+            !(event.GetHitMask() & PROC_HIT_CRITICAL) ||
+            (event.GetTypeMask() & (PROC_FLAG_DONE_PERIODIC | PROC_FLAG_TAKEN_PERIODIC)))
+            return false;
+        return (event.GetTypeMask() & PROC_FLAG_DONE_SPELL_RANGED_DMG_CLASS) ||
+            player->MatchesSpellInteraction(spell->Id, 1495) ||
+            player->MatchesSpellInteraction(spell->Id, 19306);
+    }
+
+    void Register() override
+    {
+        DoCheckProc += AuraCheckProcFn(spell_hun_area52_expose_weakness::CheckProc);
+    }
+};
+
 void AddSC_hunter_spell_scripts()
 {
     RegisterSpellScript(spell_hun_check_pet_los);
@@ -1741,6 +1977,8 @@ void AddSC_hunter_spell_scripts()
     RegisterSpellScript(spell_hun_rapid_recuperation);
     RegisterSpellScript(spell_hun_kill_command);
     RegisterSpellScript(spell_hun_kill_command_pet);
+    RegisterSpellScript(spell_hun_area52_improved_steady_shot);
+    RegisterSpellScript(spell_hun_area52_expose_weakness);
     RegisterSpellScript(spell_hun_piercing_shots);
     RegisterSpellScript(spell_hun_rapid_recuperation_trigger);
     RegisterSpellScript(spell_hun_t9_4p_bonus);

@@ -150,6 +150,7 @@ struct npc_ascension_summoned_effect : public ScriptedAI
     Position destination;
     float velocity = 0.0f;
     bool slowed = false;
+    bool featherConsumed = false;
 
     bool Fights() const
     {
@@ -162,7 +163,22 @@ struct npc_ascension_summoned_effect : public ScriptedAI
             ScriptedAI::AttackStart(victim);
     }
 
-    void MoveInLineOfSight(Unit*) override { }
+    void MoveInLineOfSight(Unit* unit) override
+    {
+        Unit* owner = Owner();
+        if (!row || row->Creature != 840058 || featherConsumed || !unit || !unit->IsPlayer() ||
+            !unit->IsAlive() || !AscensionFreePick::Applies(owner ? owner->ToPlayer() : nullptr) ||
+            !owner->IsFriendlyTo(unit) || !me->IsWithinLOSInMap(unit))
+            return;
+        SpellInfo const* speed = sSpellMgr->GetSpellInfo(760055);
+        if (!speed || !me->IsWithinDistInMap(unit, speed->Effects[EFFECT_0].CalcRadius(owner)))
+            return;
+        featherConsumed = true;
+        if (owner->AddAura(760055, unit))
+            me->DespawnOrUnsummon();
+        else
+            featherConsumed = false;
+    }
 
     void EnterEvadeMode(EvadeReason why) override
     {
@@ -195,8 +211,26 @@ struct npc_ascension_summoned_effect : public ScriptedAI
         if (!Fights())
         {
             me->SetReactState(REACT_PASSIVE);
-            if (!me->IsTotem())
+            if (row->Creature == 105938 && owner->IsPlayer() && AscensionFreePick::Applies(owner->ToPlayer()))
+            {
+                constexpr uint32 DemoralizingBannerDisplay = 41840;
+                me->SetNativeDisplayId(DemoralizingBannerDisplay);
+                me->SetDisplayId(DemoralizingBannerDisplay);
+                me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+            }
+            else if (!me->IsTotem())
                 me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+        }
+
+        if (row->Creature == 840058 && AscensionFreePick::Applies(owner->ToPlayer()))
+        {
+            if (Aura* visual = me->AddAura(row->Helper, me))
+                if (AuraEffect* effect = visual->GetEffect(EFFECT_0))
+                    effect->SetPeriodic(false);
+            events.ScheduleEvent(EVENT_PLACE, 0ms);
+            events.ScheduleEvent(EVENT_OWNER_CHECK, 1s);
+            events.ScheduleEvent(EVENT_ACT, 0ms);
+            return;
         }
 
         switch (row->Kind)
@@ -435,6 +469,25 @@ struct npc_ascension_summoned_effect : public ScriptedAI
                 events.ScheduleEvent(EVENT_OWNER_CHECK, 1s);
             else if (event == EVENT_PLACE)
                 Place(owner);
+            else if (row->Creature == 840058 && AscensionFreePick::Applies(owner->ToPlayer()))
+            {
+                SpellInfo const* speed = sSpellMgr->GetSpellInfo(760055);
+                if (!featherConsumed && speed)
+                {
+                    std::list<Player*> players;
+                    float const radius = speed->Effects[EFFECT_0].CalcRadius(owner);
+                    Acore::AnyPlayerInObjectRangeCheck check(me, radius);
+                    Acore::PlayerListSearcher<Acore::AnyPlayerInObjectRangeCheck> searcher(me, players, check);
+                    Cell::VisitObjects(me, searcher, radius);
+                    for (Player* player : players)
+                    {
+                        MoveInLineOfSight(player);
+                        if (featherConsumed)
+                            return;
+                    }
+                    events.ScheduleEvent(EVENT_ACT, 100ms);
+                }
+            }
             else
                 Act(owner);
         }

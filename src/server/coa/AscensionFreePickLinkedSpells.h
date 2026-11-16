@@ -10,9 +10,11 @@ struct LinkedSpellGroup
     std::uint32_t Parent;
     std::array<std::uint32_t, 6> Children;
 };
-inline constexpr std::array<LinkedSpellGroup, 20> LinkedSpellGroups = {{
+inline constexpr std::array<LinkedSpellGroup, 22> LinkedSpellGroups = {{
+    {59672, {47241, 50581, 59671, 54785, 50589}}, // Demon form and its four form-restricted abilities.
+    {2842, {208679, 203408, 205761, 202823, 2013219, 2026785}},
     {33917, {33876, 33878}},
-    {84864, {986202, 986203}},
+    {84864, {986202, 986203, 13977921}},
     {84865, {986200, 986201}},
     {84866, {92839, 92840}},
     {84867, {92842, 92843}},

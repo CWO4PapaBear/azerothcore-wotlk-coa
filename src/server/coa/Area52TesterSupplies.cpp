@@ -2,6 +2,9 @@
 #include "AscensionFreePick.h"
 #include "Creature.h"
 #include "Config.h"
+#include "Chat.h"
+#include "World.h"
+#include <unordered_map>
 #include "DatabaseEnv.h"
 #include "GameTime.h"
 #include "Item.h"
@@ -22,18 +25,173 @@ namespace
 constexpr uint32 TesterCache = 9900052;
 constexpr uint32 ExperiencePotion = 3818046;
 
-void DeliverWarchest(Player* player)
+constexpr uint32 TestBoostItem = 9900060;
+
+void DeliverTestBoost(Player* player)
 {
     if (!AscensionFreePick::Applies(player) || player->GetSession()->IsBot())
         return;
-    player->GetSession()->SendItemQuerySingleResponse(657112);
+    QueryResult campaign = CharacterDatabase.Query(
+        "SELECT new_character_guid_floor FROM area52_test_boost_campaign WHERE id = 1 AND enabled = 1");
+    if (!campaign)
+        return;
     uint32 const account = player->GetSession()->GetAccountId();
-    if (!CharacterDatabase.Query("SELECT id FROM area52_account_gift_campaign WHERE id = 657112 AND enabled = 1"))
+    uint32 const guid = player->GetGUID().GetCounter();
+    if (CharacterDatabase.Query("SELECT account FROM area52_account_gift_delivery WHERE campaign = {} AND account = {}",
+        TestBoostItem, account))
+        return;
+    bool const legacy = bool(CharacterDatabase.Query(
+        "SELECT account FROM area52_test_boost_legacy_account WHERE account = {}", account));
+    if (legacy)
+    {
+        if (player->GetLevel() != 1 || guid <= campaign->Fetch()[0].Get<uint32>())
+            return;
+    }
+    else if (player->GetLevel() < 10 || !CharacterDatabase.Query(
+        "SELECT account FROM coa_account_warchest WHERE account = {}", account))
+        return;
+    player->GetSession()->SendItemQuerySingleResponse(TestBoostItem);
+    std::unique_ptr<Item> item(Item::CreateItem(TestBoostItem, 1, player));
+    if (!item)
+        return;
+    uint32 const itemGuid = item->GetGUID().GetCounter();
+    uint32 const mailId = sObjectMgr->GenerateMailID();
+    uint32 const now = uint32(GameTime::GetGameTime().count());
+    uint32 const expires = now + 90 * DAY;
+    std::string const subject = "First Character Test Boost";
+    std::string const body = "An account-bound level boost for Area 52 testing. Use on a character below level 60 to reach level 60. No equipment, gold or riding is included.";
+    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+    trans->Append("INSERT INTO area52_account_gift_delivery "
+        "(campaign, account, receiver, item_guid, mail_id, delivered_at) VALUES ({}, {}, {}, {}, {}, {})",
+        TestBoostItem, account, guid, itemGuid, mailId, now);
+    item->SaveToDB(trans);
+    auto* mail = CharacterDatabase.GetPreparedStatement(CHAR_INS_MAIL);
+    mail->SetData(0, mailId);
+    mail->SetData(1, uint8(MAIL_NORMAL));
+    mail->SetData(2, int8(MAIL_STATIONERY_GM));
+    mail->SetData(3, uint16(0));
+    mail->SetData(4, uint32(0));
+    mail->SetData(5, guid);
+    mail->SetData(6, subject);
+    mail->SetData(7, body);
+    mail->SetData(8, true);
+    mail->SetData(9, expires);
+    mail->SetData(10, now);
+    mail->SetData(11, uint32(0));
+    mail->SetData(12, uint32(0));
+    mail->SetData(13, uint8(MAIL_CHECK_MASK_HAS_BODY));
+    trans->Append(mail);
+    auto* attachment = CharacterDatabase.GetPreparedStatement(CHAR_INS_MAIL_ITEM);
+    attachment->SetData(0, mailId);
+    attachment->SetData(1, itemGuid);
+    attachment->SetData(2, guid);
+    trans->Append(attachment);
+    auto result = CharacterDatabase.AsyncCommitTransaction(trans);
+    if (!result.m_future.get())
+        return;
+    auto delivered = std::make_unique<Mail>();
+    delivered->messageID = mailId;
+    delivered->messageType = MAIL_NORMAL;
+    delivered->stationery = MAIL_STATIONERY_GM;
+    delivered->mailTemplateId = 0;
+    delivered->sender = 0;
+    delivered->receiver = guid;
+    delivered->subject = subject;
+    delivered->body = body;
+    delivered->expire_time = expires;
+    delivered->deliver_time = now;
+    delivered->money = 0;
+    delivered->COD = 0;
+    delivered->checked = MAIL_CHECK_MASK_HAS_BODY;
+    delivered->state = MAIL_STATE_UNCHANGED;
+    delivered->AddItem(itemGuid, TestBoostItem);
+    sMailMgr->OnMailSent(guid);
+    player->AddNewMailDeliverTime(now);
+    player->AddMail(delivered.release());
+    player->AddMItem(item.release());
+}
+
+class item_area52_first_character_test_boost : public ItemScript
+{
+public:
+    item_area52_first_character_test_boost() : ItemScript("item_area52_first_character_test_boost") { }
+
+    bool OnUse(Player* player, Item* item, SpellCastTargets const&) override
+    {
+        if (!AscensionFreePick::Applies(player) || player->GetSession()->IsBot() ||
+            !CharacterDatabase.Query("SELECT id FROM area52_test_boost_campaign WHERE id = 1 AND use_enabled = 1"))
+        {
+            ChatHandler(player->GetSession()).SendSysMessage("First Character Test Boost is disabled.");
+            return true;
+        }
+        if (player->GetLevel() >= 60 || sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL) < 60 ||
+            !player->IsAlive() || player->IsInCombat() || player->IsInFlight())
+        {
+            ChatHandler(player->GetSession()).SendSysMessage("Use this boost below level 60 while alive, out of combat and not in flight.");
+            return true;
+        }
+        player->GiveLevel(60);
+        if (player->GetLevel() != 60)
+            return true;
+        player->SetUInt32Value(PLAYER_XP, 0);
+        uint32 count = 1;
+        player->DestroyItemCount(item, count, true);
+        player->SaveToDB(false, false);
+        return true;
+    }
+};
+
+class Area52TestBoostDelivery : public PlayerScript
+{
+    std::unordered_map<uint32, uint32> _retry;
+public:
+    Area52TestBoostDelivery() : PlayerScript("Area52TestBoostDelivery",
+        {PLAYERHOOK_ON_LOGIN, PLAYERHOOK_ON_LEVEL_CHANGED, PLAYERHOOK_ON_UPDATE, PLAYERHOOK_ON_LOGOUT}) { }
+
+    void OnPlayerLogin(Player* player) override
+    {
+        if (AscensionFreePick::Applies(player) && !player->GetSession()->IsBot())
+            _retry[player->GetGUID().GetCounter()] = 1000;
+    }
+
+    void OnPlayerLevelChanged(Player* player, uint8) override
+    {
+        if (AscensionFreePick::Applies(player) && !player->GetSession()->IsBot())
+            _retry[player->GetGUID().GetCounter()] = 1000;
+    }
+
+    void OnPlayerLogout(Player* player) override
+    {
+        _retry.erase(player->GetGUID().GetCounter());
+    }
+
+    void OnPlayerUpdate(Player* player, uint32 diff) override
+    {
+        auto found = _retry.find(player->GetGUID().GetCounter());
+        if (found == _retry.end())
+            return;
+        if (diff < found->second)
+        {
+            found->second -= diff;
+            return;
+        }
+        found->second = 30000;
+        DeliverTestBoost(player);
+    }
+};
+
+void DeliverAccountGift(Player* player, uint32 campaign, std::string const& subject, std::string const& body)
+{
+    if (!AscensionFreePick::Applies(player) || player->GetSession()->IsBot())
+        return;
+    player->GetSession()->SendItemQuerySingleResponse(campaign);
+    uint32 const account = player->GetSession()->GetAccountId();
+    if (!CharacterDatabase.Query("SELECT id FROM area52_account_gift_campaign WHERE id = {} AND enabled = 1", campaign))
         return;
     if (CharacterDatabase.Query("SELECT account FROM area52_account_gift_delivery "
-        "WHERE campaign = 657112 AND account = {}", account))
+        "WHERE campaign = {} AND account = {}", campaign, account))
         return;
-    std::unique_ptr<Item> item(Item::CreateItem(657112, 1, player));
+    std::unique_ptr<Item> item(Item::CreateItem(campaign, 1, player));
     if (!item)
         return;
     uint32 const guid = player->GetGUID().GetCounter();
@@ -41,12 +199,10 @@ void DeliverWarchest(Player* player)
     uint32 const mailId = sObjectMgr->GenerateMailID();
     uint32 const now = uint32(GameTime::GetGameTime().count());
     uint32 const expires = now + 90 * DAY;
-    std::string const subject = "Fel Enchanted Warchest";
-    std::string const body = "A gift for your Area 52 account. Enjoy your Fel Enchanted Warchest!";
     CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
     trans->Append("INSERT INTO area52_account_gift_delivery "
-        "(campaign, account, receiver, item_guid, mail_id, delivered_at) VALUES (657112, {}, {}, {}, {}, {})",
-        account, guid, itemGuid, mailId, now);
+        "(campaign, account, receiver, item_guid, mail_id, delivered_at) VALUES ({}, {}, {}, {}, {}, {})",
+        campaign, account, guid, itemGuid, mailId, now);
     item->SaveToDB(trans);
     auto* mail = CharacterDatabase.GetPreparedStatement(CHAR_INS_MAIL);
     mail->SetData(0, mailId);
@@ -73,7 +229,7 @@ void DeliverWarchest(Player* player)
     if (!result.m_future.get())
         return;
     if (!CharacterDatabase.Query("SELECT account FROM area52_account_gift_delivery "
-        "WHERE campaign = 657112 AND account = {} AND item_guid = {} AND mail_id = {}", account, itemGuid, mailId))
+        "WHERE campaign = {} AND account = {} AND item_guid = {} AND mail_id = {}", campaign, account, itemGuid, mailId))
         return;
     auto delivered = std::make_unique<Mail>();
     delivered->messageID = mailId;
@@ -90,7 +246,7 @@ void DeliverWarchest(Player* player)
     delivered->COD = 0;
     delivered->checked = MAIL_CHECK_MASK_HAS_BODY;
     delivered->state = MAIL_STATE_UNCHANGED;
-    delivered->AddItem(itemGuid, 657112);
+    delivered->AddItem(itemGuid, campaign);
     sMailMgr->OnMailSent(guid);
     player->AddNewMailDeliverTime(now);
     player->AddMail(delivered.release());
@@ -104,7 +260,10 @@ public:
 
     void OnPlayerLogin(Player* player) override
     {
-        DeliverWarchest(player);
+        DeliverAccountGift(player, 657112, "Fel Enchanted Warchest",
+            "A gift for your Area 52 account. Enjoy your Fel Enchanted Warchest!");
+        DeliverAccountGift(player, 1999401, "Luna, The Chronicler's Carapace",
+            "Thank you for helping shape Area 52. Please enjoy Luna, The Chronicler's Carapace, a mount for your collection.");
         if (!AscensionFreePick::Applies(player) || player->GetSession()->IsBot() ||
             !sConfigMgr->GetOption<bool>("Area52.TesterCache.Enabled", false))
             return;
@@ -231,4 +390,6 @@ void AddSC_Area52TesterSupplies()
     new item_area52_tester_cache();
     new Area52TesterSupplies();
     new Area52InnkeeperSupplies();
+    new Area52TestBoostDelivery();
+    new item_area52_first_character_test_boost();
 }

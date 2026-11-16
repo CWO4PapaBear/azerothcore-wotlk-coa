@@ -1,3 +1,4 @@
+#include "../../../coa/Area52HolyContracts.h"
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
@@ -16,6 +17,7 @@
  */
 
 #include "Player.h"
+#include "../../../coa/AscensionClassMechanics.h"
 #include "AccountMgr.h"
 #include "AchievementMgr.h"
 #include "AreaDefines.h"
@@ -25,6 +27,7 @@
 #include "ArenaSeasonMgr.h"
 #include "AscensionPooledVitality.h"
 #include "../../../coa/AscensionFreePick.h"
+#include "../../../coa/AscensionMysticSpellGrants.h"
 #include "../../../coa/AscensionPetOwnership.h"
 #include "Battlefield.h"
 #include "BattlefieldMgr.h"
@@ -636,7 +639,8 @@ bool Player::Create(ObjectGuid::LowType guidlow, CharacterCreateInfo* createInfo
 
     // original action bar
     for (PlayerCreateInfoActions::const_iterator action_itr = info->action.begin(); action_itr != info->action.end(); ++action_itr)
-        addActionButton(action_itr->button, action_itr->action, action_itr->type);
+        if (!AscensionFreePick::Applies(this) || action_itr->type != ACTION_BUTTON_SPELL || action_itr->action != 5019)
+            addActionButton(action_itr->button, action_itr->action, action_itr->type);
 
     // A creation-only script may provide exact equipment/backpack positions.
     // Failure aborts creation before its initial save; it must not fall back to
@@ -3444,6 +3448,17 @@ bool Player::_addSpell(uint32 spellId, uint8 addSpecMask, bool temporary, bool l
 
     uint16 maxskill = GetMaxSkillValueForLevel();
     SpellLearnSkillNode const* spellLearnSkill = sSpellMgr->GetSpellLearnSkill(spellId);
+    SpellLearnSkillNode ridingSkill;
+    if (spellLearnSkill && spellLearnSkill->skill == SKILL_RIDING && AscensionFreePick::Applies(this))
+        if (auto const* raceClass = GetSkillRaceClassInfo(SKILL_RIDING, getRace(), getClass()))
+            if (auto const* tiers = sSkillTiersStore.LookupEntry(raceClass->SkillTierID);
+                tiers && spellLearnSkill->step && spellLearnSkill->step <= MAX_SKILL_STEP &&
+                tiers->Value[spellLearnSkill->step - 1])
+            {
+                ridingSkill = *spellLearnSkill;
+                ridingSkill.value = ridingSkill.maxvalue = tiers->Value[ridingSkill.step - 1];
+                spellLearnSkill = &ridingSkill;
+            }
     SkillLineAbilityMapBounds skill_bounds = sSpellMgr->GetSkillLineAbilityMapBounds(spellId);
     // xinef: set appropriate skill value
     if (spellLearnSkill)
@@ -3457,7 +3472,11 @@ bool Player::_addSpell(uint32 spellId, uint8 addSpecMask, bool temporary, bool l
         if (skill_max_value < new_skill_max_value)
             skill_max_value = new_skill_max_value;
 
-        SetSkill(spellLearnSkill->skill, spellLearnSkill->step, skill_value, skill_max_value);
+        uint16 const step = spellLearnSkill->skill == SKILL_RIDING
+            ? std::max<uint16>(GetSkillStep(SKILL_RIDING), spellLearnSkill->step) : spellLearnSkill->step;
+        if (spellLearnSkill->skill != SKILL_RIDING || GetSkillStep(SKILL_RIDING) != step ||
+            GetPureSkillValue(SKILL_RIDING) != skill_value || GetPureMaxSkillValue(SKILL_RIDING) != skill_max_value)
+            SetSkill(spellLearnSkill->skill, step, skill_value, skill_max_value);
     }
     else
     {
@@ -3511,7 +3530,7 @@ bool Player::IsNeedCastPassiveSpellAtLearn(SpellInfo const* spellInfo) const
             (!form && spellInfo->HasAttribute(SPELL_ATTR2_ALLOW_WHILE_NOT_SHAPESHIFTED)));
 }
 
-void Player::learnSpell(uint32 spellId, bool temporary /*= false*/, bool learnFromSkill /*= false*/)
+void Player::learnSpell(uint32 spellId, bool temporary /*= false*/, bool learnFromSkill /*= false*/, bool announce /*= true*/)
 {
     if (IsAscensionClass(getClass()))
         if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId))
@@ -3539,7 +3558,7 @@ void Player::learnSpell(uint32 spellId, bool temporary /*= false*/, bool learnFr
         // and Player::removeSpell answers such a grant with a single SMSG_REMOVED_SPELL. Announcing it twice
         // leaves the client one extra copy of the spell per grant/revoke cycle, which both hides the real
         // spellbook entry behind duplicates and keeps the client believing a revoked spell is still known.
-        if (IsInWorld() && (!temporary || learnFromSkill))
+        if (announce && IsInWorld() && (!temporary || learnFromSkill) && (!AscensionFreePick::Applies(this) || GetTemporarySpellReplacement(spellId) == spellId))
             SendLearnPacket(spellId, true);
     }
 
@@ -5439,6 +5458,10 @@ float Player::GetMeleeCritFromAgility()
     if (sWorld->getBoolConfig(CONFIG_CLASSIC_PLUS_STAT_FORMULAS))
         crit = ClassicPlusStats::MeleeCrit(pclass, level, crit);
 
+    // The Agility path doubles only the chance contributed by Agility.
+    if (AscensionFreePick::Applies(this) && HasAura(84865))
+        crit.PerPoint *= 2.0f;
+
     return (crit.Base + GetStat(STAT_AGILITY) * crit.PerPoint) * 100.0f;
 }
 
@@ -6889,7 +6912,7 @@ void Player::DuelComplete(DuelCompleteType type)
 
 //---------------------------------------------------------//
 
-void Player::_ApplyItemMods(Item* item, uint8 slot, bool apply)
+void Player::_ApplyItemMods(Item* item, uint8 slot, bool apply, bool levelChange)
 {
     if (slot >= INVENTORY_SLOT_BAG_END || !item)
         return;
@@ -6913,7 +6936,20 @@ void Player::_ApplyItemMods(Item* item, uint8 slot, bool apply)
     if (slot == EQUIPMENT_SLOT_RANGED)
         _ApplyAmmoBonuses();
 
-    ApplyItemEquipSpell(item, apply);
+    // Fused Sanctuary belongs to this equipped sword. Refresh its amounts in
+    // place on level changes so the equip visual plays only on an actual cast.
+    constexpr uint32 FusedQuelSerrar = 1999520;
+    Aura* sanctuary = levelChange && item->GetEntry() == FusedQuelSerrar
+        ? GetAura(FusedQuelSerrar, GetGUID(), item->GetGUID()) : nullptr;
+    if (sanctuary)
+    {
+        if (apply)
+            for (auto index : {EFFECT_0, EFFECT_1})
+                if (AuraEffect* effect = sanctuary->GetEffect(index))
+                    effect->RecalculateAmount(this);
+    }
+    else
+        ApplyItemEquipSpell(item, apply);
 
     ApplyItemDependentAuras(item, apply);
 
@@ -8001,7 +8037,7 @@ void Player::_ApplyAllLevelScaleItemMods(bool apply)
             if (!proto)
                 continue;
 
-            _ApplyItemMods(m_items[i], i, apply);
+            _ApplyItemMods(m_items[i], i, apply, true);
         }
     }
 }
@@ -9556,6 +9592,11 @@ Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetTy
 
 void Player::RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent)
 {
+    RemovePet(pet, mode, returnreagent, nullptr);
+}
+
+void Player::RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent, CharacterDatabaseTransaction trans)
+{
     if (!pet)
         pet = GetPet();
 
@@ -9614,7 +9655,7 @@ void Player::RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent)
         pet->CombatStop();
 
         // only if current pet in slot
-        pet->SavePetToDB(mode);
+        pet->SavePetToDB(mode, trans);
 
         if (m_petStable->CurrentPet && m_petStable->CurrentPet->PetNumber == pet->GetCharmInfo()->GetPetNumber())
         {
@@ -10264,6 +10305,35 @@ bool Player::IsAffectedBySpellmod(SpellInfo const* spellInfo, SpellModifier* mod
     if (!mod || !spellInfo)
         return false;
 
+    if (AscensionFreePick::Applies(this))
+    {
+        if (mod->spellId == 17322 || mod->spellId == 17323 || mod->spellId == 817323)
+        {
+            if (mod->op != SPELLMOD_RANGE || !spellInfo->RangeEntry || spellInfo->RangeEntry->RangeMax[0] <= 0 ||
+                (!spellInfo->IsChanneled() && !spellInfo->CalcCastTime()))
+                return false;
+            if (Area52Holy::DamagingSpell(spellInfo))
+                return true;
+            // Some damaging channels deal their damage through a periodic trigger.
+            for (auto const& effect : spellInfo->Effects)
+                if (effect.ApplyAuraName == SPELL_AURA_PERIODIC_TRIGGER_SPELL ||
+                    effect.Effect == SPELL_EFFECT_TRIGGER_SPELL || effect.Effect == SPELL_EFFECT_TRIGGER_MISSILE)
+                    if (SpellInfo const* child = sSpellMgr->GetSpellInfo(effect.TriggerSpell))
+                        if (Area52Holy::DamagingSpell(child))
+                            return true;
+            return false;
+        }
+        // Darkfall has an empty family mask. Artillery applies its snapshotted bonus once.
+        if (mod->spellId == 984509)
+            return false;
+        if ((mod->spellId == 20216 || mod->spellId == 411134 || mod->spellId == 31842) &&
+            !(spellInfo->SchoolMask & SPELL_SCHOOL_MASK_HOLY))
+            return false;
+        if (mod->spellId == 31842 && mod->op == SPELLMOD_CRITICAL_CHANCE &&
+            (!Area52Holy::HealingSpell(spellInfo) || Area52Holy::DamagingSpell(spellInfo)))
+            return false;
+    }
+
     // First time this aura applies a mod to us and is out of charges
     if (spell && mod->ownerAura && mod->ownerAura->IsUsingCharges() && !mod->ownerAura->GetCharges() && !spell->m_appliedMods.count(mod->ownerAura))
         return false;
@@ -10271,6 +10341,10 @@ bool Player::IsAffectedBySpellmod(SpellInfo const* spellInfo, SpellModifier* mod
     // +duration to infinite duration spells making them limited
     if (mod->op == SPELLMOD_DURATION && spellInfo->GetDuration() == -1)
         return false;
+
+    if (AscensionFreePick::IsDarkRangerMoltenCore(mod->spellId, spellInfo->Id) &&
+        AscensionFreePick::Applies(this) && HasAura(997115))
+        return mod->op == SPELLMOD_DAMAGE || mod->op == SPELLMOD_CRITICAL_CHANCE;
 
     if (spellInfo->IsAffectedBySpellMod(mod))
         return true;
@@ -10284,6 +10358,18 @@ bool Player::IsAffectedBySpellmod(SpellInfo const* spellInfo, SpellModifier* mod
 template <class T>
 void Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell* spell, bool temporaryPet)
 {
+    ApplySpellModTrackingDamage(spellId, op, basevalue, spell, temporaryPet, nullptr);
+}
+
+template<class T>
+void Player::ApplySpellModTrackingDamage(uint32 spellId, SpellModOp op, T& basevalue, Spell* spell, bool temporaryPet, float* extraDamage)
+{
+    ApplyTargetedSpellModTrackingDamage(spellId, op, basevalue, spell, temporaryPet, extraDamage, nullptr);
+}
+
+template<class T>
+void Player::ApplyTargetedSpellModTrackingDamage(uint32 spellId, SpellModOp op, T& basevalue, Spell* spell, bool temporaryPet, float* extraDamage, Unit const* victim)
+{
     SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId);
     if (!spellInfo)
         return;
@@ -10291,6 +10377,8 @@ void Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell* s
     float totalmul = 1.0f;
     int32 totalflat = 0;
 
+    int32 shadowReach = 0;
+    int32 similarRange = 0;
     auto calculateSpellMod = [&](SpellModifier* mod)
     {
         // xinef: temporary pets cannot use charged mods of owner, needed for mirror image QQ they should use their own auras
@@ -10316,6 +10404,20 @@ void Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell* s
             if (mod->op == SPELLMOD_THREAT)
                 flatValue /= 100;
 
+            if (op == SPELLMOD_RANGE && AscensionFreePick::Applies(this))
+                switch (mod->spellId)
+                {
+                    case 17322: case 17323: case 817323:
+                        shadowReach = std::max(shadowReach, flatValue);
+                        flatValue = 0;
+                        break;
+                    case 11100: case 12353: case 812352: // Flame Throwing
+                    case 16757: case 16758: case 816758: // Arctic Reach
+                    case 28999: case 29000: case 829000: // Elemental Reach
+                    case 829003: case 829009: case 829015: case 829024: // Spell Reach
+                        similarRange = std::max(similarRange, flatValue);
+                        break;
+                }
             totalflat += flatValue;
         }
         else if (mod->type == SPELLMOD_PCT)
@@ -10336,7 +10438,13 @@ void Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell* s
 
             // xinef: those two mods should be multiplicative (Glyph of Renew)
             if (mod->op == SPELLMOD_DAMAGE || mod->op == SPELLMOD_DOT)
-                totalmul *= CalculatePct(1.0f, 100.0f + mod->value);
+            {
+                int32 percent = mod->value;
+                if (mod->spellId == 997050 && mod->op == SPELLMOD_DAMAGE && victim && victim->IsPlayer() &&
+                    AscensionFreePick::Applies(this) && mod->ownerAura && MatchesSpellInteraction(spellId, 1495))
+                    percent = 5 * mod->ownerAura->GetStackAmount();
+                totalmul *= CalculatePct(1.0f, 100.0f + percent);
+            }
             else
                 totalmul += CalculatePct(1.0f, mod->value);
         }
@@ -10386,12 +10494,19 @@ void Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell* s
         calculateSpellMod(mod);
     }
 
+    if (shadowReach > similarRange)
+        totalflat += shadowReach - similarRange;
+
+    if (extraDamage)
+        *extraDamage *= totalmul;
     if (op == SPELLMOD_CASTING_TIME || op == SPELLMOD_DURATION)
         basevalue = (basevalue + totalflat) > 0 ? (basevalue + totalflat) * totalmul : 0;
     else
         basevalue = (basevalue * totalmul) + totalflat;
 }
 
+template AC_GAME_API void Player::ApplySpellModTrackingDamage(uint32, SpellModOp, float&, Spell*, bool, float*);
+template AC_GAME_API void Player::ApplyTargetedSpellModTrackingDamage(uint32, SpellModOp, float&, Spell*, bool, float*, Unit const*);
 template AC_GAME_API void Player::ApplySpellMod(uint32 spellId, SpellModOp op, int32& basevalue, Spell* spell, bool temporaryPet);
 template AC_GAME_API void Player::ApplySpellMod(uint32 spellId, SpellModOp op, uint32& basevalue, Spell* spell, bool temporaryPet);
 template AC_GAME_API void Player::ApplySpellMod(uint32 spellId, SpellModOp op, float& basevalue, Spell* spell, bool temporaryPet);
@@ -11515,6 +11630,35 @@ void Player::AddSpellAndCategoryCooldowns(SpellInfo const* spellInfo, uint32 ite
 
     bool needsCooldownPacket = false;
 
+    bool clearSpiritCooldown = false;
+    if (spell && !itemId && !infinityCooldown && AscensionFreePick::Applies(this) && HasSpell(84867))
+    {
+        switch (spellInfo->GetFirstRankSpell()->Id)
+        {
+            case 552:
+            case 2782:
+            case 2893:
+            case 51886:
+                rec = 0;
+                catrec = 0;
+                clearSpiritCooldown = true;
+                needsCooldownPacket = true;
+                break;
+            case 527:
+            case 4987:
+            case 1152:
+            {
+                int32 const reduction = spellInfo->GetFirstRankSpell()->Id == 1152 ? 5000 : 3000;
+                rec = std::max<int32>(0, rec - reduction);
+                catrec = std::max<int32>(0, catrec - reduction);
+                needsCooldownPacket = true;
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
     // overwrite time for selected category
     if (infinityCooldown)
     {
@@ -11531,8 +11675,19 @@ void Player::AddSpellAndCategoryCooldowns(SpellInfo const* spellInfo, uint32 ite
             rec = GetAttackTime(RANGED_ATTACK);
 
         // Now we have cooldown data (if found any), time to apply mods
-        if (rec > 0)
+        bool const startsPersonalCooldown = rec == 0 && spell && !itemId && !spellInfo->MaxCharges &&
+            !clearSpiritCooldown && AscensionFreePick::Applies(this) &&
+            std::any_of(m_spellMods[SPELLMOD_COOLDOWN].begin(), m_spellMods[SPELLMOD_COOLDOWN].end(),
+                [&](SpellModifier* mod)
+                {
+                    return mod->type == SPELLMOD_FLAT && mod->value > 0 && IsAffectedBySpellmod(spellInfo, mod, spell);
+                });
+        if (rec > 0 || startsPersonalCooldown)
+        {
             ApplySpellMod(spellInfo->Id, SPELLMOD_COOLDOWN, rec, spell);
+            if (startsPersonalCooldown && rec > 0)
+                needsCooldownPacket = true;
+        }
 
         if (catrec > 0 && !spellInfo->HasAttribute(SPELL_ATTR6_NO_CATEGORY_COOLDOWN_MODS))
         {
@@ -11558,7 +11713,11 @@ void Player::AddSpellAndCategoryCooldowns(SpellInfo const* spellInfo, uint32 ite
 
         // no cooldown after applying spell mods
         if (rec == 0 && catrec == 0)
+        {
+            if (clearSpiritCooldown)
+                SendClearCooldown(spellInfo->Id, this);
             return;
+        }
 
         catrecTime = catrec ? catrec : 0;
         recTime    = rec ? rec : catrecTime;
@@ -12851,7 +13010,8 @@ bool Player::InBattlegroundQueue(bool ignoreArena) const
         if (_BgBattlegroundQueueID[i].bgQueueTypeId != BATTLEGROUND_QUEUE_NONE &&
             (!ignoreArena || (_BgBattlegroundQueueID[i].bgQueueTypeId != BATTLEGROUND_QUEUE_2v2 &&
                 _BgBattlegroundQueueID[i].bgQueueTypeId != BATTLEGROUND_QUEUE_3v3 &&
-                _BgBattlegroundQueueID[i].bgQueueTypeId != BATTLEGROUND_QUEUE_5v5)))
+                _BgBattlegroundQueueID[i].bgQueueTypeId != BATTLEGROUND_QUEUE_5v5 &&
+                _BgBattlegroundQueueID[i].bgQueueTypeId != BATTLEGROUND_QUEUE_1v1)))
             return true;
     return false;
 }
@@ -13083,6 +13243,16 @@ void Player::SummonIfPossible(bool agree, ObjectGuid summoner_guid)
     // expire and auto declined
     if (m_summon_expire < GameTime::GetGameTime().count())
         return;
+
+    if (!m_ritualSummoner.IsEmpty() && AscensionFreePick::Applies(this))
+    {
+        Player* summoner = ObjectAccessor::FindPlayer(m_ritualSummoner);
+        if (HasAura(1004019) || !summoner || summoner->HasAura(1004019))
+        {
+            m_summon_expire = 0;
+            return;
+        }
+    }
 
     // drop flag at summon
     // this code can be reached only when GM is summoning player who carries flag, because player should be immune to summoning spells when he carries flag
@@ -13855,6 +14025,8 @@ void Player::SetCanBlock(bool value)
 void Player::SetCanTitanGrip(bool value)
 {
     m_canTitanGrip = value;
+    if (AscensionFreePick::Applies(this))
+        UpdateTitansGrip();
 }
 
 bool Player::HasBurningCommander() const
@@ -13893,11 +14065,22 @@ void Player::SetTemporarySpellReplacement(uint32 original, uint32 replacement)
             return;
         m_temporarySpellReplacements[original] = replacement;
     }
-    if (previous != replacement && IsInWorld())
+    if (previous != replacement && IsInWorld() && HasActiveSpell(original))
     {
+        bool const normalizedReplacement = (original == 6117 && replacement == 978701) ||
+            (AscensionFreePick::Applies(this) && replacement != original);
+        if (normalizedReplacement)
+        {
+            WorldPacket remove(SMSG_REMOVED_SPELL, 5);
+            remove << uint32(replacement) << uint8(0);
+            GetSession()->SendPacket(&remove);
+        }
         WorldPacket packet(SMSG_SUPERCEDED_SPELL, 8);
         packet << previous << replacement;
         GetSession()->SendPacket(&packet);
+        if (replacement == original && previous != original && HasActiveSpell(previous) &&
+            ((original == 6117 && previous == 978701) || AscensionFreePick::Applies(this)))
+            SendLearnPacket(previous, true);
     }
 }
 
@@ -13910,6 +14093,15 @@ std::vector<uint32> Player::GetSpellInteractionOrigins(uint32 spellId) const
     std::vector<uint32> pending{spellId};
     for (size_t index = 0; index < pending.size(); ++index)
     {
+        // Shadow Waste Bolt is learned alongside its matching Shadow Bolt rank.
+        if (HasAura(982330))
+            for (auto const& grant : AscensionMysticEnchant::SpellGrants)
+                if (grant.Enchant == 982330 && grant.Spell == pending[index] && HasSpell(grant.Requires) &&
+                    std::find(pending.begin(), pending.end(), grant.Requires) == pending.end())
+                {
+                    pending.push_back(grant.Requires);
+                    origins.push_back(grant.Requires);
+                }
         if (HasAura(979740) && sSpellMgr->GetFirstSpellInChain(pending[index]) == 826679)
         {
             std::set<uint32> visited;
@@ -14573,7 +14765,7 @@ void Player::_LoadSkills(PreparedQueryResult result)
             {
                 for (uint32 i = 0; i < MAX_SKILL_STEP; ++i)
                 {
-                    if (skillTier->Value[skillStep] == max)
+                    if (skillTier->Value[i] == max)
                     {
                         skillStep = i + 1;
                         break;
@@ -17227,7 +17419,8 @@ std::string Player::GetPlayerName()
     return "|Hplayer:" + name + "|h" + color + name + "|h|r";
 }
 
-void Player::SetSummonPoint(uint32 mapid, float x, float y, float z, uint32 delay /*= 0*/, bool asSpectator /*= false*/)
+void Player::SetSummonPoint(uint32 mapid, float x, float y, float z, uint32 delay /*= 0*/,
+    bool asSpectator /*= false*/, ObjectGuid ritualSummoner /*= ObjectGuid::Empty*/)
 {
     m_summon_expire = GameTime::GetGameTime().count() + (delay ? delay : MAX_PLAYER_SUMMON_DELAY);
     m_summon_mapid = mapid;
@@ -17235,6 +17428,7 @@ void Player::SetSummonPoint(uint32 mapid, float x, float y, float z, uint32 dela
     m_summon_y = y;
     m_summon_z = z;
     m_summon_asSpectator = asSpectator;
+    m_ritualSummoner = ritualSummoner;
 }
 
 bool Player::IsSummonAsSpectator() const
@@ -17387,7 +17581,7 @@ void Player::SendSpellChargeState(uint32 spellId) const
     uint32 missing = spellInfo->MaxCharges - std::min<uint32>(state.Available, spellInfo->MaxCharges);
 
     WorldPacket packet(SMSG_SET_SPELL_CHARGES, 12);
-    packet << uint32(spellInfo->ChargeCategoryId);
+    packet << uint32(GetClientSpellChargeCategory(spellInfo));
     packet << uint32(missing && remaining ? remaining : std::max<uint32>(state.RecoveryTime, 1));
     packet << uint32(std::min<uint32>(missing, 255));
     GetSession()->SendPacket(&packet);
@@ -17443,7 +17637,7 @@ void Player::SendAllSpellChargeStates() const
         if (!missing)
             continue;
         uint32 remaining = uint32(state.NextRecovery > now ? state.NextRecovery - now : 0);
-        partialPools.emplace(spellInfo->ChargeCategoryId,
+        partialPools.emplace(GetClientSpellChargeCategory(spellInfo),
             std::make_pair(std::max<uint32>(remaining, 1), uint8(std::min<uint32>(missing, 255))));
     }
 

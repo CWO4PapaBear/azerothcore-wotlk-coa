@@ -63,10 +63,10 @@ public:
     static std::pair<PetStable::PetInfo const*, PetSaveMode> GetLoadPetInfo(PetStable const& stable, uint32 petEntry, uint32 petnumber, bool current);
     bool LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool current, uint32 healthPct = 0, bool fullMana = false);
     bool isBeingLoaded() const override { return m_loading; }
-    void SavePetToDB(PetSaveMode mode);
+    void SavePetToDB(PetSaveMode mode, CharacterDatabaseTransaction transaction = {});
     void FillPetInfo(PetStable::PetInfo* petInfo) const;
     void Remove(PetSaveMode mode, bool returnreagent = false);
-    static void DeleteFromDB(ObjectGuid::LowType guidlow);
+    static void DeleteFromDB(ObjectGuid::LowType guidlow, CharacterDatabaseTransaction transaction = {});
 
     void setDeathState(DeathState s, bool despawn = false) override;                   // overwrite virtual Creature::setDeathState and Unit::setDeathState
     void Update(uint32 diff) override;                           // overwrite virtual Creature::Update and Unit::Update
@@ -111,8 +111,10 @@ public:
 
     bool addSpell(uint32 spellId, ActiveStates active = ACT_DECIDE, PetSpellState state = PETSPELL_NEW, PetSpellType type = PETSPELL_NORMAL);
     bool learnSpell(uint32 spell_id);
+    bool learnSpell(uint32 spell_id, ActiveStates active);
     void learnSpellHighRank(uint32 spellid);
     void InitLevelupSpellsForLevel();
+    void InitLevelupSpellsForLevel(bool syncBite);
     bool unlearnSpell(uint32 spell_id, bool learn_prev, bool clear_ab = true);
     bool removeSpell(uint32 spell_id, bool learn_prev, bool clear_ab = true);
     void CleanupActionBar();

@@ -1,0 +1,10 @@
+{
+  "scope": "Masteries, Alacrity, Bountiful Gift and Roothounds",
+  "candidate_sha256": "75f00946016b0a8af7fd931e9213754c3727221a1810a92d9ef4b9cf4237875c",
+  "baseline_sha256": "56ec7e778bca9fcaab2d86040f0eb196b1c317a6042cde33f871793e55dddfd5",
+  "reports": {
+    "build-r1": "aa787229ca751579932a64d6a86a3bf6d3b3f608e1da2131b00b2828d8f4cff8"
+  },
+  "client_sha256": "83e4d42445de5b2c818ce7d595175898d33837217fdf150ef6ef2a6dcd73fccf",
+  "preserves_test_access_exclusions": true
+}

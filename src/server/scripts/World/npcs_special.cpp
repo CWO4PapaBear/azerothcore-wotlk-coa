@@ -312,6 +312,7 @@ struct npc_training_dummy : NullCreatureAI
     npc_training_dummy(Creature* creature) : NullCreatureAI(creature)
     {
         ApplyTrainingDummyMovementImmunity(me);
+        SetTrainingDummyCrowdControlImmunity(me, true);
     }
 
     void JustEnteredCombat(Unit* who) override

@@ -36,6 +36,11 @@ bool ResetPrestigeSpecialization(Player* player, AscensionPrestigeReset::Plan co
         error = "Your active specialization changed. Reopen Prestige and try again.";
         return false;
     }
+    if (!Area52Build::BeforeManualDraftChange(player))
+    {
+        error = "The active Draft cannot be left right now.";
+        return false;
+    }
     auto const count = KnownEntries(player).size();
     if (!Apply(player, {}, false, true))
     {

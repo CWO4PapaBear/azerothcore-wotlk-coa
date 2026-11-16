@@ -16,6 +16,7 @@
  */
 
 #include "AreaDefines.h"
+#include "../../coa/AscensionFreePick.h"
 #include "CellImpl.h"
 #include "GameTime.h"
 #include "GridNotifiers.h"
@@ -46,6 +47,7 @@ enum RogueSpells
     SPELL_ROGUE_TRICKS_OF_THE_TRADE_PROC        = 59628,
     // Proc system spells
     SPELL_ROGUE_MASTER_OF_SUBTLETY_DAMAGE       = 31665,
+    SPELL_ROGUE_DEADLY_BREW_R1                  = 51625,
     SPELL_ROGUE_DEADLY_BREW_POISON              = 3409,
     SPELL_ROGUE_QUICK_RECOVERY_ENERGY           = 31663,
     SPELL_ROGUE_TURN_THE_TABLES_R1              = 52910,
@@ -189,12 +191,19 @@ class spell_rog_cheat_death : public AuraScript
     void Absorb(AuraEffect* /*aurEff*/, DamageInfo& dmgInfo, uint32& absorbAmount)
     {
         Player* target = GetTarget()->ToPlayer();
+        bool const area52 = AscensionFreePick::Applies(target);
+        if (area52 && (target->HasSpellCooldown(66233) || target->HasSpellCooldown(20711)))
+            return;
         if (dmgInfo.GetDamage() < target->GetHealth() || target->HasSpellCooldown(SPELL_ROGUE_CHEAT_DEATH_COOLDOWN) || !roll_chance_i(absorbChance))
             return;
 
         target->CastSpell(target, SPELL_ROGUE_CHEAT_DEATH_COOLDOWN, true);
         target->CastSpell(target, SPELL_ROGUE_CHEATING_DEATH, true);
-        target->AddSpellCooldown(SPELL_ROGUE_CHEAT_DEATH_COOLDOWN, 0, MINUTE * IN_MILLISECONDS);
+        target->AddSpellCooldown(SPELL_ROGUE_CHEAT_DEATH_COOLDOWN, 0,
+            (area52 ? 2 : 1) * MINUTE * IN_MILLISECONDS);
+        if (area52)
+            for (uint32 spell : {66233u, 20711u})
+                target->AddSpellCooldown(spell, 0, 2 * MINUTE * IN_MILLISECONDS);
 
         uint32 health10 = target->CountPctFromMaxHealth(10);
 
@@ -477,10 +486,17 @@ class spell_rog_preparation : public SpellScript
         for (PlayerSpellMap::const_iterator itr = spellMap.begin(); itr != spellMap.end(); ++itr)
         {
             SpellInfo const* spellInfo = sSpellMgr->AssertSpellInfo(itr->first);
-            if (spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE)
+            bool const area52 = AscensionFreePick::Applies(caster);
+            bool const area52Reset = area52 &&
+                (caster->MatchesSpellInteraction(spellInfo->Id, 5277) ||
+                    caster->MatchesSpellInteraction(spellInfo->Id, 1856) ||
+                    caster->MatchesSpellInteraction(spellInfo->Id, 14177) ||
+                    caster->MatchesSpellInteraction(spellInfo->Id, 36554));
+            if (area52Reset || spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE)
             {
-                if (spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_COLDB_SHADOWSTEP ||      // Cold Blood, Shadowstep
-                        spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_VAN_EVAS_SPRINT)           // Vanish, Evasion, Sprint
+                if (area52 ? area52Reset :
+                    (spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_ROGUE_COLDB_SHADOWSTEP ||      // Cold Blood, Shadowstep
+                        spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_ROGUE_VAN_EVAS_SPRINT))           // Vanish, Evasion, Sprint
                 {
                     SpellCooldowns::iterator citr = caster->GetSpellCooldownMap().find(spellInfo->Id);
                     if (citr != caster->GetSpellCooldownMap().end() && citr->second.needSendToClient)
@@ -558,7 +574,7 @@ class spell_rog_rupture : public AuraScript
         return caster && caster->IsPlayer();
     }
 
-    void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+    void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& canBeRecalculated)
     {
         if (Unit* caster = GetCaster())
         {
@@ -579,6 +595,7 @@ class spell_rog_rupture : public AuraScript
                 cp = 5;
 
             amount += int32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * attackpowerPerCombo[cp]);
+            aurEff->AddAgilitySnapshotDamage(AscensionFreePick::AgilityAttackPower(caster->ToPlayer(), false) * attackpowerPerCombo[cp]);
         }
     }
 
@@ -914,16 +931,31 @@ class spell_rog_deadly_brew : public AuraScript
         return ValidateSpellInfo({ SPELL_ROGUE_DEADLY_BREW_POISON });
     }
 
+    bool CheckProc(ProcEventInfo& eventInfo)
+    {
+        Player* player = GetTarget()->ToPlayer();
+        if (!player || !AscensionFreePick::Applies(player))
+            return true;
+        Unit* target = eventInfo.GetActionTarget();
+        return target && player->IsWithinDistInMap(target, 20.0f)
+            && !player->HasSpellCooldown(SPELL_ROGUE_DEADLY_BREW_R1);
+    }
+
     void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
     {
         PreventDefaultAction();
         Unit* target = eventInfo.GetActionTarget();
         if (target)
+        {
             GetTarget()->CastSpell(target, SPELL_ROGUE_DEADLY_BREW_POISON, true, nullptr, aurEff);
+            if (Player* player = GetTarget()->ToPlayer(); player && AscensionFreePick::Applies(player))
+                player->AddSpellCooldown(SPELL_ROGUE_DEADLY_BREW_R1, 0, 4000);
+        }
     }
 
     void Register() override
     {
+        DoCheckProc += AuraCheckProcFn(spell_rog_deadly_brew::CheckProc);
         OnEffectProc += AuraEffectProcFn(spell_rog_deadly_brew::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
     }
 };

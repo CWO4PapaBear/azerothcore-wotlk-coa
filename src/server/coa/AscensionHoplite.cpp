@@ -1,3 +1,4 @@
+#include "AscensionFreePick.h"
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 #include "Config.h"
 #include "AscensionMysticEnchantCatalog.h"
@@ -163,6 +164,7 @@ public:
 
 struct FlurryState : DataMap::Base
 {
+    int32 AgilityDamage = 0;
     bool Empowered = false;
     uint8 Points = 0;
 };
@@ -305,7 +307,11 @@ class aura_area52_hoplite_impaled : public AuraScript
 {
     PrepareAuraScript(aura_area52_hoplite_impaled);
     bool Load() override { return Applies(GetCaster()); }
-    void Tick(AuraEffect const*) { PreventDefaultAction(); }
+    void Tick(AuraEffect const*)
+    {
+        PreventDefaultAction();
+        GetAura()->SetNeedClientUpdateForTargets();
+    }
     void Register() override
     {
         OnEffectPeriodic += AuraEffectPeriodicFn(aura_area52_hoplite_impaled::Tick,
@@ -394,7 +400,11 @@ class spell_area52_hoplite_shield_strike : public SpellScript
     void SuppressCooldown(SpellEffIndex effect) { PreventHitDefaultEffect(effect); }
     void Damage(SpellEffIndex)
     {
-        SetEffectValue(ShieldStrikeDamage(Points, GetCaster()->GetTotalAttackPowerValue(BASE_ATTACK)));
+        float const ap = GetCaster()->GetTotalAttackPowerValue(BASE_ATTACK);
+        int32 const damage = ShieldStrikeDamage(Points, ap);
+        SetEffectValue(damage);
+        if (float extra = AscensionFreePick::AgilityAttackPower(GetCaster()->ToPlayer(), false); extra > 0)
+            GetSpell()->SetScriptValue(AscensionFreePick::AgilityEffectDamageKey, damage - ShieldStrikeDamage(Points, ap - extra));
     }
     void Hit()
     {
@@ -437,10 +447,16 @@ class aura_area52_hoplite_flurry : public AuraScript
     void Scale(AuraEffect const*, int32& amount, bool& recalculate)
     {
         Player* player = GetUnitOwner()->ToPlayer();
-        auto const* state = player->CustomData.Get<FlurryState>(ChannelKey);
+        auto* state = player->CustomData.Get<FlurryState>(ChannelKey);
         if (state)
-            amount += int32(FlurryScaling(state->Points, player->GetTotalAttackPowerValue(BASE_ATTACK),
-                float(std::max(0, player->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_NORMAL)))));
+        {
+            float const ap = player->GetTotalAttackPowerValue(BASE_ATTACK);
+            float const sp = float(std::max(0, player->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_NORMAL)));
+            int32 const scaling = int32(FlurryScaling(state->Points, ap, sp));
+            amount += scaling;
+            state->AgilityDamage = scaling - int32(FlurryScaling(state->Points,
+                ap - AscensionFreePick::AgilityAttackPower(player, false), sp));
+        }
         recalculate = false;
     }
     void Apply(AuraEffect const*, AuraEffectHandleModes)
@@ -475,9 +491,13 @@ class spell_area52_hoplite_flurry_damage : public SpellScript
         Player* player = GetCaster()->ToPlayer();
         auto const* state = player->CustomData.Get<FlurryState>(ChannelKey);
         Unit* target = GetHitUnit();
-        if (state && state->Empowered && player->HasAura(901200) && target &&
-            target->IsCreature() && !target->GetCharmerOrOwnerPlayerOrPlayerItself())
+        bool const empowered = state && state->Empowered && player->HasAura(901200) && target &&
+            target->IsCreature() && !target->GetCharmerOrOwnerPlayerOrPlayerItself();
+        if (empowered)
             SetEffectValue(GetEffectValue() + CalculatePct(GetEffectValue(), 50));
+        if (state && state->AgilityDamage > 0)
+            GetSpell()->SetScriptValue(AscensionFreePick::AgilityEffectDamageKey,
+                state->AgilityDamage + (empowered ? CalculatePct(state->AgilityDamage, 50) : 0));
     }
     void Register() override
     {

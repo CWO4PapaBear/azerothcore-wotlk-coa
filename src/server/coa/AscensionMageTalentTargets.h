@@ -8,6 +8,10 @@ inline std::optional<bool> AscensionMageTalentTarget(std::uint32_t modifier, std
 {
     switch (modifier)
     {
+        case 410000:
+        case 410001:
+        case 410002:
+            return false;
         case 828574:
         case 828575:
         case 828576:

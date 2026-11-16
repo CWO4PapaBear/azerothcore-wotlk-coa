@@ -1,0 +1,53 @@
+--- a/src/server/game/Entities/Player/Player.cpp
++++ b/src/server/game/Entities/Player/Player.cpp
+@@ -6912,7 +6912,7 @@
+ 
+ //---------------------------------------------------------//
+ 
+-void Player::_ApplyItemMods(Item* item, uint8 slot, bool apply)
++void Player::_ApplyItemMods(Item* item, uint8 slot, bool apply, bool levelChange)
+ {
+     if (slot >= INVENTORY_SLOT_BAG_END || !item)
+         return;
+@@ -6936,7 +6936,20 @@
+     if (slot == EQUIPMENT_SLOT_RANGED)
+         _ApplyAmmoBonuses();
+ 
+-    ApplyItemEquipSpell(item, apply);
++    // Fused Sanctuary belongs to this equipped sword. Refresh its amounts in
++    // place on level changes so the equip visual plays only on an actual cast.
++    constexpr uint32 FusedQuelSerrar = 1999520;
++    Aura* sanctuary = levelChange && item->GetEntry() == FusedQuelSerrar
++        ? GetAura(FusedQuelSerrar, GetGUID(), item->GetGUID()) : nullptr;
++    if (sanctuary)
++    {
++        if (apply)
++            for (auto index : {EFFECT_0, EFFECT_1})
++                if (AuraEffect* effect = sanctuary->GetEffect(index))
++                    effect->RecalculateAmount(this);
++    }
++    else
++        ApplyItemEquipSpell(item, apply);
+ 
+     ApplyItemDependentAuras(item, apply);
+ 
+@@ -8024,7 +8037,7 @@
+             if (!proto)
+                 continue;
+ 
+-            _ApplyItemMods(m_items[i], i, apply);
++            _ApplyItemMods(m_items[i], i, apply, true);
+         }
+     }
+ }
+--- a/src/server/game/Entities/Player/Player.h
++++ b/src/server/game/Entities/Player/Player.h
+@@ -2328,7 +2328,7 @@
+     void UpdateWeaponDependentCritAuras(WeaponAttackType attackType);
+     void UpdateAllWeaponDependentCritAuras();
+ 
+-    void _ApplyItemMods(Item* item, uint8 slot, bool apply);
++    void _ApplyItemMods(Item* item, uint8 slot, bool apply, bool levelChange = false);
+     void _RemoveAllItemMods();
+     void _ApplyAllItemMods();
+     void _ApplyAllLevelScaleItemMods(bool apply);

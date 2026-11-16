@@ -1,3 +1,4 @@
+#include "../../../coa/Area52FeignDeath.h"
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
@@ -2689,7 +2690,7 @@ bool Creature::_IsTargetAcceptable(Unit const* target) const
     if (target->HasUnitState(UNIT_STATE_DIED))
     {
         // some creatures can detect fake death
-        if (CanIgnoreFeignDeath() && target->HasUnitFlag2(UNIT_FLAG2_FEIGN_DEATH))
+        if ((CanIgnoreFeignDeath() || Area52FeignDeath::SeesThrough(this, target)) && target->HasUnitFlag2(UNIT_FLAG2_FEIGN_DEATH))
             return true;
         else
             return false;
@@ -2781,7 +2782,8 @@ bool Creature::CanCreatureAttack(Unit const* victim, bool skipDistCheck) const
     }
 
     // if victim is in FD and we can't see that
-    if (victim->HasUnitFlag2(UNIT_FLAG2_FEIGN_DEATH) && !CanIgnoreFeignDeath())
+    if (victim->HasUnitFlag2(UNIT_FLAG2_FEIGN_DEATH) && !CanIgnoreFeignDeath() &&
+        !Area52FeignDeath::SeesThrough(this, victim))
     {
         return false;
     }

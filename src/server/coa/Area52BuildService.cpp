@@ -1,7 +1,17 @@
+#include "Area52FeaturedCatalogEvents.h"
+#include "AsyncCallbackProcessor.h"
+#include "Log.h"
+#include "Area52FeaturedPets.h"
+#include "Area52FeaturedIncarnations.h"
 #include "Area52BuildProtocol.h"
+#include "Area52FeaturedPreview.h"
+#include "WorldSessionMgr.h"
+#include "Area52DraftAssignment.h"
+#include "Area52FeaturedRewardValidation.h"
 #include "AscensionCompatOpcodes.h"
 #include "AscensionFreePick.h"
 #include "Config.h"
+#include "Chat.h"
 #include "CryptoHash.h"
 #include "DatabaseEnv.h"
 #include "GameTime.h"
@@ -25,6 +35,9 @@ namespace
 using namespace Area52Build;
 using Clock = std::chrono::steady_clock;
 std::atomic<bool> Enabled{false};
+AsyncCallbackProcessor<TransactionCallback> CatalogCommits;
+std::mutex CatalogCommitLock;
+CatalogSignal CatalogNotifications;
 
 struct SessionState
 {
@@ -197,7 +210,7 @@ void GetBuild(WorldSession* session, std::shared_ptr<SessionState> state, uint64
 }
 
 void Commit(WorldSession* session, std::shared_ptr<SessionState> state, uint16 opcode,
-    Entry entry, uint64 id, uint32 previous)
+    Entry entry, uint64 id, uint32 previous, bool catalogChanged = true)
 {
     entry.Id = std::to_string(id);
     entry.Class = 10;
@@ -235,7 +248,34 @@ void Commit(WorldSession* session, std::shared_ptr<SessionState> state, uint16 o
     revision->SetData(5, session->GetAccountId());
     revision->SetData(6, previous);
     transaction->Append(revision);
-    session->AddTransactionCallback(CharacterDatabase.AsyncCommitTransaction(transaction)).AfterComplete(
+    if (entry.Category == FeaturedDraftCategory)
+    {
+        auto* assignment = CharacterDatabase.GetPreparedStatement(CHAR_UPS_A52_DRAFT_ASSIGNMENT);
+        assignment->SetData(0, DraftArchetype(entry));
+        assignment->SetData(1, id);
+        assignment->SetData(2, previous + 1);
+        transaction->Append(assignment);
+        auto* featured = CharacterDatabase.GetPreparedStatement(CHAR_UPS_A52_FEATURED_DRAFT);
+        featured->SetData(0, id);
+        featured->SetData(1, previous + 1);
+        featured->SetData(2, session->GetAccountId());
+        transaction->Append(featured);
+    }
+
+    auto committed = CharacterDatabase.AsyncCommitTransaction(transaction);
+    if (entry.Category == FeaturedDraftCategory && catalogChanged)
+    {
+        auto completion = std::make_shared<TransactionPromise>();
+        std::lock_guard lock(CatalogCommitLock);
+        CatalogCommits.AddCallback(std::move(committed)).AfterComplete([completion](bool success)
+        {
+            if (success)
+                CatalogNotifications.Request();
+            completion->set_value(success);
+        });
+        committed = TransactionCallback(completion->get_future());
+    }
+    session->AddTransactionCallback(std::move(committed)).AfterComplete(
         [session, state, opcode, entry, wire, id](bool success)
         {
             if (!Current(session, state))
@@ -254,19 +294,39 @@ void Commit(WorldSession* session, std::shared_ptr<SessionState> state, uint16 o
                     state->Busy = false;
                     if (!Current(session, state))
                         return;
-                    bool const stored = result && result->Fetch()[2].Get<std::string>() == wire;
+                    bool const stored = result && result->Fetch()[2].Get<std::string>() == wire
+                        && (entry.Category != FeaturedDraftCategory
+                            || (result->Fetch()[3].Get<bool>()
+                                && result->Fetch()[4].Get<uint32>() == DraftArchetype(entry)));
                     PublishResult(session, opcode, stored ? "PUBLISH_BUILD_OK" : "PUBLISH_BUILD_UNKNOWN", entry);
                 }));
         });
 }
 
+bool ValidatePreviewEffects(FeaturedPreviewEffects const& effects);
+
 char const* Validate(Entry const& entry)
 {
+    if (!ValidCreationSummary(entry.Description, entry.Category == FeaturedDraftCategory ? DraftArchetype(entry) : 0))
+        return "PUBLISH_BUILD_INVALID_CREATION_SUMMARY";
+    FeaturedPreviewEffects incarnations{};
+    if (!ReadFeaturedIncarnations(entry.Description, incarnations)
+        || (entry.Category != FeaturedDraftCategory
+            && entry.Description.find("###AREA52_FEATURED_INCARNATIONS") != std::string::npos))
+        return "PUBLISH_BUILD_INVALID_FEATURED_INCARNATIONS";
+    FeaturedPreviewEffects preview{};
+    if (!ReadFeaturedPreview(entry.Description, preview) || !ValidatePreviewEffects(preview)
+        || (entry.Category != FeaturedDraftCategory
+            && entry.Description.find("###AREA52_FEATURED_PREVIEW") != std::string::npos))
+        return "PUBLISH_BUILD_INVALID_FEATURED_PREVIEW";
+    FeaturedRewardItems vanity{};
+    if (entry.Category == FeaturedDraftCategory && !ValidateFeaturedRewards(entry.Description, vanity))
+        return "PUBLISH_BUILD_INVALID_FEATURED_VANITY";
     if (entry.Name.empty())
         return "PUBLISH_BUILD_NO_NAME";
     if (entry.Spells.empty())
         return "PUBLISH_BUILD_NO_SPELLS";
-    if (entry.Category < 1 || entry.Category > 7)
+    if (entry.Category < 1 || entry.Category > FeaturedDraftCategory)
         return "PUBLISH_BUILD_BAD_CATEGORY";
     if (entry.Difficulty > 4 || entry.PrimaryStat > 6 || entry.Roles > 15)
         return "PUBLISH_BUILD_UNKNOWN";
@@ -286,6 +346,12 @@ void Publish(WorldSession* session, std::shared_ptr<SessionState> state, WorldPa
     {
         state->Busy = false;
         PublishResult(session, packet.GetOpcode(), "PUBLISH_BUILD_UNKNOWN", entry);
+        return;
+    }
+    if (!CanSaveDraftAssignment(entry, session->GetSecurity() >= SEC_GAMEMASTER))
+    {
+        state->Busy = false;
+        PublishResult(session, packet.GetOpcode(), "PUBLISH_BUILD_NO_PERMISSION", entry);
         return;
     }
     if (char const* error = Validate(entry))
@@ -359,6 +425,9 @@ void Publish(WorldSession* session, std::shared_ptr<SessionState> state, WorldPa
                 error = "PUBLISH_BUILD_NOT_FOUND";
             else if (rows->Fetch()[0].Get<uint32>() != session->GetAccountId())
                 error = "PUBLISH_BUILD_NO_PERMISSION";
+            else if (previous.Category == FeaturedDraftCategory
+                && (entry.Category != FeaturedDraftCategory || DraftArchetype(previous) != DraftArchetype(entry)))
+                error = "PUBLISH_BUILD_NO_PERMISSION";
             else if (previous.Updated != entry.Updated || rows->Fetch()[1].Get<uint32>() >= 1000)
                 error = "PUBLISH_BUILD_UNKNOWN";
             if (error)
@@ -369,7 +438,9 @@ void Publish(WorldSession* session, std::shared_ptr<SessionState> state, WorldPa
             }
             entry.Author = previous.Author;
             entry.Created = previous.Created;
-            Commit(session, state, Save, std::move(entry), id, rows->Fetch()[1].Get<uint32>());
+            bool const catalogChanged = rows->Fetch()[4].Get<uint32>() != DraftArchetype(entry)
+                || CatalogSelectionChanged(previous.Description, entry.Description);
+            Commit(session, state, Save, std::move(entry), id, rows->Fetch()[1].Get<uint32>(), catalogChanged);
         }));
 }
 
@@ -390,7 +461,7 @@ void DeleteBuild(WorldSession* session, std::shared_ptr<SessionState> state, uin
         {
             if (!Current(session, state))
                 return;
-            if (!row || row->Fetch()[0].Get<uint32>() != session->GetAccountId())
+            if (!row || row->Fetch()[0].Get<uint32>() != session->GetAccountId() || row->Fetch()[2].Get<bool>())
             {
                 DeleteResult(session, state, "DELETE_BUILD_UNKNOWN");
                 return;
@@ -438,10 +509,25 @@ bool Queue(WorldSession* session, WorldPacket const& packet)
     return true;
 }
 
+#include "Area52LibraryRefresh.inc"
+
+bool ValidatePreviewEffects(FeaturedPreviewEffects const& effects)
+{
+    if (!ValidFeaturedPet(effects[0]))
+        return false;
+    for (std::size_t i = 0; i < 2; ++i)
+        if (effects[i] && effects[i] != FeaturedPreviewDefault && !sObjectMgr->GetCreatureTemplate(effects[i]))
+            return false;
+    for (std::size_t i = 2; i < effects.size(); ++i)
+        if (effects[i] && effects[i] != FeaturedPreviewDefault && !sSpellMgr->GetSpellInfo(effects[i]))
+            return false;
+    return true;
+}
+
 class BuildWorld final : public WorldScript
 {
 public:
-    BuildWorld() : WorldScript("Area52BuildWorld", { WORLDHOOK_ON_AFTER_CONFIG_LOAD }) { }
+    BuildWorld() : WorldScript("Area52BuildWorld", { WORLDHOOK_ON_AFTER_CONFIG_LOAD, WORLDHOOK_ON_STARTUP, WORLDHOOK_ON_UPDATE }) { }
     void OnAfterConfigLoad(bool) override
     {
         Enabled = sConfigMgr->GetOption<bool>("CoA.FreePickBuilds.Enable", false)
@@ -449,6 +535,25 @@ public:
             && sConfigMgr->GetOption<std::string>("CoA.ClassModel", "coa") == "hero"
             && sConfigMgr->GetOption<std::string>("CoA.RealmType", "live") == "live"
             && sConfigMgr->GetOption<uint32>("CoA.GameModeMask", 0) == 0;
+        LibraryEnabled = Enabled && sConfigMgr->GetOption<bool>("CoA.BuildLibrary.Enable", false);
+        CatalogNotifications.Configure(Enabled && sConfigMgr->GetOption<bool>("CoA.FeaturedCatalog.Enable", true),
+            sConfigMgr->GetOption<std::string>("CoA.FeaturedCatalog.SignalPath", "/logs/area52-featured-catalog.signal"));
+    }
+
+    void OnStartup() override
+    {
+        CatalogNotifications.Start();
+    }
+
+    void OnUpdate(uint32) override
+    {
+        {
+            std::lock_guard lock(CatalogCommitLock);
+            CatalogCommits.ProcessReadyCallbacks();
+        }
+        auto const now = std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now().time_since_epoch()).count();
+        if (CatalogNotifications.Pump(now, WriteCatalogSignal) < 0)
+            LOG_ERROR("server", "Featured catalog notification could not be written; retry retained");
     }
 };
 
@@ -547,8 +652,8 @@ public:
             }
             else
             {
-                std::array<std::string_view, 8> const categories = { "None", "Leveling", "Level60PvE",
-                    "Level60PvP", "Level60PvPvE", "Level70PvE", "Level70PvP", "Level70PvPvE" };
+                std::array<std::string_view, 9> const categories = { "None", "Leveling", "Level60PvE",
+                    "Level60PvP", "Level60PvPvE", "Level70PvE", "Level70PvP", "Level70PvPvE", "BuildDraft" };
                 auto it = std::find(categories.begin(), categories.end(), text);
                 if (it != categories.end())
                 {
@@ -571,4 +676,5 @@ void AddAscensionArea52BuildScripts()
         AscensionCompatOpcodes::Claim(opcode, &Queue);
     new BuildWorld();
     new BuildPlayer();
+    new LibraryRefreshPlayer();
 }

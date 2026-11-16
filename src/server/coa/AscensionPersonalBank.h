@@ -4,6 +4,7 @@
 
 #include "Define.h"
 #include "ObjectGuid.h"
+#include <unordered_set>
 
 class Player;
 class WorldPacket;
@@ -15,6 +16,8 @@ namespace AscensionPersonalBank
         PERSONAL = 0,
         REALM = 1
     };
+
+    bool ReadOwnedItems(Player* player, std::unordered_set<uint32>& items);
 
     void Opened(Player* player, uint8 kind, ObjectGuid vault);
 

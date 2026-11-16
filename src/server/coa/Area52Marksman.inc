@@ -113,7 +113,10 @@ class spell_area52_compound_power_slice_and_dice : public AuraScript
     {
         Unit* owner = GetUnitOwner();
         if (!owner || !owner->HasAura(Area52Marksman::CompoundPower))
+        {
+            amount = 0;
             return;
+        }
         if (AuraEffect const* melee = GetAura()->GetEffect(EFFECT_1))
             amount = melee->GetAmount();
         else
@@ -167,6 +170,79 @@ class spell_area52_sniper : public AuraScript
     std::uint32_t _still = 0;
 };
 
+void RefreshArea52MarksmanTalentHelpers(Player* player)
+{
+    if (!AscensionFreePick::Applies(player) || !player->IsInWorld())
+        return;
+    for (uint32 id : {5171u, 6774u})
+        if (Aura* slice = player->GetAura(id, player->GetGUID()))
+            for (SpellEffIndex index : {EFFECT_1, EFFECT_2})
+                if (AuraEffect* haste = slice->GetEffect(index))
+                    haste->RecalculateAmount();
+    if (!player->HasSpell(31665))
+    {
+        Aura* subtlety = player->GetAura(31665, player->GetGUID());
+        AuraEffect const* rank = player->GetAuraEffectOfRankedSpell(31221, EFFECT_0, player->GetGUID());
+        if (!rank)
+        {
+            player->RemoveAurasDueToSpell(31665, player->GetGUID());
+            player->RemoveAurasDueToSpell(31666, player->GetGUID());
+        }
+        else
+        {
+            bool const stealthed = player->HasAuraType(SPELL_AURA_MOD_STEALTH);
+            if (!subtlety && stealthed)
+            {
+                int32 amount = rank->GetAmount();
+                player->CastCustomSpell(player, 31665, &amount, nullptr, nullptr, true);
+                subtlety = player->GetAura(31665, player->GetGUID());
+            }
+            if (subtlety)
+            {
+                if (AuraEffect* damage = subtlety->GetEffect(EFFECT_0); damage && damage->GetAmount() != rank->GetAmount())
+                    damage->ChangeAmount(rank->GetAmount());
+                if (stealthed && subtlety->GetMaxDuration() >= 0)
+                {
+                    subtlety->SetMaxDuration(-1);
+                    subtlety->SetDuration(-1);
+                }
+                else if (!stealthed && subtlety->GetMaxDuration() < 0)
+                {
+                    subtlety->SetMaxDuration(10000);
+                    subtlety->SetDuration(10000);
+                }
+            }
+        }
+    }
+    if (!player->HasSpell(6150))
+        if (Aura* quickShots = player->GetAura(6150, player->GetGUID()))
+        {
+            if (!player->GetAuraEffectOfRankedSpell(19552, EFFECT_1, player->GetGUID()))
+                player->RemoveAurasDueToSpell(6150, player->GetGUID());
+            else if (AuraEffect* haste = quickShots->GetEffect(EFFECT_0))
+                haste->RecalculateAmount();
+        }
+    for (uint32 rank : {34506u, 34507u, 34508u, 34500u, 34502u, 34503u})
+    {
+        if (player->HasAura(rank))
+            continue;
+        if (SpellInfo const* info = sSpellMgr->GetSpellInfo(rank))
+            if (uint32 helper = info->Effects[EFFECT_0].TriggerSpell; helper && !player->HasSpell(helper))
+                player->RemoveAurasDueToSpell(helper, player->GetGUID());
+    }
+    Aura* steady = player->GetAura(53220, player->GetGUID());
+    if (!steady || player->HasSpell(53220))
+        return;
+    if (!player->HasAura(53221) && !player->HasAura(53222) && !player->HasAura(53224))
+    {
+        player->RemoveAurasDueToSpell(53220, player->GetGUID());
+        return;
+    }
+    if (!player->HasAura(53224))
+        if (AuraEffect* armor = steady->GetEffect(EFFECT_2); armor && armor->GetAmount())
+            armor->ChangeAmount(0);
+}
+
 class aura_area52_archetype_cleanup : public AuraScript
 {
     PrepareAuraScript(aura_area52_archetype_cleanup);
@@ -184,7 +260,8 @@ class aura_area52_archetype_cleanup : public AuraScript
         Unit* owner = GetTarget();
         if (!owner)
             return;
-        for (AuraEffect* effect : owner->GetAuraEffectsByType(SPELL_AURA_MOD_RANGED_HASTE))
+        auto const effects = owner->GetAuraEffectsByType(SPELL_AURA_MOD_RANGED_HASTE);
+        for (AuraEffect* effect : effects)
             if (sSpellMgr->GetFirstSpellInChain(effect->GetId()) == Area52Marksman::SliceAndDice)
                 effect->RecalculateAmount();
     }

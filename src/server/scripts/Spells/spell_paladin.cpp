@@ -16,6 +16,7 @@
  */
 
 #include "GameTime.h"
+#include "../../coa/AscensionFreePick.h"
 #include "Group.h"
 #include "Player.h"
 #include "SpellAuraEffects.h"
@@ -23,6 +24,7 @@
 #include "SpellScript.h"
 #include "SpellScriptLoader.h"
 #include "UnitAI.h"
+#include "ThreatManager.h"
 /*
  * Scripts for spells with SPELLFAMILY_PALADIN and SPELLFAMILY_GENERIC spells used by paladin players.
  * Ordered alphabetically using scriptname.
@@ -64,6 +66,7 @@ enum PaladinSpells
 
     SPELL_PALADIN_GLYPH_OF_SALVATION             = 63225,
 
+    SPELL_PALADIN_RIGHTEOUS_DEFENSE              = 31789,
     SPELL_PALADIN_RIGHTEOUS_DEFENSE_TAUNT        = 31790,
 
     SPELL_PALADIN_SANCTIFIED_WRATH               = 57318,
@@ -357,6 +360,33 @@ private:
     void Absorb(AuraEffect* aurEff, DamageInfo& dmgInfo, uint32& absorbAmount)
     {
         Unit* victim = GetTarget();
+        if (AscensionFreePick::Applies(victim->ToPlayer()))
+        {
+            Player* player = victim->ToPlayer();
+            uint32 const damage = dmgInfo.GetDamage();
+            uint32 const health = victim->GetHealth();
+            uint32 const cap = victim->CountPctFromMaxHealth(15);
+            uint32 const rescueAbsorb = std::min(damage, cap);
+            uint32 const rank = GetSpellInfo()->GetRank();
+            uint32 const chance = rank == 3 ? 100 : rank * 33;
+            if (damage >= health && damage - rescueAbsorb < health &&
+                !player->HasSpellCooldown(66233) && !player->HasSpellCooldown(31231) &&
+                !player->HasSpellCooldown(20711) && !player->HasAura(66233) && roll_chance_i(chance))
+            {
+                absorbAmount = rescueAbsorb;
+                for (uint32 spell : {66233u, 31231u, 20711u})
+                    player->AddSpellCooldown(spell, 0, 2 * MINUTE * IN_MILLISECONDS);
+                uint32 const requiredDefense = victim->GetLevel() * 5 + 140;
+                float const defense = std::min(1.0f, float(victim->GetDefenseSkillValue()) / requiredDefense);
+                int32 const heal = victim->CountPctFromMaxHealth(uint32(healPct * defense));
+                victim->CastCustomSpell(PAL_SPELL_ARDENT_DEFENDER_HEAL, SPELLVALUE_BASE_POINT0,
+                    heal, victim, true, nullptr, aurEff);
+                victim->CastSpell(victim, 66234, true);
+            }
+            else if (health < victim->CountPctFromMaxHealth(35))
+                absorbAmount = CalculatePct(damage, absorbPct);
+            return;
+        }
         int32 remainingHealth = victim->GetHealth() - dmgInfo.GetDamage();
         uint32 allowedHealth = victim->CountPctFromMaxHealth(35);
         // If damage kills us
@@ -1161,6 +1191,17 @@ class spell_pal_righteous_defense : public SpellScript
         if (!caster->IsPlayer())
             return SPELL_FAILED_DONT_REPORT;
 
+        if (AscensionFreePick::Applies(caster->ToPlayer()))
+        {
+            if (caster->GetMap()->IsBattlegroundOrArena())
+                return SPELL_FAILED_NOT_HERE;
+            Unit* target = GetExplTargetUnit();
+            if (!target || target == caster || !target->IsAlive() || !caster->IsInRaidWith(target) ||
+                !caster->IsValidAssistTarget(target))
+                return SPELL_FAILED_BAD_TARGETS;
+            return SPELL_CAST_OK;
+        }
+
         if (Unit* target = GetExplTargetUnit())
         {
             if (!target->IsFriendlyTo(caster) || target->getAttackers().empty())
@@ -1187,12 +1228,55 @@ class spell_pal_righteous_defense : public SpellScript
     void Register() override
     {
         OnCheckCast += SpellCheckCastFn(spell_pal_righteous_defense::CheckCast);
+        if (SpellInfo const* info = sSpellMgr->GetSpellInfo(m_scriptSpellId);
+            info && info->Effects[EFFECT_1].Effect != SPELL_EFFECT_TRIGGER_SPELL)
+            return;
         //! WORKAROUND
         //! target select will be executed in hitphase of effect 0
         //! so we must handle trigger spell also in hit phase (default execution in launch phase)
         //! see issue #3718
         OnEffectLaunchTarget += SpellEffectFn(spell_pal_righteous_defense::HandleTriggerSpellLaunch, EFFECT_1, SPELL_EFFECT_TRIGGER_SPELL);
         OnEffectHitTarget += SpellEffectFn(spell_pal_righteous_defense::HandleTriggerSpellHit, EFFECT_1, SPELL_EFFECT_TRIGGER_SPELL);
+    }
+};
+
+class spell_pal_righteous_defense_aura : public AuraScript
+{
+    PrepareAuraScript(spell_pal_righteous_defense_aura);
+
+    bool Load() override
+    {
+        Unit* caster = GetCaster();
+        return caster && AscensionFreePick::Applies(caster->ToPlayer());
+    }
+
+    void ApplyRedirect(AuraEffect const* effect, AuraEffectHandleModes /*mode*/)
+    {
+        GetTarget()->GetThreatMgr().RegisterRedirectThreat(SPELL_PALADIN_RIGHTEOUS_DEFENSE,
+            GetCasterGUID(), uint32(std::clamp(effect->GetAmount(), 0, 100)));
+    }
+
+    void RemoveRedirect(AuraEffect const* /*effect*/, AuraEffectHandleModes /*mode*/)
+    {
+        GetTarget()->GetThreatMgr().UnregisterRedirectThreat(SPELL_PALADIN_RIGHTEOUS_DEFENSE, GetCasterGUID());
+    }
+
+    bool CheckProc(ProcEventInfo& /*eventInfo*/)
+    {
+        return false;
+    }
+
+    void Register() override
+    {
+        SpellInfo const* info = sSpellMgr->GetSpellInfo(m_scriptSpellId);
+        if (!info || info->Effects[EFFECT_0].ApplyAuraName != SPELL_AURA_PROC_TRIGGER_SPELL ||
+            info->Effects[EFFECT_1].ApplyAuraName != SPELL_AURA_ADD_CASTER_HIT_TRIGGER)
+            return;
+        AfterEffectApply += AuraEffectApplyFn(spell_pal_righteous_defense_aura::ApplyRedirect,
+            EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+        AfterEffectRemove += AuraEffectRemoveFn(spell_pal_righteous_defense_aura::RemoveRedirect,
+            EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL);
+        DoCheckProc += AuraCheckProcFn(spell_pal_righteous_defense_aura::CheckProc);
     }
 };
 
@@ -1307,7 +1391,10 @@ class spell_pal_righteous_vengeance : public AuraScript
             return;
 
         // Calculate total DoT damage (percentage of crit damage), divided by 4 ticks
-        int32 amount = CalculatePct(static_cast<int32>(damageInfo->GetDamage()), aurEff->GetAmount()) / 4;
+        int32 percent = aurEff->GetAmount();
+        if (AscensionFreePick::Applies(GetTarget()->ToPlayer()) && GetTarget()->HasAura(84864))
+            percent *= 2;
+        int32 amount = CalculatePct(static_cast<int32>(damageInfo->GetDamage()), percent) / 4;
         target->CastDelayedSpellWithPeriodicAmount(GetTarget(), SPELL_PALADIN_RIGHTEOUS_VENGEANCE_DOT, SPELL_AURA_PERIODIC_DAMAGE, amount);
     }
 
@@ -1465,7 +1552,11 @@ class spell_pal_spiritual_attunement : public AuraScript
         if (!effectiveHeal)
             return;
 
-        int32 bp = int32(CalculatePct(effectiveHeal, aurEff->GetAmount()));
+        int32 amount = aurEff->GetAmount();
+        if ((GetId() == 31785 || GetId() == 33776) &&
+            AscensionFreePick::Applies(GetTarget()->ToPlayer()) && GetTarget()->HasAura(701463))
+            amount *= 2;
+        int32 bp = int32(CalculatePct(effectiveHeal, amount));
         if (bp)
             GetTarget()->CastCustomSpell(SPELL_PALADIN_SPIRITUAL_ATTUNEMENT_MANA, SPELLVALUE_BASE_POINT0, bp, GetTarget(), true, nullptr, aurEff);
     }
@@ -1833,16 +1924,25 @@ class spell_pal_heart_of_the_crusader : public AuraScript
         return ValidateSpellInfo({ SPELL_PALADIN_HEART_OF_THE_CRUSADER_EFF_R1 });
     }
 
+    bool CheckProc(ProcEventInfo& eventInfo)
+    {
+        return eventInfo.GetActionTarget() &&
+            (!eventInfo.GetSpellInfo() || eventInfo.GetSpellInfo()->Id != 820337);
+    }
+
     void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
     {
         PreventDefaultAction();
 
         uint32 spellId = sSpellMgr->GetSpellWithRank(SPELL_PALADIN_HEART_OF_THE_CRUSADER_EFF_R1, GetSpellInfo()->GetRank());
         eventInfo.GetActor()->CastSpell(eventInfo.GetActionTarget(), spellId, true, nullptr, aurEff);
+        if (GetSpellInfo()->Id == 20337 && AscensionFreePick::Applies(eventInfo.GetActor()->ToPlayer()))
+            eventInfo.GetActor()->CastSpell(eventInfo.GetActionTarget(), 820337, true, nullptr, aurEff);
     }
 
     void Register() override
     {
+        DoCheckProc += AuraCheckProcFn(spell_pal_heart_of_the_crusader::CheckProc);
         OnEffectProc += AuraEffectProcFn(spell_pal_heart_of_the_crusader::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
     }
 };
@@ -2302,8 +2402,55 @@ class spell_pal_light_s_beacon : public AuraScript
     }
 };
 
+class spell_area52_heart_crusader_damage : public SpellScript
+{
+    PrepareSpellScript(spell_area52_heart_crusader_damage);
+
+    void FilterTargets(std::list<WorldObject*>& targets)
+    {
+        if (AscensionFreePick::Applies(GetCaster()->ToPlayer()) && targets.size() > 5)
+            targets.resize(5);
+    }
+
+    void Register() override
+    {
+        OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(
+            spell_area52_heart_crusader_damage::FilterTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ENEMY);
+    }
+};
+
+class spell_area52_improved_consecration : public SpellScript
+{
+    PrepareSpellScript(spell_area52_improved_consecration);
+
+    void Cast()
+    {
+        Unit* caster = GetCaster();
+        if (!AscensionFreePick::Applies(caster->ToPlayer()))
+            return;
+        for (uint32 rank : {410002u, 410001u, 410000u})
+            if (AuraEffect const* effect = caster->GetAuraEffect(rank, EFFECT_0))
+            {
+                AuraEffect const* slow = caster->GetAuraEffect(rank, EFFECT_1);
+                if (!slow)
+                    return;
+                int32 damage = effect->GetAmount();
+                int32 speed = slow->GetAmount();
+                caster->CastCustomSpell(caster, 410003, &damage, &speed, nullptr, true, nullptr, effect);
+                return;
+            }
+    }
+
+    void Register() override
+    {
+        AfterCast += SpellCastFn(spell_area52_improved_consecration::Cast);
+    }
+};
+
 void AddSC_paladin_spell_scripts()
 {
+    RegisterSpellScript(spell_area52_heart_crusader_damage);
+    RegisterSpellScript(spell_area52_improved_consecration);
     RegisterSpellAndAuraScriptPair(spell_pal_seal_of_command, spell_pal_seal_of_command_aura);
     RegisterSpellScript(spell_pal_divine_intervention);
     RegisterSpellScript(spell_pal_divine_purpose);
@@ -2333,7 +2480,7 @@ void AddSC_paladin_spell_scripts()
     RegisterSpellScriptWithArgs(spell_pal_judgement, "spell_pal_judgement_of_wisdom", SPELL_PALADIN_JUDGEMENT_OF_WISDOM);
     RegisterSpellScript(spell_pal_judgement_of_command);
     RegisterSpellScript(spell_pal_lay_on_hands);
-    RegisterSpellScript(spell_pal_righteous_defense);
+    RegisterSpellAndAuraScriptPair(spell_pal_righteous_defense, spell_pal_righteous_defense_aura);
     RegisterSpellScript(spell_pal_seal_of_righteousness);
     RegisterSpellScriptWithArgs(spell_pal_seal_of_vengeance_aura, "spell_pal_seal_of_vengeance");
     RegisterSpellScriptWithArgs(spell_pal_seal_of_vengeance_aura, "spell_pal_seal_of_corruption");

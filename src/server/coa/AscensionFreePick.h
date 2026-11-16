@@ -9,11 +9,26 @@
 #include <string>
 
 class Player;
+class Unit;
+class SpellInfo;
 namespace Area52Build { struct Entry; }
 struct AscensionClientConfig;
 
 namespace AscensionFreePick
 {
+constexpr bool IsDarkRangerMoltenCore(std::uint32_t aura, std::uint32_t spell)
+{
+    return spell == 998204 && (aura == 47383 || aura == 71162 || aura == 71165);
+}
+
+constexpr std::uint32_t DarkfallDamageKey = 0xDA520003;
+
+// Per-effect launch input. Set by AP-producing damage scripts, cleared for each target/effect.
+constexpr std::uint32_t AgilityEffectDamageKey = 0xA520C001;
+float AgilityAttackPower(Player const* player, bool ranged);
+float AgilityWeaponDamage(Player* player, unsigned attackType, bool normalized, bool applyPercent);
+std::int32_t ApplyAgileStrikes(Unit const* caster, SpellInfo const* spell, std::int32_t amount);
+
 using KnownEntry = AscensionCoATalentState::KnownEntry;
 
 struct Entry
@@ -62,7 +77,7 @@ inline constexpr std::array<std::uint32_t, 4> QualityLimits = { 10, 12, 11, 6 };
 inline constexpr std::uint32_t QualityMode = 0x400;
 
 bool LoadCatalog(Catalog& catalog);
-std::vector<KnownEntry> IncludeJudgementMastery(std::vector<KnownEntry> wanted);
+std::vector<KnownEntry> IncludeMemberMasteries(Catalog const& catalog, std::vector<KnownEntry> wanted);
 Result Validate(Catalog const& catalog, std::uint32_t level, std::vector<KnownEntry> const& wanted,
     std::vector<KnownEntry> const& previous = {});
 bool SameSelection(std::vector<KnownEntry> const& left, std::vector<KnownEntry> const& right);

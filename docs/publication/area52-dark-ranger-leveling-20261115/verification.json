@@ -1,0 +1,35 @@
+{
+  "advancements": [
+    1640,
+    1305,
+    3205,
+    1202,
+    2970,
+    3721,
+    977,
+    2994,
+    1077,
+    1162,
+    929,
+    636,
+    2668,
+    1155
+  ],
+  "enchants": [
+    915308,
+    934482,
+    956339,
+    84562
+  ],
+  "status": "VERIFIED",
+  "candidate_sha256": "f5f980e46b1b003b719ce7a3b6e67af0dd376f1f9e403d10d65dc5e915dec8ac",
+  "baseline_sha256": "02e5d5537d479e6a1430cf2d8b6302361ad2852fb05012b60e1bd54554976a43",
+  "reports": {
+    "build-r1": "b0782b35eaf1d85172205e06ab425a1671c8ba032f552954a48919bcf826274c",
+    "mechanics": "379b1495e75497fea3da5b86cf670f8139c9156dec10d6ad9eeafa5d50e84f07",
+    "grants": "7501e4f2401a22dac19f5565793c8c23ecf5fb1d932c234cd2426addd9ef0b2e",
+    "hook-check-r2": "d5fbda956c2074d82d2ea5b84b3166a6eaac398b7cec59ed0c8f39ccb6f54994"
+  },
+  "client_sha256": "f2ac97672135fc656bb6fec3690a0b5f525cacd1cbbbfe51afa4c06d850d1698",
+  "preserves_test_access_exclusions": true
+}

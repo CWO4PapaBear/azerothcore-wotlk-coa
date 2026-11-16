@@ -1,0 +1,257 @@
+--- a/src/server/coa/Area52ActiveBuild.cpp
++++ b/src/server/coa/Area52ActiveBuild.cpp
+@@ -9,6 +9,7 @@
+ #include "Area52DraftAssignment.h"
+ #include "Area52DraftLifecycle.h"
+ #include "Area52FeaturedRewardValidation.h"
++#include "Area52FeaturedMilestoneCollection.h"
+ #include "GameTime.h"
+ #include "Item.h"
+ #include "Mail.h"
+--- /dev/null
++++ b/src/server/coa/Area52FeaturedMilestoneCollection.h
+@@ -0,0 +1,13 @@
++#pragma once
++#include "DatabaseEnv.h"
++#include <utility>
++#include <vector>
++class Player;
++struct Area52MilestoneCollection
++{
++    std::vector<std::pair<uint32,uint32>> Appearances;
++    std::vector<uint32> Items;
++};
++void AppendArea52MilestoneUnlock(Player*, uint32, CharacterDatabaseTransaction&, Area52MilestoneCollection&);
++void ConfirmArea52MilestoneUnlock(Player*, Area52MilestoneCollection const&);
++bool Area52MilestoneCatalogReady();
+--- a/src/server/coa/Area52FeaturedRewardMail.inc
++++ b/src/server/coa/Area52FeaturedRewardMail.inc
+@@ -1,12 +1,13 @@
+ struct FeaturedDelivery
+ {
++    Area52MilestoneCollection Collection;
+     std::unique_ptr<Mail> Letter;
+     std::vector<std::unique_ptr<Item>> Items;
+ };
+ 
+ void DeliverFeaturedRewards(Player* player, State& state)
+ {
+-    if (!state.Draft || !state.Loaded || state.Pending || state.Busy || player->GetSession()->IsBot()
++    if (!Area52MilestoneCatalogReady() || !state.Draft || !state.Loaded || state.Pending || state.Busy || player->GetSession()->IsBot()
+         || player->GetPlayerSetting("core.area52.draft_progress", 0).value
+         || player->GetPlayerSetting("core.area52.draft_progress", 2).value)
+         return;
+@@ -82,6 +83,8 @@
+     claim->SetData(4, mail.messageID);
+     transaction->Append(claim);
+     for (auto const& item : delivery->Items)
++        AppendArea52MilestoneUnlock(player, item->GetEntry(), transaction, delivery->Collection);
++    for (auto const& item : delivery->Items)
+         item->SaveToDB(transaction);
+     auto* statement = CharacterDatabase.GetPreparedStatement(CHAR_INS_MAIL);
+     statement->SetData(0, mail.messageID);
+@@ -115,6 +118,8 @@
+                 sMailMgr->OnMailSent(guid.GetCounter());
+             auto* owner = session->GetPlayer();
+             auto* current = owner && owner->GetGUID() == guid ? owner->CustomData.Get<State>(StateKey) : nullptr;
++            if (success && owner && owner->GetGUID() == guid)
++                ConfirmArea52MilestoneUnlock(owner, delivery->Collection);
+             if (!current || current->Generation != generation)
+                 return;
+             current->Busy = false;
+--- a/src/server/coa/AscensionCompat.cpp
++++ b/src/server/coa/AscensionCompat.cpp
+@@ -1,3 +1,4 @@
++#include "Area52FeaturedMilestoneCollection.h"
+ #include "Area52VanityPurchase.h"
+ class Player;
+ namespace AscensionTaming { char const* SelectWardrobeBeast(Player*, unsigned, unsigned, unsigned); }
+@@ -3524,6 +3525,8 @@
+             AscensionCompatConfig::AUTO_COLLECT_APPEARANCES))
+       ScanPlayerInventory(player, *state);
+ 
++    if (AscensionFreePick::Applies(player))
++        RestoreMailedMilestoneUnlocks(player);
+     state->CheckHeirloomCaches = AscensionFreePick::Applies(player);
+     BeginAppearanceCollectionSync(player, *state);
+     state->LoginResyncTimer = APPEARANCE_LOGIN_RESYNC_DELAY_MS;
+@@ -4093,6 +4096,66 @@
+             appearanceId, [](AscensionAmmunition::Entry const& row, uint32 id) { return row.AppearanceId < id; });
+         return entry != AscensionAmmunition::Entries.end() && entry->AppearanceId == appearanceId ?
+             entry->ItemDisplayId : 0;
++    }
++
++    bool MilestoneCatalogReady() const { return _clientDataLoaded; }
++
++    void RestoreMailedMilestoneUnlocks(Player* player)
++    {
++        auto* session = player->GetSession();
++        auto guid = player->GetGUID();
++        std::string query = "SELECT DISTINCT i.itemEntry FROM area52_featured_milestones f "
++            "JOIN mail m ON m.id=f.mail_id AND m.receiver=f.guid "
++            "JOIN mail_items a ON a.mail_id=m.id AND a.receiver=f.guid "
++            "JOIN item_instance i ON i.guid=a.item_guid WHERE f.guid=" + std::to_string(guid.GetCounter());
++        session->GetQueryProcessor().AddCallback(CharacterDatabase.AsyncQuery(query).WithCallback(
++            [this,session,guid](QueryResult rows)
++            {
++                Player* owner = session->GetPlayer();
++                if (!rows || !owner || owner->GetGUID()!=guid)
++                    return;
++                Area52MilestoneCollection collection;
++                auto transaction = CharacterDatabase.BeginTransaction();
++                do
++                    AppendMilestoneUnlock(owner, rows->Fetch()[0].Get<uint32>(), transaction, collection);
++                while (rows->NextRow());
++                if (collection.Items.empty() && collection.Appearances.empty())
++                    return;
++                session->AddTransactionCallback(CharacterDatabase.AsyncCommitTransaction(transaction)).AfterComplete(
++                    [this,session,guid,collection](bool success)
++                    {
++                        auto* current = session->GetPlayer();
++                        if (success && current && current->GetGUID()==guid)
++                            ConfirmMilestoneUnlock(current, collection);
++                    });
++            }));
++    }
++
++    void AppendMilestoneUnlock(Player* player, uint32 item, CharacterDatabaseTransaction& transaction, Area52MilestoneCollection& collection)
++    {
++        auto account = player->GetSession()->GetAccountId();
++        if (auto it = _itemAppearances.find(item); it != _itemAppearances.end() && _appearances.contains(it->second))
++        {
++            transaction->Append("INSERT IGNORE INTO account_appearance_collection (account_id,appearance_id,source_item) VALUES ({},{},{})", account, it->second, item);
++            collection.Appearances.emplace_back(it->second, item);
++        }
++        if (auto it = _vanityItems.find(item); it != _vanityItems.end() && !IsConsumableVanityItem(it->second))
++        {
++            transaction->Append("INSERT IGNORE INTO account_vanity_collection (account_id,item_id) VALUES ({},{})", account, item);
++            collection.Items.push_back(item);
++        }
++    }
++    void ConfirmMilestoneUnlock(Player* player, Area52MilestoneCollection const& collection)
++    {
++        if (auto state = GetState(player))
++        {
++            for (auto [appearance,item] : collection.Appearances)
++                if (state->CollectedAppearances.insert(appearance).second)
++                    SendAppearanceAdded(player, appearance, item);
++            for (auto item : collection.Items)
++                if (state->OwnedVanityItems.insert(item).second)
++                    SendVanityCollectionAdded(player,item);
++        }
+     }
+ 
+     bool PrepareDraftVanityReward(Player* player, uint64 build, uint32 revision,
+@@ -7934,3 +7997,14 @@
+ {
+     AscensionCollectionService::Instance().ConfirmDraftVanityReward(player, rewards);
+ }
++
++void AppendArea52MilestoneUnlock(Player* player, uint32 item, CharacterDatabaseTransaction& tx, Area52MilestoneCollection& rewards)
++{
++    AscensionCollectionService::Instance().AppendMilestoneUnlock(player,item,tx,rewards);
++}
++void ConfirmArea52MilestoneUnlock(Player* player, Area52MilestoneCollection const& rewards)
++{
++    AscensionCollectionService::Instance().ConfirmMilestoneUnlock(player,rewards);
++}
++
++bool Area52MilestoneCatalogReady() { return AscensionCollectionService::Instance().MilestoneCatalogReady(); }
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -104,6 +104,7 @@
+ struct State : DataMap::Base
+ {
+     std::set<std::uint32_t> Known;
++    bool DraftResolved = false;
+     std::set<std::uint32_t> DraftEntitlement;
+     std::set<std::uint32_t> Applied;
+     std::uint64_t Generation = ++NextGeneration;
+@@ -306,6 +307,9 @@
+ {
+     auto* state = player->CustomData.Get<State>(StateKey);
+     if (!state || !state->Loaded || !player->IsInWorld())
++        return;
++    if (!state->DraftResolved && player->GetPlayerSetting("core.area52.active_build", 4).value &&
++        !player->GetPlayerSetting("core.area52.draft_progress", 2).value)
+         return;
+     std::map<std::uint32_t, std::uint32_t> wanted;
+     auto slots = ReadSlots(player);
+@@ -1405,6 +1409,7 @@
+         state->DraftEntitlement = previous;
+         return false;
+     }
++    state->DraftResolved = true;
+     Synchronize(player);
+     return true;
+ }
+@@ -1414,6 +1419,7 @@
+     auto* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
+     if (!state || !CanChange(player, state) || !Equip(player, Slots{}, true))
+         return false;
++    state->DraftResolved = true;
+     state->DraftEntitlement.clear();
+     Synchronize(player);
+     return true;
+--- a/Interface/AddOns/Ascension_AppearanceUI/AppearanceModelMixin.lua
++++ b/Interface/AddOns/Ascension_AppearanceUI/AppearanceModelMixin.lua
+@@ -604,10 +604,13 @@
+             return
+         end
+         PlaySound(SOUNDKIT.UI_VOIDSTORAGE_REDO)
++        local preview = AppearanceWardrobeFrame.PlayerModel
++        if preview.appearanceType == "APPEARANCE_TYPE_INCARNATION" and preview.categoryID == self.categoryID then
++            preview.selectedIncarnation = self.appearanceID
++            preview:UpdateModel()
++        end
+         if C_Appearance.IsTransmogable(self.categoryID, self.appearanceID) then
+             C_Appearance.SetPendingAppearance(self.categoryID, self.appearanceID)
+-        elseif self.categoryID == AppearanceWardrobeFrame.PlayerModel.categoryID then
+-            AppearanceWardrobeFrame.PlayerModel:PreviewIncarnation(self.appearanceID)
+         end
+     elseif self.outfitName then
+         if self.outfitName == NEW_OUTFIT then
+--- a/Interface/AddOns/Ascension_AppearanceUI/AppearancePlayerModelMixin.lua
++++ b/Interface/AddOns/Ascension_AppearanceUI/AppearancePlayerModelMixin.lua
+@@ -87,6 +87,8 @@
+ end
+ 
+ function AppearancePlayerModelMixin:OnHide()
++    self.selectedIncarnation = nil
++    self.incarnationPreviewRequest = nil
+     self:UnregisterEvent("APPLY_PENDING_APPEARANCE_RESULT")
+     self:UnregisterEvent("PENDING_APPEARANCE_CHANGED")
+     self:UnregisterEvent("VIEWABLE_APPEARANCES_RESET")
+@@ -226,11 +228,13 @@
+ end
+ 
+ function AppearancePlayerModelMixin:SetAppearanceType(appearanceType)
++    if self.appearanceType ~= appearanceType then self.selectedIncarnation = nil end
+     self.appearanceType = appearanceType
+     self:UpdateSlotLayout()
+ end 
+ 
+ function AppearancePlayerModelMixin:SetCategory(categoryID)
++    if self.categoryID ~= categoryID then self.selectedIncarnation = nil end
+     self.categoryID = categoryID
+     local slotID = AppearanceUtil.GetCategorySlotID(categoryID)
+     if slotID == INVSLOT_RANGED then
+@@ -623,7 +627,7 @@
+         self:SetUnit("player")
+         self:Dress()
+     elseif self.appearanceType == "APPEARANCE_TYPE_INCARNATION" then
+-        if not self:PreviewIncarnation(AppearanceUtil.GetCategoryAppearanceID(self.categoryID)) then
++        if not self:PreviewIncarnation(self.selectedIncarnation or AppearanceUtil.GetCategoryAppearanceID(self.categoryID)) then
+             self:SetCreatureDisplay(self:GetCategoryDisplayID(self.categoryID))
+         end
+     elseif self.appearanceType == "APPEARANCE_TYPE_SPELL_VISUAL" then
+--- a/Interface/AddOns/Ascension_AppearanceUI/AppearanceUI.xml
++++ b/Interface/AddOns/Ascension_AppearanceUI/AppearanceUI.xml
+@@ -97,6 +97,7 @@
+                         <Scripts>
+                             <OnClick>
+                                 PlaySound(SOUNDKIT.UI_VOIDSTORAGE_UNDO)
++                                self:GetParent().selectedIncarnation = nil
+                                 C_Appearance.ClearPendingAppearances()
+                             </OnClick>
+                         </Scripts>

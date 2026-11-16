@@ -16,6 +16,7 @@
  */
 
 #include "ArenaSpectator.h"
+#include "../../../coa/AscensionFreePick.h"
 #include "CellImpl.h"
 #include "Common.h"
 #include "GameTime.h"
@@ -212,7 +213,11 @@ void AuraApplication::BuildUpdatePacket(ByteBuffer& data, bool remove) const
     data << uint8(aura->GetCasterLevel());
     // send stack amount for aura which could be stacked (never 0 - causes incorrect display) or charges
     // stack amount has priority over charges (checked on retail with spell 50262)
-    data << uint8(aura->GetSpellInfo()->StackAmount ? aura->GetStackAmount() : aura->GetCharges());
+    uint8 displayCount = aura->GetSpellInfo()->StackAmount ? aura->GetStackAmount() : aura->GetCharges();
+    if (aura->GetId() == 982251)
+        if (Unit const* caster = aura->GetCaster(); caster && AscensionFreePick::Applies(caster->ToPlayer()))
+            displayCount = uint8(std::clamp(aura->GetMaxDuration() - aura->GetDuration(), 0, 12000) / 1000);
+    data << displayCount;
 
     if (!(flags & AFLAG_CASTER))
         data << aura->GetCasterGUID().WriteAsPacked();
@@ -2124,7 +2129,20 @@ void Aura::AddProcCooldown(TimePoint cooldownEnd)
 
 void Aura::AddProcCooldown(SpellProcEntry const* procEntry, TimePoint now)
 {
-    AddProcCooldown(now + procEntry->Cooldown);
+    constexpr uint32 HonorAmongThievesCapstone = 51701;
+    constexpr uint32 HonorAmongThievesTrigger = 51699;
+    Milliseconds cooldown = procEntry->Cooldown;
+    if ((GetId() == 33142 || GetId() == 33145 || GetId() == 33146) &&
+        GetType() == UNIT_AURA_TYPE && AscensionFreePick::Applies(GetUnitOwner()->ToPlayer()))
+        cooldown = Milliseconds(20000);
+    if (GetId() == HonorAmongThievesCapstone && GetType() == UNIT_AURA_TYPE)
+        if (Player* player = GetUnitOwner()->ToPlayer(); AscensionFreePick::Applies(player))
+        {
+            int32 modified = int32(cooldown.count());
+            player->ApplySpellMod(HonorAmongThievesTrigger, SPELLMOD_DURATION, modified);
+            cooldown = Milliseconds(std::max(0, modified));
+        }
+    AddProcCooldown(now + cooldown);
 }
 
 void Aura::ResetProcCooldown()
@@ -2150,7 +2168,7 @@ void Aura::PrepareProcToTrigger(AuraApplication* aurApp, ProcEventInfo& eventInf
     ASSERT(procEntry);
 
     // cooldowns should be added to the whole aura (see 51698 area aura)
-    AddProcCooldown(now + procEntry->Cooldown);
+    AddProcCooldown(procEntry, now);
 }
 
 uint8 Aura::GetProcEffectMask(AuraApplication* aurApp, ProcEventInfo& eventInfo, TimePoint now) const
@@ -2160,6 +2178,13 @@ uint8 Aura::GetProcEffectMask(AuraApplication* aurApp, ProcEventInfo& eventInfo,
     // only auras with spell proc entry can trigger proc
     if (!procEntry)
         return 0;
+
+    // Blessed Resilience: only an incoming critical hit on the Spirit-path owner.
+    if ((GetId() == 33142 || GetId() == 33145 || GetId() == 33146) &&
+        AscensionFreePick::Applies(aurApp->GetTarget()->ToPlayer()))
+        if (!aurApp->GetTarget()->HasAura(84867) || eventInfo.GetActionTarget() != aurApp->GetTarget() ||
+            !(eventInfo.GetHitMask() & PROC_HIT_CRITICAL))
+            return 0;
 
     // check spell triggering us
     if (Spell const* spell = eventInfo.GetProcSpell())
@@ -2202,6 +2227,20 @@ uint8 Aura::GetProcEffectMask(AuraApplication* aurApp, ProcEventInfo& eventInfo,
         return 0;
 
     // do checks against db data
+    // Artillery uses Molten Core's native cast-phase charge bookkeeping. Only
+    // the family mask needs widening for this additional qualifying spell.
+    SpellProcEntry artilleryProc;
+    SpellInfo const* eventSpell = eventInfo.GetSpellInfo();
+    if (eventSpell && AscensionFreePick::IsDarkRangerMoltenCore(GetId(), eventSpell->Id))
+    {
+        Unit* actor = eventInfo.GetActor();
+        if (actor && actor == GetCaster() && AscensionFreePick::Applies(actor->ToPlayer()) && actor->HasAura(997115))
+        {
+            artilleryProc = *procEntry;
+            artilleryProc.SpellFamilyMask = flag96(0, 0, 0);
+            procEntry = &artilleryProc;
+        }
+    }
     if (!sSpellMgr->CanSpellTriggerProcOnEvent(*procEntry, eventInfo))
         return 0;
 
@@ -2323,6 +2362,13 @@ float Aura::CalcProcChance(SpellProcEntry const& procEntry, ProcEventInfo& event
         if (Player* modOwner = caster->GetSpellModOwner())
             modOwner->ApplySpellMod(GetId(), SPELLMOD_CHANCE_OF_SUCCESS, chance);
     }
+
+    constexpr uint32 ImprovedSteadyShotCapstone = 53224;
+    if (GetId() == ImprovedSteadyShotCapstone)
+        if (Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr;
+            AscensionFreePick::Applies(player) && eventInfo.GetProcSpell() &&
+            eventInfo.GetProcSpell()->WasStationaryDuringCast())
+            chance = 100.0f;
 
     // proc chance is reduced by an additional 3.333% per level past 60
     if ((procEntry.AttributesMask & PROC_ATTR_REDUCE_PROC_60) && eventInfo.GetActor()->GetLevel() > 60)
@@ -2851,6 +2897,12 @@ void UnitAura::FillTargetMap(std::map<Unit*, uint8>& targets, Unit* caster)
         else
         {
             float radius = GetSpellInfo()->Effects[effIndex].CalcRadius(caster);
+            // Area52's rank-one Voidwalker row alone has a copied 10-yard
+            // radius. The untouched client and the other ranks use 100 yards.
+            if (GetSpellInfo()->Id == 23760)
+                if (Unit* owner = GetUnitOwner()->GetCharmerOrOwner())
+                    if (AscensionFreePick::Applies(owner->ToPlayer()))
+                        radius = 100.0f;
 
             if (!GetUnitOwner()->HasAuraState(AURA_STATE_BANISHED, GetSpellInfo(), caster))
             {

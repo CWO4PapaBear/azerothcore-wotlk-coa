@@ -1,0 +1,1 @@
+{"status":"passed","checks":["Installed source matched previously deployed Lua","Backdrop attributes and color initialization taken from native MenuBackdrop XML","Lua 5.1 compilation","All 59 MPQ members read back; only AppearanceCollectionMixin.lua changed"],"visual_acceptance":"pending owner test"}

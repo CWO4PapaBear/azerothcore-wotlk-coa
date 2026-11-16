@@ -15,10 +15,16 @@
 #include "Creature.h"
 #include "Config.h"
 #include "Chat.h"
+#include "DatabaseEnv.h"
+#include "World.h"
 #include "WorldSession.h"
 #include "Player.h"
+#include "ObjectMgr.h"
 #include "ScriptMgr.h"
 #include "ScriptedGossip.h"
+
+bool QuoteArea52HeirloomCache(Player*, uint32, uint32&);
+bool PurchaseArea52HeirloomCache(Player*, uint32, uint32);
 
 namespace Worldforged
 {
@@ -38,6 +44,17 @@ namespace
         return !mask || !(*mask & ~uint32(0x400));
     }
 
+    bool AccountCanBuyHeirlooms(Player* player)
+    {
+        uint32 const cap = sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL);
+        if (player->GetLevel() >= cap)
+            return true;
+        return bool(CharacterDatabase.Query(
+            "SELECT 1 FROM characters WHERE account = {} AND level >= {} "
+            "AND deleteDate IS NULL AND guid <> {} LIMIT 1",
+            player->GetSession()->GetAccountId(), cap, player->GetGUID().GetCounter()));
+    }
+
     enum GossipAction
     {
         ACTION_WEAPONS = GOSSIP_ACTION_INFO_DEF + 1,
@@ -47,6 +64,8 @@ namespace
         ACTION_HEIRLOOM_WEAPONS = GOSSIP_ACTION_INFO_DEF + 5,
         ACTION_HEIRLOOM_ACCESSORIES = GOSSIP_ACTION_INFO_DEF + 6,
         ACTION_BACK = GOSSIP_ACTION_INFO_DEF + 7,
+        ACTION_HEIRLOOM_CACHES = GOSSIP_ACTION_INFO_DEF + 8,
+        ACTION_BUY_CACHE = GOSSIP_ACTION_INFO_DEF + 100,
     };
 }
 
@@ -75,6 +94,14 @@ public:
     {
         ClearGossipMenuFor(player);
 
+        if (action >= ACTION_BUY_CACHE && action < ACTION_BUY_CACHE + 70)
+        {
+            uint32 selection = action - ACTION_BUY_CACHE;
+            if (Area52HeirloomShop(player) && AccountCanBuyHeirlooms(player) &&
+                !PurchaseArea52HeirloomCache(player, 1339058 + selection / 10, 400 * (selection % 10)))
+                ChatHandler(player->GetSession()).SendSysMessage("Purchase declined. Check bag space, runes and the updated price.");
+            action = ACTION_HEIRLOOM_CACHES;
+        }
         switch (action)
         {
             case ACTION_BACK:
@@ -82,13 +109,36 @@ public:
             case ACTION_HEIRLOOMS:
                 if (!Area52HeirloomShop(player))
                     break;
-                AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Armor (requires level 60).",
+                AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Heirloom Caches (discounted for pieces already owned).", GOSSIP_SENDER_MAIN, ACTION_HEIRLOOM_CACHES);
+                AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Armor and Paladin Librams (requires a max-level character on your account).",
                     GOSSIP_SENDER_MAIN, ACTION_HEIRLOOM_ARMOR);
-                AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Weapons (requires level 60).",
+                AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Weapons (requires a max-level character on your account).",
                     GOSSIP_SENDER_MAIN, ACTION_HEIRLOOM_WEAPONS);
-                AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Accessories (requires level 60).",
+                AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Accessories and Heirloom Pendants (requires a max-level character on your account).",
                     GOSSIP_SENDER_MAIN, ACTION_HEIRLOOM_ACCESSORIES);
                 AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Back.", GOSSIP_SENDER_MAIN, ACTION_BACK);
+                SendGossipMenuFor(player, Worldforged::GUARDIAN_ENTRY, creature->GetGUID());
+                return true;
+            case ACTION_HEIRLOOM_CACHES:
+                if (!Area52HeirloomShop(player) || !AccountCanBuyHeirlooms(player))
+                {
+                    ChatHandler(player->GetSession()).SendSysMessage("You need a max-level character on this realm account to buy heirlooms.");
+                    return OnGossipHello(player, creature);
+                }
+                for (uint32 cache = 1339058; cache <= 1339064; ++cache)
+                {
+                    uint32 cost = 0;
+                    if (!QuoteArea52HeirloomCache(player, cache, cost))
+                        continue;
+                    if (auto const* item = sObjectMgr->GetItemTemplate(cache))
+                    {
+                        std::string label = item->Name1 + " - " + std::to_string(cost) + " Runes of Descension";
+                        AddGossipItemFor(player, GOSSIP_ICON_VENDOR, label, GOSSIP_SENDER_MAIN,
+                            ACTION_BUY_CACHE + (cache - 1339058) * 10 + cost / 400,
+                            "Add this cache to your bags for " + std::to_string(cost) + " Runes of Descension?", 0, false);
+                    }
+                }
+                AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Back.", GOSSIP_SENDER_MAIN, ACTION_HEIRLOOMS);
                 SendGossipMenuFor(player, Worldforged::GUARDIAN_ENTRY, creature->GetGUID());
                 return true;
             case ACTION_HEIRLOOM_ARMOR:
@@ -96,9 +146,9 @@ public:
             case ACTION_HEIRLOOM_ACCESSORIES:
                 if (!Area52HeirloomShop(player))
                     break;
-                if (player->GetLevel() < 60)
+                if (!AccountCanBuyHeirlooms(player))
                 {
-                    ChatHandler(player->GetSession()).SendSysMessage("You must be level 60 to buy heirlooms.");
+                    ChatHandler(player->GetSession()).SendSysMessage("You need a max-level character on this realm account to buy heirlooms.");
                     return OnGossipHello(player, creature);
                 }
                 CloseGossipMenuFor(player);

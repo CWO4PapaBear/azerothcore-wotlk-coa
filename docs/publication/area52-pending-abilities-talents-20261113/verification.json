@@ -1,0 +1,22 @@
+{
+  "advancements": [
+    656,
+    662,
+    825,
+    898,
+    924,
+    1001,
+    1201,
+    2997,
+    3637
+  ],
+  "status": "VERIFIED",
+  "candidate_sha256": "5205b97b1d25c54570c0735c2957997715d96cac313be212b086573e3ae4e6d6",
+  "baseline_sha256": "71e8e49f19ae1ce577ee52d8845e4478c5fa73f840851a8eb0aa8aa25feb632e",
+  "reports": {
+    "build-r1": "e84147564adec60c8bbe64ccb1a50318ddad026bb219252e51532f1acccf9003",
+    "mechanics": "ba9b1e4ab81ebda62fad28dc141fbdbad51731acc7f19af54aaa2407f8f6697b"
+  },
+  "client_sha256": "41fca9d351c49f9e29de88032865771ac5c722c3344dd8741711eee63c9adc14",
+  "preserves_test_access_exclusions": true
+}

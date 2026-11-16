@@ -1120,3 +1120,8 @@ PlayerScript::PlayerScript(char const* name, std::vector<uint16> enabledHooks)
 }
 
 template class AC_GAME_API ScriptRegistry<PlayerScript>;
+
+void ScriptMgr::OnPlayerGetNameQueryRace(Player* player, uint8& race)
+{
+    CALL_ENABLED_HOOKS(PlayerScript, PLAYERHOOK_ON_GET_NAME_QUERY_RACE, script->OnPlayerGetNameQueryRace(player, race));
+}

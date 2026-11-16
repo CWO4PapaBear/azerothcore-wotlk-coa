@@ -1,0 +1,14 @@
+{
+  "id": "area52-fused-sanctuary-refresh-20261114",
+  "baseline_deployment": "area52-heirloom-vanity-followup-20261114",
+  "baseline_binary": "ae4452d8b565ffe48d8876bb62a87584348a1ea3dcafd09d0c1ed28335a2399c",
+  "candidate_binary": "02e5d5537d479e6a1430cf2d8b6302361ad2852fb05012b60e1bd54554976a43",
+  "reports": {
+    "fused-sanctuary-level-refresh/level-check": "9ba9d807eeb5c9fff4bf07d0c119555d7d1952c71539adfa61398e33c0af913a",
+    "fused-sanctuary-level-refresh/build-r1": "3285eca292a87089b153e08c6a917ff39ca96244a84d7ac7231ecab8aa554a37"
+  },
+  "source_files": {
+    "src/server/game/Entities/Player/Player.cpp": "db26d470981f168d07524ae44e32ddba7679540d08a86a12df4f31a963af28be",
+    "src/server/game/Entities/Player/Player.h": "7215a3d713ae4284b34fe58e85de3a20bb7e45b08ab47b72a48d6d412866b20f"
+  }
+}

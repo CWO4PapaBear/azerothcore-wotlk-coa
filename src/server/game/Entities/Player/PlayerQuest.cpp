@@ -15,6 +15,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "AscensionCallboardContracts.h"
 #include "CreatureAI.h"
 #include "../../../coa/AscensionFreePick.h"
 #include "DisableMgr.h"
@@ -710,6 +711,8 @@ void Player::IncompleteQuest(uint32 quest_id)
 
 void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, bool announce, bool isLFGReward)
 {
+    if (!AscensionCallboardContracts::CanReward(this, quest)) return;
+
     //this THING should be here to protect code from quest, which cast on player far teleport as a reward
     //should work fine, cause far teleport will be executed in Player::Update()
     SetMustDelayTeleport(true);
@@ -916,6 +919,7 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
     UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_QUEST_COUNT);
     UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_QUEST, quest->GetQuestId());
 
+    AscensionCallboardContracts::RecordReward(this, quest);
     // pussywizard: replaced partial save with full save
     SaveToDB(false, false);
 

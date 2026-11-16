@@ -251,6 +251,12 @@ void Player::ApplySpellPowerBonus(int32 amount, bool apply)
 {
     apply = _ModifyUInt32(apply, m_baseSpellPower, amount);
 
+    if (AscensionFreePick::Applies(this) && (HasAura(84866) || HasAura(84867)))
+    {
+        UpdateSpellDamageAndHealingBonus();
+        return;
+    }
+
     // For speed just update for client
     ApplyModUInt32Value(PLAYER_FIELD_MOD_HEALING_DONE_POS, amount, apply);
     for (int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
@@ -635,6 +641,9 @@ void Player::UpdateAttackPowerAndDamage(bool ranged)
     float base_attPower  = GetFlatModifierValue(unitMod, BASE_VALUE) * GetPctModifierValue(unitMod, BASE_PCT);
     float attPowerMod = GetFlatModifierValue(unitMod, TOTAL_VALUE);
 
+    if (m_rockbiterAttackPower)
+        attPowerMod += (HasAura(84866) || HasAura(84867)) ? m_rockbiterCasterAttackPower : m_rockbiterAttackPower;
+
     //add dynamic flat mods
     if (ranged)
     {
@@ -682,6 +691,35 @@ void Player::UpdateAttackPowerAndDamage(bool ranged)
 void Player::UpdateShieldBlockValue()
 {
     SetUInt32Value(PLAYER_SHIELD_BLOCK, GetShieldBlockValue());
+}
+
+// Isolate the AP actually supplied by Agility, including normal AP multipliers.
+float AscensionFreePick::AgilityAttackPower(Player const* player, bool ranged)
+{
+    if (!Applies(player) || !player->HasAura(84865))
+        return 0.0f;
+
+    float const agility = player->GetStat(STAT_AGILITY);
+    float contribution = ranged ? agility * player->GetPctModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_PCT) : 0.0f;
+    AuraType const conversion = ranged ? SPELL_AURA_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT : SPELL_AURA_MOD_ATTACK_POWER_OF_STAT_PERCENT;
+    for (AuraEffect const* effect : player->GetAuraEffectsByType(conversion))
+        if (effect->GetMiscValue() == STAT_AGILITY)
+            contribution += CalculatePct(int32(agility), effect->GetAmount());
+
+    contribution *= 1.0f + player->GetFloatValue(ranged ? UNIT_FIELD_RANGED_ATTACK_POWER_MULTIPLIER : UNIT_FIELD_ATTACK_POWER_MULTIPLIER);
+    return std::clamp(contribution, 0.0f, std::max(0.0f, player->GetTotalAttackPowerValue(ranged ? RANGED_ATTACK : BASE_ATTACK)));
+}
+
+float AscensionFreePick::AgilityWeaponDamage(Player* player, unsigned attackType, bool normalized, bool applyPercent)
+{
+    WeaponAttackType hand = WeaponAttackType(attackType);
+    if (!player || (hand != BASE_ATTACK && !player->CanUseAttackType(hand)))
+        return 0.0f;
+    UnitMods mod = hand == RANGED_ATTACK ? UNIT_MOD_DAMAGE_RANGED :
+        hand == OFF_ATTACK ? UNIT_MOD_DAMAGE_OFFHAND : UNIT_MOD_DAMAGE_MAINHAND;
+    float const amount = AgilityAttackPower(player, hand == RANGED_ATTACK) *
+        player->GetAPMultiplier(hand, normalized) / 14.0f * player->GetPctModifierValue(mod, BASE_PCT);
+    return applyPercent ? amount * player->GetPctModifierValue(mod, TOTAL_PCT) : amount;
 }
 
 void Player::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, bool addTotalPct, float& minDamage, float& maxDamage, uint8 damageIndex)
@@ -946,6 +984,35 @@ void Player::UpdateParryPercentage()
         }
     }
 
+    if (AscensionFreePick::Applies(this) && CanParry())
+    {
+        // Exempt the actual winning short buff, including when it replaces a
+        // weaker permanent buff in the same exclusive-effect group.
+        int32 exempt = 0;
+        std::map<SpellGroup, std::pair<int32, bool>> winners;
+        for (AuraEffect const* effect : GetAuraEffectsByType(SPELL_AURA_MOD_PARRY_PERCENT))
+        {
+            int32 const amount = effect->GetAmount();
+            int32 const duration = effect->GetSpellInfo()->GetDuration();
+            bool const temporary = amount > 0 && duration > 0 && duration <= 20000;
+            std::map<SpellGroup, int32> group;
+            if (!sSpellMgr->AddSameEffectStackRuleSpellGroups(effect->GetSpellInfo(), effect->GetEffIndex(),
+                    SPELL_AURA_MOD_PARRY_PERCENT, amount, group))
+            {
+                if (temporary)
+                    exempt += amount;
+                continue;
+            }
+            auto [it, added] = winners.try_emplace(group.begin()->first, amount, temporary);
+            if (!added && std::abs(it->second.first) < std::abs(amount))
+                it->second = {amount, temporary};
+        }
+        for (auto const& winner : winners)
+            if (winner.second.second)
+                exempt += winner.second.first;
+        m_realParry = std::clamp(std::min(75.0f, m_realParry - exempt) + exempt, 0.0f, 100.0f);
+        value = m_realParry;
+    }
     SetStatFloatValue(PLAYER_PARRY_PERCENTAGE, value);
 }
 

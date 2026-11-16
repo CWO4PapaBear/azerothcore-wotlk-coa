@@ -296,3 +296,10 @@ XPHotspots.Enable = 0
 XPHotspots.MaxContinent = 2
 XPHotspots.ActiveCount = 3
 XPHotspots.BuffSpell = 993945
+
+CoA.CallboardContracts.Enable = 1
+CoA.CallboardContracts.DailyCompletions = 1
+CoA.CallboardContracts.MoneyCostMultiplier = 2.0
+CoA.CallboardContracts.MinMoneyCost = 100000
+CoA.CallboardContracts.TokenCostMultiplier = 2.0
+CoA.CallboardContracts.MinTokenCost = 50

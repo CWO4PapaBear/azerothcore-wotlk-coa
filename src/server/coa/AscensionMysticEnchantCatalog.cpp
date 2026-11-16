@@ -66,6 +66,39 @@ bool ResolveNative(std::uint32_t spell, std::map<std::uint32_t, SpellNode> const
     return true;
 }
 
+namespace
+{
+std::uint32_t SlotCapacity(std::size_t slot)
+{
+    return slot == 0 ? 5u : slot < 4 ? 4u : 3u;
+}
+}
+
+bool ArrangeSlots(Catalog const& catalog, Slots& slots)
+{
+    bool valid = true;
+    for (std::size_t slot = 0; slot < slots.size(); ++slot)
+        if (slots[slot])
+        {
+            auto const found = catalog.BySpell.find(slots[slot]);
+            if (found == catalog.BySpell.end() || found->second.Quality < 2 || found->second.Quality > 5)
+                return false;
+            valid &= found->second.Quality <= SlotCapacity(slot);
+        }
+    if (valid)
+        return true;
+    auto arranged = slots;
+    std::stable_sort(arranged.begin(), arranged.end(), [&](auto left, auto right)
+    {
+        return (left ? catalog.BySpell.at(left).Quality : 0) > (right ? catalog.BySpell.at(right).Quality : 0);
+    });
+    for (std::size_t slot = 0; slot < arranged.size(); ++slot)
+        if (arranged[slot] && catalog.BySpell.at(arranged[slot]).Quality > SlotCapacity(slot))
+            return false;
+    slots = arranged;
+    return true;
+}
+
 bool IsRemovalOnly(Slots const& before, Slots const& wanted)
 {
     bool removed = false;
@@ -83,8 +116,9 @@ bool ValidateSlots(Catalog const& catalog, Slots const& slots, std::uint32_t lev
 {
     std::array<std::uint32_t, 3> qualities{};
     std::map<std::uint32_t, std::uint32_t> stacks;
-    for (auto spell : slots)
+    for (std::size_t slot = 0; slot < slots.size(); ++slot)
     {
+        auto const spell = slots[slot];
         if (!spell)
             continue;
         auto const found = catalog.BySpell.find(spell);
@@ -93,7 +127,7 @@ bool ValidateSlots(Catalog const& catalog, Slots const& slots, std::uint32_t lev
             ++stacks[spell] > limit->second)
             return false;
         Entry const& entry = found->second;
-        if (entry.Level > level || entry.Quality < 2 || entry.Quality > 5)
+        if (entry.Level > level || entry.Quality < 2 || entry.Quality > SlotCapacity(slot))
             return false;
         ++qualities[entry.Quality < 4 ? 0 : entry.Quality - 3];
     }

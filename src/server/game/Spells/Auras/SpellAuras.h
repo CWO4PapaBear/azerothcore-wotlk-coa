@@ -1,3 +1,4 @@
+#include <memory>
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
@@ -139,6 +140,8 @@ public:
     time_t GetApplyTime() const { return m_applyTime; }
     uint64 GetApplySequence() const { return m_applySequence; }
     // In-memory script snapshots belong to this aura instance, not to a unit-wide spell id.
+    // One payment per Explosive Shot application, shared with its damage casts. Negative once consumed.
+    std::shared_ptr<int32> thrillRefund;
     void SetScriptValue(uint32 key, uint64 value)
     {
         if (value)

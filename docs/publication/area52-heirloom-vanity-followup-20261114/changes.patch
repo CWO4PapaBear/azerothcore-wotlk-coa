@@ -1,0 +1,43 @@
+--- a/src/server/coa/Area52VanityPurchase.h
++++ b/src/server/coa/Area52VanityPurchase.h
+@@ -19,6 +19,7 @@
+ struct Debit
+ {
+     uint32 Guid, Count, Spent;
++    Item* Stack;
+ };
+ 
+ inline bool Commit(CharacterDatabaseTransaction transaction)
+@@ -50,13 +51,15 @@
+     uint32 remaining = cost;
+     auto add = [&](Item* item)
+     {
+-        if (!remaining || !item || item->GetEntry() != currency)
++        if (!remaining || !item || item->GetEntry() != currency || item->IsInTrade())
+             return;
+         uint32 spent = std::min(remaining, item->GetCount());
+-        debits.push_back({item->GetGUID().GetCounter(), item->GetCount(), spent});
++        debits.push_back({item->GetGUID().GetCounter(), item->GetCount(), spent, item});
+         remaining -= spent;
+     };
+-    for (uint8 slot = INVENTORY_SLOT_ITEM_START; slot < INVENTORY_SLOT_ITEM_END; ++slot)
++    for (uint8 slot = EQUIPMENT_SLOT_START; slot < INVENTORY_SLOT_ITEM_END; ++slot)
++        add(player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot));
++    for (uint8 slot = KEYRING_SLOT_START; slot < CURRENCYTOKEN_SLOT_END; ++slot)
+         add(player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot));
+     for (uint8 slot = INVENTORY_SLOT_BAG_START; slot < INVENTORY_SLOT_BAG_END; ++slot)
+         if (Bag* bag = player->GetBagByPos(slot))
+@@ -115,8 +118,11 @@
+     transaction->Append("DROP TEMPORARY TABLE area52_vanity_guard");
+     if (!Commit(transaction))
+         return false;
+-    if (cost)
+-        player->DestroyItemCount(currency, cost, true);
++    for (Debit const& debit : debits)
++    {
++        uint32 spent = debit.Spent;
++        player->DestroyItemCount(debit.Stack, spent, true);
++    }
+     if (deliverToBags)
+     {
+         Item* bought = player->StoreItem(destinations, reward.release(), true);

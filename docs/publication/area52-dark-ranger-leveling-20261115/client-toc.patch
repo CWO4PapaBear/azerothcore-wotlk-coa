@@ -1,0 +1,6 @@
+--- a/Interface/AddOns/Area52MysticRules/Area52MysticRules.toc
++++ b/Interface/AddOns/Area52MysticRules/Area52MysticRules.toc
+@@ -10,2 +10,3 @@
+ GrantedAbilityCatalog.lua
+ GrantedAbilities.lua
++DamageAutoShot.lua

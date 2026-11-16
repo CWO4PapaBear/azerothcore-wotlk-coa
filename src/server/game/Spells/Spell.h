@@ -1,3 +1,4 @@
+#include <memory>
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
@@ -278,6 +279,7 @@ struct TargetInfo
     bool   scaleAura:1;
     int32  damage;
     int32  damageBeforeTakenMods;
+    float  area52AgilityCriticalDamage = 0.0f;
 };
 
 static const uint32 SPELL_INTERRUPT_NONPLAYER = 32747;
@@ -550,6 +552,7 @@ public:
     Item* m_CastItem;
     Item* m_weaponItem;
     ObjectGuid m_castItemGUID;
+    uint32 AutoShotCancelGenerationAtStart() const { return m_autoShotCancelGenerationAtStart; }
     uint8 m_cast_count;
     uint32 m_glyphIndex;
     uint32 m_preCastSpell;
@@ -572,8 +575,12 @@ public:
     int8 m_comboPointGain;
 
     UsedSpellMods m_appliedMods;
+    bool m_area52SanctityUsed = false;
+    int32 m_area52SanctityDamagePct = 0;
+    int32 m_area52FavorHealingPct = 0;
 
     int32 GetCastTime() const { return m_casttime; }
+    bool WasStationaryDuringCast() const { return m_stationaryDuringCast; }
     bool IsAutoRepeat() const { return m_autoRepeat; }
     void SetAutoRepeat(bool rep) { m_autoRepeat = rep; }
     void ReSetTimer() { m_timer = m_casttime > 0 ? m_casttime : 0; }
@@ -622,6 +629,8 @@ public:
 
     void CleanupTargetList();
 
+    // Valid for the current unit's hit-phase script callbacks.
+    bool IsCurrentUnitImpactCritical() const { return m_currentUnitImpactCritical; }
     void SetSpellValue(SpellValueMod mod, int32 value);
     SpellValue const* GetSpellValue() { return m_spellValue; }
 
@@ -645,6 +654,8 @@ public:
     }
 
     // Script-owned snapshots live with the cast, including delayed targets. Keys are spell ids.
+    // One payment per Explosive Shot application, shared with its damage casts. Negative once consumed.
+    std::shared_ptr<int32> thrillRefund;
     void SetScriptValue(uint32 key, uint64 value) { m_scriptValues[key] = value; }
     uint64 GetScriptValue(uint32 key) const
     {
@@ -689,6 +700,8 @@ public:
     int32 m_scriptDamageEchoPercent = 0;
     uint32 m_scriptExtraPowerSpent = 0;
     int32 m_powerCost;                                  // Calculated spell cost     initialized only in Spell::prepare
+    bool m_stationaryDuringCast = true;
+    uint32 m_autoShotCancelGenerationAtStart = 0;
     int32 m_casttime;                                   // Calculated spell cast time initialized only in Spell::prepare
     int32 m_channeledDuration;                          // Calculated channeled spell duration in order to calculate correct pushback.
     bool m_canReflect;                                  // can reflect this spell?
@@ -750,6 +763,9 @@ public:
     int32 m_damage;           // Damge   in effects count here
     int32 m_healing;          // Healing in effects count here
     int32 m_damageBeforeTakenMods;
+    float m_area52AgilityCriticalDamage = 0.0f;
+    int32 m_area52AgilityBaseDamage = 0;
+    bool m_currentUnitImpactCritical = false;
 
     // ******************************************
     // Spell trigger system

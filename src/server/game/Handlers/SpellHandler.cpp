@@ -623,6 +623,13 @@ void WorldSession::HandleCancelAuraOpcode(WorldPacket& recvPacket)
         return;
     }
 
+    if (spellId == 25228 && AscensionFreePick::Applies(_player))
+    {
+        if (PetAura const* link = sSpellMgr->GetPetAura(19028, EFFECT_0))
+            _player->RemovePetAura(link);
+        return;
+    }
+
     // maybe should only remove one buff when there are multiple?
     _player->RemoveOwnedAura(spellId, ObjectGuid::Empty, 0, AURA_REMOVE_BY_CANCEL);
 }
@@ -662,6 +669,13 @@ void WorldSession::HandlePetCancelAuraOpcode(WorldPacket& recvPacket)
         return;
     }
 
+    if (spellId == 25228 && AscensionFreePick::Applies(_player))
+    {
+        if (PetAura const* link = sSpellMgr->GetPetAura(19028, EFFECT_0))
+            _player->RemovePetAura(link);
+        return;
+    }
+
     pet->RemoveOwnedAura(spellId, ObjectGuid::Empty, 0, AURA_REMOVE_BY_CANCEL);
 }
 
@@ -672,6 +686,9 @@ void WorldSession::HandleCancelGrowthAuraOpcode(WorldPacket& /*recvPacket*/)
 void WorldSession::HandleCancelAutoRepeatSpellOpcode(WorldPacket& /*recvPacket*/)
 {
     // may be better send SMSG_CANCEL_AUTO_REPEAT?
+    if (Spell* shot = _player->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL))
+        if (shot->GetSpellInfo()->Id == 75)
+            _player->SuppressDamageAutoShot();
     // cancel and prepare for deleting
     _player->InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
 }

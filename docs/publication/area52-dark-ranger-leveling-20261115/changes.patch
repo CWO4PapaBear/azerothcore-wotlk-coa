@@ -1,0 +1,1142 @@
+--- a/src/server/coa/AscensionMysticEnchant.cpp
++++ b/src/server/coa/AscensionMysticEnchant.cpp
+@@ -2050,7 +2050,8 @@
+     {
+         Player* player = GetCaster()->ToPlayer();
+         Unit* target = GetExplTargetUnit();
+-        if (!AscensionFreePick::Applies(player) || !player->HasAura(997115) ||
++        uint32 const enchant = sSpellMgr->GetFirstSpellInChain(GetSpellInfo()->Id) == 982744 ? 982743 : 997115;
++        if (!AscensionFreePick::Applies(player) || !player->HasAura(enchant) ||
+             !player->HasSpell(75) || !target || !player->IsValidAttackTarget(target))
+             return;
+         Spell* current = player->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL);
+--- a/src/server/game/Entities/Pet/Pet.cpp
++++ b/src/server/game/Entities/Pet/Pet.cpp
+@@ -979,7 +979,8 @@
+     }
+ 
+     InitStatsForLevel(level);
+-    InitLevelupSpellsForLevel();
++    // During restore, reconcile Bite after the saved pet spells have loaded.
++    InitLevelupSpellsForLevel(!m_loading);
+     InitTalentForLevel();
+ }
+ 
+@@ -1941,8 +1942,13 @@
+ 
+ bool Pet::learnSpell(uint32 spell_id)
+ {
++    return learnSpell(spell_id, ACT_DECIDE);
++}
++
++bool Pet::learnSpell(uint32 spell_id, ActiveStates active)
++{
+     // prevent duplicated entires in spell book
+-    if (!addSpell(spell_id))
++    if (!addSpell(spell_id, active))
+         return false;
+ 
+     if (!m_loading)
+@@ -1963,18 +1969,42 @@
+ 
+ void Pet::InitLevelupSpellsForLevel()
+ {
++    InitLevelupSpellsForLevel(true);
++}
++
++void Pet::InitLevelupSpellsForLevel(bool syncBite)
++{
+     uint8 level = GetLevel();
+ 
+-    if (getPetType() == HUNTER_PET && (GetEntry() == 1999412 || GetEntry() == 79010 || GetEntry() == 347310 || GetEntry() == 1999500 || GetEntry() == 1999510))
++    if (syncBite && getPetType() == HUNTER_PET && (GetEntry() == 1999412 || GetEntry() == 79010 || GetEntry() == 347310 || GetEntry() == 1999500 || GetEntry() == 1999510))
+     {
+         // Dark Rootbound Beast uses private focus-based Shadow Bite ranks.
+         uint32 const firstRank = GetEntry() == 1999500 ? 1999501 : GetEntry() == 1999510 ? 1999511 : 1999413;
+         uint32 eligible = level < 10 ? 0 : firstRank + std::min<uint32>((level - 10) / 8, 8);
++        ActiveStates preference = ACT_DECIDE;
+         for (uint32 spell = firstRank; spell < firstRank + 9; ++spell)
+-            if (spell != eligible && HasSpell(spell))
+-                unlearnSpell(spell, false);
+-        if (eligible && !HasSpell(eligible))
+-            learnSpell(eligible);
++        {
++            if (!HasSpell(spell) || spell == eligible)
++                continue;
++
++            preference = m_spells.at(spell).active;
++            ToggleAutocast(sSpellMgr->GetSpellInfo(spell), false);
++            if (eligible)
++                for (uint8 slot = 0; slot < MAX_UNIT_ACTION_BAR_INDEX; ++slot)
++                {
++                    UnitActionBarEntry const* action = m_charmInfo->GetActionBarEntry(slot);
++                    if (action->IsActionBarForSpell() && action->GetAction() == spell)
++                        m_charmInfo->SetActionBar(slot, eligible, preference);
++                }
++            unlearnSpell(spell, false);
++        }
++        if (eligible)
++        {
++            if (!HasSpell(eligible))
++                learnSpell(eligible, preference);
++            if (HasSpell(eligible))
++                m_charmInfo->SetSpellAutocast(sSpellMgr->GetSpellInfo(eligible), m_spells.at(eligible).active == ACT_ENABLED);
++        }
+     }
+ 
+     if (PetLevelupSpellSet const* levelupSpells = GetCreatureTemplate()->family ? sSpellMgr->GetPetLevelupSpellList(GetCreatureTemplate()->family) : nullptr)
+--- a/src/server/game/Entities/Pet/Pet.h
++++ b/src/server/game/Entities/Pet/Pet.h
+@@ -111,8 +111,10 @@
+ 
+     bool addSpell(uint32 spellId, ActiveStates active = ACT_DECIDE, PetSpellState state = PETSPELL_NEW, PetSpellType type = PETSPELL_NORMAL);
+     bool learnSpell(uint32 spell_id);
++    bool learnSpell(uint32 spell_id, ActiveStates active);
+     void learnSpellHighRank(uint32 spellid);
+     void InitLevelupSpellsForLevel();
++    void InitLevelupSpellsForLevel(bool syncBite);
+     bool unlearnSpell(uint32 spell_id, bool learn_prev, bool clear_ab = true);
+     bool removeSpell(uint32 spell_id, bool learn_prev, bool clear_ab = true);
+     void CleanupActionBar();
+--- a/src/server/game/Entities/Player/Player.cpp
++++ b/src/server/game/Entities/Player/Player.cpp
+@@ -10307,6 +10307,22 @@
+ 
+     if (AscensionFreePick::Applies(this))
+     {
++        if (mod->spellId == 17322 || mod->spellId == 17323 || mod->spellId == 817323)
++        {
++            if (mod->op != SPELLMOD_RANGE || !spellInfo->RangeEntry || spellInfo->RangeEntry->RangeMax[0] <= 0 ||
++                (!spellInfo->IsChanneled() && !spellInfo->CalcCastTime()))
++                return false;
++            if (Area52Holy::DamagingSpell(spellInfo))
++                return true;
++            // Some damaging channels deal their damage through a periodic trigger.
++            for (auto const& effect : spellInfo->Effects)
++                if (effect.ApplyAuraName == SPELL_AURA_PERIODIC_TRIGGER_SPELL ||
++                    effect.Effect == SPELL_EFFECT_TRIGGER_SPELL || effect.Effect == SPELL_EFFECT_TRIGGER_MISSILE)
++                    if (SpellInfo const* child = sSpellMgr->GetSpellInfo(effect.TriggerSpell))
++                        if (Area52Holy::DamagingSpell(child))
++                            return true;
++            return false;
++        }
+         // Darkfall has an empty family mask. Artillery applies its snapshotted bonus once.
+         if (mod->spellId == 984509)
+             return false;
+@@ -10361,6 +10377,8 @@
+     float totalmul = 1.0f;
+     int32 totalflat = 0;
+ 
++    int32 shadowReach = 0;
++    int32 similarRange = 0;
+     auto calculateSpellMod = [&](SpellModifier* mod)
+     {
+         // xinef: temporary pets cannot use charged mods of owner, needed for mirror image QQ they should use their own auras
+@@ -10386,6 +10404,20 @@
+             if (mod->op == SPELLMOD_THREAT)
+                 flatValue /= 100;
+ 
++            if (op == SPELLMOD_RANGE && AscensionFreePick::Applies(this))
++                switch (mod->spellId)
++                {
++                    case 17322: case 17323: case 817323:
++                        shadowReach = std::max(shadowReach, flatValue);
++                        flatValue = 0;
++                        break;
++                    case 11100: case 12353: case 812352: // Flame Throwing
++                    case 16757: case 16758: case 816758: // Arctic Reach
++                    case 28999: case 29000: case 829000: // Elemental Reach
++                    case 829003: case 829009: case 829015: case 829024: // Spell Reach
++                        similarRange = std::max(similarRange, flatValue);
++                        break;
++                }
+             totalflat += flatValue;
+         }
+         else if (mod->type == SPELLMOD_PCT)
+@@ -10461,6 +10493,9 @@
+ 
+         calculateSpellMod(mod);
+     }
++
++    if (shadowReach > similarRange)
++        totalflat += shadowReach - similarRange;
+ 
+     if (extraDamage)
+         *extraDamage *= totalmul;
+--- a/src/server/game/Entities/Player/Player.h
++++ b/src/server/game/Entities/Player/Player.h
+@@ -1818,6 +1818,9 @@
+     void SetTemporarySpellReplacement(uint32 original, uint32 replacement);
+     [[nodiscard]] uint32 GetTemporarySpellReplacement(uint32 original) const;
+     [[nodiscard]] std::vector<uint32> GetSpellInteractionOrigins(uint32 spellId) const;
++    GuidSet const& GetSoulHarvestTargets() const { return m_soulHarvestTargets; }
++    void TrackSoulHarvestTarget(ObjectGuid guid) { m_soulHarvestTargets.insert(guid); }
++    void ForgetSoulHarvestTarget(ObjectGuid guid) { m_soulHarvestTargets.erase(guid); }
+     [[nodiscard]] bool MatchesSpellInteraction(uint32 spellId, uint32 original) const;
+     [[nodiscard]] bool CanUseTwoHandWithShield(ItemTemplate const* main, ItemTemplate const* off) const;
+     [[nodiscard]] float GetMeleeAbilityRangeBonus() const;
+@@ -2088,6 +2091,12 @@
+     void SendAttackSwingDeadTarget();
+     void SendAttackSwingNotInRange();
+     void SendAttackSwingBadFacingAttack();
++    void UpdateAutoShotFromDamage(Unit* victim, bool directAttack);
++    void SendDamageAutoShotState();
++    void EndDamageAutoShot();
++    void CancelDamageAutoShot(std::string const& sequence);
++    uint32 AutoShotCancelGeneration() const { return m_autoShotCancelGeneration; }
++    void SuppressDamageAutoShot() { ++m_autoShotCancelGeneration; m_autoShotManuallyStopped = true; }
+     void SendAutoRepeatCancel(Unit* target);
+     void SendExplorationExperience(uint32 Area, uint32 Experience);
+ 
+@@ -2723,6 +2732,7 @@
+     uint32 m_pendingSpectatorForBG;
+     uint32 m_pendingSpectatorInviteInstanceId;
+     GuidSet m_receivedSpectatorResetFor;
++    GuidSet m_soulHarvestTargets;
+ 
+     // Dancing Rune weapon
+     void setRuneWeaponGUID(ObjectGuid guid) { m_drwGUID = guid; };
+@@ -3184,6 +3194,10 @@
+     bool _expectingChangeTransport;
+     uint32 _pendingFlightChangeCounter;
+     uint32 _mapChangeOrderCounter;
++    uint32 m_autoShotSequence = 0;
++    uint32 m_autoShotCancelGeneration = 0;
++    bool m_damageAutoShotActive = false;
++    bool m_autoShotManuallyStopped = false;
+ };
+ 
+ void AddItemsSetItem(Player* player, Item* item);
+--- a/src/server/game/Entities/Unit/Unit.cpp
++++ b/src/server/game/Entities/Unit/Unit.cpp
+@@ -1069,6 +1069,55 @@
+     }
+ }
+ 
++void Player::UpdateAutoShotFromDamage(Unit* victim, bool directAttack)
++{
++    if (!AscensionFreePick::Applies(this) || !IsAlive() || !IsInCombat() || !HasActiveSpell(75) ||
++        !victim->IsAlive() || GetSelectedUnit() != victim || !IsValidAttackTarget(victim))
++        return;
++
++    if (directAttack)
++        m_autoShotManuallyStopped = false;
++    if (m_autoShotManuallyStopped || GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL))
++        return;
++
++    CastSpell(victim, 75, false);
++    Spell* repeat = GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL);
++    if (repeat && repeat->GetSpellInfo()->Id == 75 && repeat->m_targets.GetUnitTargetGUID() == victim->GetGUID())
++    {
++        if (++m_autoShotSequence == 0)
++            ++m_autoShotSequence;
++        m_damageAutoShotActive = true;
++        SendDamageAutoShotState();
++    }
++}
++
++void Player::SendDamageAutoShotState()
++{
++    WorldPacket packet;
++    std::string message = "A52Shot\t" + std::to_string(m_damageAutoShotActive ? m_autoShotSequence : 0);
++    ChatHandler::BuildChatPacket(packet, CHAT_MSG_WHISPER, LANG_ADDON, this, this, message);
++    GetSession()->SendPacket(&packet);
++}
++
++void Player::EndDamageAutoShot()
++{
++    if (m_damageAutoShotActive)
++    {
++        m_damageAutoShotActive = false;
++        SendDamageAutoShotState();
++    }
++}
++
++void Player::CancelDamageAutoShot(std::string const& sequence)
++{
++    if (m_damageAutoShotActive && sequence == std::to_string(m_autoShotSequence))
++    {
++        SuppressDamageAutoShot();
++        InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
++    }
++}
++
++
+ uint32 Unit::DealDamage(Unit* attacker, Unit* victim, uint32 damage, CleanDamage const* cleanDamage,
+                         DamageEffectType damagetype, SpellSchoolMask damageSchoolMask,
+                         SpellInfo const* spellProto, bool durabilityLoss, bool /*allowGM*/,
+@@ -1450,6 +1499,16 @@
+     if (damagetype != NODAMAGE && spellProto)
+         Area52Worldforged::Damage(attacker, victim, spellProto, damage, health, worldforgedMaxHealth,
+             damagetype == DOT, health != 0 && health <= damage && !victim->IsAlive());
++
++    if (damage && attacker && attacker != victim && (!spellProto || spellProto->Id != 75) &&
++        (damagetype == DIRECT_DAMAGE || damagetype == SPELL_DIRECT_DAMAGE || damagetype == DOT))
++        if (Player* player = attacker->ToPlayer())
++        {
++            bool const directAttack = (damagetype == DIRECT_DAMAGE && !spellProto) ||
++                (damagetype == SPELL_DIRECT_DAMAGE && damageSpell && !damageSpell->IsTriggered() &&
++                 damageSpell->AutoShotCancelGenerationAtStart() == player->AutoShotCancelGeneration());
++            player->UpdateAutoShotFromDamage(victim, directAttack);
++        }
+ 
+     LOG_DEBUG("entities.unit", "DealDamageEnd returned {} damage", damage);
+ 
+@@ -4563,6 +4622,8 @@
+         if (m_currentSpells[i] && m_currentSpells[i]->getState() == SPELL_STATE_FINISHED)
+         {
+             m_currentSpells[i]->SetReferencedFromCurrent(false);
++            if (i == CURRENT_AUTOREPEAT_SPELL && IsPlayer())
++                ToPlayer()->EndDamageAutoShot();
+             m_currentSpells[i] = nullptr;                      // remove pointer
+         }
+     }
+@@ -4813,7 +4874,10 @@
+         // send autorepeat cancel message for autorepeat spells
+         if (spellType == CURRENT_AUTOREPEAT_SPELL)
+             if (IsPlayer())
+-                ToPlayer()->SendAutoRepeatCancel(this);
++                {
++                    ToPlayer()->EndDamageAutoShot();
++                    ToPlayer()->SendAutoRepeatCancel(this);
++                }
+ 
+         if (spell->getState() != SPELL_STATE_FINISHED)
+             spell->cancel(bySelf);
+@@ -5402,6 +5466,10 @@
+     if (AuraStateType aState = aura->GetSpellInfo()->GetAuraState())
+         m_auraStateAuras.insert(AuraStateAurasMap::value_type(aState, aurApp));
+ 
++    if (caster && caster != this && AscensionFreePick::Applies(caster->ToPlayer()) &&
++        aura->GetSpellInfo()->HasAura(SPELL_AURA_PERIODIC_DAMAGE))
++        caster->ToPlayer()->TrackSoulHarvestTarget(GetGUID());
++
+     aura->_ApplyForTarget(this, caster, aurApp);
+     return aurApp;
+ }
+@@ -5486,6 +5554,20 @@
+ 
+     // Remove all pointers from lists here to prevent possible pointer invalidation on spellcast/auraapply/auraremove
+     m_appliedAuras.erase(i);
++
++    if (caster && caster != this && AscensionFreePick::Applies(caster->ToPlayer()) &&
++        aura->GetSpellInfo()->HasAura(SPELL_AURA_PERIODIC_DAMAGE))
++    {
++        bool const stillTracked = std::any_of(m_appliedAuras.begin(), m_appliedAuras.end(),
++            [&](auto const& entry)
++            {
++                Aura const* remaining = entry.second->GetBase();
++                return remaining->GetCasterGUID() == caster->GetGUID() &&
++                    remaining->GetSpellInfo()->HasAura(SPELL_AURA_PERIODIC_DAMAGE);
++            });
++        if (!stillTracked)
++            caster->ToPlayer()->ForgetSoulHarvestTarget(GetGUID());
++    }
+ 
+     // xinef: do not insert our application to interruptible list if application target is not the owner (area auras)
+     // xinef: event if it gets removed, it will be reapplied in a second
+@@ -6945,10 +7027,36 @@
+     std::map<SpellGroup, int32> sameEffectSpellGroup;
+     float multiplier = 1.0f;
+ 
++    int32 harvest = 0;
++    int32 similar = 0;
++    bool const checkHarvest = auraType == SPELL_AURA_MOD_DAMAGE_PERCENT_DONE &&
++        ((HasAura(86395) && AscensionFreePick::Applies(ToPlayer())) ||
++         (HasAura(886395) && GetCharmerOrOwner() && AscensionFreePick::Applies(GetCharmerOrOwner()->ToPlayer())));
++
+     for (AuraEffect const* aurEff : mTotalAuraList)
+     {
+         if (predicate(aurEff))
+         {
++            if (checkHarvest && aurEff->GetAmount() > 0)
++            {
++                switch (aurEff->GetId())
++                {
++                    case 86395:
++                    case 886395:
++                        harvest = std::max(harvest, aurEff->GetAmount());
++                        continue;
++                    case 12042:  // Arcane Power
++                    case 809890: // Character Creation variant
++                    case 804035: // Tailwind
++                    case 19574:  // Bestial Wrath
++                    case 31884:  // Avenging Wrath and its Area 52 variants
++                    case 984325:
++                    case 992391:
++                    case 277875: // Guardian of Ancient Kings
++                        similar = std::max(similar, aurEff->GetAmount());
++                        break;
++                }
++            }
+             // Check if the Aura Effect has a the Same Effect Stack Rule and if so, use the highest amount of that SpellGroup
+             // If the Aura Effect does not have this Stack Rule, it returns false so we can add to the multiplier as usual
+             if (!sSpellMgr->AddSameEffectStackRuleSpellGroups(aurEff->GetSpellInfo(), aurEff->GetEffIndex(), static_cast<uint32>(auraType), aurEff->GetAmount(), sameEffectSpellGroup))
+@@ -6960,6 +7068,8 @@
+     for (auto itr = sameEffectSpellGroup.begin(); itr != sameEffectSpellGroup.end(); ++itr)
+         AddPct(multiplier, itr->second);
+ 
++    if (harvest > similar)
++        multiplier *= (100.0f + harvest) / (100.0f + similar);
+     return multiplier;
+ }
+ 
+@@ -13533,6 +13643,35 @@
+     else
+         duration = minduration;
+ 
++    if (spellProto->Id == 86395 && AscensionFreePick::Applies(ToPlayer()))
++    {
++        constexpr uint32 dots[] = { 172, 980, 348, 589, 2944 };
++        for (ObjectGuid guid : ToPlayer()->GetSoulHarvestTargets())
++        {
++            if (duration >= 24000)
++                break;
++            Unit* target = ObjectAccessor::GetUnit(*this, guid);
++            if (!target || !target->IsAlive())
++                continue;
++            for (auto const& application : target->GetAppliedAuras())
++            {
++                Aura const* aura = application.second->GetBase();
++                if (aura->GetCasterGUID() != GetGUID())
++                    continue;
++                if (std::any_of(std::begin(dots), std::end(dots),
++                    [&](uint32 id) { return ToPlayer()->MatchesSpellInteraction(aura->GetId(), id); }))
++                {
++                    duration += 3000;
++                    break;
++                }
++            }
++        }
++    }
++    if (spellProto->Id == 886395 && !IsPlayer())
++        if (Unit* owner = GetCharmerOrOwner(); owner && AscensionFreePick::Applies(owner->ToPlayer()))
++            if (Aura const* harvest = owner->GetAura(86395))
++                return harvest->GetDuration();
++
+     return duration;
+ }
+ 
+@@ -15863,6 +16002,9 @@
+     if (!IsPlayer())
+         return;
+ 
++    if (petSpell->GetAura(0) == 886395 && !AscensionFreePick::Applies(ToPlayer()))
++        return;
++
+     m_petAuras.insert(petSpell);
+     if (Pet* pet = ToPlayer()->GetPet())
+         pet->CastPetAura(petSpell);
+@@ -15873,6 +16015,9 @@
+ void Unit::RemovePetAura(PetAura const* petSpell)
+ {
+     if (!IsPlayer())
++        return;
++
++    if (petSpell->GetAura(0) == 886395 && !AscensionFreePick::Applies(ToPlayer()))
+         return;
+ 
+     m_petAuras.erase(petSpell);
+--- a/src/server/game/Handlers/ChatHandler.cpp
++++ b/src/server/game/Handlers/ChatHandler.cpp
+@@ -42,6 +42,7 @@
+ #include "World.h"
+ #include "WorldPacket.h"
+ #include "WorldSession.h"
++#include "../../coa/AscensionFreePick.h"
+ 
+ inline bool isNasty(uint8 c)
+ {
+@@ -283,6 +284,19 @@
+     }
+ 
+     // Our Warden module also uses SendAddonMessage as a way to communicate Lua check results to the server, see if this is that
++    if (type == CHAT_MSG_WHISPER && lang == LANG_ADDON && to == sender->GetName() &&
++        msg.size() <= 24 && msg.compare(0, 8, "A52Shot\t") == 0)
++    {
++        if (AscensionFreePick::Applies(sender))
++        {
++            if (msg == "A52Shot\tquery")
++                sender->SendDamageAutoShotState();
++            else if (msg.compare(8, 5, "stop ") == 0)
++                sender->CancelDamageAutoShot(msg.substr(13));
++        }
++        return;
++    }
++
+     if (type == CHAT_MSG_GUILD && lang == LANG_ADDON && _warden && _warden->ProcessLuaCheckResponse(msg))
+     {
+         return;
+--- a/src/server/game/Handlers/SpellHandler.cpp
++++ b/src/server/game/Handlers/SpellHandler.cpp
+@@ -686,6 +686,9 @@
+ void WorldSession::HandleCancelAutoRepeatSpellOpcode(WorldPacket& /*recvPacket*/)
+ {
+     // may be better send SMSG_CANCEL_AUTO_REPEAT?
++    if (Spell* shot = _player->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL))
++        if (shot->GetSpellInfo()->Id == 75)
++            _player->SuppressDamageAutoShot();
+     // cancel and prepare for deleting
+     _player->InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
+ }
+--- a/src/server/game/Server/Protocol/Opcodes.cpp
++++ b/src/server/game/Server/Protocol/Opcodes.cpp
+@@ -749,7 +749,7 @@
+     /*0x26A*/ DEFINE_HANDLER(CMSG_SET_ACTIVE_MOVER,                                                 STATUS_LOGGEDIN,   PROCESS_THREADUNSAFE,   &WorldSession::HandleSetActiveMoverOpcode               );
+     /*0x26B*/ DEFINE_HANDLER(CMSG_PET_CANCEL_AURA,                                                  STATUS_LOGGEDIN,   PROCESS_INPLACE,        &WorldSession::HandlePetCancelAuraOpcode                );
+     /*0x26C*/ DEFINE_HANDLER(CMSG_PLAYER_AI_CHEAT,                                                  STATUS_NEVER,      PROCESS_INPLACE,        &WorldSession::Handle_NULL                              );
+-    /*0x26D*/ DEFINE_HANDLER(CMSG_CANCEL_AUTO_REPEAT_SPELL,                                         STATUS_LOGGEDIN,   PROCESS_INPLACE,        &WorldSession::HandleCancelAutoRepeatSpellOpcode        );
++    /*0x26D*/ DEFINE_HANDLER(CMSG_CANCEL_AUTO_REPEAT_SPELL,                                         STATUS_LOGGEDIN,   PROCESS_THREADSAFE,        &WorldSession::HandleCancelAutoRepeatSpellOpcode        );
+     /*0x26E*/ DEFINE_HANDLER(MSG_GM_ACCOUNT_ONLINE,                                                 STATUS_NEVER,      PROCESS_INPLACE,        &WorldSession::Handle_NULL                              );
+     /*0x26F*/ DEFINE_HANDLER(MSG_LIST_STABLED_PETS,                                                 STATUS_LOGGEDIN,   PROCESS_THREADUNSAFE,   &WorldSession::HandleListStabledPetsOpcode              );
+     /*0x270*/ DEFINE_HANDLER(CMSG_STABLE_PET,                                                       STATUS_LOGGEDIN,   PROCESS_THREADUNSAFE,   &WorldSession::HandleStablePet                          );
+--- a/src/server/game/Spells/Auras/SpellAuraEffects.cpp
++++ b/src/server/game/Spells/Auras/SpellAuraEffects.cpp
+@@ -512,6 +512,9 @@
+     // default amount calculation
+     amount = m_spellInfo->Effects[m_effIndex].CalcValue(caster, &m_baseAmount, nullptr);
+ 
++    if (GetId() == 42650 && m_effIndex == EFFECT_1 && caster && AscensionFreePick::Applies(caster->ToPlayer()))
++        amount = -int32(std::clamp(caster->GetUnitDodgeChance() + caster->GetUnitParryChance(), 0.0f, 100.0f));
++
+     // check item enchant aura cast
+     if (!amount && caster)
+         if (ObjectGuid itemGUID = GetBase()->GetCastItemGUID())
+@@ -665,7 +668,12 @@
+     }
+ 
+     m_area52PeriodicAgilityDamage *= GetBase()->GetStackAmount();
+-    amount *= GetBase()->GetStackAmount();
++    // Hunter vs. Wild and Careful Aim gain one percentage point per additional equipped copy.
++    if (((GetId() == 956339 && m_effIndex <= EFFECT_1) || (GetId() == 934482 && m_effIndex == EFFECT_0)) &&
++        caster && AscensionFreePick::Applies(caster->ToPlayer()))
++        amount += std::clamp<int32>(GetBase()->GetStackAmount(), 1, 3) - 1;
++    else
++        amount *= GetBase()->GetStackAmount();
+     return amount;
+ }
+ 
+@@ -795,6 +803,10 @@
+             // Lightning Strikes Twice encodes the same penalty in two custom slots.
+             // Register it once through the normal family-masked damage modifier.
+             int32 operation = GetMiscValue();
++            if (GetEffIndex() == EFFECT_0 && (GetId() == 17322 || GetId() == 17323 || GetId() == 817323) &&
++                AscensionFreePick::Applies(GetBase()->GetUnitOwner()->ToPlayer()))
++                operation = SPELLMOD_RANGE;
++
+             if (GetId() == 81091 && GetEffIndex() == EFFECT_1 && operation == 38 &&
+                 AscensionFreePick::Applies(GetBase()->GetUnitOwner()->ToPlayer()))
+                 operation = SPELLMOD_DAMAGE;
+--- a/src/server/game/Spells/Auras/SpellAuras.h
++++ b/src/server/game/Spells/Auras/SpellAuras.h
+@@ -1,3 +1,4 @@
++#include <memory>
+ /*
+  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
+  *
+@@ -139,6 +140,8 @@
+     time_t GetApplyTime() const { return m_applyTime; }
+     uint64 GetApplySequence() const { return m_applySequence; }
+     // In-memory script snapshots belong to this aura instance, not to a unit-wide spell id.
++    // One payment per Explosive Shot application, shared with its damage casts. Negative once consumed.
++    std::shared_ptr<int32> thrillRefund;
+     void SetScriptValue(uint32 key, uint64 value)
+     {
+         if (value)
+--- a/src/server/game/Spells/Spell.cpp
++++ b/src/server/game/Spells/Spell.cpp
+@@ -664,6 +664,8 @@
+     m_procVictim = 0;
+     m_procEx = 0;
+     focusObject = nullptr;
++    if (Player* player = caster->ToPlayer())
++        m_autoShotCancelGenerationAtStart = player->AutoShotCancelGeneration();
+     m_cast_count = 0;
+     m_glyphIndex = 0;
+     m_preCastSpell = 0;
+@@ -2601,6 +2603,11 @@
+     m_destTargets[effIndex] = dest;
+ }
+ 
++static bool IsArea52PriestSilence(SpellInfo const* info, Unit* caster)
++{
++    return info->Id == 15487 && AscensionFreePick::Applies(caster->ToPlayer());
++}
++
+ void Spell::DoAllEffectOnTarget(TargetInfo* target)
+ {
+     if (!target || target->processed)
+@@ -3022,7 +3029,7 @@
+     }
+ 
+     // Check for SPELL_ATTR7_CAN_CAUSE_INTERRUPT
+-    if (m_spellInfo->HasAttribute(SPELL_ATTR7_CAN_CAUSE_INTERRUPT) && !effectUnit->IsPlayer())
++    if (m_spellInfo->HasAttribute(SPELL_ATTR7_CAN_CAUSE_INTERRUPT) && !IsArea52PriestSilence(m_spellInfo, m_caster) && !effectUnit->IsPlayer())
+         caster->CastSpell(effectUnit, SPELL_INTERRUPT_NONPLAYER, true);
+ 
+     if (spellHitTarget)
+@@ -3151,6 +3158,10 @@
+         }
+     }
+ 
++    // Interrupt the NPC cast before applying Silence, which also stops the cast.
++    if (unit->IsCreature() && IsArea52PriestSilence(m_spellInfo, m_caster))
++        m_caster->CastSpell(unit, SPELL_INTERRUPT_NONPLAYER, true);
++
+     uint8 aura_effmask = 0;
+     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+         if (effectMask & (1 << i) && m_spellInfo->Effects[i].IsUnitOwnedAuraEffect())
+@@ -3220,6 +3231,12 @@
+ 
+             if (m_spellAura)
+             {
++                if (AscensionFreePick::Applies(m_caster->ToPlayer()) &&
++                    sSpellMgr->GetFirstSpellInChain(aurSpellInfo->Id) == 53301)
++                {
++                    m_spellAura->thrillRefund = std::make_shared<int32>(int32(GetScriptValue(34720)));
++
++                }
+                 // Set aura stack amount to desired value
+                 if (m_spellValue->AuraStackAmount > 1)
+                 {
+@@ -3564,6 +3581,9 @@
+     if (triggeredByAura)
+     {
+         m_triggeredByAuraSpell.Init(triggeredByAura);
++        if (m_spellInfo->Id == 53352)
++            thrillRefund = triggeredByAura->GetBase()->thrillRefund;
++
+     }
+ 
+     // create and add update event for this spell
+@@ -3836,7 +3856,11 @@
+ 
+     SetReferencedFromCurrent(false);
+     if (m_selfContainer && *m_selfContainer == this)
++    {
++        if (m_spellInfo->Id == 75 && m_caster->IsPlayer())
++            m_caster->ToPlayer()->EndDamageAutoShot();
+         *m_selfContainer = nullptr;
++    }
+ 
+     // Do not remove current far sight object (already done in Spell::EffectAddFarsight) to prevent from reset viewpoint to player
+     if (!(bySelf && m_spellInfo->HasEffect(SPELL_EFFECT_ADD_FARSIGHT)))
+@@ -4185,7 +4209,7 @@
+ 
+     // Interrupt Spell casting
+     // handle this here, in other places SpellHitTarget can be set to nullptr, if there is an error in this function
+-    if (m_spellInfo->HasAttribute(SPELL_ATTR7_CAN_CAUSE_INTERRUPT))
++    if (m_spellInfo->HasAttribute(SPELL_ATTR7_CAN_CAUSE_INTERRUPT) && !IsArea52PriestSilence(m_spellInfo, m_caster))
+         if (Unit* target = m_targets.GetUnitTarget())
+             if (target->IsCreature())
+                 m_caster->CastSpell(target, 32747, true);
+@@ -5506,7 +5530,12 @@
+     }
+ 
+     if (hit)
+-        m_caster->ModifyPower(PowerType, -m_powerCost);
++    {
++        int32 change = m_caster->ModifyPower(PowerType, -m_powerCost);
++        if (PowerType == POWER_MANA && change < 0 && AscensionFreePick::Applies(m_caster->ToPlayer()) &&
++            m_caster->GetAuraOfRankedSpell(34497))
++            SetScriptValue(34720, uint32(-change));
++    }
+     else
+         m_caster->ModifyPower(PowerType, -irand(0, m_powerCost / 4));
+ 
+--- a/src/server/game/Spells/Spell.h
++++ b/src/server/game/Spells/Spell.h
+@@ -1,3 +1,4 @@
++#include <memory>
+ /*
+  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
+  *
+@@ -551,6 +552,7 @@
+     Item* m_CastItem;
+     Item* m_weaponItem;
+     ObjectGuid m_castItemGUID;
++    uint32 AutoShotCancelGenerationAtStart() const { return m_autoShotCancelGenerationAtStart; }
+     uint8 m_cast_count;
+     uint32 m_glyphIndex;
+     uint32 m_preCastSpell;
+@@ -652,6 +654,8 @@
+     }
+ 
+     // Script-owned snapshots live with the cast, including delayed targets. Keys are spell ids.
++    // One payment per Explosive Shot application, shared with its damage casts. Negative once consumed.
++    std::shared_ptr<int32> thrillRefund;
+     void SetScriptValue(uint32 key, uint64 value) { m_scriptValues[key] = value; }
+     uint64 GetScriptValue(uint32 key) const
+     {
+@@ -697,6 +701,7 @@
+     uint32 m_scriptExtraPowerSpent = 0;
+     int32 m_powerCost;                                  // Calculated spell cost     initialized only in Spell::prepare
+     bool m_stationaryDuringCast = true;
++    uint32 m_autoShotCancelGenerationAtStart = 0;
+     int32 m_casttime;                                   // Calculated spell cast time initialized only in Spell::prepare
+     int32 m_channeledDuration;                          // Calculated channeled spell duration in order to calculate correct pushback.
+     bool m_canReflect;                                  // can reflect this spell?
+--- a/src/server/game/Spells/SpellEffects.cpp
++++ b/src/server/game/Spells/SpellEffects.cpp
+@@ -437,7 +437,10 @@
+     if (!target || !effect.MiscValue)
+         return;
+ 
+-    Aura* aura = target->GetAura(effect.MiscValue);
++    // Each slot names one Corruption variant. Refresh only this player's application.
++    Aura* aura = m_spellInfo->Id == 47422 && AscensionFreePick::Applies(m_caster->ToPlayer())
++        ? target->GetAuraOfRankedSpell(effect.MiscValue, m_caster->GetGUID())
++        : target->GetAura(effect.MiscValue);
+     if (!aura)
+         return;
+ 
+@@ -6707,6 +6710,17 @@
+         if (!summon)
+             return;
+ 
++        if (AscensionFreePick::Applies(caster->ToPlayer()) &&
++            ((m_spellInfo->Id == 34433 && entry == 19668) || (m_spellInfo->Id == 46585 && entry == 26125)))
++        {
++            std::list<Creature*> siblings;
++            caster->GetAllMinionsByEntry(siblings, entry);
++            for (Creature* previous : siblings)
++                if (previous != summon && !previous->IsPet() &&
++                    previous->GetUInt32Value(UNIT_CREATED_BY_SPELL) == m_spellInfo->Id)
++                    previous->ToTempSummon()->UnSummon();
++        }
++
+         // xinef: set calculated level
+         summon->SetLevel(summonLevel);
+ 
+@@ -6732,6 +6746,21 @@
+ 
+         if (properties && properties->Category == SUMMON_CATEGORY_ALLY)
+             summon->SetFaction(caster->GetFaction());
++
++        if (m_spellInfo->Id == 81280 && entry == 375036 && AscensionFreePick::Applies(caster->ToPlayer()))
++        {
++            summon->SetReactState(REACT_AGGRESSIVE);
++            if (!summon->GetVictim())
++            {
++                Unit* target = caster->GetVictim();
++                if (!target || !summon->CanStartAttack(target))
++                    target = summon->SelectNearestTargetInAttackDistance(MAX_AGGRO_RADIUS);
++                if (target && caster->IsValidAttackTarget(target) &&
++                    (!target->IsPlayer() || !target->IsPvP() || caster->IsPvP()))
++                    summon->AI()->AttackStart(target);
++            }
++        }
++
+ 
+         ExecuteLogEffectSummonObject(i, summon);
+     }
+--- a/src/server/game/Spells/SpellMgr.cpp
++++ b/src/server/game/Spells/SpellMgr.cpp
+@@ -910,6 +910,65 @@
+ 
+ SpellProcEntry const* SpellMgr::GetSpellProcEntry(uint32 spellId) const
+ {
++    if (spellId >= 53290 && spellId <= 53292 && AscensionFreePick::Enabled() && GetSpellInfo(spellId))
++    {
++        static std::array<SpellProcEntry, 3> const huntingParty = []
++        {
++            std::array<SpellProcEntry, 3> ranks{};
++            for (unsigned i = 0; i < ranks.size(); ++i)
++            {
++                auto& proc = ranks[i];
++                proc.ProcFlags = PROC_FLAG_DONE_SPELL_MELEE_DMG_CLASS | PROC_FLAG_DONE_SPELL_RANGED_DMG_CLASS | PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG;
++                proc.SpellTypeMask = PROC_SPELL_TYPE_DAMAGE;
++                proc.SpellPhaseMask = PROC_SPELL_PHASE_HIT;
++                proc.HitMask = PROC_HIT_CRITICAL;
++                proc.AttributesMask = PROC_ATTR_TRIGGERED_CAN_PROC;
++                proc.DisableEffectsMask = (1u << EFFECT_1) | (1u << EFFECT_2);
++                proc.Chance = i == 2 ? 100 : 33 * (i + 1);
++            }
++            return ranks;
++        }();
++        return &huntingParty[spellId - 53290];
++    }
++    if (spellId >= 34497 && spellId <= 34499 && AscensionFreePick::Enabled() && GetSpellInfo(spellId))
++    {
++        static std::array<SpellProcEntry, 3> const thrill = []
++        {
++            std::array<SpellProcEntry, 3> ranks{};
++            for (unsigned i = 0; i < ranks.size(); ++i)
++            {
++                auto& proc = ranks[i];
++                proc.ProcFlags = PROC_FLAG_DONE_SPELL_RANGED_DMG_CLASS | PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG;
++                proc.SpellTypeMask = PROC_SPELL_TYPE_DAMAGE;
++                proc.SpellPhaseMask = PROC_SPELL_PHASE_HIT;
++                proc.HitMask = PROC_HIT_CRITICAL;
++                proc.AttributesMask = PROC_ATTR_TRIGGERED_CAN_PROC;
++                proc.DisableEffectsMask = 1u << EFFECT_1;
++                proc.Chance = i == 2 ? 100 : 33 * (i + 1);
++            }
++            return ranks;
++        }();
++        return &thrill[spellId - 34497];
++    }
++    if (spellId == 817323 && AscensionFreePick::Enabled() && GetSpellInfo(spellId))
++    {
++        static SpellProcEntry const shadowReach = []
++        {
++            SpellProcEntry proc{};
++            proc.ProcFlags = PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG | PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_NEG |
++                PROC_FLAG_DONE_SPELL_RANGED_DMG_CLASS | PROC_FLAG_DONE_SPELL_MELEE_DMG_CLASS |
++                PROC_FLAG_DONE_RANGED_AUTO_ATTACK | PROC_FLAG_DONE_MELEE_AUTO_ATTACK;
++            proc.SpellTypeMask = PROC_SPELL_TYPE_DAMAGE;
++            proc.SpellPhaseMask = PROC_SPELL_PHASE_HIT;
++            proc.HitMask = PROC_HIT_NORMAL | PROC_HIT_CRITICAL;
++            proc.AttributesMask = PROC_ATTR_TRIGGERED_CAN_PROC;
++            proc.DisableEffectsMask = 1u << EFFECT_0;
++            proc.Chance = 33;
++            proc.Cooldown = Milliseconds(15000);
++            return proc;
++        }();
++        return &shadowReach;
++    }
+     if ((spellId == 32512 || spellId == 32513 || spellId == 32514) && AscensionFreePick::Enabled())
+         return nullptr;
+     if ((spellId == 53486 || spellId == 53488 || spellId == 853486) &&
+@@ -982,6 +1041,17 @@
+                 return false;
+         }
+     }
++    if (&procEntry == GetSpellProcEntry(817323) && AscensionFreePick::Enabled())
++    {
++        Unit* actor = eventInfo.GetActor();
++        Unit* victim = eventInfo.GetActionTarget();
++        DamageInfo const* damage = eventInfo.GetDamageInfo();
++        if (!actor || !victim || !AscensionFreePick::Applies(actor->ToPlayer()) || !actor->IsValidAttackTarget(victim) ||
++            !damage || !damage->GetDamage() || !(damage->GetSchoolMask() & SPELL_SCHOOL_MASK_MAGIC) ||
++            (damage->GetDamageType() != SPELL_DIRECT_DAMAGE && damage->GetDamageType() != DIRECT_DAMAGE) ||
++            actor->GetExactDist(victim) <= 20.0f)
++            return false;
++    }
+     // proc type doesn't match
+     if (!(eventInfo.GetTypeMask() & procEntry.ProcFlags))
+         return false;
+@@ -1018,6 +1088,16 @@
+                     for (uint32 original : actor->GetSpellInteractionOrigins(eventSpellInfo->Id))
+                         if (SpellInfo const* ancestor = GetSpellInfo(original))
+                             inherited |= ancestor->IsAffected(procEntry.SpellFamilyName, procEntry.SpellFamilyMask);
++                // The inherited Warlock mask omits Howl of Terror.
++                if (!inherited && eventInfo.GetActor())
++                    if (Player const* actor = eventInfo.GetActor()->ToPlayer(); AscensionFreePick::Applies(actor) &&
++                        actor->MatchesSpellInteraction(eventSpellInfo->Id, 5484))
++                        for (uint32 rank : {47201u, 47202u, 47203u})
++                            if (GetSpellProcEntry(rank) == &procEntry)
++                            {
++                                inherited = true;
++                                break;
++                            }
+                 if (!inherited && eventInfo.GetActor() &&
+                     AscensionMysticEnchant::DefiasPistolProcEligible(eventInfo.GetActor()->ToPlayer(), eventSpellInfo->Id))
+                 {
+--- a/src/server/scripts/Spells/spell_dk.cpp
++++ b/src/server/scripts/Spells/spell_dk.cpp
+@@ -22,6 +22,7 @@
+ #include "SpellInfo.h"
+ #include "SpellMgr.h"
+ #include "SpellScript.h"
++#include "../../coa/AscensionFreePick.h"
+ #include "SpellScriptLoader.h"
+ #include "Totem.h"
+ #include "UnitAI.h"
+@@ -2136,6 +2137,11 @@
+ 
+     void CheckTargets(std::list<WorldObject*>& targets)
+     {
++        if (AscensionFreePick::Applies(GetCaster()->ToPlayer()))
++        {
++            _corpse = false;
++            _result = SPELL_CAST_OK;
++        }
+         targets.remove_if(RaiseDeadCheck(GetCaster()->ToPlayer()));
+ 
+         if (targets.empty())
+--- a/src/server/scripts/Spells/spell_hunter.cpp
++++ b/src/server/scripts/Spells/spell_hunter.cpp
+@@ -474,11 +474,61 @@
+         return ValidateSpellInfo({ SPELL_HUNTER_CHIMERA_SHOT_SERPENT, SPELL_HUNTER_CHIMERA_SHOT_VIPER, SPELL_HUNTER_CHIMERA_SHOT_SCORPID });
+     }
+ 
++    void HandleArea52Stings(Player* hunter, Unit* target)
++    {
++        struct Trigger { uint32 spell; int32 amount; };
++        std::vector<Trigger> triggers;
++        for (auto const& application : target->GetAppliedAuras())
++        {
++            Aura* aura = application.second->GetBase();
++            if (aura->GetCasterGUID() != hunter->GetGUID())
++                continue;
++            AuraEffect* tick = aura->GetEffect(EFFECT_0);
++            if (!tick)
++                continue;
++
++            if (hunter->MatchesSpellInteraction(aura->GetId(), 1978))
++            {
++                int32 amount = CalculatePct(int64(tick->GetAmount()) * tick->GetTotalTicks(), 90);
++                amount = target->SpellDamageBonusTaken(hunter, aura->GetSpellInfo(), amount, DOT, aura->GetStackAmount());
++                triggers.push_back({SPELL_HUNTER_CHIMERA_SHOT_SERPENT, amount});
++            }
++            else if (hunter->MatchesSpellInteraction(aura->GetId(), 3034))
++            {
++                int64 drain = std::min<int64>(CalculatePct(int64(target->GetMaxPower(POWER_MANA)), tick->GetAmount()),
++                    int64(tick->GetAmount()) * hunter->GetMaxPower(POWER_MANA) / 50);
++                int32 amount = CalculatePct(drain * tick->GetTotalTicks(), 30);
++                triggers.push_back({SPELL_HUNTER_CHIMERA_SHOT_VIPER, amount});
++            }
++            else if (hunter->MatchesSpellInteraction(aura->GetId(), 3043))
++            {
++                if (!hunter->HasSpellCooldown(SPELL_HUNTER_CHIMERA_SHOT_SCORPID))
++                {
++                    hunter->AddSpellCooldown(SPELL_HUNTER_CHIMERA_SHOT_SCORPID, 0, 60000);
++                    triggers.push_back({SPELL_HUNTER_CHIMERA_SHOT_SCORPID, 0});
++                }
++            }
++            else
++                continue;
++
++            aura->RefreshDuration();
++            tick->ChangeAmount(tick->CalculateAmount(hunter), false);
++        }
++        // Triggered damage can remove auras or kill the target.
++        for (Trigger& trigger : triggers)
++            hunter->CastCustomSpell(target, trigger.spell, &trigger.amount, nullptr, nullptr, true);
++    }
++
+     void HandleScriptEffect(SpellEffIndex /*effIndex*/)
+     {
+         Unit* caster = GetCaster();
+         if (Unit* unitTarget = GetHitUnit())
+         {
++            if (Player* hunter = caster->ToPlayer(); GetSpellInfo()->Id == 53209 && AscensionFreePick::Applies(hunter))
++            {
++                HandleArea52Stings(hunter, unitTarget);
++                return;
++            }
+             uint32 spellId = 0;
+             int32 basePoint = 0;
+             Unit::AuraApplicationMap& Auras = unitTarget->GetAppliedAuras();
+@@ -1389,9 +1439,76 @@
+         return ValidateSpellInfo({ SPELL_HUNTER_THRILL_OF_THE_HUNT_MANA });
+     }
+ 
++    void RewardArea52(Player* player, AuraEffect const* effect, ProcEventInfo& event)
++    {
++        Spell const* cast = event.GetProcSpell();
++        DamageInfo const* damage = event.GetDamageInfo();
++        if (!cast || cast->GetCaster() != player || !damage || !damage->GetDamage() ||
++            damage->GetDamageType() == DOT || !(event.GetHitMask() & PROC_HIT_CRITICAL))
++            return;
++
++        SpellInfo const* shot = cast->GetSpellInfo();
++        uint32 paid = cast->GetScriptValue(SPELL_HUNTER_THRILL_OF_THE_HUNT_MANA);
++        if (shot->Id == 53352)
++        {
++            // Splash targets share the charge on the original target.
++            shot = cast->GetTriggeredByAuraSpellInfo();
++            if (!shot || sSpellMgr->GetFirstSpellInChain(shot->Id) != 53301)
++                return;
++            if (!cast->thrillRefund || *cast->thrillRefund < 0)
++                return;
++            paid = cast->GetTriggeredByAuraTickNumber() == 1 ? uint32(*cast->thrillRefund) : 0;
++            *cast->thrillRefund = -1;
++        }
++        else
++        {
++            if (cast->IsTriggered())
++                return;
++            auto isShot = [](SpellInfo const* info)
++            {
++                return info && info->SpellFamilyName == SPELLFAMILY_HUNTER &&
++                    info->DmgClass == SPELL_DAMAGE_CLASS_RANGED;
++            };
++            if (!isShot(shot))
++            {
++                bool inherited = false;
++                for (uint32 origin : player->GetSpellInteractionOrigins(shot->Id))
++                    inherited |= isShot(sSpellMgr->GetSpellInfo(origin));
++                if (!inherited)
++                    return;
++            }
++            constexpr uint8 thrillOfTheHuntEvent = 24;
++            if (!cast->TryMarkScriptEventHandled(thrillOfTheHuntEvent))
++                return;
++        }
++
++        uint32 reduction = 0;
++        if (player->MatchesSpellInteraction(shot->Id, 3044) || player->MatchesSpellInteraction(shot->Id, 53301))
++            reduction = 1000;
++        else if (player->MatchesSpellInteraction(shot->Id, 53209) || player->MatchesSpellInteraction(shot->Id, 2643) ||
++            player->MatchesSpellInteraction(shot->Id, 19434))
++            reduction = 2000;
++        if (reduction)
++        {
++            uint32 remaining = player->GetSpellCooldownDelay(shot->Id);
++            if (remaining)
++                player->ModifySpellCooldown(shot->Id, -int32(std::min(reduction, remaining)));
++        }
++        int32 refund = int32(uint64(paid) * effect->GetAmount() / 100);
++        if (refund > 0)
++            player->CastCustomSpell(SPELL_HUNTER_THRILL_OF_THE_HUNT_MANA, SPELLVALUE_BASE_POINT0, refund,
++                player, true, nullptr, effect);
++    }
++
++
+     void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+     {
+         PreventDefaultAction();
++        if (Player* player = GetTarget()->ToPlayer(); AscensionFreePick::Applies(player))
++        {
++            RewardArea52(player, aurEff, eventInfo);
++            return;
++        }
+         SpellInfo const* procSpell = eventInfo.GetSpellInfo();
+         if (!procSpell)
+             return;
+@@ -1452,6 +1569,40 @@
+         return ValidateSpellInfo({ SPELL_HUNTER_REPLENISHMENT });
+     }
+ 
++    bool CheckShot(ProcEventInfo& event)
++    {
++        Player* player = GetTarget()->ToPlayer();
++        if (!AscensionFreePick::Applies(player))
++            return true;
++
++        Spell const* cast = event.GetProcSpell();
++        auto damage = event.GetDamageInfo();
++        if (!cast || cast->GetCaster() != player || !damage || !damage->GetDamage() ||
++            damage->GetDamageType() == DOT || !(event.GetHitMask() & PROC_HIT_CRITICAL))
++            return false;
++
++        uint32 id = cast->GetSpellInfo()->Id;
++        if (id == 53352)
++        {
++            auto charge = cast->GetTriggeredByAuraSpellInfo();
++            return charge && player->MatchesSpellInteraction(charge->Id, 53301);
++        }
++        for (uint32 root : {3044u, 53301u, 954821u, 56641u, 1495u, 19306u})
++        {
++            if (player->MatchesSpellInteraction(id, root))
++                return true;
++        }
++
++        // Glaive Toss deals damage through the two child spells of each learned rank.
++        for (uint32 parent : {954821u, 955253u, 955254u, 955255u, 955256u, 955257u, 955258u})
++            if (auto info = sSpellMgr->GetSpellInfo(parent))
++                for (auto const& effect : info->Effects)
++                    if (effect.TriggerSpell == id)
++                        return true;
++        return false;
++    }
++
++
+     void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+     {
+         PreventDefaultAction();
+@@ -1460,6 +1611,7 @@
+ 
+     void Register() override
+     {
++        DoCheckProc += AuraCheckProcFn(spell_hun_hunting_party::CheckShot);
+         OnEffectProc += AuraEffectProcFn(spell_hun_hunting_party::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+     }
+ };
+--- a/src/server/scripts/Spells/spell_warlock.cpp
++++ b/src/server/scripts/Spells/spell_warlock.cpp
+@@ -25,6 +25,7 @@
+ #include "SpellInfo.h"
+ #include "SpellMgr.h"
+ #include "SpellScript.h"
++#include "ObjectAccessor.h"
+ #include "SpellScriptLoader.h"
+ #include "TemporarySummon.h"
+ #include "Unit.h"
+@@ -105,36 +106,37 @@
+ {
+     PrepareAuraScript(spell_warl_eye_of_kilrogg);
+ 
+-    void HandleAuraApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
++    ObjectGuid eyeGuid;
++
++    void HandleAuraApply(AuraEffect const*, AuraEffectHandleModes)
+     {
+         PreventDefaultAction();
+-        if (Player* player = GetTarget()->ToPlayer())
+-        {
+-            player->UnsummonPetTemporaryIfAny();
+-
+-            // Glyph of Kilrogg
+-            if (player->HasAura(58081))
+-            {
+-                if (Unit* charm = player->GetCharm())
+-                {
+-                    if (charm->GetMapId() == MAP_OUTLAND || charm->GetMapId() == MAP_NORTHREND)
+-                    {
+-                        charm->CastSpell(charm, SPELL_WARLOCK_EYE_OF_KILROGG_FLY, true);
+-                    }
+-                }
+-            }
+-        }
+-    }
+-
+-    void HandleAuraRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+-    {
+-        if (Player* player = GetTarget()->ToPlayer())
+-        {
+-            if (Unit* charm = player->GetCharm())
+-                charm->ToTempSummon()->UnSummon();
+-
+-            player->ResummonPetTemporaryUnSummonedIfAny();
+-        }
++        Player* player = GetTarget()->ToPlayer();
++        if (!player)
++            return;
++
++        Unit* charm = player->GetCharm();
++        TempSummon* eye = charm ? charm->ToTempSummon() : nullptr;
++        if (!eye || eye->GetEntry() != NPC_EYE_OF_KILROGG || eye->GetSummonerGUID() != player->GetGUID())
++            return;
++
++        eyeGuid = eye->GetGUID();
++        player->UnsummonPetTemporaryIfAny();
++        if (player->HasAura(58081) && (eye->GetMapId() == MAP_OUTLAND || eye->GetMapId() == MAP_NORTHREND))
++            eye->CastSpell(eye, SPELL_WARLOCK_EYE_OF_KILROGG_FLY, true);
++    }
++
++    void HandleAuraRemove(AuraEffect const*, AuraEffectHandleModes)
++    {
++        Player* player = GetTarget()->ToPlayer();
++        if (!player || eyeGuid.IsEmpty())
++            return;
++
++        if (Creature* creature = ObjectAccessor::GetCreature(*player, eyeGuid))
++            if (TempSummon* eye = creature->ToTempSummon(); eye && eye->GetSummonerGUID() == player->GetGUID())
++                eye->UnSummon();
++        eyeGuid.Clear();
++        player->ResummonPetTemporaryUnSummonedIfAny();
+     }
+ 
+     void Register() override
+@@ -679,6 +681,9 @@
+ 
+     void HandleScriptEffect(SpellEffIndex /*effIndex*/)
+     {
++        // Ascension records use native refresh effects; legacy script-effect records use this callback.
++        if (GetSpellInfo()->Effects[EFFECT_0].Effect != SPELL_EFFECT_SCRIPT_EFFECT)
++            return;
+         if (Unit* unitTarget = GetHitUnit())
+             // Refresh corruption on target
+             if (AuraEffect* aur = unitTarget->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_WARLOCK, 0x2, 0, 0, GetCaster()->GetGUID()))
+@@ -690,7 +695,7 @@
+ 
+     void Register() override
+     {
+-        OnEffectHitTarget += SpellEffectFn(spell_warl_everlasting_affliction::HandleScriptEffect, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
++        OnEffectHitTarget += SpellEffectFn(spell_warl_everlasting_affliction::HandleScriptEffect, EFFECT_0, SPELL_EFFECT_ANY);
+     }
+ };
+ 

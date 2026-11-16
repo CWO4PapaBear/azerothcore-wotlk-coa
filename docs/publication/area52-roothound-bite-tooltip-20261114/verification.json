@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "before": "25dbb5ed6341284470c5dba4e5f1505170ecaacf7d0aeaaee241da1b43c45c10",
+  "after": "6e1a190f450f04bc2629f6306467af34875b6af6186404195fb1ca3a8d52e949",
+  "ranks_checked": 27,
+  "descriptions_changed": 9,
+  "members_checked": 64
+}

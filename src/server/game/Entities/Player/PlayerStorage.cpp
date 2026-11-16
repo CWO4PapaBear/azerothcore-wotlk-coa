@@ -15,6 +15,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "AscensionCallboardContracts.h"
 #include "AccountMgr.h"
 #include "../../../coa/AscensionFreePick.h"
 #include "AchievementMgr.h"
@@ -49,6 +50,7 @@
 #include "OutdoorPvP.h"
 #include "Pet.h"
 #include "Player.h"
+#include "../../../coa/Area52WorldforgedCatalog.h"
 #include "QueryHolder.h"
 #include "QuestDef.h"
 #include "RBAC.h"
@@ -4693,6 +4695,16 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                             LOG_DEBUG("entities.player.items", "+ {} EXPERTISE", enchant_amount);
                             break;
                         case ITEM_MOD_ATTACK_POWER:
+                            if (slot == TEMP_ENCHANTMENT_SLOT && enchant_id >= 60000 && enchant_id <= 60006 && AscensionFreePick::Applies(this))
+                            {
+                                int32 const full = int32(enchant_amount) * (item->GetTemplate()->InventoryType == INVTYPE_2HWEAPON ? 2 : 1);
+                                int32 const reduced = full * 33 / 100;
+                                m_rockbiterAttackPower += apply ? full : -full;
+                                m_rockbiterCasterAttackPower += apply ? reduced : -reduced;
+                                UpdateAttackPowerAndDamage();
+                                UpdateAttackPowerAndDamage(true);
+                                break;
+                            }
                             HandleStatFlatModifier(UNIT_MOD_ATTACK_POWER, TOTAL_VALUE, float(enchant_amount), apply);
                             HandleStatFlatModifier(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_VALUE, float(enchant_amount), apply);
                             LOG_DEBUG("entities.player.items", "+ {} ATTACK_POWER", enchant_amount);
@@ -5922,6 +5934,9 @@ void Player::_LoadAuras(PreparedQueryResult result, uint32 timediff)
                 }
 
                 aura->SetLoadedState(maxduration, remaintime, remaincharges, stackcount, recalculatemask, &damage[0]);
+                if (AscensionFreePick::Enabled() && getClass() == CLASS_HERO && caster_guid == GetGUID() &&
+                    Area52Worldforged::OwnsBuff(fields[15].Get<uint32>(), spellid))
+                    aura->SetTriggeredByAuraSpellInfo(sSpellMgr->GetSpellInfo(fields[15].Get<uint32>()));
                 aura->ApplyForTargets();
                 LOG_DEBUG("entities.player", "Added aura spellid {}, effectmask {}", spellInfo->Id, effmask);
             }
@@ -7275,6 +7290,7 @@ void Player::SaveToDB(CharacterDatabaseTransaction trans, bool create, bool logo
     if (!create)
         sScriptMgr->OnPlayerSave(this);
 
+    AscensionCallboardContracts::AppendSave(this, trans);
     _SaveCharacter(create, trans);
 
     if (m_mailsUpdated)                                     //save mails only when needed
@@ -7446,7 +7462,10 @@ void Player::_SaveAuras(CharacterDatabaseTransaction trans, bool logout)
         stmt->SetData(index++, baseDamage[2]);
         stmt->SetData(index++, itr->second->GetMaxDuration());
         stmt->SetData(index++, itr->second->GetDuration());
-        stmt->SetData(index, itr->second->GetCharges());
+        stmt->SetData(index++, itr->second->GetCharges());
+        SpellInfo const* sourceAura = aura->GetTriggeredByAuraSpellInfo();
+        stmt->SetData(index, AscensionFreePick::Applies(this) && sourceAura &&
+            Area52Worldforged::OwnsBuff(sourceAura->Id, aura->GetId()) ? sourceAura->Id : 0u);
         trans->Append(stmt);
     }
 }

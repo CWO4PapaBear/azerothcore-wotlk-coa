@@ -230,7 +230,7 @@ void OpcodeTable::Initialize()
     /*0x063*/ DEFINE_SERVER_OPCODE_HANDLER(SMSG_WHO,                                                STATUS_NEVER);
     /*0x064*/ DEFINE_HANDLER(CMSG_WHOIS,                                                            STATUS_LOGGEDIN,   PROCESS_THREADUNSAFE,   &WorldSession::HandleWhoisOpcode                        );
     /*0x065*/ DEFINE_SERVER_OPCODE_HANDLER(SMSG_WHOIS,                                              STATUS_NEVER);
-    /*0x066*/ DEFINE_HANDLER(CMSG_CONTACT_LIST,                                                     STATUS_LOGGEDIN,   PROCESS_THREADSAFE,     &WorldSession::HandleContactListOpcode                  );
+    /*0x066*/ DEFINE_HANDLER(CMSG_CONTACT_LIST,                                                     STATUS_LOGGEDIN,   PROCESS_THREADUNSAFE,   &WorldSession::HandleContactListOpcode                  );
     /*0x067*/ DEFINE_SERVER_OPCODE_HANDLER(SMSG_CONTACT_LIST,                                       STATUS_NEVER);
     /*0x068*/ DEFINE_SERVER_OPCODE_HANDLER(SMSG_FRIEND_STATUS,                                      STATUS_NEVER);
     /*0x069*/ DEFINE_HANDLER(CMSG_ADD_FRIEND,                                                       STATUS_LOGGEDIN,   PROCESS_THREADUNSAFE,   &WorldSession::HandleAddFriendOpcode                    );
@@ -749,7 +749,7 @@ void OpcodeTable::Initialize()
     /*0x26A*/ DEFINE_HANDLER(CMSG_SET_ACTIVE_MOVER,                                                 STATUS_LOGGEDIN,   PROCESS_THREADUNSAFE,   &WorldSession::HandleSetActiveMoverOpcode               );
     /*0x26B*/ DEFINE_HANDLER(CMSG_PET_CANCEL_AURA,                                                  STATUS_LOGGEDIN,   PROCESS_INPLACE,        &WorldSession::HandlePetCancelAuraOpcode                );
     /*0x26C*/ DEFINE_HANDLER(CMSG_PLAYER_AI_CHEAT,                                                  STATUS_NEVER,      PROCESS_INPLACE,        &WorldSession::Handle_NULL                              );
-    /*0x26D*/ DEFINE_HANDLER(CMSG_CANCEL_AUTO_REPEAT_SPELL,                                         STATUS_LOGGEDIN,   PROCESS_INPLACE,        &WorldSession::HandleCancelAutoRepeatSpellOpcode        );
+    /*0x26D*/ DEFINE_HANDLER(CMSG_CANCEL_AUTO_REPEAT_SPELL,                                         STATUS_LOGGEDIN,   PROCESS_THREADSAFE,        &WorldSession::HandleCancelAutoRepeatSpellOpcode        );
     /*0x26E*/ DEFINE_HANDLER(MSG_GM_ACCOUNT_ONLINE,                                                 STATUS_NEVER,      PROCESS_INPLACE,        &WorldSession::Handle_NULL                              );
     /*0x26F*/ DEFINE_HANDLER(MSG_LIST_STABLED_PETS,                                                 STATUS_LOGGEDIN,   PROCESS_THREADUNSAFE,   &WorldSession::HandleListStabledPetsOpcode              );
     /*0x270*/ DEFINE_HANDLER(CMSG_STABLE_PET,                                                       STATUS_LOGGEDIN,   PROCESS_THREADUNSAFE,   &WorldSession::HandleStablePet                          );

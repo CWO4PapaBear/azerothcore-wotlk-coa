@@ -437,7 +437,12 @@ class spell_warr_execute : public SpellScript
 
             int32 bp = GetEffectValue() + int32(rageUsed * spellInfo->Effects[effIndex].DamageMultiplier +
                 Area52HopliteSupport::ExecuteAttackPower(freePick, caster->GetTotalAttackPowerValue(BASE_ATTACK)));
-            caster->CastCustomSpell(target, SPELL_WARRIOR_EXECUTE, &bp, nullptr, nullptr, true, nullptr, nullptr, GetOriginalCaster()->GetGUID());
+            CustomSpellValues values;
+            values.AddSpellMod(SPELLVALUE_BASE_POINT0, bp);
+            if (freePick)
+                values.AddSpellMod(SPELLVALUE_AREA52_AGILITY_BASE_DAMAGE, int32(Area52HopliteSupport::ExecuteAttackPower(
+                    true, AscensionFreePick::AgilityAttackPower(caster->ToPlayer(), false))));
+            caster->CastCustomSpell(SPELL_WARRIOR_EXECUTE, values, target, TRIGGERED_FULL_MASK, nullptr, nullptr, GetOriginalCaster()->GetGUID());
         }
     }
 
@@ -448,6 +453,15 @@ class spell_warr_execute : public SpellScript
     }
 };
 
+// Hit-phase scripts run after impact has selected this target's final crit result.
+static float WarriorHitAttackPower(Spell* spell, Unit* caster, Unit* target)
+{
+    float const ap = caster->GetTotalAttackPowerValue(BASE_ATTACK);
+    if (!target || !spell->IsCurrentUnitImpactCritical())
+        return ap;
+    return ap + AscensionFreePick::AgilityAttackPower(caster->ToPlayer(), false);
+}
+
 // 12809 - Concussion Blow
 class spell_warr_concussion_blow : public SpellScript
 {
@@ -455,7 +469,7 @@ class spell_warr_concussion_blow : public SpellScript
 
     void HandleDummy(SpellEffIndex /*effIndex*/)
     {
-        SetHitDamage(CalculatePct(GetCaster()->GetTotalAttackPowerValue(BASE_ATTACK), GetEffectValue()));
+        SetHitDamage(CalculatePct(WarriorHitAttackPower(GetSpell(), GetCaster(), GetHitUnit()), GetEffectValue()));
     }
 
     void Register() override
@@ -477,12 +491,18 @@ class spell_warr_bloodthirst : public SpellScript
     void HandleDamage(SpellEffIndex effIndex)
     {
         int32 damage = GetEffectValue();
-        ApplyPct(damage, GetCaster()->GetTotalAttackPowerValue(BASE_ATTACK));
+        ApplyPct(damage, WarriorHitAttackPower(GetSpell(), GetCaster(), GetHitUnit()));
 
         if (Unit* target = GetHitUnit())
         {
-            damage = GetCaster()->SpellDamageBonusDone(target, GetSpellInfo(), uint32(damage), SPELL_DIRECT_DAMAGE, effIndex);
-            damage = target->SpellDamageBonusTaken(GetCaster(), GetSpellInfo(), uint32(damage), SPELL_DIRECT_DAMAGE);
+            float extra = 0.0f;
+            bool const track = GetSpell()->IsCurrentUnitImpactCritical() && GetCaster()->HasAura(84865) &&
+                AscensionFreePick::Applies(GetCaster()->ToPlayer());
+            damage = GetCaster()->SpellDamageBonusDone(target, GetSpellInfo(), uint32(damage), SPELL_DIRECT_DAMAGE,
+                effIndex, 0.0f, 1, track ? &extra : nullptr);
+            damage = target->SpellDamageBonusTaken(GetCaster(), GetSpellInfo(), uint32(damage), SPELL_DIRECT_DAMAGE,
+                1, track ? &extra : nullptr);
+            damage += int32(extra);
         }
         SetHitDamage(damage);
     }
@@ -597,14 +617,28 @@ class spell_warr_rend : public AuraScript
             }
 
             float mwb = ((mwbMin + mwbMax) / 2 + ap * mws / 14000) * 0.2f;
-            amount += int32(caster->ApplyEffectModifiers(GetSpellInfo(), aurEff->GetEffIndex(), mwb));
+            float extra = AscensionFreePick::AgilityAttackPower(caster->ToPlayer(), false) * mws / 14000.0f * 0.2f;
+            if (extra > 0.0f)
+            {
+                Player* player = caster->ToPlayer();
+                player->ApplySpellModTrackingDamage(GetId(), SPELLMOD_ALL_EFFECTS, mwb, nullptr, false, &extra);
+                player->ApplySpellModTrackingDamage(GetId(), SPELLMOD_EFFECT1, mwb, nullptr, false, &extra);
+                amount += int32(mwb);
+                aurEff->AddAgilitySnapshotDamage(extra);
+            }
+            else
+                amount += int32(caster->ApplyEffectModifiers(GetSpellInfo(), aurEff->GetEffIndex(), mwb));
 
             // "If used while your target is above 75% health, Rend does 35% more damage."
             // as for 3.1.3 only ranks above 9 (wrong tooltip?)
             if (GetSpellInfo()->GetRank() >= 9)
             {
                 if (GetUnitOwner()->HasAuraState(AURA_STATE_HEALTH_ABOVE_75_PERCENT, GetSpellInfo(), caster))
-                    AddPct(amount, GetSpellInfo()->Effects[EFFECT_2].CalcValue(caster));
+                {
+                    int32 pct = GetSpellInfo()->Effects[EFFECT_2].CalcValue(caster);
+                    AddPct(amount, pct);
+                    aurEff->ScaleAgilitySnapshotDamage(pct);
+                }
             }
         }
     }

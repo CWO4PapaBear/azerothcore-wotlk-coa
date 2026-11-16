@@ -1,0 +1,43 @@
+{
+  "advancements": [],
+  "enchants": [
+    81214,
+    916821,
+    916896,
+    935363,
+    957849,
+    965282,
+    977782,
+    977831,
+    979714
+  ],
+  "status": "VERIFIED",
+  "candidate_sha256": "f6976258ecff5d5d06ede8d32ad17b6b11aecc8d33b574bc853dec2dd7d2322a",
+  "baseline_sha256": "f5f980e46b1b003b719ce7a3b6e67af0dd376f1f9e403d10d65dc5e915dec8ac",
+  "activation_receipt": {
+    "code": 0,
+    "diagnostic_sha256": "6b38ae0203eb755e81bcf026d1b08591de57585acff5aa1e37d59ea7840dc38e",
+    "candidate": {
+      "suite.patch": "7a5dcd1e5fbeecc4110cd1194f4048141f0d4f686f5d7719ff1985b1fff4aa40",
+      "total-eclipse-bonuses.sql": "414215d6d4249e985af3b5887b7acd84d527dea8bd91ee76ea86d0f02e2fc2b5",
+      "sunfire-links.sql": "0fd8f5fe98941cf584de374631962793237c8aeb5fa45f19b7b874d36cc65d59",
+      "new-moon.sql": "26ae7ff1a793ad34d49e9bfd862c36c2f441fab466464d1a4a6d27f512088ac8",
+      "worldserver": "f6976258ecff5d5d06ede8d32ad17b6b11aecc8d33b574bc853dec2dd7d2322a"
+    },
+    "records": [
+      "ECLIPSE_REGISTRATION 979714 3 1",
+      "ECLIPSE_REGISTRATION 957849 3 3",
+      "ECLIPSE_REGISTRATION 916896 3 3",
+      "ECLIPSE_REGISTRATION 916821 3 3",
+      "ECLIPSE_REGISTRATION 935363 3 3",
+      "ECLIPSE_REGISTRATION 977831 1 1",
+      "ECLIPSE_REGISTRATION 81214 1 1",
+      "ECLIPSE_REGISTRATION 977782 1 1",
+      "ECLIPSE_REGISTRATION 965282 1 1",
+      "ECLIPSE_REPLY ACTIVATE_BUILD_OK",
+      "ECLIPSE_ACTIVATION revision=53 draft=1 automatic=1 pending=1 busy=0 id=4971643967976329179"
+    ]
+  },
+  "client_sha256": "275712d2a53853a1d35f3b4ba40a010f408378ee500b5ef2a4662c85264f2865",
+  "preserves_test_access_exclusions": true
+}

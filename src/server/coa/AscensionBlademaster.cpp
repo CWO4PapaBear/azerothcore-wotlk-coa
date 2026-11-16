@@ -1,6 +1,6 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 #include "Area52BlademasterRules.h"
-#include "AscensionWildcard.h"
+#include "AscensionFreePick.h"
 #include "Config.h"
 #include "Item.h"
 #include "Player.h"
@@ -49,7 +49,7 @@ bool Eligible(Player* player)
     return Area52Blademaster::Eligible(main && main->GetTemplate()->Class == ITEM_CLASS_WEAPON,
         off && off->GetTemplate()->Class == ITEM_CLASS_WEAPON, player->HasSpell(46917),
         player->HasAura(53590) || player->HasAura(53591) || player->HasAura(53592),
-        AscensionWildcard::PrimaryStat(player) == 1152, player->HasAura(978217));
+        player->HasSpell(84867), player->HasAura(978217));
 }
 
 void Synchronize(Player* player)

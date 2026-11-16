@@ -307,6 +307,7 @@ namespace
             _clock.ScheduleEvent(EVENT_COWARD, 5s);
         }
 
+
         void BreathPulseHit(Player* player) override
         {
             me->CastSpell(player, SPELL_SCORCHING_BREATH, true);
@@ -368,6 +369,7 @@ namespace
             events.ScheduleEvent(EVENT_SHADOW, 30s);
         }
 
+
         void BreathPulseHit(Player* player) override
         {
             me->CastSpell(player, SPELL_DARK_BREATH, true);
@@ -422,6 +424,7 @@ namespace
             events.ScheduleEvent(EVENT_RECKLESS, 30s);
             _clock.ScheduleEvent(EVENT_WATCH, 250ms);
         }
+
 
         void BreathPulseHit(Player* player) override
         {

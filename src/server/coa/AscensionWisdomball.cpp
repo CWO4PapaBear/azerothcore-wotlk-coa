@@ -120,6 +120,13 @@ std::vector<uint32> AreasOfMap(uint32 mapId)
     if (mapId == RazorfenKraulMapId)
         areas.push_back(RazorfenKraulOverworldQuestSortAreaId);
 
+    if (mapId == 90)
+        areas.push_back(133);
+    if (mapId == 70)
+        areas.push_back(1517);
+    if (mapId == 209)
+        areas.push_back(978);
+
     return areas;
 }
 
@@ -166,13 +173,32 @@ bool Contains(std::vector<uint32> const& ids, uint32 questId)
     return std::binary_search(ids.begin(), ids.end(), questId);
 }
 
-bool CompletesWithoutPlayerAction(uint32 questId)
+bool HasPlayerObjective(Quest const* quest)
 {
-    for (uint32 excluded : QuestsCompletedWithoutPlayerAction)
-        if (excluded == questId)
+    if (quest->IsAutoComplete())
+        return false;
+
+    if (quest->HasSpecialFlag(QUEST_SPECIAL_FLAGS_KILL | QUEST_SPECIAL_FLAGS_CAST | QUEST_SPECIAL_FLAGS_SPEAKTO |
+        QUEST_SPECIAL_FLAGS_PLAYER_KILL | QUEST_SPECIAL_FLAGS_EXPLORATION_OR_EVENT))
+        return true;
+
+    if (quest->GetRewOrReqMoney() < 0 || quest->GetRepObjectiveFaction() || quest->GetRepObjectiveFaction2())
+        return true;
+
+    for (uint8 i = 0; i < QUEST_ITEM_OBJECTIVES_COUNT; ++i)
+        if (quest->RequiredItemId[i] && quest->RequiredItemId[i] != quest->GetSrcItemId())
             return true;
 
     return false;
+}
+
+bool CompletesWithoutPlayerAction(Quest const* quest)
+{
+    for (uint32 excluded : QuestsCompletedWithoutPlayerAction)
+        if (excluded == quest->GetQuestId())
+            return true;
+
+    return !HasPlayerObjective(quest);
 }
 
 std::vector<uint32> DungeonMaps()
@@ -276,16 +302,13 @@ bool CanOffer(Player* player, uint32 questId)
     if (!quest || IsPlaceholder(quest))
         return false;
 
-    if (CompletesWithoutPlayerAction(questId))
+    if (CompletesWithoutPlayerAction(quest))
         return false;
 
     if (player->GetQuestStatus(questId) != QUEST_STATUS_NONE)
         return false;
 
     if (player->IsQuestRewarded(questId) && !quest->IsRepeatable())
-        return false;
-
-    if (!player->SatisfyQuestRace(quest, false))
         return false;
 
     if (!player->SatisfyQuestExclusiveGroup(quest, false))

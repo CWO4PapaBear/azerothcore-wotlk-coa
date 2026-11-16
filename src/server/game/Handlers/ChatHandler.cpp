@@ -42,6 +42,7 @@
 #include "World.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
+#include "../../coa/AscensionFreePick.h"
 
 inline bool isNasty(uint8 c)
 {
@@ -283,6 +284,19 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
     }
 
     // Our Warden module also uses SendAddonMessage as a way to communicate Lua check results to the server, see if this is that
+    if (type == CHAT_MSG_WHISPER && lang == LANG_ADDON && to == sender->GetName() &&
+        msg.size() <= 24 && msg.compare(0, 8, "A52Shot\t") == 0)
+    {
+        if (AscensionFreePick::Applies(sender))
+        {
+            if (msg == "A52Shot\tquery")
+                sender->SendDamageAutoShotState();
+            else if (msg.compare(8, 5, "stop ") == 0)
+                sender->CancelDamageAutoShot(msg.substr(13));
+        }
+        return;
+    }
+
     if (type == CHAT_MSG_GUILD && lang == LANG_ADDON && _warden && _warden->ProcessLuaCheckResponse(msg))
     {
         return;
