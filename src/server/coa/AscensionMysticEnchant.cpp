@@ -104,6 +104,7 @@ constexpr std::array<std::uint32_t, 6> Tokens = {0, 0, 250, 500, 1000, 2000};
 struct State : DataMap::Base
 {
     std::set<std::uint32_t> Known;
+    bool DraftResolved = false;
     std::set<std::uint32_t> DraftEntitlement;
     std::set<std::uint32_t> Applied;
     std::uint64_t Generation = ++NextGeneration;
@@ -307,6 +308,9 @@ void Synchronize(Player* player)
     auto* state = player->CustomData.Get<State>(StateKey);
     if (!state || !state->Loaded || !player->IsInWorld())
         return;
+    if (!state->DraftResolved && player->GetPlayerSetting("core.area52.active_build", 4).value &&
+        !player->GetPlayerSetting("core.area52.draft_progress", 2).value)
+        return;
     std::map<std::uint32_t, std::uint32_t> wanted;
     auto slots = ReadSlots(player);
     auto arranged = slots;
@@ -350,12 +354,12 @@ void Synchronize(Player* player)
     {
         bool const enabled = GrantsActive(player, grant.Enchant) &&
             ((grant.Enchant != 997115 && grant.Enchant != 997047) || state->Applied.contains(grant.Enchant)) &&
-            ((grant.Enchant != 982330 && grant.Enchant != 997047) || player->HasSpell(grant.Requires)) &&
+            ((grant.Enchant != 977831 && grant.Enchant != 982330 && grant.Enchant != 997047) || player->HasSpell(grant.Requires)) &&
             (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
             (grant.Enchant != 81248 || player->HasActiveSpell(33831)) && GrantRequirementMet(player, grant.Requires);
         std::set<std::uint32_t> visited;
         for (auto rank = grant.Spell; rank && visited.insert(rank).second;
-            rank = (grant.Enchant == 997220 || grant.Enchant == 982330 || grant.Enchant == 997047) ? 0 : sSpellMgr->GetNextSpellInChain(rank))
+            rank = (grant.Enchant == 977831 || grant.Enchant == 997220 || grant.Enchant == 982330 || grant.Enchant == 997047) ? 0 : sSpellMgr->GetNextSpellInChain(rank))
         {
             SpellInfo const* info = sSpellMgr->GetSpellInfo(rank);
             bool const rankDue = (grant.Enchant == 982743 || (grant.Enchant == 979740 && grant.Spell == 826679)) ?
@@ -892,6 +896,28 @@ void LoadConnections()
                 Connected.emplace(spell, 1);
             continue;
         }
+        if (spell == 81214)
+        {
+            auto bound = [](uint32 id, char const* name)
+            {
+                auto script = sObjectMgr->GetScriptId(name);
+                auto [begin, end] = sObjectMgr->GetSpellScriptsBounds(id);
+                return script && ScriptRegistry<SpellScriptLoader>::GetScriptById(script) &&
+                    std::any_of(begin, end, [script](auto const& row) { return row.second == script; });
+            };
+            if (sSpellMgr->GetSpellProcEntry(spell) && sSpellMgr->GetSpellInfo(760198) &&
+                sSpellMgr->GetSpellInfo(983846) && sSpellMgr->GetSpellInfo(983848) &&
+                bound(spell, "aura_area52_new_moon") && bound(983848, "spell_area52_waxing_moon_explosion"))
+                Connected.emplace(spell, 1);
+            continue;
+        }
+        if (spell == 977782)
+        {
+            if (sSpellMgr->GetSpellInfo(48517) && sSpellMgr->GetSpellInfo(48518) &&
+                sSpellMgr->GetSpellInfo(5570) && sSpellMgr->GetSpellInfo(8921))
+                Connected.emplace(spell, 1);
+            continue;
+        }
         if (spell == 986125)
         {
             if (HasShieldFinesseHandlers())
@@ -1141,7 +1167,7 @@ public:
     void OnPlayerLearnSpell(Player* player, uint32 spell) override
     {
         if (spell == 33831 || spell == 6117 || IsRangedEnchantPrerequisite(spell) ||
-            sSpellMgr->GetFirstSpellInChain(spell) == 14914)
+            (sSpellMgr->GetFirstSpellInChain(spell) == 14914 || sSpellMgr->GetFirstSpellInChain(spell) == 8921))
             Synchronize(player);
         if (Applies(player) && std::find(AscensionFreePick::SpecializationSpells.begin(),
             AscensionFreePick::SpecializationSpells.end(), spell) != AscensionFreePick::SpecializationSpells.end())
@@ -1150,7 +1176,7 @@ public:
     void OnPlayerForgotSpell(Player* player, uint32 spell) override
     {
         if (spell == 33831 || spell == 6117 || IsRangedEnchantPrerequisite(spell) ||
-            sSpellMgr->GetFirstSpellInChain(spell) == 14914)
+            (sSpellMgr->GetFirstSpellInChain(spell) == 14914 || sSpellMgr->GetFirstSpellInChain(spell) == 8921))
             Synchronize(player);
     }
     void OnPlayerLogin(Player* player) override
@@ -1383,6 +1409,7 @@ bool ApplyDraftEnchants(Player* player, std::vector<Area52Build::Enchant> const&
         state->DraftEntitlement = previous;
         return false;
     }
+    state->DraftResolved = true;
     Synchronize(player);
     return true;
 }
@@ -1392,6 +1419,7 @@ bool ClearDraftEnchants(Player* player)
     auto* state = player ? player->CustomData.Get<State>(StateKey) : nullptr;
     if (!state || !CanChange(player, state) || !Equip(player, Slots{}, true))
         return false;
+    state->DraftResolved = true;
     state->DraftEntitlement.clear();
     Synchronize(player);
     return true;
@@ -2420,7 +2448,7 @@ void RestoreArea52MysticSpellsForLogin(Player* player, PreparedQueryResult resul
             auto const& entry = Data.BySpell.at(grant.Enchant);
             if (InvestmentMet(player, entry, false) && InvestmentMet(player, entry, true) &&
                 (grant.Enchant != 978724 || player->HasSpell(2565)) &&
-                ((grant.Enchant != 982330 && grant.Enchant != 997047) || player->HasSpell(grant.Requires)) &&
+                ((grant.Enchant != 977831 && grant.Enchant != 982330 && grant.Enchant != 997047) || player->HasSpell(grant.Requires)) &&
             (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
                 (grant.Enchant != 81248 || player->HasActiveSpell(33831)) &&
                 GrantRequirementMet(player, grant.Requires))

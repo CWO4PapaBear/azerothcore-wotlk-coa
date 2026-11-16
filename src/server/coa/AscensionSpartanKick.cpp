@@ -1,5 +1,6 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 #include "Config.h"
+#include "AscensionMysticEnchantCatalog.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "SpellAuraEffects.h"
@@ -24,7 +25,7 @@ bool Applies(Player* player)
 void Synchronize(Player* player)
 {
     if (!Applies(player) || !player->IsInWorld() || !player->IsAlive() || !player->GetSession() ||
-        player->GetSession()->PlayerLogout())
+        player->GetSession()->PlayerLogout() || !AscensionMysticEnchant::CollectionLoaded(player))
         return;
     bool const active = player->HasAura(84445) && player->HasActiveSpell(1766);
     bool const owned = player->GetPlayerSetting(OwnershipKey, 0).value != 0;

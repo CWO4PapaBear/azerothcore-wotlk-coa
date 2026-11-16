@@ -51,6 +51,8 @@ public:
     {
         if (!Enabled)
             return;
+        if (info->Id == 47294 || info->Id == 47295 || info->Id == 47296)
+            info->Stances = 0;
         if (info->Id == 1495 || info->Id == 14269 || info->Id == 14270 ||
             info->Id == 14271 || info->Id == 36916 || info->Id == 53339)
             info->UseRangedAttackPowerForDamage = true;
@@ -367,6 +369,8 @@ class spell_area52_shockwave_damage : public SpellScript
     {
         int32 const percent = GetSpellInfo()->Effects[EFFECT_2].CalcValue(GetCaster());
         SetEffectValue(GetEffectValue() + int32(CalculatePct(GetCaster()->GetTotalAttackPowerValue(BASE_ATTACK), percent)));
+        if (float extra = AscensionFreePick::AgilityAttackPower(GetCaster()->ToPlayer(), false); extra > 0)
+            GetSpell()->SetScriptValue(AscensionFreePick::AgilityEffectDamageKey, uint32(CalculatePct(extra, percent)));
     }
 
     void Register() override

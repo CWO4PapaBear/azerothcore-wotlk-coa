@@ -1,3 +1,4 @@
+#include "../../../coa/AscensionFreePick.h"
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
@@ -30,6 +31,7 @@
 #include "OutdoorPvPMgr.h"
 #include "Pet.h"
 #include "Player.h"
+#include "Spell.h"
 #include "ScriptMgr.h"
 #include "SkillDiscovery.h"
 #include "SpellAuraEffects.h"
@@ -1650,6 +1652,11 @@ void Player::UpdatePvP(bool state, bool _override)
 
 void Player::AtExitCombat()
 {
+    if (AscensionFreePick::Applies(this))
+        if (Spell* shot = GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL))
+            if (shot->GetSpellInfo()->Id == 75)
+                InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
+
     Unit::AtExitCombat();
     UpdatePotionCooldown();
 
@@ -1947,6 +1954,14 @@ void Player::UpdateForQuestWorldObjects()
 
 void Player::UpdateTitansGrip()
 {
+    if (AscensionFreePick::Applies(this))
+    {
+        bool const spiritPenalty = CanTitanGrip() && HasSpell(46917) && HasAura(84867);
+        if (spiritPenalty && !HasAura(818047, GetGUID()))
+            CastSpell(this, 818047, true);
+        else if (!spiritPenalty)
+            RemoveAurasDueToSpell(818047, GetGUID());
+    }
     // 10% damage reduce if 2x2h weapons are used
     if (HasBurningCommander() || !CanTitanGrip())
         RemoveAurasDueToSpell(49152);

@@ -16,6 +16,7 @@
  */
 
 #include "AccountMgr.h"
+#include "../../../coa/AscensionFreePick.h"
 #include "BattlegroundAV.h"
 #include "CellImpl.h"
 #include "CreatureAISelector.h"
@@ -234,7 +235,10 @@ void GameObject::CheckRitualList()
         bool erase = true;
         if (Player* channeler = ObjectAccessor::GetPlayer(*this, *itr))
             if (Spell* spell = channeler->GetCurrentSpell(CURRENT_CHANNELED_SPELL))
-                if (spell->m_spellInfo->Id == animSpell)
+                if (spell->m_spellInfo->Id == animSpell &&
+                    !((GetEntry() == 194108 || GetEntry() == 179944) &&
+                      AscensionFreePick::Applies(channeler) &&
+                      (channeler->HasAura(1004019) || channeler->IsInCombat())))
                     erase = false;
 
         if (erase)

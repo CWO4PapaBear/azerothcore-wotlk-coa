@@ -1,5 +1,9 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 #include "AscensionCacheRewards.h"
+#include "AscensionCallboardContracts.h"
+#include "CallboardRealmTier.h"
+#include "Area52CacheRuntime.h"
+#include "Area52CacheItemLevel.h"
 #include "AscensionCompatOpcodes.h"
 #include "Chat.h"
 #include "Config.h"
@@ -183,7 +187,7 @@ uint8 HighestStage(uint32 cacheItemId)
 uint32 ResolveGenericTier(Player* player, uint32 cacheItemId)
 {
     uint8 const highest = HighestStage(cacheItemId);
-    uint32 averageItemLevel = uint32(player->GetAverageItemLevel());
+    uint32 averageItemLevel = uint32(Area52CacheItemLevel::Equipped(player));
     uint32 chosen = 0;
 
     for (uint8 index = 0; index <= highest; ++index)
@@ -253,6 +257,17 @@ void GrantGold(Player* player, uint32 copper)
 bool OpenCallboardCache(Player* player, Item* item)
 {
     uint32 cacheItemId = item->GetEntry();
+    bool const namedCache = std::any_of(CallboardTiers.begin(), CallboardTiers.end(), [&](auto const& tier)
+        { return std::find(tier.begin(), tier.end(), cacheItemId) != tier.end(); });
+    if (cacheItemId == CallboardGeneric || cacheItemId == CallboardGenericOld || cacheItemId == CallboardGenericVoucher
+        || cacheItemId == CallboardBonus || namedCache || GetPool(cacheItemId))
+    {
+        Area52CacheRuntime::Options options;
+        options.allowance = 6;
+        options.goldMin = g_goldMin;
+        options.goldMax = g_goldMax;
+        if (Area52CacheRuntime::QueueOpen(player, item, options)) return true;
+    }
     if (cacheItemId == CallboardGeneric || cacheItemId == CallboardGenericOld ||
         cacheItemId == CallboardGenericVoucher || cacheItemId == CallboardBonus)
     {
@@ -266,7 +281,7 @@ bool OpenCallboardCache(Player* player, Item* item)
     player->SendEquipError(EQUIP_ERR_NONE, item, nullptr);
 
     AscensionCacheRewards::Reward reward;
-    if (!PickReward(player, *pool, uint32(player->GetAverageItemLevel()), reward))
+    if (!PickReward(player, *pool, uint32(Area52CacheItemLevel::Equipped(player)), reward))
     {
         ChatHandler(player->GetSession()).SendSysMessage(
             "The cache holds nothing this character can use.");
@@ -285,25 +300,6 @@ uint32 QuestPoints(uint32 questId)
     std::lock_guard<std::mutex> guard(g_poolLock);
     auto it = g_questPoints.find(questId);
     return it == g_questPoints.end() ? 0 : it->second;
-}
-
-std::vector<CacheTier> ReleasedCacheTiers()
-{
-    uint8 const stage = ReleasedStage();
-    std::vector<CacheTier> released;
-    std::lock_guard<std::mutex> guard(g_poolLock);
-    for (CacheTier const& tier : g_cacheTiers)
-        if (tier.releaseStage <= stage)
-            released.push_back(tier);
-    return released;
-}
-
-uint32 CacheForItemLevel(uint32 itemLevel)
-{
-    for (CacheTier const& tier : ReleasedCacheTiers())
-        if (tier.itemLevel <= itemLevel)
-            return tier.cacheItemId;
-    return 0;
 }
 
 uint32 PointsPerCache()
@@ -360,7 +356,7 @@ void SendReachedItemLevel(Player* player, uint32 itemLevel)
 
 bool RaiseReachedItemLevel(Player* player)
 {
-    uint32 const equipped = uint32(player->GetAverageItemLevel());
+    uint32 const equipped = uint32(Area52CacheItemLevel::Equipped(player));
     if (equipped <= ReachedItemLevel(player))
         return false;
 
@@ -376,7 +372,9 @@ void TrackReachedItemLevel(Player* player)
 
 void SendCacheConfig(Player* player)
 {
-    std::vector<CacheTier> const tiers = ReleasedCacheTiers();
+    unsigned const tierLevel = CallboardRealmTier::ForPlayer(player);
+    std::vector<CacheTier> tiers;
+    if (tierLevel) tiers.push_back({0, 0, CallboardGenericVoucher});
     WorldPacket config(SMSG_CALLBOARD_CACHE_CONFIG, (1 + 6 * tiers.size()) * sizeof(uint32));
     config << uint32(tiers.size());
     uint32 recordId = 0;
@@ -402,17 +400,21 @@ bool GrantCache(Player* player, uint32 cacheItemId)
     if (!item)
         return false;
 
-    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+    CharacterDatabaseTransaction trans = AscensionCallboardContracts::CurrentRewardTransaction();
+    bool const ownTransaction = !trans;
+    if (ownTransaction) trans = CharacterDatabase.BeginTransaction();
     item->SaveToDB(trans);
     MailDraft("Callboard Cache", "Your bags were full, so your Callboard Cache was sent by mail.")
         .AddItem(item)
         .SendMailTo(trans, MailReceiver(player), MailSender(player));
-    CharacterDatabase.CommitTransaction(trans);
+    if (ownTransaction) CharacterDatabase.CommitTransaction(trans);
     return true;
 }
 
 void AwardQuestPoints(Player* player, uint32 questId)
 {
+    unsigned const tierLevel = CallboardRealmTier::ForPlayer(player);
+    if (!tierLevel) return;
     uint32 const award = QuestPoints(questId);
     if (!award)
         return;
@@ -421,7 +423,7 @@ void AwardQuestPoints(Player* player, uint32 questId)
     SetPoints(player, points);
 
     TrackReachedItemLevel(player);
-    uint32 const cacheItemId = CacheForItemLevel(ReachedItemLevel(player));
+    uint32 const cacheItemId = CallboardGenericVoucher;
     if (!cacheItemId || !sObjectMgr->GetItemTemplate(cacheItemId))
         return;
 
@@ -442,7 +444,9 @@ bool HandleQuestPointsQuery(WorldSession* session, WorldPacket const& packet)
 
     uint32 const questId = packet.read<uint32>(0);
     WorldPacket reply(SMSG_CALLBOARD_QUEST_POINTS, 3 * sizeof(uint32));
-    reply << questId << DisplayedQuestPoints(QuestPoints(questId)) << uint32(0);
+    Player* player = session->GetPlayer();
+    bool const eligible = CallboardRealmTier::ForPlayer(player) && CallboardRealmTier::CanUse(player, sObjectMgr->GetQuestTemplate(questId));
+    reply << questId << (eligible ? DisplayedQuestPoints(QuestPoints(questId)) : 0u) << uint32(0);
     session->SendPacket(&reply);
     return true;
 }
@@ -485,7 +489,13 @@ public:
     ascension_callboard_cache_progress()
         : PlayerScript("ascension_callboard_cache_progress",
               { PLAYERHOOK_ON_LOGIN, PLAYERHOOK_ON_SEND_INITIAL_PACKETS_BEFORE_ADD_TO_MAP,
-                PLAYERHOOK_ON_PLAYER_COMPLETE_QUEST, PLAYERHOOK_ON_EQUIP }) { }
+                PLAYERHOOK_ON_PLAYER_COMPLETE_QUEST, PLAYERHOOK_ON_EQUIP, PLAYERHOOK_ON_LEVEL_CHANGED }) { }
+
+    void OnPlayerLevelChanged(Player* player, uint8 oldLevel) override
+    {
+        if (CallboardRealmTier::PlayerTier(oldLevel, sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL)) != CallboardRealmTier::ForPlayer(player))
+            SendProgressState(player);
+    }
 
     void OnPlayerLogin(Player* player) override
     {

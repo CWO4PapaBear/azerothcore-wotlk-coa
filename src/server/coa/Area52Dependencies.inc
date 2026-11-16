@@ -82,6 +82,13 @@ public:
             return;
         switch (info->Id)
         {
+            case 18697:
+            case 18698:
+            case 18699:
+                info->Effects[EFFECT_1].MiscValue = SPELLMOD_EFFECT1;
+                info->Effects[EFFECT_1].SpellClassMask = flag96(16384, 0, 0);
+                info->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_DUMMY;
+                break;
             case 828574:
             case 828575:
             case 828576:
@@ -174,12 +181,18 @@ class spell_area52_mana_barrier : public AuraScript
     void Absorb(AuraEffect*, DamageInfo& damage, uint32& amount)
     {
         Unit* owner = GetTarget();
-        amount = Area52Dependency::ManaBarrierAbsorb(damage.GetDamage(), owner->GetPower(POWER_MANA),
+        Spell* channel = owner->GetCurrentSpell(CURRENT_CHANNELED_SPELL);
+        bool const empowered = Area52Dependency::InvocationBarrierActive(
+            AscensionFreePick::Applies(owner->ToPlayer()), owner->IsAlive(),
+            channel && channel->getState() == SPELL_STATE_CASTING, channel ? channel->GetSpellInfo()->Id : 0);
+        amount = Area52Dependency::ManaBarrierAbsorb(damage.GetDamage(),
+            empowered ? owner->GetMaxPower(POWER_MANA) : owner->GetPower(POWER_MANA),
             owner->GetMaxPower(POWER_MANA), damage.GetSchoolMask() & SPELL_SCHOOL_MASK_MAGIC);
     }
 
     void Apply(AuraEffect const*, AuraEffectHandleModes)
     {
+        GetTarget()->RemoveAurasDueToSpell(34074);
         for (uint32 spell : {78102u, 701464u, 701467u})
             GetTarget()->CastSpell(GetTarget(), spell, true);
     }
@@ -454,4 +467,68 @@ class aura_area52_siegebreaker_collision : public AuraScript
 
     Position Previous;
     std::set<ObjectGuid> Hit;
+};
+
+class area52_improved_sprint : public UnitScript
+{
+public:
+    area52_improved_sprint() : UnitScript("area52_improved_sprint", true,
+        {UNITHOOK_ON_AURA_APPLY, UNITHOOK_ON_AURA_REMOVE}) { }
+
+    static bool IsSprint(Player* player, Aura const* aura)
+    {
+        return aura->GetCasterGUID() == player->GetGUID() &&
+            player->MatchesSpellInteraction(aura->GetId(), 2983);
+    }
+
+    static void Synchronize(Player* player, bool cleanse)
+    {
+        Aura* sprint = nullptr;
+        if (player->IsAlive() && player->HasSpell(813875) && player->HasAura(813875))
+            for (auto const& [id, application] : player->GetAppliedAuras())
+            {
+                Aura* aura = application->GetBase();
+                if (!application->GetRemoveMode() && IsSprint(player, aura) &&
+                    (!sprint || aura->GetDuration() > sprint->GetDuration()))
+                    sprint = aura;
+            }
+
+        if (!sprint)
+        {
+            player->RemoveAurasDueToSpell(81089, player->GetGUID());
+            return;
+        }
+
+        if (cleanse)
+            player->CastSpell(player, 806693, true);
+
+        Aura* protection = player->GetAura(81089, player->GetGUID());
+        if (!protection)
+            protection = player->AddAura(81089, player);
+        if (protection)
+        {
+            protection->SetMaxDuration(sprint->GetMaxDuration());
+            protection->SetDuration(sprint->GetDuration());
+        }
+    }
+
+    void OnAuraApply(Unit* unit, Aura* aura) override
+    {
+        Player* player = unit->ToPlayer();
+        if (!aura || !AscensionFreePick::Applies(player))
+            return;
+        bool const sprint = IsSprint(player, aura);
+        if (sprint || aura->GetId() == 813875 || aura->GetId() == 81089)
+            Synchronize(player, sprint);
+    }
+
+    void OnAuraRemove(Unit* unit, AuraApplication* application, AuraRemoveMode) override
+    {
+        Player* player = unit->ToPlayer();
+        if (!application || !AscensionFreePick::Applies(player))
+            return;
+        Aura* aura = application->GetBase();
+        if (aura->GetId() == 813875 || IsSprint(player, aura))
+            Synchronize(player, false);
+    }
 };

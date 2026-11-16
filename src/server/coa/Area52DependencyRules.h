@@ -14,7 +14,7 @@ constexpr bool HotStreakSource(std::uint32_t root)
 }
 constexpr bool FingersSource(std::uint32_t root, std::uint32_t family, std::uint32_t school, bool periodic)
 {
-    return !periodic && (family == 3 || family == 11) && (school & 16) &&
+    return !periodic && (family == 3 || family == 11 || root == 997221) && (school & 16) &&
         root != 10 && root != 42208 && root != 30455;
 }
 constexpr bool CompleteCriticalPair(std::uint8_t& streak, bool critical)
@@ -40,6 +40,11 @@ constexpr std::int32_t DamagePercent(std::uint32_t root, bool player, bool night
         percent = percent * 140 / 100;
     return percent;
 }
+constexpr bool InvocationBarrierActive(bool area52, bool alive, bool channeling, std::uint32_t spell)
+{
+    return area52 && alive && channeling && spell == 986067;
+}
+
 constexpr std::uint32_t ManaBarrierAbsorb(std::uint32_t damage, std::uint32_t mana, std::uint32_t maximum, bool magic)
 {
     if (!maximum)

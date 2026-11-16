@@ -4682,6 +4682,22 @@ AllowTwoSide.Interaction.Arena = 0
 #                     1 - (Enabled)
 
 AllowTwoSide.Interaction.Auction = 0
+#
+#    AllowTwoSide.Interaction.Mail
+#        Description: Allow sending mails between factions.
+#        Default:     1 - (Enabled)
+#                     0 - (Disabled)
+
+AllowTwoSide.Interaction.Mail = 1
+
+#
+#    AllowTwoSide.Trade
+#        Description: Allow trading between factions.
+#        Default:     1 - (Enabled)
+#                     0 - (Disabled)
+
+AllowTwoSide.Trade = 1
+
 
 #
 #    TalentsInspecting

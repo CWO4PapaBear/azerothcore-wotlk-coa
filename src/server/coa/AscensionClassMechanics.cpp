@@ -59,6 +59,8 @@
 #include <cctype>
 #include <cmath>
 #include <list>
+#include <map>
+#include <set>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -1006,44 +1008,50 @@ struct ClientSpellCharge
     uint32 Category;
 };
 
-std::unordered_map<uint32, ClientSpellCharge> const& ClientSpellCharges()
+std::unordered_map<uint32, ClientSpellCharge> const& ClientSpellCharges(bool reload = false)
 {
-    static std::unordered_map<uint32, ClientSpellCharge> const charges = []
+    static std::unordered_map<uint32, ClientSpellCharge> charges;
+    static bool initialized = false;
+    if (!initialized || reload)
     {
-        std::unordered_map<uint32, ClientSpellCharge> result;
-        ClientDBC categories;
-        ClientDBC links;
-        if (!categories.Load(GetClientDBCPath("SpellChargesCategory.dbc"), 3) ||
-            !links.Load(GetClientDBCPath("SpellCharges.dbc"), 2))
-            return result;
-
-        std::unordered_map<uint32, std::pair<uint32, uint32>> byCategory;
-        for (uint32 row = 0; row < categories.GetRecordCount(); ++row)
+        initialized = true;
+        charges = []
         {
-            ClientDBC::Record record = categories.GetRecord(row);
-            byCategory[record.GetUInt32(0)] = { record.GetUInt32(1), record.GetUInt32(2) };
-        }
+            std::unordered_map<uint32, ClientSpellCharge> result;
+            ClientDBC categories;
+            ClientDBC links;
+            if (!categories.Load(GetClientDBCPath("SpellChargesCategory.dbc"), 3) ||
+                !links.Load(GetClientDBCPath("SpellCharges.dbc"), 2))
+                return result;
 
-        for (uint32 row = 0; row < links.GetRecordCount(); ++row)
-        {
-            ClientDBC::Record record = links.GetRecord(row);
-            uint32 const spellId = record.GetUInt32(0);
-            uint32 const categoryId = record.GetUInt32(1);
-            auto category = byCategory.find(categoryId);
-            if (category == byCategory.end() || category->second.first < 1 || category->second.first > 20 ||
-                category->second.second < 1 || category->second.second > 86400000)
+            std::unordered_map<uint32, std::pair<uint32, uint32>> byCategory;
+            for (uint32 row = 0; row < categories.GetRecordCount(); ++row)
             {
-                LOG_ERROR("coa", "Skipped invalid client charge category {} of spell {}",
-                    categoryId, spellId);
-                continue;
+                ClientDBC::Record record = categories.GetRecord(row);
+                byCategory[record.GetUInt32(0)] = { record.GetUInt32(1), record.GetUInt32(2) };
             }
 
-            result[spellId] = { category->second.first, category->second.second, categoryId };
-        }
+            for (uint32 row = 0; row < links.GetRecordCount(); ++row)
+            {
+                ClientDBC::Record record = links.GetRecord(row);
+                uint32 const spellId = record.GetUInt32(0);
+                uint32 const categoryId = record.GetUInt32(1);
+                auto category = byCategory.find(categoryId);
+                if (category == byCategory.end() || category->second.first < 1 || category->second.first > 20 ||
+                    category->second.second < 1 || category->second.second > 86400000)
+                {
+                    LOG_ERROR("coa", "Skipped invalid client charge category {} of spell {}",
+                        categoryId, spellId);
+                    continue;
+                }
 
-        LOG_INFO("coa", "Loaded {} client spell charge records", result.size());
-        return result;
-    }();
+                result[spellId] = { category->second.first, category->second.second, categoryId };
+            }
+
+            LOG_INFO("coa", "Loaded {} client spell charge records", result.size());
+            return result;
+        }();
+    }
     return charges;
 }
 
@@ -1066,15 +1074,10 @@ void ApplyClientSpellCharges(SpellInfo* spellInfo)
     if (charge == ClientSpellCharges().end() || spellInfo->IsDeprecatedForPlayers)
         return;
 
-    bool const area52Charge = (spellInfo->Id == 6178 || spellInfo->Id == 11578 || spellInfo->Id == 18562) &&
-        sConfigMgr->GetOption<bool>("CoA.Enable", true) &&
-        sConfigMgr->GetOption<std::string>("CoA.ClassModel", "coa") == "hero" &&
-        sConfigMgr->GetOption<std::string>("CoA.RealmType", "live") == "live" &&
-        (sConfigMgr->GetOption<uint32>("CoA.GameModeMask", 0) & ~0x400u) == 0;
-    if (!area52Charge && !IsCustomClassFamily(spellInfo->SpellFamilyName))
+    if (!IsCustomClassFamily(spellInfo->SpellFamilyName))
         return;
 
-    uint32 const root = area52Charge && spellInfo->Id != 18562 ? 100 : ChargeRankRoot(spellInfo->Id);
+    uint32 const root = ChargeRankRoot(spellInfo->Id);
     uint32 recoveryMs = charge->second.RecoveryMs;
     if (root == 707141 && charge->second.Category == 110 && charge->second.Maximum == 3 && recoveryMs == 5000)
         recoveryMs = 6000;
@@ -1084,6 +1087,77 @@ void ApplyClientSpellCharges(SpellInfo* spellInfo)
     spellInfo->ChargeRecoveryKey = root;
     spellInfo->ChargeCategoryId = charge->second.Category;
 }
+}
+
+namespace
+{
+struct Area52ChargeMetadata
+{
+    uint32 Maximum;
+    uint32 Recovery;
+    uint32 Key;
+    uint32 Category;
+};
+
+std::unordered_map<uint32, Area52ChargeMetadata> Area52OriginalCharges;
+std::unordered_map<uint32, uint32> Area52ClientChargeCategories;
+}
+
+void RefreshArea52SpellCharges(std::set<uint32> const& eligible)
+{
+    auto const& charges = ClientSpellCharges(true);
+    for (auto const& [id, original] : Area52OriginalCharges)
+        if (auto* info = const_cast<SpellInfo*>(sSpellMgr->GetSpellInfo(id)))
+        {
+            info->MaxCharges = original.Maximum;
+            info->ChargeRecoveryTime = original.Recovery;
+            info->ChargeRecoveryKey = original.Key;
+            info->ChargeCategoryId = original.Category;
+        }
+    Area52OriginalCharges.clear();
+    Area52ClientChargeCategories.clear();
+    std::map<uint32, std::set<uint32>> pools;
+    for (uint32 id : eligible)
+    {
+        auto charge = charges.find(id);
+        auto* info = const_cast<SpellInfo*>(sSpellMgr->GetSpellInfo(id));
+        if (!info || info->IsDeprecatedForPlayers || IsCustomClassFamily(info->SpellFamilyName) ||
+            charge == charges.end())
+            continue;
+        Area52OriginalCharges.emplace(id, Area52ChargeMetadata{info->MaxCharges, info->ChargeRecoveryTime,
+            info->ChargeRecoveryKey, info->ChargeCategoryId});
+        uint32 const root = sSpellMgr->GetFirstSpellInChain(id);
+        info->MaxCharges = charge->second.Maximum;
+        info->ChargeRecoveryTime = charge->second.RecoveryMs;
+        info->ChargeRecoveryKey = root ? root : id;
+        info->ChargeCategoryId = charge->second.Category;
+        pools[info->ChargeCategoryId].insert(info->ChargeRecoveryKey);
+    }
+    uint32 nextCategory = 1;
+    ClientDBC categories;
+    if (categories.Load(GetClientDBCPath("SpellChargesCategory.dbc"), 3))
+        for (uint32 row = 0; row < categories.GetRecordCount(); ++row)
+            nextCategory = std::max(nextCategory, categories.GetRecord(row).GetUInt32(0) + 1);
+    std::map<std::pair<uint32, uint32>, uint32> aliases;
+    for (auto const& [category, keys] : pools)
+        for (uint32 key : keys)
+            if (key != *keys.begin())
+                aliases[{category, key}] = nextCategory++;
+    for (auto const& [id, original] : Area52OriginalCharges)
+    {
+        auto const* info = sSpellMgr->GetSpellInfo(id);
+        auto const& keys = pools.at(info->ChargeCategoryId);
+        if (keys.size() > 1 && info->ChargeRecoveryKey != *keys.begin())
+            Area52ClientChargeCategories[id] = aliases.at({info->ChargeCategoryId, info->ChargeRecoveryKey});
+    }
+    LOG_INFO("coa", "Area52 charge policy: {} eligible charged spells, {} client category aliases",
+        Area52OriginalCharges.size(), Area52ClientChargeCategories.size());
+}
+
+uint32 GetClientSpellChargeCategory(SpellInfo const* info)
+{
+    auto const category = Area52ClientChargeCategories.find(info->Id);
+    return category == Area52ClientChargeCategories.end() ? info->ChargeCategoryId : category->second;
 }
 
 void ApplyAscensionClassMechanics(SpellInfo* spellInfo)

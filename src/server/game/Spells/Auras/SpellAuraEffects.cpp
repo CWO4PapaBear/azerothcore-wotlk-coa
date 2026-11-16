@@ -6730,7 +6730,18 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
 
     // calculate crit chance
     bool crit = false;
-    if ((crit = roll_chance_f(GetCritChance())))
+    float tickCritChance = GetCritChance();
+    if (caster && AscensionFreePick::Applies(caster->ToPlayer()) && caster->HasAura(977782))
+    {
+        uint32 const root = m_spellInfo->GetFirstRankSpell()->Id;
+        if ((root == 5570 && caster->HasAura(48517)) || (root == 8921 && caster->HasAura(48518)))
+        {
+            AddPct(damage, target->GetTypeId() == TYPEID_PLAYER ? 10 : 50);
+            float done = caster->SpellDoneCritChance(target, m_spellInfo, m_spellInfo->GetSchoolMask(), BASE_ATTACK, true);
+            tickCritChance = target->SpellTakenCritChance(caster, m_spellInfo, m_spellInfo->GetSchoolMask(), done, BASE_ATTACK, true);
+        }
+    }
+    if ((crit = roll_chance_f(tickCritChance)))
     {
         uint32 const beforeCritical = damage;
         damage = Unit::SpellCriticalDamageBonus(caster, m_spellInfo, damage + uint32(std::max(0.0f, agilityDamage)), target);

@@ -361,6 +361,7 @@ public: /* PlayerScript */
     void OnPlayerCreate(Player* player);
     bool OnPlayerCreateInitialItems(Player* player, bool& handled);
     void OnPlayerSave(Player* player);
+    void OnPlayerGetNameQueryRace(Player* player, uint8& race);
     void OnPlayerNormalizeActionButtonSpell(Player* player, uint32& action, bool loading);
     void OnPlayerSpellChargeConsumed(Player* player, SpellInfo const* spellInfo, Spell* spell, uint32 recoveryMs, uint64 nowEpochMs);
     void OnPlayerSpellCooldownCalculated(Player* player, SpellInfo const* spellInfo, Spell* spell, uint32 recoveryMs);

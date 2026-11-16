@@ -1,5 +1,6 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 #include "AscensionPersonalBank.h"
+#include "Area52CacheBankFence.h"
 
 #include "Bag.h"
 #include "Chat.h"
@@ -66,6 +67,29 @@ struct OpenBank
 };
 
 std::unordered_map<ObjectGuid::LowType, OpenBank> openBanks;
+
+Area52CacheBankFence::Fence ownershipFence;
+std::vector<TransactionCallback> ownershipCommits;
+
+void PollOwnershipCommits()
+{
+    for (auto it = ownershipCommits.begin(); it != ownershipCommits.end();)
+        if (it->InvokeIfReady())
+            it = ownershipCommits.erase(it);
+        else
+            ++it;
+}
+
+void CommitBankItems(OpenBank const& bank, CharacterDatabaseTransaction transaction)
+{
+    if (!transaction->GetSize())
+        return;
+    Area52CacheBankFence::Key const key{bank.OwnerKind, bank.OwnerId};
+    ownershipFence.Begin(key);
+    auto callback = CharacterDatabase.AsyncCommitTransaction(transaction);
+    callback.AfterComplete([key](bool success) { ownershipFence.Complete(key, success); });
+    ownershipCommits.push_back(std::move(callback));
+}
 
 void LoadBank(OpenBank& bank, ObjectGuid itemOwner)
 {
@@ -227,6 +251,16 @@ void LogBankEvent(OpenBank const& bank, uint8 eventType, uint8 tab, Player* play
         "AND tab_index = {} ORDER BY log_id DESC LIMIT 25) keep)",
         bank.OwnerKind, bank.OwnerId, moneyEvent ? uint32(GUILD_BANK_MONEY_LOGS_TAB) : uint32(tab),
         bank.OwnerKind, bank.OwnerId, moneyEvent ? uint32(GUILD_BANK_MONEY_LOGS_TAB) : uint32(tab));
+}
+
+[[nodiscard]] bool RefuseSoulboundIntoRealmBank(Player* player, OpenBank const& bank, Item* item)
+{
+    if (bank.OwnerKind != OWNER_REALM || !item->IsSoulBound())
+        return false;
+
+    player->SendEquipError(EQUIP_ERR_NONE, item, nullptr);
+    ChatHandler(player->GetSession()).SendSysMessage("Soulbound items cannot be stored in the Realm Bank.");
+    return true;
 }
 
 void SendRights(Player* player, uint8 tabs)
@@ -438,6 +472,9 @@ void DepositToBank(Player* player, OpenBank& bank, uint8 bag, uint8 slot, uint8 
         return;
     }
 
+    if (RefuseSoulboundIntoRealmBank(player, bank, source))
+        return;
+
     if (tab >= bank.Tabs)
         return;
 
@@ -458,10 +495,13 @@ void DepositToBank(Player* player, OpenBank& bank, uint8 bag, uint8 slot, uint8 
 
     if (split)
     {
+        if (CanMergeInto(dest, source))
+            split = std::min(split, dest->GetMaxStackCount() - dest->GetCount());
+
         Item* moved = source->CloneItem(split, player);
         if (!moved)
         {
-            CharacterDatabase.CommitTransaction(trans);
+            CommitBankItems(bank, trans);
             player->SendEquipError(EQUIP_ERR_ITEM_NOT_FOUND, source, nullptr);
             return;
         }
@@ -477,7 +517,7 @@ void DepositToBank(Player* player, OpenBank& bank, uint8 bag, uint8 slot, uint8 
             }
             else
             {
-                CharacterDatabase.CommitTransaction(trans);
+                CommitBankItems(bank, trans);
                 delete moved;
                 player->SendEquipError(EQUIP_ERR_BANK_FULL, source, nullptr);
                 return;
@@ -518,7 +558,7 @@ void DepositToBank(Player* player, OpenBank& bank, uint8 bag, uint8 slot, uint8 
             InventoryResult msg = player->CanStoreItem(bag, slot, destPos, dest, true);
             if (msg != EQUIP_ERR_OK)
             {
-                CharacterDatabase.CommitTransaction(trans);
+                CommitBankItems(bank, trans);
                 player->SendEquipError(msg, dest, nullptr);
                 return;
             }
@@ -542,7 +582,7 @@ void DepositToBank(Player* player, OpenBank& bank, uint8 bag, uint8 slot, uint8 
         StoreInBank(trans, bank, tab, bankSlot, source);
     }
 
-    CharacterDatabase.CommitTransaction(trans);
+    CommitBankItems(bank, trans);
     SendTabChanged(player, bank, tab);
     LogBankEvent(bank, GUILD_BANK_LOG_DEPOSIT_ITEM, tab, player, sourceEntry,
                  uint16(split ? split : sourceCount));
@@ -561,12 +601,13 @@ void WithdrawToPlayer(Player* player, OpenBank& bank, uint8 tab, uint8 bankSlot,
     if (split == 0 || split >= source->GetCount())
         split = 0;
 
+    uint32 const movedAmount = split ? split : sourceCount;
     ItemPosCountVec destPos;
-    InventoryResult msg = player->CanStoreItem(bag, slot, destPos, source, false);
+    InventoryResult msg = player->CanStoreItem(bag, slot, destPos, sourceEntry, movedAmount, source, false);
     if (autoStore || msg != EQUIP_ERR_OK)
     {
         destPos.clear();
-        msg = player->CanStoreItem(NULL_BAG, NULL_SLOT, destPos, source, false);
+        msg = player->CanStoreItem(NULL_BAG, NULL_SLOT, destPos, sourceEntry, movedAmount, source, false);
     }
 
     if (msg != EQUIP_ERR_OK)
@@ -577,10 +618,9 @@ void WithdrawToPlayer(Player* player, OpenBank& bank, uint8 tab, uint8 bankSlot,
 
     CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
 
-    uint32 const movedAmount = split ? split : sourceCount;
     auto finish = [&]()
     {
-        CharacterDatabase.CommitTransaction(trans);
+        CommitBankItems(bank, trans);
         SendTabChanged(player, bank, tab);
         LogBankEvent(bank, GUILD_BANK_LOG_WITHDRAW_ITEM, tab, player, sourceEntry, uint16(movedAmount));
     };
@@ -590,7 +630,7 @@ void WithdrawToPlayer(Player* player, OpenBank& bank, uint8 tab, uint8 bankSlot,
         Item* moved = source->CloneItem(split, player);
         if (!moved)
         {
-            CharacterDatabase.CommitTransaction(trans);
+            CommitBankItems(bank, trans);
             player->SendEquipError(EQUIP_ERR_ITEM_NOT_FOUND, source, nullptr);
             return;
         }
@@ -618,9 +658,15 @@ void WithdrawToPlayer(Player* player, OpenBank& bank, uint8 tab, uint8 bankSlot,
                 return;
             }
 
+            if (RefuseSoulboundIntoRealmBank(player, bank, destItem))
+            {
+                CommitBankItems(bank, trans);
+                return;
+            }
+
             if (destItem->IsNotEmptyBag())
             {
-                CharacterDatabase.CommitTransaction(trans);
+                CommitBankItems(bank, trans);
                 player->SendEquipError(EQUIP_ERR_CAN_ONLY_DO_WITH_EMPTY_BAGS, destItem, nullptr);
                 return;
             }
@@ -629,7 +675,7 @@ void WithdrawToPlayer(Player* player, OpenBank& bank, uint8 tab, uint8 bankSlot,
             InventoryResult const swapMsg = player->CanStoreItem(bag, slot, swapPos, destItem, true);
             if (swapMsg != EQUIP_ERR_OK)
             {
-                CharacterDatabase.CommitTransaction(trans);
+                CommitBankItems(bank, trans);
                 player->SendEquipError(swapMsg, destItem, nullptr);
                 return;
             }
@@ -671,7 +717,7 @@ void MoveWithinBank(Player* player, OpenBank& bank, uint8 tab, uint8 slot, uint8
     {
         if (dest && !CanMergeInto(dest, source))
         {
-            CharacterDatabase.CommitTransaction(trans);
+            CommitBankItems(bank, trans);
             return;
         }
 
@@ -686,7 +732,7 @@ void MoveWithinBank(Player* player, OpenBank& bank, uint8 tab, uint8 slot, uint8
             Item* moved = source->CloneItem(split, player);
             if (!moved)
             {
-                CharacterDatabase.CommitTransaction(trans);
+                CommitBankItems(bank, trans);
                 return;
             }
 
@@ -713,7 +759,7 @@ void MoveWithinBank(Player* player, OpenBank& bank, uint8 tab, uint8 slot, uint8
         StoreSlot(trans, bank, destTab, destSlot, source);
     }
 
-    CharacterDatabase.CommitTransaction(trans);
+    CommitBankItems(bank, trans);
     SendTabChanged(player, bank, tab);
     if (destTab != tab)
         SendTabChanged(player, bank, destTab);
@@ -977,6 +1023,40 @@ void HandleWithdrawAllowanceQuery(Player* player, OpenBank&, WorldPacket const& 
 
 namespace AscensionPersonalBank
 {
+bool ReadOwnedItems(Player* player, std::unordered_set<uint32>& items)
+{
+    items.clear();
+    if (!player)
+        return false;
+    PollOwnershipCommits();
+    uint64 const character = player->GetGUID().GetCounter();
+    uint64 const account = player->GetSession()->GetAccountId();
+    if (!ownershipFence.Ready({OWNER_CHARACTER, character}) || !ownershipFence.Ready({OWNER_REALM, account}))
+        return false;
+    QueryResult rows = CharacterDatabase.Query(
+        "SELECT bi.item_guid, ii.itemEntry, 1 FROM mod_ascension_bank_item bi "
+        "LEFT JOIN item_instance ii ON ii.guid=bi.item_guid "
+        "WHERE (bi.owner_kind=0 AND bi.owner_id={}) OR (bi.owner_kind=1 AND bi.owner_id={}) "
+        "UNION ALL SELECT 0,0,0", character, account);
+    if (!rows)
+        return false;
+    std::unordered_set<uint32> result;
+    do
+    {
+        Field* fields = rows->Fetch();
+        if (!fields[2].Get<uint32>())
+            continue;
+        if (!fields[0].Get<uint64>() || fields[1].IsNull())
+            return false;
+        uint32 const entry = fields[1].Get<uint32>();
+        if (!sObjectMgr->GetItemTemplate(entry))
+            return false;
+        result.insert(entry);
+    } while (rows->NextRow());
+    items.swap(result);
+    return true;
+}
+
 void SendKindHint(Player* player, uint8 kind)
 {
     WorldPacket packet(SMSG_BANK_PERMISSIONS, 2);
@@ -1142,6 +1222,14 @@ bool AddTab(Player* player, uint8 kind)
 
 namespace
 {
+class AscensionBankOwnershipWorldScript : public WorldScript
+{
+public:
+    AscensionBankOwnershipWorldScript()
+        : WorldScript("AscensionBankOwnershipWorldScript", {WORLDHOOK_ON_UPDATE}) { }
+    void OnUpdate(uint32) override { PollOwnershipCommits(); }
+};
+
 class AscensionPersonalBankPlayerScript : public PlayerScript
 {
 public:
@@ -1201,6 +1289,7 @@ public:
 
 void AddSC_AscensionPersonalBank()
 {
+    new AscensionBankOwnershipWorldScript();
     new AscensionPersonalBankPlayerScript();
     new item_ascension_bank_tab_voucher();
 }

@@ -40,6 +40,13 @@ void Grant(Player* player)
         if (player->HasSpell(spell))
             player->removeSpell(spell, SPEC_MASK_ALL, false);
     AscensionRemovedSpellActionBars::Reconcile(player, {6991, 1106991, 1356991});
+#if __has_include("AscensionFreePick.h")
+    if (AscensionFreePick::Applies(player))
+    {
+        AscensionFreePick::SynchronizeLinkedSpells(player);
+        return;
+    }
+#endif
     std::set<uint32> spells;
     for (PetPackage const& package : Packages)
         if (player->HasSpell(package.Parent))
@@ -92,9 +99,18 @@ public:
             return;
         for (PetPackage const& package : Packages)
             if (package.Parent == spell)
+            {
+#if __has_include("AscensionFreePick.h")
+                if (AscensionFreePick::Applies(player))
+                {
+                    AscensionFreePick::SynchronizeLinkedSpells(player);
+                    return;
+                }
+#endif
                 for (uint32 child : package.Children)
                     if (child)
                         player->removeSpell(child, SPEC_MASK_ALL, false);
+            }
     }
 
     Optional<bool> OnPlayerIsClass(Player const* player, Classes playerClass, ClassContext context) override

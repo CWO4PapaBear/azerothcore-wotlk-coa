@@ -44,6 +44,7 @@
 #include "Opcodes.h"
 #include "OutdoorPvP.h"
 #include "Pet.h"
+#include "../../coa/AscensionFreePick.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "SocialMgr.h"
@@ -643,6 +644,15 @@ void WorldSession::HandleSetSelectionOpcode(WorldPacket& recv_data)
     recv_data >> guid;
 
     _player->SetSelection(guid);
+
+    // Area 52 starts each Auto Shot against one explicit target.
+    if (AscensionFreePick::Applies(_player))
+        if (Spell* shot = _player->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL))
+            if (shot->GetSpellInfo()->Id == 75 && shot->m_targets.GetUnitTargetGUID() != guid)
+            {
+                _player->InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
+                return;
+            }
 
     // Change target of current autoshoot spell
     if (guid)

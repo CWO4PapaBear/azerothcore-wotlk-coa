@@ -3,12 +3,16 @@
 #define ASCENSION_CLASS_MECHANICS_H
 
 #include <cstdint>
+#include <set>
 
 class Player;
 class Spell;
 class SpellInfo;
 class Unit;
 struct TargetInfo;
+
+void RefreshArea52SpellCharges(std::set<std::uint32_t> const& eligible);
+std::uint32_t GetClientSpellChargeCategory(SpellInfo const* info);
 
 void ApplyAscensionClassMechanics(SpellInfo* spellInfo);
 void SynchronizeAscensionClassMechanics(Player* player);

@@ -12,6 +12,7 @@
 #include "WorldSession.h"
 #include <algorithm>
 #include <array>
+#include <set>
 
 namespace
 {
@@ -223,6 +224,38 @@ class spell_area52_eldritch_condemnation : public SpellScript
             EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
     }
 };
+}
+
+bool ReduceArea52EldritchWrathCooldown(Player* player, int32 delta)
+{
+    if (!Applies(player) || !player->HasAura(Enchant))
+        return false;
+    if (delta >= 0)
+        return true;
+    std::set<uint32> origins(HolyWrath.begin(), HolyWrath.end());
+    for (uint32 id = 983703; id <= 983707; ++id)
+        origins.insert(id);
+    std::set<uint32> affected = origins;
+    for (auto const& [id, entry] : player->GetSpellMap())
+    {
+        if (entry->State == PLAYERSPELL_REMOVED)
+            continue;
+        auto const inherited = player->GetSpellInteractionOrigins(id);
+        if (std::any_of(inherited.begin(), inherited.end(),
+            [&origins](uint32 origin) { return origins.contains(origin); }))
+            affected.insert(id);
+    }
+    for (uint32 id : affected)
+    {
+        uint32 const remaining = player->GetSpellCooldownDelay(id);
+        if (!remaining)
+            continue;
+        if (uint64(-int64(delta)) >= remaining)
+            player->RemoveSpellCooldown(id, true);
+        else
+            player->ModifySpellCooldown(id, delta);
+    }
+    return true;
 }
 
 void AddAscensionEldritchKnightScripts()

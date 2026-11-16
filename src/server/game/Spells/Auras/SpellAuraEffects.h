@@ -112,6 +112,10 @@ public:
     void HandleShapeshiftBoosts(Unit* target, bool apply) const;
 
     // xinef: storing initial crit chance
+    // Calculation hooks receive a const view; record the AP share of their amount
+    // on this effect's current damage snapshot, without rewriting its base amount.
+    void AddAgilitySnapshotDamage(float amount) const { m_area52PeriodicAgilityDamage += amount; }
+    void ScaleAgilitySnapshotDamage(int32 percent) const { m_area52PeriodicAgilityDamage *= 1.0f + percent / 100.0f; }
     float GetCritChance() const { return m_critChance; }
     void SetCritChance(float crit) { m_critChance = crit; }
     uint8 GetCasterLevel() const { return m_casterLevel; }
@@ -139,6 +143,7 @@ private:
     uint8 m_casterLevel;
     int32 m_amount;
     float m_critChance;
+    mutable float m_area52PeriodicAgilityDamage = 0.0f;
     float m_pctMods;
 
     int32 m_oldAmount;

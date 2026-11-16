@@ -4399,7 +4399,7 @@ class spell_gen_replenishment_aura : public AuraScript
 
     bool Load() override
     {
-        return GetUnitOwner()->GetPower(POWER_MANA);
+        return GetUnitOwner()->GetMaxPower(POWER_MANA) != 0;
     }
 
     void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& /*canBeRecalculated*/)

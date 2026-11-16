@@ -863,7 +863,7 @@ class spell_dru_rip : public AuraScript
         return caster && caster->IsPlayer();
     }
 
-    void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+    void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& canBeRecalculated)
     {
         canBeRecalculated = false;
 
@@ -880,6 +880,7 @@ class spell_dru_rip : public AuraScript
                 amount += cp * idol2->GetAmount();
 
             amount += int32(CalculatePct(caster->GetTotalAttackPowerValue(BASE_ATTACK), cp));
+            aurEff->AddAgilitySnapshotDamage(CalculatePct(AscensionFreePick::AgilityAttackPower(caster->ToPlayer(), false), cp));
         }
     }
 

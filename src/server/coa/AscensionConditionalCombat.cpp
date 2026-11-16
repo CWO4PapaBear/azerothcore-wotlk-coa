@@ -38,6 +38,7 @@ void ApplyFrozenPowerDamageContract(SpellInfo* spellInfo)
 void ApplyArea52TargetDamageContracts(SpellInfo* spellInfo)
 {
     if (!spellInfo || !((spellInfo->Id == 979053 && spellInfo->SpellFamilyName == 3) ||
+        (spellInfo->Id == 3045 && spellInfo->SpellFamilyName == 9) ||
         ((spellInfo->Id == 979011 || spellInfo->Id == 530921) && spellInfo->SpellFamilyName == 8)))
         return;
     for (uint8 index = 0; index < (spellInfo->Id == 979053 ? 1 : 2); ++index)

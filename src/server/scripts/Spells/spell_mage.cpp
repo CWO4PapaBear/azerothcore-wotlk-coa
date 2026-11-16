@@ -1,3 +1,4 @@
+#include "../../coa/Area52HolyContracts.h"
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
@@ -120,7 +121,11 @@ class spell_mage_burning_determination : public AuraScript
             return false;
 
         // Need Interrupt or Silenced mechanic
-        if (!(eventInfo.GetSpellInfo()->GetAllEffectsMechanicMask() & ((1ULL << MECHANIC_INTERRUPT) | (1ULL << MECHANIC_SILENCE))))
+        AuraEffect const* marker = GetUnitOwner()->GetAuraEffect(54748, EFFECT_2);
+        bool spiritual = marker && marker->GetAmount() == 1;
+        if (spiritual ? !Area52Holy::FocusControl(eventInfo.GetSpellInfo()) :
+            !(eventInfo.GetSpellInfo()->GetAllEffectsMechanicMask() &
+                ((1ULL << MECHANIC_INTERRUPT) | (1ULL << MECHANIC_SILENCE))))
             return false;
 
         Unit* target = eventInfo.GetActionTarget();

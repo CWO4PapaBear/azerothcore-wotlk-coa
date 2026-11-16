@@ -17,7 +17,8 @@ enum DummyEvents
     EVENT_MAINTENANCE = 1,
     EVENT_BOSS_SPELL,
     EVENT_BOSS_WARNING,
-    EVENT_BOSS_HEAVY_HIT
+    EVENT_BOSS_HEAVY_HIT,
+    EVENT_BOSS_CC_IMMUNE_END
 };
 
 enum DummyEntries
@@ -96,6 +97,8 @@ struct npc_advanced_training_dummy : ScriptedAI
         _healingEnabled = false;
         _vulnerable = true;
         _heavyPending = false;
+        _ccPhase = false;
+        SetTrainingDummyCrowdControlImmunity(me, !IsBoss());
         if (me->GetEntry() == DYNAMIC_CONFIGURABLE || IsBoss())
             SetCrowdControlImmunity(true);
         if (IsBoss())
@@ -132,7 +135,6 @@ struct npc_advanced_training_dummy : ScriptedAI
                 target->SetTrainingLevel(target->IsBoss() ? player->GetLevel() + 3 : player->GetLevel());
                 if (target->IsBoss())
                 {
-                    target->events.ScheduleEvent(EVENT_BOSS_SPELL, 6s);
                     target->events.ScheduleEvent(EVENT_BOSS_WARNING, 12s);
                 }
             }
@@ -230,7 +232,7 @@ struct npc_advanced_training_dummy : ScriptedAI
             return;
         if (emote == TEXT_EMOTE_CURIOUS || emote == TEXT_EMOTE_WAVE)
         {
-            me->Whisper("/poke: vulnerability. In combat: /agree or /no: level; /clap: crowd control immunity.",
+            me->Whisper("/poke: vulnerability. In combat: /agree or /no: level. Crowd control immunity is always enabled.",
                 LANG_UNIVERSAL, player);
         }
         else if (emote == TEXT_EMOTE_POKE && !me->IsInCombat())
@@ -246,7 +248,7 @@ struct npc_advanced_training_dummy : ScriptedAI
                 SetTrainingLevel(me->GetLevel() - 1);
             else if (emote == TEXT_EMOTE_CLAP)
             {
-                SetCrowdControlImmunity(!_ccImmune);
+                me->Whisper("Crowd control immunity is always enabled.", LANG_UNIVERSAL, player);
             }
         }
     }
@@ -289,6 +291,7 @@ private:
                 events.CancelEvent(EVENT_BOSS_HEAVY_HIT);
                 SetBossCounterImmunity(true);
                 me->Whisper("Heavy strike stopped!", LANG_UNIVERSAL, owner);
+                BeginBossImmunity(owner);
             }
         }
         return true;
@@ -311,7 +314,7 @@ private:
             Unit* unit = ObjectAccessor::GetUnit(*me, itr->first);
             if (!unit || !unit->IsAlive() || !me->IsWithinDistInMap(unit, 60.0f)
                 || (!(IsTank() && itr->first == _owner)
-                    && getMSTimeDiff(itr->second, getMSTime()) >= 5000))
+                    && getMSTimeDiff(itr->second, getMSTime()) >= 15 * IN_MILLISECONDS))
             {
                 auto const& refs = me->GetCombatManager().GetPvECombatRefs();
                 if (auto ref = refs.find(itr->first); ref != refs.end())
@@ -347,6 +350,16 @@ private:
             me->ApplySpellImmune(DYNAMIC_CONFIGURABLE, IMMUNITY_MECHANIC, mechanic, enabled);
     }
 
+    void BeginBossImmunity(Player* owner)
+    {
+        if (_ccPhase)
+            return;
+        _ccPhase = true;
+        SetTrainingDummyCrowdControlImmunity(me, true);
+        me->Whisper("CC IMMUNITY: immune to all crowd control for 10 seconds!", LANG_UNIVERSAL, owner, true);
+        events.ScheduleEvent(EVENT_BOSS_CC_IMMUNE_END, 10s);
+    }
+
     void HandleBossEvent(uint32 event)
     {
         Player* owner = ObjectAccessor::GetPlayer(*me, _owner);
@@ -354,6 +367,12 @@ private:
             return;
         switch (event)
         {
+            case EVENT_BOSS_CC_IMMUNE_END:
+                _ccPhase = false;
+                SetTrainingDummyCrowdControlImmunity(me, false);
+                me->Whisper("CC immunity ended! Shadow Bolt incoming - INTERRUPT!",
+                    LANG_UNIVERSAL, owner, true);
+                [[fallthrough]];
             case EVENT_BOSS_SPELL:
                 if (_heavyPending || me->HasUnitState(UNIT_STATE_CASTING | UNIT_STATE_STUNNED)
                     || me->IsSpellProhibited(SPELL_SCHOOL_MASK_SHADOW))
@@ -364,10 +383,10 @@ private:
                 me->CastCustomSpell(SPELL_PRACTICE_SHADOW_BOLT, SPELLVALUE_BASE_POINT0,
                     int32(me->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE) * 2.0f), owner,
                     TRIGGERED_IGNORE_POWER_AND_REAGENT_COST);
-                events.ScheduleEvent(EVENT_BOSS_SPELL, 18s);
+                events.ScheduleEvent(EVENT_BOSS_WARNING, 6s);
                 break;
             case EVENT_BOSS_WARNING:
-                if (me->HasUnitState(UNIT_STATE_CASTING | UNIT_STATE_STUNNED))
+                if (_ccPhase || me->HasUnitState(UNIT_STATE_CASTING | UNIT_STATE_STUNNED))
                 {
                     events.ScheduleEvent(EVENT_BOSS_WARNING, 1s);
                     break;
@@ -376,7 +395,6 @@ private:
                 SetBossCounterImmunity(false);
                 me->Whisper("Heavy strike in 3 seconds! STUN or DISARM to stop it!", LANG_UNIVERSAL, owner, true);
                 events.ScheduleEvent(EVENT_BOSS_HEAVY_HIT, 3s);
-                events.ScheduleEvent(EVENT_BOSS_WARNING, 18s);
                 break;
             case EVENT_BOSS_HEAVY_HIT:
                 if (_heavyPending && me->IsWithinMeleeRange(owner)
@@ -390,6 +408,7 @@ private:
                 }
                 _heavyPending = false;
                 SetBossCounterImmunity(true);
+                BeginBossImmunity(owner);
                 break;
             default:
                 break;
@@ -402,6 +421,7 @@ private:
     bool _vulnerable = true;
     bool _ccImmune = true;
     bool _heavyPending = false;
+    bool _ccPhase = false;
 };
 
 void AddSC_advanced_training_dummy()

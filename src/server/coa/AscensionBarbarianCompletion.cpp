@@ -1,6 +1,7 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 
 #include "AscensionBarbarianCompletion.h"
+#include "AscensionFreePick.h"
 #include "Creature.h"
 #include "Item.h"
 #include "Pet.h"
@@ -211,6 +212,13 @@ public:
 
     void ModifySpellEffectBaseValue(Unit const* caster, SpellInfo const* info, uint8 index, float& value) override
     {
+        if (info && info->Id == 32515 && index == EFFECT_0 &&
+            AscensionFreePick::Applies(caster ? caster->ToPlayer() : nullptr))
+        {
+            value = CalculatePct(caster->GetTotalAttackPowerValue(BASE_ATTACK),
+                info->Effects[EFFECT_1].CalcValue(caster));
+            return;
+        }
         Player const* player = caster ? caster->ToPlayer() : nullptr;
         if (!player || player->getClass() != CLASS_BARBARIAN || info->SpellFamilyName != 18)
             return;
@@ -465,8 +473,57 @@ public:
 };
 }
 
+class Area52BrutalPummel final : public AllSpellScript
+{
+public:
+    Area52BrutalPummel() : AllSpellScript("Area52BrutalPummel") { }
+
+    Player* Caster(Spell* spell, Unit* target)
+    {
+        Player* player = spell && spell->GetCaster() ? spell->GetCaster()->ToPlayer() : nullptr;
+        if (!AscensionFreePick::Applies(player) || !target || !target->IsAlive() ||
+            player->IsFriendlyTo(target) || spell->IsTriggered() ||
+            !player->MatchesSpellInteraction(spell->GetSpellInfo()->Id, 6552))
+            return nullptr;
+        return player;
+    }
+
+    void OnSpellHitResult(Spell* spell, Unit* target, uint8 miss, uint32, uint32, bool) override
+    {
+        Player* player = Caster(spell, target);
+        if (!player || miss != SPELL_MISS_NONE || spell->GetScriptValue(32512001))
+            return;
+        uint32 chance = player->HasAura(32513) ? 100 : player->HasAura(32512) ? 50 : 0;
+        if (!chance)
+            return;
+        spell->SetScriptValue(32512001, 1);
+        if (roll_chance_i(chance))
+        {
+            player->CastSpell(target, 58567, true);
+            player->CastSpell(target, 58567, true);
+        }
+        if (player->HealthBelowPct(35))
+            player->CastSpell(target, 832513, true);
+    }
+
+    void OnSpellSuccessfulInterrupt(Spell* spell, Unit* target) override
+    {
+        Player* player = Caster(spell, target);
+        if (!player || !player->HasAura(32513) || spell->GetScriptValue(32515001))
+            return;
+        SpellInfo const* damage = sSpellMgr->GetSpellInfo(32515);
+        if (!damage)
+            return;
+        spell->SetScriptValue(32515001, 1);
+        int32 amount = int32(CalculatePct(player->GetTotalAttackPowerValue(BASE_ATTACK),
+            damage->Effects[EFFECT_1].CalcValue(player)));
+        player->CastCustomSpell(32515, SPELLVALUE_BASE_POINT0, amount, target, true);
+    }
+};
+
 void AddAscensionBarbarianCompletionScripts()
 {
+    new Area52BrutalPummel();
     new barbarian_barbaric_rage();
     new barbarian_scaling();
     new barbarian_casts();

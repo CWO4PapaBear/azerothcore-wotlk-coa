@@ -24,6 +24,7 @@
  */
 
 #include "ThreatManager.h"
+#include "../../coa/AscensionFreePick.h"
 #include "CombatManager.h"
 #include "Containers.h"
 #include "Creature.h"
@@ -389,7 +390,12 @@ void ThreatManager::EvaluateSuppressed(bool canExpire)
     }
 }
 
-void ThreatManager::AddThreat(Unit* target, float amount, SpellInfo const* spell, bool ignoreModifiers, bool ignoreRedirects)
+void ThreatManager::AddDamageThreat(Unit* target, float amount, SpellInfo const* spell, uint32 schoolMask)
+{
+    AddThreat(target, amount, spell, false, false, schoolMask);
+}
+
+void ThreatManager::AddThreat(Unit* target, float amount, SpellInfo const* spell, bool ignoreModifiers, bool ignoreRedirects, uint32 damageSchoolMask)
 {
     // step 1: we can shortcut if the spell has one of the NO_THREAT attrs set - nothing will happen
     if (spell)
@@ -416,7 +422,7 @@ void ThreatManager::AddThreat(Unit* target, float amount, SpellInfo const* spell
 
     // apply threat modifiers to the amount
     if (!ignoreModifiers)
-        amount = CalculateModifiedThreat(amount, target, spell);
+        amount = CalculateModifiedThreat(amount, target, spell, damageSchoolMask);
 
     // if we're increasing threat, send some/all of it to redirection targets instead if applicable
     if (!ignoreRedirects && amount > 0.0f)
@@ -696,7 +702,7 @@ void ThreatManager::ProcessAIUpdates()
     return (a->GetThreat() * aWeight < b->GetThreat());
 }
 
-/*static*/ float ThreatManager::CalculateModifiedThreat(float threat, Unit const* victim, SpellInfo const* spell)
+/*static*/ float ThreatManager::CalculateModifiedThreat(float threat, Unit const* victim, SpellInfo const* spell, uint32 damageSchoolMask)
 {
     // modifiers by spell
     if (spell)
@@ -712,6 +718,25 @@ void ThreatManager::ProcessAIUpdates()
     // modifiers by effect school
     ThreatManager const& victimMgr = victim->GetThreatMgr();
     SpellSchoolMask const mask = spell ? spell->GetSchoolMask() : SPELL_SCHOOL_MASK_NORMAL;
+    if (AscensionFreePick::Applies(victim->ToPlayer()) && (victim->HasAura(500196) || victim->HasAura(101278)))
+    {
+        uint32 const school = damageSchoolMask ? damageSchoolMask : uint32(mask);
+        bool const enchantedDamage = damageSchoolMask &&
+            (((school & SPELL_SCHOOL_MASK_HOLY) && victim->HasAura(500196)) ||
+             ((school & SPELL_SCHOOL_MASK_ARCANE) && victim->HasAura(101278)));
+        float modifier = victim->GetTotalAuraMultiplier(SPELL_AURA_MOD_THREAT,
+            [school, enchantedDamage](AuraEffect const* effect)
+            {
+                if (!(effect->GetMiscValue() & school))
+                    return false;
+                if (enchantedDamage)
+                    return effect->GetAmount() <= 0;
+                return effect->GetId() != 500196 && effect->GetId() != 101278;
+            });
+        if (enchantedDamage)
+            AddPct(modifier, victim->GetMaxPositiveAuraModifierByMiscMask(SPELL_AURA_MOD_THREAT, school));
+        return threat * modifier;
+    }
     switch (mask)
     {
         case SPELL_SCHOOL_MASK_NORMAL:

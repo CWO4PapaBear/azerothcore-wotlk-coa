@@ -10364,7 +10364,7 @@ float Unit::GetAscensionNormalTuningDamageMultiplier(Unit const* victim, uint32 
         {
             uint32 const id = effect->GetId();
             bool const reviewed = (id >= 887000 && id <= 887090) || IsAdventureModeDamageDoneAura(id) ||
-                (id == Area52HopliteRemaining::HungerBuff && AscensionFreePick::Applies(ToPlayer()));
+                ((id == 986116 || id == Area52HopliteRemaining::HungerBuff) && AscensionFreePick::Applies(ToPlayer()));
             return reviewed && (effect->GetMiscValue() & schoolMask);
         });
 }
@@ -10381,7 +10381,7 @@ float Unit::GetAscensionPvpTuningDamageMultiplier(Unit const* victim, uint32 sch
         {
             bool const hunger = effect->GetId() == Area52HopliteRemaining::HungerBuff &&
                 AscensionFreePick::Applies(ToPlayer());
-            return (hunger || IsAscensionPvpTuningAura(effect->GetId())) && (effect->GetMiscValue() & schoolMask);
+            return (hunger || (effect->GetId() == 986116 && AscensionFreePick::Applies(ToPlayer())) || IsAscensionPvpTuningAura(effect->GetId())) && (effect->GetMiscValue() & schoolMask);
         });
 }
 
@@ -10424,6 +10424,30 @@ uint32 Unit::SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, ui
             return (effect->GetMiscValue() & spellProto->GetSchoolMask()) &&
                 IsAscensionTuningDamageTakenSource(effect, caster, this);
         });
+    if (Player* player = caster ? caster->ToPlayer() : nullptr;
+        AscensionFreePick::Applies(player) && player->HasAura(957849) &&
+        (spellProto->GetSchoolMask() & (SPELL_SCHOOL_MASK_NATURE | SPELL_SCHOOL_MASK_ARCANE)))
+    {
+        auto const school = spellProto->GetSchoolMask();
+        auto const& dots = GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
+        bool const eligible = std::any_of(dots.begin(), dots.end(), [&](AuraEffect const* effect)
+        {
+            if (effect->GetCasterGUID() != player->GetGUID())
+                return false;
+            return ((school & SPELL_SCHOOL_MASK_NATURE) && player->MatchesSpellInteraction(effect->GetId(), 5570)) ||
+                   ((school & SPELL_SCHOOL_MASK_ARCANE) && player->MatchesSpellInteraction(effect->GetId(), 8921));
+        });
+        if (eligible)
+            if (AuraEffect const* bonus = player->GetAuraEffect(957849, EFFECT_0))
+                AddPct(TakenTotalMod, bonus->GetAmount());
+    }
+    if (Player* player = caster ? caster->ToPlayer() : nullptr;
+        AscensionFreePick::Applies(player) && player->HasAura(965282) &&
+        (player->MatchesSpellInteraction(spellProto->Id, 5570) ||
+         player->MatchesSpellInteraction(spellProto->Id, 8921) ||
+         (spellProto->SpellFamilyName == SPELLFAMILY_DRUID && (spellProto->SpellFamilyFlags[1] & 0x800000))))
+        if (AuraEffect const* bonus = player->GetAuraEffect(965282, IsCharmedOwnedByPlayerOrPlayer() ? EFFECT_0 : EFFECT_1))
+            AddPct(TakenTotalMod, bonus->GetAmount());
     TakenTotalMod *= GetHealthBasedDamageTakenMultiplier();
     if (AscensionFreePick::Applies(ToPlayer()) && HasAura(71) && caster &&
         caster->IsCharmedOwnedByPlayerOrPlayer())

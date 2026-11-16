@@ -1,6 +1,9 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 
 #include "AllBattlegroundScript.h"
+#include "CallboardRealmTier.h"
+#include "CallboardHuntRotation.h"
+#include "Chat.h"
 #include "Battleground.h"
 #include "Config.h"
 #include "GameObject.h"
@@ -44,7 +47,9 @@ namespace
     {
         SortPvE = -380,
         SortPvP = -381,
-        SortProfessions = -382
+        SortProfessions = -382,
+        SortZoneSeriesFirst = -548,
+        SortZoneSeriesLast = -538
     };
 
     constexpr uint32 WorldStateWeeklyReset = 20002;
@@ -86,6 +91,9 @@ namespace
     {
         int32 const sort = quest->GetZoneOrSort();
         if (sort > 0)
+            return CategoryPvE;
+
+        if (sort >= SortZoneSeriesFirst && sort <= SortZoneSeriesLast)
             return CategoryPvE;
 
         switch (sort)
@@ -184,36 +192,47 @@ namespace
         ClearGossipMenuFor(player);
         QuestMenu& menu = player->PlayerTalkClass->GetQuestMenu();
 
-        // Filter before adding: both categories together can exceed the 32-entry menu limit.
+        struct Row { Quest const* quest; uint8 icon; uint8 priority; };
+        std::vector<Row> rows;
+        auto append = [&](Quest const* quest, uint8 icon)
+        {
+            if (std::any_of(rows.begin(), rows.end(), [&](Row const& row) { return row.quest == quest; }))
+                return;
+            bool today = CallboardHunts::ZoneFor(quest->GetQuestId()) && CallboardHunts::CanOffer(player, quest->GetQuestId());
+            rows.push_back({quest, icon, uint8(today ? 0 : icon == 4 ? 1 : 2)});
+        };
         auto const involved = sObjectMgr->GetGOQuestInvolvedRelationBounds(board->GetEntry());
         for (auto itr = involved.first; itr != involved.second; ++itr)
         {
             Quest const* quest = sObjectMgr->GetQuestTemplate(itr->second);
-            if (!quest || !InCategory(quest, category) || menu.HasItem(itr->second))
+            if (!quest || !InCategory(quest, category) || !CallboardRealmTier::CanUse(player, quest) || menu.HasItem(itr->second))
                 continue;
 
             QuestStatus const status = player->GetQuestStatus(itr->second);
-            if ((status == QUEST_STATUS_INCOMPLETE || status == QUEST_STATUS_COMPLETE)
-                && menu.GetMenuItemCount() < GOSSIP_MAX_MENU_ITEMS)
-                menu.AddMenuItem(itr->second, 4);
+            if (status == QUEST_STATUS_COMPLETE || (status == QUEST_STATUS_INCOMPLETE
+                && CallboardHunts::CanOffer(player, quest->GetQuestId())))
+                append(quest, 4);
         }
 
-        std::vector<Quest const*> offered;
         auto const available = sObjectMgr->GetGOQuestRelationBounds(board->GetEntry());
         for (auto itr = available.first; itr != available.second; ++itr)
         {
             Quest const* quest = sObjectMgr->GetQuestTemplate(itr->second);
             if (quest && InCategory(quest, category) && !menu.HasItem(itr->second)
                 && player->CanSeeStartQuest(quest) && player->CanTakeQuest(quest, false))
-                offered.push_back(quest);
+                append(quest, 2);
         }
 
-        // Past the menu limit the quests closest to the character's level stay listed.
-        std::stable_sort(offered.begin(), offered.end(),
-            [](Quest const* left, Quest const* right) { return left->GetMinLevel() > right->GetMinLevel(); });
-        for (Quest const* quest : offered)
-            if (menu.GetMenuItemCount() < GOSSIP_MAX_MENU_ITEMS)
-                menu.AddMenuItem(quest->GetQuestId(), 2);
+        std::stable_sort(rows.begin(), rows.end(), [](Row const& left, Row const& right)
+        {
+            if (left.priority != right.priority) return left.priority < right.priority;
+            return left.quest->GetMinLevel() > right.quest->GetMinLevel();
+        });
+        for (Row const& row : rows)
+        {
+            if (menu.GetMenuItemCount() >= GOSSIP_MAX_MENU_ITEMS) break;
+            menu.AddMenuItem(row.quest->GetQuestId(), row.icon);
+        }
 
         // CallBoardLayout reads the quests' QuestSort synchronously, even on a cold client cache.
         for (uint16 index = 0; index < menu.GetMenuItemCount(); ++index)
@@ -248,10 +267,10 @@ class go_hero_call_board final : public GameObjectScript
 public:
     go_hero_call_board() : GameObjectScript("native_ascension_callboard") { }
 
-    uint32 GetDialogStatus(Player* /*player*/, GameObject* board) override
+    uint32 GetDialogStatus(Player* player, GameObject* board) override
     {
         // The board is a permanent service: daily quest flags must not turn its marker blue.
-        return enabled.load() && IsCallBoard(board->GetEntry()) ? DIALOG_STATUS_AVAILABLE
+        return enabled.load() && CallboardRealmTier::ForPlayer(player) && IsCallBoard(board->GetEntry()) ? DIALOG_STATUS_AVAILABLE
             : DIALOG_STATUS_SCRIPTED_NO_STATUS;
     }
 
@@ -260,13 +279,20 @@ public:
         if (!enabled.load() || !IsCallBoard(board->GetEntry()))
             return false;
 
+        if (!CallboardRealmTier::ForPlayer(player))
+        {
+            ChatHandler(player->GetSession()).SendSysMessage("The Callboard opens at level 60.");
+            return true;
+        }
         ShowCategories(player, board);
+        if (auto zone = CallboardHunts::Today(player))
+            ChatHandler(player->GetSession()).PSendSysMessage("Today's Callboard hunts and Wanted bounties: {}.", zone);
         return true;
     }
 
     bool OnGossipSelect(Player* player, GameObject* board, uint32 sender, uint32 action) override
     {
-        if (!enabled.load() || !IsCallBoard(board->GetEntry()) || sender != GOSSIP_SENDER_MAIN)
+        if (!enabled.load() || !CallboardRealmTier::ForPlayer(player) || !IsCallBoard(board->GetEntry()) || sender != GOSSIP_SENDER_MAIN)
             return false;
 
         if (action == CategoryReturn)
@@ -402,7 +428,8 @@ public:
             // The dailies require a dungeon finder group assigned to this dungeon; the durable state keeps the
             // assignment while the group looks for a replacement.
             Group const* group = player->GetGroup();
-            if (group && group->isLFGGroup() && sLFGMgr->GetDungeon(group->GetGUID()) == dungeonId
+            if (CallboardRealmTier::DungeonMatches(CallboardRealmTier::ForPlayer(player), map->GetEntry()->Expansion())
+                && group && group->isLFGGroup() && sLFGMgr->GetDungeon(group->GetGUID()) == dungeonId
                 && sLFGMgr->GetOldState(group->GetGUID()) == lfg::LFG_STATE_DUNGEON
                 && sLFGMgr->GetOldState(player->GetGUID()) == lfg::LFG_STATE_DUNGEON)
                 player->KilledMonsterCredit(credit);

@@ -42,6 +42,7 @@ public:
             { "nameannounce",   HandleNameAnnounceCommand,   rbac::RBAC_PERM_COMMAND_NAMEANNOUNCE,   Console::Yes },
             { "gmnameannounce", HandleGMNameAnnounceCommand, rbac::RBAC_PERM_COMMAND_GMNAMEANNOUNCE, Console::Yes },
             { "announce",       HandleAnnounceCommand,       rbac::RBAC_PERM_COMMAND_ANNOUNCE,       Console::Yes },
+            { "realmwarning",   HandleRealmWarningCommand,   rbac::RBAC_PERM_COMMAND_ANNOUNCE,       Console::Yes },
             { "gmannounce",     HandleGMAnnounceCommand,     rbac::RBAC_PERM_COMMAND_GMANNOUNCE,     Console::Yes },
             { "notify",         HandleNotifyCommand,         rbac::RBAC_PERM_COMMAND_NOTIFY,         Console::Yes },
             { "gmnotify",       HandleGMNotifyCommand,       rbac::RBAC_PERM_COMMAND_GMNOTIFY,       Console::Yes },
@@ -83,6 +84,23 @@ public:
             return false;
 
         sWorldSessionMgr->SendServerMessage(SERVER_MSG_STRING, Acore::StringFormat(handler->GetAcoreString(LANG_SYSTEMMESSAGE), message.data()));
+        return true;
+    }
+
+    static bool HandleRealmWarningCommand(ChatHandler* handler, Tail message)
+    {
+        if (message.empty() || message.size() > 512)
+            return false;
+
+        for (unsigned char value : message)
+            if (value < 32 || value == 127 || value == '|')
+                return false;
+
+        WorldPacket data;
+        ChatHandler::BuildChatPacket(data, CHAT_MSG_RAID_WARNING, LANG_UNIVERSAL, nullptr, nullptr,
+            Acore::StringFormat("[Realm] {}", std::string_view(message)));
+        sWorldSessionMgr->SendGlobalMessage(&data);
+        handler->SendSysMessage("Realm raid warning sent to all online players.");
         return true;
     }
 

@@ -5,6 +5,7 @@
 #include "AllItemScript.h"
 #include "AllSpellScript.h"
 #include "Player.h"
+#include "WorldSession.h"
 #include "PlayerScript.h"
 #include "MovementHandlerScript.h"
 #include "Opcodes.h"
@@ -22,6 +23,7 @@
 namespace
 {
 bool Area52Enabled = false;
+bool EquipmentHandlersRegistered = false;
 std::unordered_map<ObjectGuid::LowType, std::unordered_set<uint32>> WhiteWalkerGranted;
 std::unordered_set<ObjectGuid::LowType> AbsoluteZeroGranted;
 std::unordered_map<ObjectGuid::LowType, uint32> FreezingBloodLastCooldown;
@@ -161,6 +163,26 @@ void RefreshAbsoluteZero(Player* player)
         player->SetTemporarySpellReplacement(rank, player->HasActiveSpell(rank) ? AbsoluteZeroReplacement : 0);
 }
 
+void RefreshWhiteWalkerMountItem(Player* player)
+{
+    if (Area52Enabled && player->GetSession())
+        player->GetSession()->SendItemQuerySingleResponse(51955);
+}
+
+void RefreshIcyTalons(Player* player)
+{
+    if (!Area52Enabled || !player->IsInWorld())
+        return;
+    for (uint32 rank : {50880u, 50884u, 50885u, 50886u, 50887u})
+    {
+        if (player->HasAura(rank))
+            continue;
+        if (auto const* info = sSpellMgr->GetSpellInfo(rank))
+            if (uint32 helper = info->Effects[EFFECT_0].TriggerSpell)
+                player->RemoveAurasDueToSpell(helper, player->GetGUID());
+    }
+}
+
 class white_walker_player : public PlayerScript
 {
 public:
@@ -169,8 +191,10 @@ public:
 
     void OnPlayerLogin(Player* player) override
     {
+        RefreshWhiteWalkerMountItem(player);
         RefreshWhiteWalker(player);
         RefreshAbsoluteZero(player);
+        RefreshIcyTalons(player);
     }
 
     void OnPlayerSpellCast(Player* player, Spell* spell, bool) override
@@ -206,6 +230,7 @@ public:
     {
         RefreshWhiteWalker(player);
         RefreshAbsoluteZero(player);
+        RefreshIcyTalons(player);
     }
 
     void OnPlayerLogout(Player* player) override
@@ -961,10 +986,7 @@ class aura_area52_fighters_sinister_strike : public AuraScript
 
     bool CheckProc(ProcEventInfo& event)
     {
-        return Area52Enabled && event.GetActor() == GetTarget() && event.GetSpellInfo() &&
-            GetTarget()->ToPlayer() && GetTarget()->ToPlayer()->MatchesSpellInteraction(
-                event.GetSpellInfo()->Id, AscensionWhiteWalkerSupport::SinisterStrike) &&
-            !GetTarget()->HasAura(780999) && event.GetDamageInfo() && event.GetDamageInfo()->GetDamage();
+        return false;
     }
 
     void Proc(ProcEventInfo& event)
@@ -1047,6 +1069,29 @@ class aura_area52_ebb_drain : public AuraScript
 
 }
 
+bool HasArea52WhiteWalkerHandlers(uint32 spell)
+{
+    using namespace AscensionWhiteWalkerSupport;
+    if (!Area52Enabled || !EquipmentHandlersRegistered)
+        return false;
+    if (spell == AbsoluteZero)
+        return true;
+    char const* expected = spell == WhiteWalker ? "aura_area52_white_walker" :
+        spell == FreezingBlood ? "aura_area52_freezing_blood" :
+        spell == TidesOfBattle ? "aura_area52_tides_of_battle" : nullptr;
+    if (!expected)
+        return false;
+    std::list<AuraScript*> handlers;
+    sScriptMgr->CreateAuraScripts(spell, handlers);
+    bool found = false;
+    for (auto* script : handlers)
+    {
+        found |= *script->_GetScriptName() == expected;
+        delete script;
+    }
+    return found;
+}
+
 void AddSC_AscensionWhiteWalkerSupport()
 {
     new white_walker_ice_spear();
@@ -1074,4 +1119,5 @@ void AddSC_AscensionWhiteWalkerSupport()
     RegisterSpellScript(aura_area52_fighters_sinister_strike);
     RegisterSpellScript(aura_area52_tides_of_battle);
     RegisterSpellScript(aura_area52_ebb_drain);
+    EquipmentHandlersRegistered = true;
 }

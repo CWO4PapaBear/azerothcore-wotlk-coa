@@ -700,6 +700,30 @@ void SpellMgr::LoadSpellInfoCorrections()
         spellInfo->Speed = 0.0f;
     });
 
+    ApplySpellFix({ 34490 }, [](SpellInfo* spellInfo)
+    {
+        if (spellInfo->Effects[EFFECT_0].Effect != SPELL_EFFECT_WEAPON_DAMAGE ||
+            spellInfo->Effects[EFFECT_1].TriggerSpell != 834491)
+            return;
+        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_WEAPON_PERCENT_DAMAGE;
+        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_INTERRUPT_CAST;
+        spellInfo->Effects[EFFECT_1].TriggerSpell = 0;
+        spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ENEMY);
+        spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_TRIGGER_SPELL;
+        spellInfo->Effects[EFFECT_2].TriggerSpell = 834491;
+        spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ENEMY);
+        spellInfo->AttributesEx3 |= SPELL_ATTR3_ALWAYS_HIT | SPELL_ATTR3_SUPPRESS_CASTER_PROCS;
+        spellInfo->AttributesEx4 |= SPELL_ATTR4_SUPPRESS_WEAPON_PROCS;
+    });
+
+    ApplySpellFix({ 834491 }, [](SpellInfo* spellInfo)
+    {
+        if (spellInfo->Effects[EFFECT_0].ApplyAuraName != SPELL_AURA_MOD_SILENCE)
+            return;
+        spellInfo->AttributesEx3 |= SPELL_ATTR3_ALWAYS_HIT | SPELL_ATTR3_SUPPRESS_CASTER_PROCS;
+        spellInfo->AttributesEx4 |= SPELL_ATTR4_SUPPRESS_WEAPON_PROCS;
+    });
+
     // Monstrous Bite
     ApplySpellFix({ 54680, 55495, 55496, 55497, 55498, 55499 }, [](SpellInfo* spellInfo)
     {
@@ -1389,9 +1413,68 @@ void SpellMgr::LoadSpellInfoCorrections()
         spellInfo->TargetCreatureType = 0;
     });
 
+    ApplySpellFix({ 53220 }, [](SpellInfo* spellInfo)
+    {
+        if (spellInfo->Effects[EFFECT_0].SpellClassMask == flag96(137216, 0, 1))
+        {
+            spellInfo->ProcCharges = 1;
+            spellInfo->Effects[EFFECT_1].SpellClassMask = spellInfo->Effects[EFFECT_0].SpellClassMask;
+            spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+            spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+            spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_ADD_PCT_MODIFIER;
+            spellInfo->Effects[EFFECT_2].MiscValue = SPELLMOD_IGNORE_ARMOR;
+            spellInfo->Effects[EFFECT_2].BasePoints = -1;
+            spellInfo->Effects[EFFECT_2].DieSides = 1;
+            spellInfo->Effects[EFFECT_2].SpellClassMask = spellInfo->Effects[EFFECT_0].SpellClassMask;
+        }
+    });
+
+    ApplySpellFix({ 31224 }, [](SpellInfo* spellInfo)
+    {
+        if (spellInfo->Effects[EFFECT_2].ApplyAuraName == SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN &&
+            spellInfo->Effects[EFFECT_2].BasePoints == -1 && spellInfo->Effects[EFFECT_2].DieSides == 1)
+        {
+            spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_MECHANIC_IMMUNITY_MASK;
+            spellInfo->Effects[EFFECT_2].MiscValue = 65;
+        }
+    });
+
+    ApplySpellFix({ 49048 }, [](SpellInfo* spellInfo)
+    {
+        if (spellInfo->Effects[EFFECT_0].Effect == SPELL_EFFECT_NORMALIZED_WEAPON_DMG &&
+            spellInfo->Effects[EFFECT_1].Effect == SPELL_EFFECT_APPLY_AURA &&
+            spellInfo->Effects[EFFECT_1].ApplyAuraName == 0)
+            spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_WEAPON_PERCENT_DAMAGE;
+    });
+
+    ApplySpellFix({ 965202 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
+        spellInfo->Effects[EFFECT_0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+        spellInfo->Effects[EFFECT_0].TargetB = SpellImplicitTargetInfo(0);
+        spellInfo->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_MOD_RANGED_HASTE;
+        spellInfo->Effects[EFFECT_0].BasePoints = 32;
+        spellInfo->Effects[EFFECT_0].DieSides = 1;
+    });
+
+    ApplySpellFix({ 13975, 14062, 14063, 975907 }, [](SpellInfo* spellInfo)
+    {
+        SpellEffIndex const index = spellInfo->Id == 975907 ? EFFECT_1 : EFFECT_2;
+        spellInfo->Effects[index].Effect = SPELL_EFFECT_APPLY_AURA;
+        spellInfo->Effects[index].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+        spellInfo->Effects[index].ApplyAuraName = SPELL_AURA_ADD_FLAT_MODIFIER;
+        spellInfo->Effects[index].MiscValue = SPELLMOD_EFFECT2;
+        spellInfo->Effects[index].BasePoints = spellInfo->Effects[EFFECT_0].BasePoints;
+        spellInfo->Effects[index].DieSides = spellInfo->Effects[EFFECT_0].DieSides;
+        spellInfo->Effects[index].SpellClassMask = flag96(16384, 0, 0);
+    });
+
     // Aspect of the Viper
     ApplySpellFix({ 34074 }, [](SpellInfo* spellInfo)
     {
+        if (spellInfo->Effects[EFFECT_2].IsAura(SPELL_AURA_MOD_HEALING_DONE_PERCENT))
+            return;
+
         spellInfo->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
         spellInfo->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(1);
         spellInfo->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_DUMMY;
@@ -4044,6 +4127,18 @@ void SpellMgr::LoadSpellInfoCorrections()
     {
         spellInfo->Effects[EFFECT_0].SpellClassMask[0] |= 0x00004000;
         spellInfo->Effects[EFFECT_1].Effect = 0;
+        uint32 const rank = spellInfo->Id == 19485 ? 1 : spellInfo->Id == 19487 ? 2 : spellInfo->Id == 19488 ? 3 : 0;
+        int32 const criticalBonus = rank == 3 ? 20 : int32(rank * 7);
+        if (rank && spellInfo->Effects[EFFECT_0].CalcValue() == criticalBonus)
+        {
+            spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
+            spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+            spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_ADD_FLAT_MODIFIER;
+            spellInfo->Effects[EFFECT_1].MiscValue = SPELLMOD_DURATION;
+            spellInfo->Effects[EFFECT_1].BasePoints = int32(rank * IN_MILLISECONDS) - 1;
+            spellInfo->Effects[EFFECT_1].DieSides = 1;
+            spellInfo->Effects[EFFECT_1].SpellClassMask = flag96(131072, 0, 0);
+        }
     });
 
     // Item - Death Knight T9 Melee 4P Bonus

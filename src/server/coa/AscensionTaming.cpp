@@ -1,5 +1,8 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 
+#include "Area52ActiveBuild.h"
+#include "Area52DraftPet.h"
+#include "Area52FeaturedPets.h"
 #include "AscensionTamingData.h"
 #include "AscensionHeroPets.h"
 #include "Creature.h"
@@ -195,6 +198,128 @@ bool GrantStarter(Player* player, FamilyCall const& call)
 }
 }
 
+char const* SelectWardrobeBeast(Player* player, uint32 entry, uint32 summon, uint32 dismiss)
+{
+    auto const* creature = sObjectMgr->GetCreatureTemplate(entry);
+    if (!creature || !creature->IsTameable(true))
+        return "APPLY_APPEARANCES_BAD_CREATURE_TEMPLATE";
+    if (!creature->IsTameable(player->CanTameExoticPets()))
+        return "APPLY_APPEARANCES_CANNOT_TAME_EXOTIC";
+    if (!player->HasSpell(summon))
+        return "APPLY_APPEARANCES_PET_SUMMON_SPELL_NOT_LEARNED";
+    if (!player->HasSpell(dismiss))
+        return "APPLY_APPEARANCES_PET_DISMISS_SPELL_NOT_LEARNED";
+    if (player->IsInCombat())
+        return "APPLY_APPEARANCES_COSMETIC_PET_IN_COMBAT";
+
+    auto const draft = Area52Build::GetDraftVanityContext(player);
+    if (!draft.Ready || (draft.Build && Area52Build::FeaturedHunterPet(draft.Pet, draft.Archetype)) ||
+        Area52DraftPetBusy(player) || player->GetTemporaryUnsummonedPetNumber() || player->GetCharmGUID() ||
+        !player->IsAlive() || !player->IsInWorld() || !player->FindMap() || player->IsBeingTeleported())
+        return "APPLY_APPEARANCES_UNKNOWN";
+
+    auto& stable = player->GetOrInitPetStable();
+    auto* current = player->GetPet();
+    if (current && (current->isBeingLoaded() || Area52DraftPetTracked(current) || !stable.CurrentPet ||
+        stable.CurrentPet->PetNumber != current->GetCharmInfo()->GetPetNumber()))
+        return "APPLY_APPEARANCES_UNKNOWN";
+    if (stable.CurrentPet && (stable.CurrentPet->Type != HUNTER_PET ||
+        Area52WardrobePetReserved(player, stable.CurrentPet->PetNumber)))
+        return "APPLY_APPEARANCES_UNKNOWN";
+    if (current ? !current->IsAlive() : stable.CurrentPet && !stable.CurrentPet->Health)
+        return "APPLY_APPEARANCES_PET_DEAD_NON_SAFE_ZONE";
+    if (HasUnslottedHunterPet(stable))
+        return "APPLY_APPEARANCES_UNKNOWN";
+
+    auto restore = [player](uint32 number)
+    {
+        auto pet = std::make_unique<Pet>(player, HUNTER_PET);
+        if (!pet->LoadPetFromDB(player, 0, number, false))
+            return false;
+        pet.release();
+        return true;
+    };
+    if (stable.CurrentPet && stable.CurrentPet->CreatureId == entry)
+        return current || restore(stable.CurrentPet->PetNumber) ? nullptr : "APPLY_APPEARANCES_UNKNOWN";
+
+    std::optional<std::size_t> wanted;
+    for (std::size_t i = 0; i < stable.StabledPets.size(); ++i)
+        if (stable.StabledPets[i] && stable.StabledPets[i]->CreatureId == entry && stable.StabledPets[i]->Type == HUNTER_PET)
+        {
+            if (!CanLoad(player, *stable.StabledPets[i]) || Area52WardrobePetReserved(player, stable.StabledPets[i]->PetNumber))
+                return "APPLY_APPEARANCES_UNKNOWN";
+            wanted = i;
+            break;
+        }
+    auto park = wanted ? wanted : FreeStableSlot(stable);
+    if (stable.CurrentPet && !park)
+    {
+        player->SendTameFailure(PET_TAME_TOO_MANY);
+        return "APPLY_APPEARANCES_UNKNOWN";
+    }
+
+    auto previous = stable.CurrentPet;
+    if (current && previous)
+        current->FillPetInfo(&*previous);
+    auto wantedPet = wanted ? stable.StabledPets[*wanted] : decltype(stable.CurrentPet){};
+    auto tx = CharacterDatabase.BeginTransaction();
+    auto slotUpdate = [&](uint32 number, PetSaveMode slot)
+    {
+        auto stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHAR_PET_SLOT_BY_ID);
+        stmt->SetData(0, uint8(slot));
+        stmt->SetData(1, player->GetGUID().GetCounter());
+        stmt->SetData(2, number);
+        tx->Append(stmt);
+    };
+    if (previous)
+    {
+        auto mode = PetSaveMode(PET_SAVE_FIRST_STABLE_SLOT + *park);
+        if (current)
+            player->RemovePet(current, mode, false, tx);
+        else
+            slotUpdate(previous->PetNumber, mode);
+    }
+    stable.CurrentPet.reset();
+    bool loaded = false;
+    if (wantedPet)
+    {
+        loaded = restore(wantedPet->PetNumber);
+        if (loaded)
+            slotUpdate(wantedPet->PetNumber, PET_SAVE_AS_CURRENT);
+    }
+    else
+    {
+        std::unique_ptr<Pet> pet(player->CreateTamedPetFrom(entry, summon));
+        if (pet && pet->GetMap()->AddToMap(pet->ToCreature(), true))
+        {
+            player->SetMinion(pet.get(), true);
+            pet->InitTalentForLevel();
+            pet->SavePetToDB(PET_SAVE_AS_CURRENT, tx);
+            player->PetSpellInitialize();
+            pet.release();
+            loaded = true;
+        }
+    }
+    // This rare Wardrobe action needs the ASYNC statement connection and a definite
+    // commit result before acknowledging the appearance or allowing another selection.
+    if (loaded && CharacterDatabase.AsyncCommitTransaction(tx).m_future.get())
+    {
+        if (previous)
+            stable.StabledPets[*park] = std::move(previous);
+        return nullptr;
+    }
+    if (auto failed = player->GetPet())
+        player->RemovePet(failed, PET_SAVE_AS_CURRENT, false, CharacterDatabase.BeginTransaction());
+    stable.CurrentPet = previous;
+    if (wanted)
+        stable.StabledPets[*wanted] = std::move(wantedPet);
+    if (previous && current)
+        restore(previous->PetNumber);
+    return "APPLY_APPEARANCES_UNKNOWN";
+}
+
+
+
 class spell_ascension_family_call : public SpellScript
 {
     PrepareSpellScript(spell_ascension_family_call);
@@ -227,7 +352,18 @@ class spell_ascension_family_call : public SpellScript
             return SPELL_CAST_OK;
         }
 
-        if (!call->Starter || !sObjectMgr->GetCreatureTemplate(call->Starter))
+        FamilyCall starter = *call;
+        if (starter.Kind == KIND_ELEMENTAL)
+        {
+            auto const archetype = Area52Build::GetReadyFeaturedArchetype(player);
+            if (!archetype)
+                return SPELL_FAILED_TRY_AGAIN;
+            constexpr uint32 Cryotherapist = 13;
+            constexpr uint32 TheradrimShardling = 11783;
+            if (*archetype == Cryotherapist)
+                starter.Starter = TheradrimShardling;
+        }
+        if (!starter.Starter || !sObjectMgr->GetCreatureTemplate(starter.Starter))
         {
             player->SendTameFailure(PET_TAME_NOPET_AVAILABLE);
             return SPELL_FAILED_DONT_REPORT;
@@ -239,7 +375,7 @@ class spell_ascension_family_call : public SpellScript
         }
 
         ParkCurrent(player, stable, out, plan.ParkSlot);
-        GrantStarter(player, *call);
+        GrantStarter(player, starter);
         return SPELL_FAILED_DONT_REPORT;
     }
 

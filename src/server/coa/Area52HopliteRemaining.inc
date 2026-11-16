@@ -197,13 +197,7 @@ class aura_area52_draconic_sinister : public AuraScript
     bool Validate(SpellInfo const*) override { return ValidateSpellInfo({HopliteRules::DraconicSpellCrit, HopliteRules::DraconicWeaponCrit, HopliteRules::DraconicProc, HopliteRules::WorldforgedCooldown}); }
     bool Check(ProcEventInfo& event)
     {
-        auto const* spell = event.GetSpellInfo();
-        return spell && event.GetActor() == GetTarget() && event.GetDamageInfo() &&
-            event.GetDamageInfo()->GetDamage() && !(event.GetTypeMask() & PROC_FLAG_DONE_PERIODIC) &&
-            HopliteInteractionMatches(GetTarget()->ToPlayer(), spell, [](SpellInfo const* info)
-                { return Area52HopliteRemaining::DraconicConsumer(info->GetFirstRankSpell()->Id); }) &&
-            !GetTarget()->HasAura(HopliteRules::WorldforgedCooldown) &&
-            roll_chance_i(sSpellMgr->GetSpellInfo(HopliteRules::DraconicProc)->ProcChance);
+        return false;
     }
     void Handle(AuraEffect const* effect, ProcEventInfo&)
     {

@@ -76,7 +76,7 @@ bool ReplaceMysticScroll(Player* player, Item* source, uint32 entry, uint32 rune
     return true;
 }
 
-char const* CollectMysticScroll(Player* player, State* state, Item* item, bool buyExtract)
+char const* CollectMysticScroll(Player* player, State* state, Item* item, bool)
 {
     if (!CanChange(player, state))
         return "RE_DISENCHANT_UNKNOWN";
@@ -88,12 +88,6 @@ char const* CollectMysticScroll(Player* player, State* state, Item* item, bool b
     uint32 const spell = found->second;
     if (state->Known.contains(spell))
         return "RE_DISENCHANT_ALREADY_KNOWN_ENCHANTMENT";
-    if (!NearAltar(player))
-        return "RE_DISENCHANT_NO_MYSTIC_ALTAR";
-    bool const heldExtract = player->HasItemCount(MysticExtractItem, 1);
-    uint32 const price = heldExtract ? 0 : ScrollExtractPrice(player);
-    if (!heldExtract && (!buyExtract || !player->HasItemCount(MysticRuneItem, price)))
-        return "RE_DISENCHANT_NO_MONEY";
     auto transaction = CharacterDatabase.BeginTransaction();
     auto* statement = CharacterDatabase.GetPreparedStatement(CHAR_INS_FREEPICK_MYSTIC_COLLECTION);
     statement->SetData(0, player->GetSession()->GetAccountId());
@@ -101,7 +95,6 @@ char const* CollectMysticScroll(Player* player, State* state, Item* item, bool b
     transaction->Append(statement);
     uint32 one = 1;
     player->DestroyItemCount(item, one, true);
-    player->DestroyItemCount(heldExtract ? MysticExtractItem : MysticRuneItem, heldExtract ? 1 : price, true);
     player->SaveInventoryAndGoldToDB(transaction);
     CharacterDatabase.CommitTransaction(transaction);
     state->Known.insert(spell);
@@ -191,7 +184,7 @@ void HandleScrollRequest(Player* player, WorldPacket& packet)
         result = "RE_REFORGE_UNKNOWN";
     else
     {
-        uint32 runes = sConfigMgr->GetOption<uint32>("CoA.FreePickMysticEnchants.ReforgeRuneCost", 250);
+        uint32 runes = sConfigMgr->GetOption<uint32>("CoA.FreePickMysticEnchants.ReforgeRuneCost", 50);
         uint32 money = sConfigMgr->GetOption<uint32>("CoA.FreePickMysticEnchants.ReforgeMoneyCost", 25000);
         if (runes && player->HasItemCount(MysticRuneItem, runes))
             money = 0;

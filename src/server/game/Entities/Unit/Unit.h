@@ -1262,7 +1262,9 @@ public:
 
     // Melee damage bonus
     uint32 MeleeDamageBonusDone(Unit* pVictim, uint32 damage, WeaponAttackType attType, SpellInfo const* spellProto = nullptr, SpellSchoolMask damageSchoolMask = SPELL_SCHOOL_MASK_NORMAL);
+    uint32 MeleeDamageBonusDone(Unit* pVictim, uint32 damage, WeaponAttackType attType, SpellInfo const* spellProto, SpellSchoolMask damageSchoolMask, float* agilityDamage);
     uint32 MeleeDamageBonusTaken(Unit* attacker, uint32 pdamage, WeaponAttackType attType, SpellInfo const* spellProto = nullptr, SpellSchoolMask damageSchoolMask = SPELL_SCHOOL_MASK_NORMAL);
+    uint32 MeleeDamageBonusTaken(Unit* attacker, uint32 pdamage, WeaponAttackType attType, SpellInfo const* spellProto, SpellSchoolMask damageSchoolMask, float* agilityDamage);
 
     // Spell damage bonus
     int32 SpellBaseDamageBonusDone(SpellSchoolMask schoolMask);
@@ -1272,7 +1274,9 @@ public:
     float GetSpellAttackPowerCoefficientFlatBonus(SpellInfo const* spellInfo) const;
     float GetSpellPowerCoefficientFlatBonus(SpellInfo const* spellInfo) const;
     uint32 SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uint32 pdamage, DamageEffectType damagetype, uint8 effIndex, float TotalMod = 0.0f, uint32 stack = 1);
+    uint32 SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uint32 pdamage, DamageEffectType damagetype, uint8 effIndex, float TotalMod, uint32 stack, float* agilityDamage);
     uint32 SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, uint32 pdamage, DamageEffectType damagetype, uint32 stack = 1);
+    uint32 SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, uint32 pdamage, DamageEffectType damagetype, uint32 stack, float* agilityDamage);
 
     // AOE damages
     int32 CalculateAOEDamageReduction(int32 damage, uint32 schoolMask, bool npcCaster) const;
