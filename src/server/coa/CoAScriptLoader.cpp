@@ -31,6 +31,10 @@ void AddAscensionHopliteScripts();
 void AddAscensionBlademasterScripts();
 void AddAscensionSpartanKickScripts();
 void AddAscensionBulwarkScripts();
+void AddAscensionEmbracingShadowsScripts();
+void AddAscensionBlindingDispersionScripts();
+void AddAscensionVeiledShadowsScripts();
+void AddAscensionSavageCombatScripts();
 
 void AddAscensionCompatScripts();
 void AddSC_AscensionRunSpeed();
@@ -969,6 +973,10 @@ void AddCoAScripts()
     AddAscensionBlademasterScripts();
     AddAscensionSpartanKickScripts();
     AddAscensionBulwarkScripts();
+    AddAscensionEmbracingShadowsScripts();
+    AddAscensionBlindingDispersionScripts();
+    AddAscensionVeiledShadowsScripts();
+    AddAscensionSavageCombatScripts();
     AddSC_Area52WorldforgedAcquisition();
     AddSC_AscensionWhiteWalkerSupport();
     AddSC_AscensionVoidPortal();

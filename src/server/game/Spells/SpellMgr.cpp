@@ -2377,6 +2377,7 @@ void SpellMgr::LoadSpellGroupStackRules()
             case 2000182: auraTypes = { SPELL_AURA_MOD_MELEE_RANGED_HASTE, SPELL_AURA_HASTE_SPELLS }; break;
             case 2000183: auraTypes = { SPELL_AURA_ASCENSION_MOD_HIT_CHANCE_ALL_PCT, SPELL_AURA_MOD_HIT_CHANCE, SPELL_AURA_MOD_SPELL_HIT_CHANCE }; break;
             case 2000184: auraTypes = { SPELL_AURA_MOD_DAMAGE_PERCENT_DONE }; break;
+            case 2000199: auraTypes = { SPELL_AURA_MOD_THREAT }; break;
             default: break;
         }
         // Infer the effect for the existing native groups.

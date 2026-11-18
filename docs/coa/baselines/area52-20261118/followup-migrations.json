@@ -1,0 +1,37 @@
+{
+  "database": "world",
+  "scope": "Follow-ups after preserved merged baseline; check deployed ledger first",
+  "ordered_files": [
+    {
+      "path": "data/sql/updates/pending_db_world/zzzzzzzz_area52_blinding_dispersion.sql",
+      "sha256": "9cd768d53cb6a4a0e56a4b8537f7ad7ddeebcc3101844b47ff38ca310b2fea12"
+    },
+    {
+      "path": "data/sql/updates/pending_db_world/zzzzzzzz_area52_dark_ranger_auto_shot_ranks.sql",
+      "sha256": "234eeef2b969074699139e29d2d8783359f872feb5ccf316adeaefc9a6069106"
+    },
+    {
+      "path": "data/sql/updates/pending_db_world/zzzzzzzz_area52_embracing_shadows.sql",
+      "sha256": "51eb57a80ffa471e82e44d42f649742bb167efff491c2be1c72158e90801a724"
+    },
+    {
+      "path": "data/sql/updates/pending_db_world/zzzzzzzz_area52_savage_combat.sql",
+      "sha256": "e6aa589843312c5e8491a506760f9db87c49eb1d839e9b97da51bd4890d3eb42"
+    },
+    {
+      "path": "data/sql/updates/pending_db_world/zzzzzzzz_area52_shadow_arrow_nightfall_ranks.sql",
+      "sha256": "4de70b35fd8d34252d84a1b0570c7e2c1ea889cead850e5389541aae84d6be68"
+    },
+    {
+      "path": "data/sql/updates/pending_db_world/zzzzzzzz_area52_sidearm_specialization.sql",
+      "sha256": "4d8cb937a573b4f4608933388571c883048508a6089f301b2d948680378cdc69"
+    },
+    {
+      "path": "data/sql/updates/pending_db_world/zzzzzzzz_area52_veiled_shadows.sql",
+      "sha256": "9eabb513e362da27f581148c212b1dc8a04e5719345d75024932dc9bc4e60b8f"
+    }
+  ],
+  "package_apply_sha256": "ac9453f762d8aafa2898cab67ccd32fd032c736e87afc4860b408a8f2f3cccca",
+  "package_rollback_sha256": "4361d8e139377a04016d7949bc2292c6e192e6f8581202aefa526f79dc6b4fd5",
+  "warning": "Preserve tester certification records and account exclusions. External status catalog is required separately."
+}

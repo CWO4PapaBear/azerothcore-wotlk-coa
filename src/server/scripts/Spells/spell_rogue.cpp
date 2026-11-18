@@ -79,6 +79,15 @@ class spell_rog_savage_combat : public AuraScript
 
     void Update(AuraEffect*  /*auraEffect*/)
     {
+        if (Unit* caster = GetCaster(); caster && AscensionFreePick::Applies(caster->ToPlayer()))
+        {
+            uint32 required = GetId() == 58683 ? 58413 : 51682;
+            if (!caster->HasAura(required) || (required == 51682 && caster->HasAura(58413)))
+            {
+                SetDuration(0);
+                return;
+            }
+        }
         Unit::AuraApplicationMap const& auras = GetUnitOwner()->GetAppliedAuras();
         for (Unit::AuraApplicationMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
             if (itr->second->GetBase()->GetCasterGUID() == this->GetCasterGUID() && itr->second->GetBase()->GetSpellInfo()->Dispel == DISPEL_POISON)

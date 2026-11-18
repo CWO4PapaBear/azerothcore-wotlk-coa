@@ -1,0 +1,31 @@
+{
+  "portable_harnesses": [
+    "area52_bot_wake",
+    "area52_cache_floor",
+    "area52_defias_rare_audit",
+    "area52_defias_rare_lifecycle",
+    "area52_lifebloom",
+    "area52_lifebloom_login",
+    "area52_lone_wolf",
+    "area52_savage_mechanics",
+    "area52_sidearm_mechanics",
+    "area52_veiled_cooldowns",
+    "area52_veiled_immunity",
+    "area52_veiled_shadows"
+  ],
+  "private_fixture_evidence_retained_outside_source": [
+    "area52_blinding_dispersion",
+    "area52_blinding_startup",
+    "area52_defias_package",
+    "area52_defias_package_startup",
+    "area52_defias_rare_modifiers",
+    "area52_defias_rare_startup",
+    "area52_embracing_shadows",
+    "area52_embracing_startup",
+    "area52_lifebloom_startup",
+    "area52_savage_startup",
+    "area52_scoreboard_retirement",
+    "area52_sidearm",
+    "area52_veiled_startup"
+  ]
+}

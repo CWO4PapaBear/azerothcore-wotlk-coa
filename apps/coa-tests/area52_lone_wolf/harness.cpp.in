@@ -1,0 +1,78 @@
+#include <cassert>
+#include <cmath>
+#include <map>
+#include <set>
+#include <vector>
+#include <cstdint>
+using uint32=unsigned;
+constexpr int SPELLMOD_DAMAGE=0,SPELLMOD_DOT=22,SPELLMOD_CASTING_TIME=10,SPELLMOD_DURATION=1;
+constexpr unsigned SPEC_MASK_ALL=255,SPELLFAMILY_HUNTER=9;
+struct SpellInfo {unsigned Id=0,SpellFamilyName=0;bool IsPassive()const{return true;}bool HasAnyAura()const{return true;}};
+struct Unit {
+ bool alive=true,world=true,pet=false,guardian=false;unsigned owner=1;
+ bool IsAlive()const{return alive;}bool IsInWorld()const{return world;}
+ bool IsPet()const{return pet;}bool IsGuardian()const{return guardian;}
+ unsigned GetOwnerGUID()const{return owner;}
+};
+struct Player:Unit {
+ void Damage(float& basevalue, SpellInfo const* spellInfo, int op, bool temporaryPet=false);
+ bool realm=true;Unit* primary=nullptr;std::set<unsigned> approved,spells,auras;
+ std::vector<Unit*> m_Controlled;std::map<unsigned,std::vector<unsigned>> origins;
+ bool HasActiveSpell(unsigned s)const{return spells.contains(s);}
+ bool HasSpell(unsigned s)const{return spells.contains(s);}
+ bool HasAura(unsigned s,unsigned=0)const{return auras.contains(s);}
+ unsigned GetGUID()const{return 1;}
+ Unit* GetPet()const{return primary;}
+ std::vector<unsigned> GetSpellInteractionOrigins(unsigned s)const{auto i=origins.find(s);return i==origins.end()?std::vector<unsigned>{}:i->second;}
+ void removeSpell(unsigned s,unsigned,bool){spells.erase(s);auras.erase(s);}
+ void learnSpell(unsigned s){if(approved.contains(s))spells.insert(s);}
+ void RemoveAurasDueToSpell(unsigned s,unsigned){auras.erase(s);}
+ bool IsNeedCastPassiveSpellAtLearn(SpellInfo const*)const{return alive;}
+ void CastSpell(Player*,unsigned s,bool){auras.insert(s);}
+};
+struct Manager {
+ std::map<unsigned,SpellInfo> records{{52783,{52783,9}},{52785,{52785,9}},{75,{75,9}},{49052,{49052,9}},{900,{900,5}}};
+ SpellInfo const* GetSpellInfo(unsigned s){auto i=records.find(s);return i==records.end()?nullptr:&i->second;}
+ unsigned GetNextSpellInChain(unsigned s){return s==52783?52785:0;}
+} manager;
+auto sSpellMgr=&manager;
+namespace AscensionFreePick {
+std::set<unsigned> TalentSpells{52783,52785};
+bool Applies(Player const* p){return p&&p->realm;}
+std::set<unsigned> AuthorizedTalentSpells(Player const* p){return p->approved;}
+bool SynchronizeCarefulAim(Player*){return false;}
+@FUNCTIONS@
+}
+void Player::Damage(float& basevalue, SpellInfo const* spellInfo, int op, bool temporaryPet){
+ float totalmul=1;int totalflat=0;float* extraDamage=nullptr;
+ @INTEGRATION@
+}
+using namespace AscensionFreePick;
+void expect(Player const& p,unsigned spell,float value){assert(std::fabs(LoneWolfDamageMultiplier(&p,sSpellMgr->GetSpellInfo(spell))-value)<0.00001);}
+int main(){
+ Player p;
+ expect(p,75,1);p.approved={52783};p.world=false;SynchronizeTalentRanks(&p);assert(p.spells.empty());
+ p.world=true;SynchronizeTalentRanks(&p);expect(p,75,1.04);expect(p,49052,1.04);expect(p,900,1);
+ for(int op:{SPELLMOD_DAMAGE,SPELLMOD_DOT}){float damage=100;p.Damage(damage,sSpellMgr->GetSpellInfo(75),op);assert(std::fabs(damage-104)<0.001);}
+ float nonDamage=100;p.Damage(nonDamage,sSpellMgr->GetSpellInfo(75),3);assert(nonDamage==100);
+ float summoned=100;p.Damage(summoned,sSpellMgr->GetSpellInfo(75),SPELLMOD_DAMAGE,true);assert(summoned==100);
+ p.origins[900]={75};expect(p,900,1.04);
+ p.approved={52783,52785};SynchronizeTalentRanks(&p);expect(p,75,1.08);
+ p.approved={52783};expect(p,75,1.04);SynchronizeTalentRanks(&p);assert(!p.HasSpell(52785));expect(p,75,1.04);
+ p.approved.clear();expect(p,75,1);SynchronizeTalentRanks(&p);assert(p.spells.empty());
+ p.approved={52785};SynchronizeTalentRanks(&p);expect(p,75,1.08);
+ p.auras={998785,998786};SynchronizeTalentRanks(&p);assert(!p.HasAura(998785)&&!p.HasAura(998786));
+ assert(!SynchronizeTalentRanks(&p));
+ Unit pet;pet.pet=true;p.primary=&pet;expect(p,75,1);pet.alive=false;expect(p,75,1.08);p.primary=nullptr;
+ Unit guardian;guardian.guardian=true;p.m_Controlled={&guardian};expect(p,75,1);
+ guardian.world=false;expect(p,75,1.08);guardian.world=true;guardian.alive=false;expect(p,75,1.08);
+ guardian.alive=true;guardian.owner=2;expect(p,75,1.08);guardian.owner=1;
+ Unit second;second.guardian=true;p.m_Controlled={&guardian,&second};expect(p,75,1);
+ guardian.alive=false;expect(p,75,1);second.alive=false;expect(p,75,1.08);
+ Unit totem;p.m_Controlled={&totem};expect(p,75,1.08);
+ p.realm=false;expect(p,75,1);p.realm=true;p.alive=false;expect(p,75,1);p.alive=true;
+ Player saved;saved.approved={52783};saved.spells={52785};saved.auras={52785,998786};
+ SynchronizeTalentRanks(&saved);expect(saved,75,1.04);assert(!saved.HasSpell(52785)&&!saved.HasAura(998786));
+ Player otherOrder;otherOrder.world=false;otherOrder.spells={52783};otherOrder.approved={52783};
+ expect(otherOrder,75,1);otherOrder.world=true;SynchronizeTalentRanks(&otherOrder);expect(otherOrder,75,1.04);
+}

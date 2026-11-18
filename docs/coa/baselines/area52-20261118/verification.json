@@ -1,0 +1,118 @@
+{
+  "evidence": [
+    {
+      "report": "defias-all-pending-build-r2-20261118/verification/report.json",
+      "sha256": "89c018bd3c75d03fb8b6641927d02b9d6eea83187d832d4877f58533c2b37341",
+      "status": "passed",
+      "stages": {
+        "source": {
+          "status": "skipped",
+          "seconds": 0.0
+        },
+        "build": {
+          "status": "passed",
+          "seconds": 335.29
+        },
+        "unit": {
+          "status": "passed",
+          "seconds": 0.425
+        },
+        "harness": {
+          "status": "skipped",
+          "seconds": 0.0
+        },
+        "gameplay": {
+          "status": "skipped",
+          "seconds": 0.0
+        }
+      }
+    },
+    {
+      "report": "defias-all-pending-startup-20261118/report.json",
+      "sha256": "ea33f77e58bb38abdf951e3230001fcaf8ca0646420cf1cc6bfcb6664d00db5d",
+      "status": "passed",
+      "stages": {
+        "source": {
+          "status": "skipped",
+          "seconds": 0.0
+        },
+        "build": {
+          "status": "skipped",
+          "seconds": 0.0
+        },
+        "unit": {
+          "status": "skipped",
+          "seconds": 0.0
+        },
+        "harness": {
+          "status": "passed",
+          "seconds": 31.362
+        },
+        "gameplay": {
+          "status": "skipped",
+          "seconds": 0.0
+        }
+      }
+    },
+    {
+      "report": "defias-package-sql-20261118/report.json",
+      "sha256": "f69784aeceae5de826de2281ac9b95c02a6c13c70c6c0be76bb44affec077e8a",
+      "status": "passed",
+      "stages": {
+        "source": {
+          "status": "skipped",
+          "seconds": 0.0
+        },
+        "build": {
+          "status": "skipped",
+          "seconds": 0.0
+        },
+        "unit": {
+          "status": "skipped",
+          "seconds": 0.0
+        },
+        "harness": {
+          "status": "passed",
+          "seconds": 6.873
+        },
+        "gameplay": {
+          "status": "skipped",
+          "seconds": 0.0
+        }
+      }
+    },
+    {
+      "report": "catchup-portable-checks-20261118/report.json",
+      "sha256": "a89ccb8d496cd6e03ae49c80cdaff6faf6bac96148171d87c9d41e652ae677b5",
+      "status": "passed",
+      "stages": {
+        "source": {
+          "status": "skipped",
+          "seconds": 0.0
+        },
+        "build": {
+          "status": "skipped",
+          "seconds": 0.0
+        },
+        "unit": {
+          "status": "skipped",
+          "seconds": 0.0
+        },
+        "harness": {
+          "status": "passed",
+          "seconds": 6.484
+        },
+        "gameplay": {
+          "status": "skipped",
+          "seconds": 0.0
+        }
+      }
+    }
+  ],
+  "limits": [
+    "Existing matching native build, unit, cold startup and SQL replay results reused; no new gameplay or server startup performed.",
+    "Twelve portable harnesses rerun in the PR checkout; proprietary DBC files remain external.",
+    "Private fixture runners retained outside source; their exact reports are hash pinned.",
+    "Development package acceptance and Cloud deployment are separate from this PR."
+  ]
+}

@@ -55,13 +55,22 @@ def inspect(sources, worldserver=None):
         depth += (loader[end] == '{') - (loader[end] == '}')
         end += 1
     body = loader[start:end - 1]
-    if depth or CALL.sub('', body).strip():
+    flat_body = re.sub(r'if\s*\(\s*!Area52MysticRealm::UsesFreePickEngine\(\)\s*\)\s*(?=' + NAME + r'\s*\()', '', body)
+    if depth or CALL.sub('', flat_body).strip():
         issues.append({'path': 'CoAScriptLoader.cpp',
                        'message': 'Loader is not a flat list of registrations; update the checker for this structure'})
     calls = defaultdict(list)
     for match in CALL.finditer(body):
         line = loader.count('\n', 0, start + match.start()) + 1
         calls[match[1]].append({'path': 'CoAScriptLoader.cpp', 'line': line})
+    cache = code_only(sources.get('AscensionCallboardCache.cpp', ''))
+    delegate = re.search(r'void\s+AddSC_AscensionCallboardCache\s*\(\s*\)\s*\{\s*'
+                         r'if\s*\(Area52MysticRealm::UsesFreePickEngine\(\)\)\s*\{\s*'
+                         r'AddSC_AscensionCallboardCacheArea52\(\);\s*return;\s*\}', cache)
+    if delegate and len(calls.get('AddSC_AscensionCallboardCache', [])) == 1:
+        calls['AddSC_AscensionCallboardCacheArea52'].append({
+            'path': 'AscensionCallboardCache.cpp',
+            'line': cache.count('\n', 0, delegate.start()) + 1})
     for name in sorted(definitions.keys() | calls.keys()):
         defined, called = definitions.get(name, []), calls.get(name, [])
         if len(defined) != 1 or len(called) != 1:

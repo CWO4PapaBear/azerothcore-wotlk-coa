@@ -1,0 +1,26 @@
+{
+  "qualified_merge_tree": "5e8d5e001469871f384292d9db988e082f70adac",
+  "development_binary_sha256": "3c43d1e1a46d7f0959a366f5a26727366f32c3e792158eaad1abfb6114650dd5",
+  "files": {
+    "src/server/coa/Area52CacheCatalog.inc": "d20da53133be93cb699fcee6b74931cde6f1b43ae8b219c229de7e15a3584b13",
+    "src/server/coa/Area52CacheRuntime.inc": "37e4e77e91e88e6a728c657d3b88fcce9835260b434e908fddec9d71fd980a52",
+    "src/server/coa/Area52CacheSelection.h": "3e8671aee08ac47372ed8b2b1921ef80a7c8e3e8c3610f4d34b413da133045c3",
+    "src/server/coa/AscensionFreePick.cpp": "ff6e0a10c182525e908e34154a27829b4e80e5854e073f042a7c34bf702b9b72",
+    "src/server/coa/AscensionMysticEnchant.cpp": "d1d65d7e24aeb320ae05c42ccb3fbe7f25c3744758cbe02513beda1e02e62b66",
+    "src/server/coa/CoAScriptLoader.cpp": "953f3ab216f1193ffebab4d4341ace9ac861477509a560ca1a6a9b0d42039ae7",
+    "src/server/game/Entities/Player/Player.cpp": "45a8946ed9c32486dcedaf3a7fe167d57d986a33e41ce2b562bad098b8cdfd12",
+    "src/server/game/Spells/SpellMgr.cpp": "f54db6e74301a9980b4a57a64c88703992c5ab9fbe98c108b0b20e41931edb68",
+    "src/server/scripts/Spells/spell_rogue.cpp": "ed019337861c59c13d07791acb4b1d92ef10fb8b3794e148cd28dd312d27ac48",
+    "data/sql/updates/pending_db_world/zzzzzzzz_area52_blinding_dispersion.sql": "9cd768d53cb6a4a0e56a4b8537f7ad7ddeebcc3101844b47ff38ca310b2fea12",
+    "data/sql/updates/pending_db_world/zzzzzzzz_area52_embracing_shadows.sql": "51eb57a80ffa471e82e44d42f649742bb167efff491c2be1c72158e90801a724",
+    "data/sql/updates/pending_db_world/zzzzzzzz_area52_savage_combat.sql": "e6aa589843312c5e8491a506760f9db87c49eb1d839e9b97da51bd4890d3eb42",
+    "data/sql/updates/pending_db_world/zzzzzzzz_area52_sidearm_specialization.sql": "4d8cb937a573b4f4608933388571c883048508a6089f301b2d948680378cdc69",
+    "data/sql/updates/pending_db_world/zzzzzzzz_area52_veiled_shadows.sql": "9eabb513e362da27f581148c212b1dc8a04e5719345d75024932dc9bc4e60b8f",
+    "src/server/coa/Area52LoneWolf.h": "e4a5fd1078dff67fc6932a95cf97373dc8eef5cb40b1f3f6ba0810112fcdbf0c",
+    "src/server/coa/Area52VeiledShadows.h": "2c8ebd64e2ee3d80f7e504fd00e872c44e5b8a91df101b250cd4c59f5aee52f4",
+    "src/server/coa/AscensionBlindingDispersion.cpp": "ad104bbcc419e4904f0a678d4e0fedef9123b45e1aa9e13f95af33b4d047effc",
+    "src/server/coa/AscensionEmbracingShadows.cpp": "46794cfbbf6d63a5f6975c17476d3dde236e93038733e646f2f6a641906f71e0",
+    "src/server/coa/AscensionSavageCombat.cpp": "e1d304c77593cc39a2fee141d9fe7a304e087ec21df00bc1f38ca7bae6b22200",
+    "src/server/coa/AscensionVeiledShadows.cpp": "a711dcc842ed37cc91146991c2b66794b16fbad5fa4b58a4a3a6b9f6f2a9cab5"
+  }
+}

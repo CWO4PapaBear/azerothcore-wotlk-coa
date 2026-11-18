@@ -1,0 +1,47 @@
+#include <cassert>
+#include <map>
+#include <set>
+#include <initializer_list>
+using uint32=unsigned;
+constexpr unsigned SPEC_MASK_ALL=255;
+struct SpellInfo {unsigned Id;float ProcChance;bool IsPassive()const{return true;}bool HasAnyAura()const{return true;}};
+struct Aura {int duration=0,maximum=0;void SetDuration(int value){duration=value;}void SetMaxDuration(int value){maximum=value;}};
+struct Player {
+ bool realm=true,alive=true,world=true;unsigned combo=0,casts=0;std::set<unsigned> approved,spells,auras;Aura buff;
+ Player* ToPlayer(){return this;}bool IsAlive()const{return alive;}bool IsInWorld()const{return world;}
+ bool HasActiveSpell(unsigned s)const{return spells.contains(s);}bool HasSpell(unsigned s)const{return spells.contains(s);}
+ bool HasAura(unsigned s,unsigned=0)const{return auras.contains(s);}unsigned GetGUID()const{return 1;}
+ void removeSpell(unsigned s,unsigned,bool){spells.erase(s);auras.erase(s);}
+ void learnSpell(unsigned s){if(approved.contains(s))spells.insert(s);}
+ void RemoveAurasDueToSpell(unsigned s,unsigned){auras.erase(s);}
+ bool IsNeedCastPassiveSpellAtLearn(SpellInfo const*)const{return alive;}
+ void CastSpell(Player* target,unsigned s,bool triggered){assert(target==this&&triggered);auras.insert(s);if(s==954696){++casts;buff.duration=2000+800*combo;buff.maximum=buff.duration;}}
+ Aura* GetAura(unsigned s,unsigned){return auras.contains(s)?&buff:nullptr;}
+};
+struct Manager {std::map<unsigned,SpellInfo> records{{51682,{51682,50}},{58413,{58413,100}}};
+ SpellInfo const* GetSpellInfo(unsigned s){auto i=records.find(s);return i==records.end()?nullptr:&i->second;}
+ unsigned GetNextSpellInChain(unsigned s){return s==51682?58413:0;}
+} manager;
+auto sSpellMgr=&manager;
+namespace AscensionFreePick {
+std::set<unsigned> TalentSpells{51682,58413};
+bool Applies(Player const* p){return p&&p->realm;}
+std::set<unsigned> AuthorizedTalentSpells(Player const* p){return p->approved;}
+bool SynchronizeCarefulAim(Player*){return false;}
+@FUNCTIONS@
+}
+using namespace AscensionFreePick;
+int main(){
+ for(auto ranks:{std::set<unsigned>{51682},std::set<unsigned>{51682,58413}}){
+  Player p;p.approved=ranks;p.world=false;SynchronizeTalentRanks(&p);assert(p.spells.empty());
+  p.world=true;SynchronizeTalentRanks(&p);assert(p.HasAura(ranks.contains(58413)?58413:51682));
+  assert(!SynchronizeTalentRanks(&p));p.auras.clear();SynchronizeTalentRanks(&p);assert(!p.auras.empty());
+  p.approved.clear();SynchronizeTalentRanks(&p);assert(p.spells.empty()&&p.auras.empty());
+  p.approved={51682};SynchronizeTalentRanks(&p);assert(p.HasAura(51682)&&!p.HasSpell(58413));
+ }
+ Player stale;stale.spells={58413};stale.auras={58413};stale.approved={51682};SynchronizeTalentRanks(&stale);
+ assert(stale.HasAura(51682)&&!stale.HasSpell(58413));
+ Player independent;independent.approved={58413};SynchronizeTalentRanks(&independent);assert(independent.HasAura(58413));
+ Player other;other.realm=false;other.approved={58413};SynchronizeTalentRanks(&other);assert(other.spells.empty());
+ Player second;second.approved={51682};second.spells={51682};second.world=false;SynchronizeTalentRanks(&second);assert(second.auras.empty());second.world=true;SynchronizeTalentRanks(&second);assert(second.HasAura(51682));
+}

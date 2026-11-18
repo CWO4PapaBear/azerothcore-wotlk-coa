@@ -95,5 +95,26 @@ class RegistrationTests(unittest.TestCase):
         self.assertEqual(inspect(self.sources)['status'], 'failed')
 
 
+    def test_area52_realm_guard_is_recognized(self):
+        self.sources['CoAScriptLoader.cpp'] = self.sources['CoAScriptLoader.cpp'].replace(
+            '    AddSC_Example();', '    if (!Area52MysticRealm::UsesFreePickEngine()) AddSC_Example();')
+        self.assertEqual(inspect(self.sources)['status'], 'passed')
+
+    def test_area52_cache_delegate_requires_reachable_parent_and_return(self):
+        sources = {
+            'CoAScriptLoader.cpp': 'void AddCoAScripts() { AddSC_AscensionCallboardCache(); }',
+            'AscensionCallboardCache.cpp': 'void AddSC_AscensionCallboardCache() {'
+                'if (Area52MysticRealm::UsesFreePickEngine()) {'
+                'AddSC_AscensionCallboardCacheArea52(); return; } }',
+            'Area52CallboardCache.cpp': 'void AddSC_AscensionCallboardCacheArea52() {}',
+        }
+        self.assertEqual(inspect(sources)['status'], 'passed')
+        for path, old in [('CoAScriptLoader.cpp', 'AddSC_AscensionCallboardCache();'),
+                          ('AscensionCallboardCache.cpp', 'return;')]:
+            changed = dict(sources)
+            changed[path] = changed[path].replace(old, '')
+            self.assertEqual(inspect(changed)['status'], 'failed')
+
+
 if __name__ == '__main__':
     unittest.main()

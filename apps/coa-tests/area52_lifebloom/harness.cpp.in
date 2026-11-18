@@ -1,0 +1,32 @@
+#include <cassert>
+#include <vector>
+#include <cstdint>
+using int32=int;using uint32=unsigned;using AuraEffectHandleModes=int;
+constexpr int SPELL_DRUID_LIFEBLOOM_FINAL_HEAL=33778,SPELL_DRUID_LIFEBLOOM_ENERGIZE=64372,HEAL=0,EFFECT_1=1,SPELL_AURA_DUMMY=4,AURA_EFFECT_HANDLE_REAL=1,AURA_REMOVE_BY_EXPIRE=1;
+struct Unit;
+struct Effect {int value=331;int CalcValue(Unit*,int,Unit*)const{return value;}};
+struct SpellInfo{unsigned ManaCostPercentage=24;Effect Effects[3];};
+SpellInfo finalHeal;
+struct Manager{SpellInfo const* GetSpellInfo(unsigned){return &finalHeal;}}manager;auto sSpellMgr=&manager;
+struct AuraEffect{int amount=331;int GetAmount()const{return amount;}int GetEffIndex()const{return 1;}};
+struct Cast{unsigned spell;int amount;unsigned owner;};
+struct Unit {std::vector<Cast> casts;int power=0;unsigned GetCreateMana(){return 10000;}int SpellHealingBonusDone(Unit*,SpellInfo const*,int base,int,int,float,unsigned stack){return base+int(power*.655f*stack);}int SpellHealingBonusTaken(Unit*,SpellInfo const*,int base,int,unsigned){return base;}void CastCustomSpell(Unit*,unsigned spell,int* amount,void*,void*,bool,void*,AuraEffect const*,unsigned owner){casts.push_back({spell,*amount,owner});}};
+struct DispelInfo{unsigned charges=1;unsigned GetRemovedCharges(){return charges;}};
+struct Application{int mode=1;int GetRemoveMode(){return mode;}};
+struct Hook{void operator+=(int){}};
+struct AuraScript{Unit* caster=nullptr;Unit* target=nullptr;SpellInfo info;AuraEffect effect;Application application;unsigned stacks=1;Hook AfterEffectRemove,AfterDispel;virtual bool Validate(SpellInfo const*){return true;}virtual void Register(){}bool ValidateSpellInfo(std::initializer_list<int>){return true;}Application* GetTargetApplication(){return &application;}unsigned GetStackAmount(){return stacks;}SpellInfo const* GetSpellInfo(){return &info;}Unit* GetCaster(){return caster;}Unit* GetTarget(){return target;}Unit* GetUnitOwner(){return target;}unsigned GetCasterGUID(){return 123;}AuraEffect* GetEffect(int){return &effect;}};
+#define PrepareAuraScript(x) public:
+#define AuraEffectRemoveFn(a,b,c,d) 1
+#define AuraDispelFn(a) 1
+int CalculatePct(unsigned a,unsigned b){return a*b/100;}
+@CLASS@;
+int main(){
+ for(int base:{331,582,732})for(unsigned stack:{1u,2u,3u})for(int power:{0,1000}){
+  Unit caster,target;caster.power=power;spell_dru_lifebloom bloom;bloom.caster=&caster;bloom.target=&target;bloom.stacks=stack;bloom.effect.amount=base*stack;bloom.info.Effects[1].value=base;
+  bloom.AfterRemove(&bloom.effect,1);assert(target.casts.size()==1&&caster.casts.size()==1);
+  assert(target.casts.back().amount==base*int(stack)+int(power*.655f*stack));assert(caster.casts.back().amount==1200*int(stack));assert(target.casts.back().owner==123);
+  caster.casts.clear();target.casts.clear();DispelInfo dispel{stack};bloom.HandleDispel(&dispel);assert(target.casts.size()==1&&caster.casts.size()==1);assert(target.casts.back().amount==base*int(stack)+int(power*.655f*stack));assert(caster.casts.back().amount==1200*int(stack));
+  for(int mode:{0,2,3,4}){caster.casts.clear();target.casts.clear();bloom.application.mode=mode;bloom.AfterRemove(&bloom.effect,1);assert(caster.casts.empty()&&target.casts.empty());}
+ }
+ Unit target;spell_dru_lifebloom orphan;orphan.target=&target;orphan.AfterRemove(&orphan.effect,1);assert(target.casts.size()==1&&target.casts[0].amount==331);
+}

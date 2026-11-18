@@ -1,3 +1,11 @@
+## GitHub provenance and Development-to-Cloud promotion — November 18, 2026
+
+Use the existing CWO4PapaBear/azerothcore-wotlk-coa fork for the merged Area 52 server; do not create a separate server repository. Keep upstream ancestry and Area 52 fixes together on a scoped development/integration branch and prepare a reviewed PR to main. Record the source commit, pinned playerbots revision/patch, ordered migrations, verification evidence and artifact hashes for each Development activation. Source PR preparation is separate from deployment and does not announce a tester release. Preserve unrelated pending work and private recovery archives.
+
+After Development acceptance, promote the exact reviewed source/artifacts and applicable migrations in one explicitly authorized Cloud Test release. Compare with the actual Cloud baseline first, preserving cloud-only fixes, tester certifications and player/account state. Never copy Development character databases over Cloud. Keep Development-only pending changes identified until they are selected for promotion. Main integration follows the existing accepted-package policy; an explicit PR-only or hold-merge instruction takes precedence.
+
+Keep server, client-feed and launcher source in their established repositories, with cross-linked PRs and exact release commits where relevant. GitHub source receipts, Cloud activation, launcher asset/feed publication and Discord delivery are distinct outcomes. Publish tester patch notes only for the authorized Cloud release and describe actual delivered changes; do not send routine Development iteration announcements. Verify uploaded hashes, live feed and Discord receipts before calling a tester release complete. Never infer restart or publication permission from a source push, PR, merge or Development activation.
+
 # AGENTS.md
 
 AzerothCore is a C++ MMORPG server emulator for World of Warcraft 3.3.5a (WotLK), built with CMake, backed by MySQL.

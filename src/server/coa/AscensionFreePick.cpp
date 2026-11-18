@@ -1,4 +1,6 @@
 #include "Area52Worldforged.h"
+#include "Area52LoneWolf.h"
+#include "Area52VeiledShadows.h"
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 #include "AscensionFreePick.h"
 #include "AscensionClassMechanics.h"
@@ -255,6 +257,47 @@ std::set<std::uint32_t> AuthorizedTalentSpells(Player const* player)
     return spells;
 }
 
+float VeiledShadowsProcChance(Player const* player)
+{
+    if (!Applies(player) || !player->IsAlive() || !player->IsInWorld())
+        return 0.0f;
+    auto const approved = AuthorizedTalentSpells(player);
+    for (uint32 rank : {15311u, 15274u})
+        if (approved.contains(rank) && player->HasActiveSpell(rank))
+            if (auto const* info = sSpellMgr->GetSpellInfo(rank))
+                return info->ProcChance;
+    return 0.0f;
+}
+
+float LoneWolfDamageMultiplier(Player const* player, SpellInfo const* spell)
+{
+    if (!Applies(player) || !spell || !player->IsAlive() || !player->IsInWorld()
+        || (!player->HasActiveSpell(52783) && !player->HasActiveSpell(52785)))
+        return 1.0f;
+    auto const approved = AuthorizedTalentSpells(player);
+    unsigned rank = approved.contains(52785) && player->HasActiveSpell(52785) ? 2
+        : approved.contains(52783) && player->HasActiveSpell(52783) ? 1 : 0;
+    if (!rank)
+        return 1.0f;
+    if (auto const* pet = player->GetPet(); pet && pet->IsAlive() && pet->IsInWorld())
+        return 1.0f;
+    for (auto const* controlled : player->m_Controlled)
+        if (controlled && (controlled->IsPet() || controlled->IsGuardian())
+            && controlled->GetOwnerGUID() == player->GetGUID()
+            && controlled->IsAlive() && controlled->IsInWorld())
+            return 1.0f;
+    bool hunter = spell->SpellFamilyName == SPELLFAMILY_HUNTER;
+    if (!hunter)
+        for (uint32 original : player->GetSpellInteractionOrigins(spell->Id))
+            if (auto const* origin = sSpellMgr->GetSpellInfo(original);
+                origin && origin->SpellFamilyName == SPELLFAMILY_HUNTER)
+            {
+                hunter = true;
+                break;
+            }
+    return hunter ? 1.0f + 0.04f * rank : 1.0f;
+}
+
 static bool SynchronizeCarefulAim(Player* player)
 {
     constexpr std::array<uint32, 3> ranks = {34482, 34483, 34484};
@@ -312,6 +355,12 @@ bool SynchronizeTalentRanks(Player* player)
                     changed |= player->HasAura(spell);
                 }
             }
+    for (uint32 helper : {998785u, 998786u})
+        if (player->HasAura(helper, player->GetGUID()))
+        {
+            player->RemoveAurasDueToSpell(helper, player->GetGUID());
+            changed = true;
+        }
     changed |= SynchronizeCarefulAim(player);
     if (!player->HasAura(830816) || !(player->HasAura(84864) || player->HasAura(84865)))
         for (uint32 buff : {830822u, 840822u})

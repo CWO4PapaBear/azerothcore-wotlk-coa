@@ -1,3 +1,4 @@
+#include "../../../coa/Area52LoneWolf.h"
 #include "../../../coa/Area52HolyContracts.h"
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
@@ -10542,6 +10543,9 @@ bool Player::HasSpellMod(SpellModifier* mod, Spell* spell)
 
 bool Player::IsAffectedBySpellmod(SpellInfo const* spellInfo, SpellModifier* mod, Spell* spell)
 {
+    if (mod && AscensionFreePick::Applies(this) && (mod->spellId == 998785 || mod->spellId == 998786))
+        return false;
+
     if (!mod || !spellInfo)
         return false;
 
@@ -10773,6 +10777,9 @@ void Player::ApplyTargetedSpellModTrackingDamage(uint32 spellId, SpellModOp op, 
 
     if (shadowReach > similarRange)
         totalflat += shadowReach - similarRange;
+
+    if (!temporaryPet && (op == SPELLMOD_DAMAGE || op == SPELLMOD_DOT))
+        totalmul *= AscensionFreePick::LoneWolfDamageMultiplier(this, spellInfo);
 
     if (extraDamage)
         *extraDamage *= totalmul;

@@ -1,0 +1,66 @@
+#include <cassert>
+#include <map>
+#include <set>
+#include <initializer_list>
+using uint32=unsigned;
+constexpr unsigned SPEC_MASK_ALL=255;
+struct SpellInfo {unsigned Id;float ProcChance;bool IsPassive()const{return true;}bool HasAnyAura()const{return true;}};
+struct Aura {int duration=0,maximum=0;void SetDuration(int value){duration=value;}void SetMaxDuration(int value){maximum=value;}};
+struct Player {
+ bool realm=true,alive=true,world=true;unsigned combo=0,casts=0;std::set<unsigned> approved,spells,auras;Aura buff;
+ Player* ToPlayer(){return this;}bool IsAlive()const{return alive;}bool IsInWorld()const{return world;}
+ bool HasActiveSpell(unsigned s)const{return spells.contains(s);}bool HasSpell(unsigned s)const{return spells.contains(s);}
+ bool HasAura(unsigned s,unsigned=0)const{return auras.contains(s);}unsigned GetGUID()const{return 1;}
+ void removeSpell(unsigned s,unsigned,bool){spells.erase(s);auras.erase(s);}
+ void learnSpell(unsigned s){if(approved.contains(s))spells.insert(s);}
+ void RemoveAurasDueToSpell(unsigned s,unsigned){auras.erase(s);}
+ bool IsNeedCastPassiveSpellAtLearn(SpellInfo const*)const{return alive;}
+ void CastSpell(Player* target,unsigned s,bool triggered){assert(target==this&&triggered);auras.insert(s);if(s==954696){++casts;buff.duration=2000+800*combo;buff.maximum=buff.duration;}}
+ Aura* GetAura(unsigned s,unsigned){return auras.contains(s)?&buff:nullptr;}
+};
+struct Manager {std::map<unsigned,SpellInfo> records{{15274,{15274,50}},{15311,{15311,100}}};
+ SpellInfo const* GetSpellInfo(unsigned s){auto i=records.find(s);return i==records.end()?nullptr:&i->second;}
+ unsigned GetNextSpellInChain(unsigned s){return s==15274?15311:0;}
+} manager;
+auto sSpellMgr=&manager;
+namespace AscensionFreePick {
+std::set<unsigned> TalentSpells{15274,15311};
+bool Applies(Player const* p){return p&&p->realm;}
+std::set<unsigned> AuthorizedTalentSpells(Player const* p){return p->approved;}
+bool SynchronizeCarefulAim(Player*){return false;}
+@FUNCTIONS@
+}
+float roll=0;unsigned rolls=0;
+bool roll_chance_f(float chance){++rolls;return roll<chance;}
+struct Hook{int count=0;void operator+=(int){++count;}};
+struct SpellScript {Player* owner=nullptr;Hook AfterCast;
+ Player* GetCaster(){return owner;}virtual bool Load(){return true;}
+ virtual bool Validate(SpellInfo const*){return true;}virtual void Register(){}
+ bool ValidateSpellInfo(std::initializer_list<unsigned> ids){return ids.size()==3;}
+};
+#define PrepareSpellScript(x) public:
+#define SpellCastFn(x) 1
+#define RegisterSpellScript(x) static_assert(sizeof(x)>0)
+@CALLBACK@
+using namespace AscensionFreePick;
+int main(){
+ Player p;spell_area52_veiled_shadows callback;callback.owner=&p;callback.Register();assert(callback.AfterCast.count==1);
+ callback.After();assert(!p.casts&&!rolls);
+ p.approved={15274};p.world=false;SynchronizeTalentRanks(&p);assert(p.spells.empty());
+ p.world=true;SynchronizeTalentRanks(&p);assert(VeiledShadowsProcChance(&p)==50);
+ roll=50;callback.After();assert(p.casts==0);roll=49;callback.After();assert(p.casts==1);
+ p.approved={15274,15311};SynchronizeTalentRanks(&p);assert(VeiledShadowsProcChance(&p)==100);
+ for(unsigned c=0;c<=5;++c){p.combo=c;unsigned before=p.casts;roll=99;callback.After();assert(p.casts==before+1&&p.buff.duration==2000&&p.buff.maximum==2000);}
+ p.approved={15274};assert(VeiledShadowsProcChance(&p)==50);SynchronizeTalentRanks(&p);assert(!p.HasSpell(15311));
+ p.approved.clear();assert(VeiledShadowsProcChance(&p)==0);SynchronizeTalentRanks(&p);assert(p.spells.empty());
+ p.approved={15311};SynchronizeTalentRanks(&p);assert(VeiledShadowsProcChance(&p)==100);
+ for(bool* flag:{&p.realm,&p.alive,&p.world}){*flag=false;assert(VeiledShadowsProcChance(&p)==0);unsigned before=p.casts;callback.After();assert(p.casts==before);*flag=true;}
+ Player saved;saved.approved={15274};saved.spells={15311};saved.auras={15311};SynchronizeTalentRanks(&saved);
+ assert(saved.HasSpell(15274)&&!saved.HasSpell(15311)&&VeiledShadowsProcChance(&saved)==50);
+ assert(!SynchronizeTalentRanks(&saved));saved.auras.clear();SynchronizeTalentRanks(&saved);assert(saved.HasAura(15274));
+ Player second;second.approved={15274};second.spells={15274};second.world=false;assert(VeiledShadowsProcChance(&second)==0);
+ second.world=true;SynchronizeTalentRanks(&second);assert(VeiledShadowsProcChance(&second)==50);
+ Player empty;SynchronizeTalentRanks(&empty);assert(empty.spells.empty()&&empty.auras.empty());
+ Player pending;pending.spells={15311};pending.auras={15311};pending.world=false;SynchronizeTalentRanks(&pending);assert(pending.HasSpell(15311));pending.approved={15274};pending.world=true;SynchronizeTalentRanks(&pending);assert(pending.HasAura(15274)&&!pending.HasSpell(15311));
+ TalentSpells.insert(90001);manager.records[90001]={90001,0};Player multiple;multiple.approved={15274,90001};SynchronizeTalentRanks(&multiple);assert(multiple.HasAura(15274)&&multiple.HasAura(90001));multiple.auras.erase(15274);SynchronizeTalentRanks(&multiple);assert(multiple.HasAura(15274)&&multiple.HasAura(90001));assert(!SynchronizeTalentRanks(&multiple));
+}

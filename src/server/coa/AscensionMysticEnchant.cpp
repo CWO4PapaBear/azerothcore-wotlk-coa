@@ -897,6 +897,16 @@ void LoadConnections()
                 Connected.emplace(spell, 1);
             continue;
         }
+        if (spell == 954634)
+        {
+            auto script = sObjectMgr->GetScriptId("aura_area52_blinding_dispersion");
+            auto [begin, end] = sObjectMgr->GetSpellScriptsBounds(47585);
+            if (sSpellMgr->GetSpellInfo(47585) && sSpellMgr->GetSpellInfo(954635)
+                && script && ScriptRegistry<SpellScriptLoader>::GetScriptById(script)
+                && std::any_of(begin, end, [script](auto const& row) { return row.second == script; }))
+                Connected.emplace(spell, 1);
+            continue;
+        }
         if (spell == 81214)
         {
             auto bound = [](uint32 id, char const* name)

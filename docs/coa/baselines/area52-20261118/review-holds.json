@@ -1,0 +1,23 @@
+{
+  "source_check_status": "failed",
+  "passed_checks": 13,
+  "failed_checks": [
+    {
+      "command": [
+        "apps/coa-gameplay-test/test_runner.py"
+      ],
+      "output": "chup-20261118/apps/coa-gameplay-test/run.py\", line 414, in keys\n    require(value.keys() <= allowed, f'{where}: unknown fields {sorted(value.keys() - allowed)}')\n    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/dml/builds/area52-preservation-baseline-20261115/github-catchup-20261118/apps/coa-gameplay-test/run.py\", line 408, in require\n    raise ValueError(message)\nValueError: creature: unknown fields ['level_scaling']\n\n----------------------------------------------------------------------\nRan 147 tests in 4.893s\n\nFAILED (errors=2)\n"
+    },
+    {
+      "command": [
+        "apps/coa-gameplay-test/catalog.py",
+        "--check"
+      ],
+      "output": "creature: unknown fields ['level_scaling']\n"
+    }
+  ],
+  "merge_hold": true,
+  "gameplay": "Not run; owner limits preserved",
+  "lint": "SQL passed. C++ whitespace findings predate this follow-up; exact runtime source retained.",
+  "review": "Assistant self-review; no independent human review claimed"
+}
