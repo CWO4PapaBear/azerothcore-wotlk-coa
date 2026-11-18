@@ -1,7 +1,11 @@
 {
-  "source_check_status": "failed",
-  "passed_checks": 13,
-  "failed_checks": [
+  "passed_checks": 9,
+  "merge_hold": true,
+  "gameplay": "Not run; owner limits preserved",
+  "lint": "SQL passed. C++ whitespace findings predate this follow-up; exact runtime source retained.",
+  "review": "Assistant self-review; no independent human review claimed",
+  "previous_source_check_status": "failed",
+  "previous_failed_checks": [
     {
       "command": [
         "apps/coa-gameplay-test/test_runner.py"
@@ -16,8 +20,17 @@
       "output": "creature: unknown fields ['level_scaling']\n"
     }
   ],
-  "merge_hold": true,
-  "gameplay": "Not run; owner limits preserved",
-  "lint": "SQL passed. C++ whitespace findings predate this follow-up; exact runtime source retained.",
-  "review": "Assistant self-review; no independent human review claimed"
+  "source_check_status": "passed",
+  "failed_checks": [],
+  "remaining_holds": [
+    "Development acceptance remains separate",
+    "Legacy realm-wide opening-hit regression explicitly blocked by owner; not claimed passed",
+    "Gameplay conformance and new per-player scenario not executed"
+  ],
+  "scaling_verification": {
+    "report": "report.json",
+    "sha256": "d60547ce5cd32b101245c9096d2fd53eaffce658856e2a67d66be6806f2d35f5",
+    "source_passed": 9,
+    "harness_passed": 1
+  }
 }

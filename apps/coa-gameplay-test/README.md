@@ -1512,3 +1512,11 @@ received: 1 with the spell-click flag, 0 without, -1 when no values update carri
 parsed). The
 `vanilla-dungeons-health` scenario uses real spawns to check video HP, explicitly inferred HP and
 unchanged Normal health. It does not establish the original Ascension scaling formula.
+
+## Area 52 scaling scenario reconciliation
+
+`witch-hunter-noctis-blade-scaled-heal.json` uses the existing `level_scaling_packet` action with Destiny Weaver enabled. Its 18 steps and four assertions are unchanged; the obsolete creature `level_scaling` flag was removed to match upstream.
+
+`level-scaling-personal-opening-hit.json` separately checks the current per-viewer model: with a level-59 player and offset 4, the view is level 55, the shared creature remains level 1 with its original maximum health, opening and subsequent hits remove health, and disabling the player's choice restores the authored view. This requires DestinyWeaver.Enable=1, DestinyWeaver.LevelScaling=1 and no challenge/ruleset block. It is a scenario definition, not evidence of a passing gameplay run.
+
+The old real-level lift and lethal-first-hit scenario is preserved byte-for-byte under `blocked-regressions/`, outside automatic discovery by explicit owner decision. Its assertions remain blocked, not passed. The replacement scenario does not claim the retired CoA.LevelScaling behavior works.

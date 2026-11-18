@@ -1,0 +1,187 @@
+{
+  "schema": 1,
+  "name": "Personal level scaling: opening and subsequent damage preserve the shared creature",
+  "contract": "Requires DestinyWeaver.Enable=1 and DestinyWeaver.LevelScaling=1, creature offset=4, and no challenge/ruleset scaling block. A level-59 viewer sees level 55 while the shared creature remains level 1. This does not establish the blocked legacy real-level lift or lethal-opening-hit contract.",
+  "timeout_ms": 30000,
+  "location": {
+    "map": 0,
+    "x": -9465,
+    "y": 64,
+    "z": 56,
+    "o": 0
+  },
+  "players": [
+    {
+      "id": "caster",
+      "race": 1,
+      "class": 8,
+      "level": 59,
+      "spell_hit_rating": 10000,
+      "melee_hit_rating": 10000,
+      "expertise_rating": 10000
+    }
+  ],
+  "creatures": [
+    {
+      "id": "enemy",
+      "owner": "caster",
+      "entry": 1501,
+      "level": 1,
+      "health": 100000,
+      "distance": 3
+    }
+  ],
+  "steps": [
+    {
+      "action": "wait",
+      "ms": 5000
+    },
+    {
+      "action": "level_scaling_packet",
+      "actor": "caster",
+      "value": 1
+    },
+    {
+      "action": "assert",
+      "actor": "caster",
+      "metric": "view_level",
+      "target": "enemy",
+      "equals": 55,
+      "within_ms": 3000
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "level",
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "max_health",
+      "equals": 100000
+    },
+    {
+      "action": "learn",
+      "actor": "caster",
+      "spell": 705798
+    },
+    {
+      "action": "snapshot",
+      "actor": "enemy",
+      "metric": "health",
+      "save_as": "opening_health"
+    },
+    {
+      "action": "cast",
+      "actor": "caster",
+      "spell": 705798,
+      "target": "enemy"
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "health",
+      "relative_to": "opening_health",
+      "max": -1,
+      "within_ms": 3000
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "alive",
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "level",
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "max_health",
+      "equals": 100000
+    },
+    {
+      "action": "assert",
+      "actor": "caster",
+      "metric": "view_level",
+      "target": "enemy",
+      "equals": 55
+    },
+    {
+      "action": "wait",
+      "ms": 2000
+    },
+    {
+      "action": "snapshot",
+      "actor": "enemy",
+      "metric": "health",
+      "save_as": "subsequent_health"
+    },
+    {
+      "action": "cast",
+      "actor": "caster",
+      "spell": 705798,
+      "target": "enemy"
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "health",
+      "relative_to": "subsequent_health",
+      "max": -1,
+      "within_ms": 3000
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "alive",
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "level",
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "max_health",
+      "equals": 100000
+    },
+    {
+      "action": "assert",
+      "actor": "caster",
+      "metric": "view_level",
+      "target": "enemy",
+      "equals": 55
+    },
+    {
+      "action": "wait",
+      "ms": 2000
+    },
+    {
+      "action": "level_scaling_packet",
+      "actor": "caster",
+      "value": 0
+    },
+    {
+      "action": "assert",
+      "actor": "caster",
+      "metric": "view_level",
+      "target": "enemy",
+      "equals": 1,
+      "within_ms": 3000
+    },
+    {
+      "action": "assert",
+      "actor": "enemy",
+      "metric": "level",
+      "equals": 1
+    }
+  ]
+}
