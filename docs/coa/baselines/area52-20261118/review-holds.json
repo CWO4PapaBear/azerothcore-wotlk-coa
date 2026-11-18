@@ -1,0 +1,53 @@
+{
+  "status": "offline review passed; source publication authorized",
+  "ready_for_fork_integration_after_source_update": true,
+  "remaining_pr_action": "Verify published commit and remote checks; merge remains owner-held.",
+  "merge_hold": true,
+  "merge_hold_reason": "Owner authorized source publication but explicitly forbids merge.",
+  "review": "Assistant source and evidence review; no independent human review claimed",
+  "native": {
+    "build": "passed including worldserver and unit_tests links",
+    "runner_tests": 1,
+    "passed_cases": 6364,
+    "failed_cases": 0,
+    "skipped_cases": 5486,
+    "disabled_cases": 1,
+    "disabled_case": "FlatMultimapAuraPattern.DISABLED_StaleIteratorAfterCascade_AsanOnly",
+    "skip_scope": "Inapplicable proc-data parameter combinations; not counted as passes",
+    "worldserver_sha256": "b164d05ab331a15c972fa00ee4f431bb0b46ba7d46a6f3ee0e363213b3c2b98e"
+  },
+  "source_checks": {
+    "passed": 64,
+    "failed": 0,
+    "report": "pr113-final-review-r2-20261118/report.json"
+  },
+  "harnesses": {
+    "passed": 14,
+    "failed": 0,
+    "report": "pr113-repair-checks-final-20261118/report.json",
+    "after_final_tooling_change": "Both affected review and scaling harnesses rerun and passed"
+  },
+  "lint": {
+    "cpp": "passed",
+    "sql": "2053 exact imported blobs preserved; all five non-inherited SQL inputs pass lint. Historical findings retained, not called lint-clean."
+  },
+  "preservation": {
+    "restored_upstream_files": 6,
+    "sql_bytes_changed": false,
+    "original_candidate_and_private_archives": "untouched",
+    "playerbots": "Original pinned module mounted read-only"
+  },
+  "limitations": [
+    "Gameplay not run",
+    "Legacy realm-wide level-lift regression remains byte-identical and explicitly blocked by owner decision",
+    "New per-player scaling scenario schema and preservation checks pass; gameplay not claimed",
+    "No new database replay: SQL unchanged; prior matching replay retained",
+    "Development acceptance and Cloud promotion are separate from source integration"
+  ],
+  "actions": {
+    "merged": false,
+    "pushed": false,
+    "restarted_servers": false,
+    "published": false
+  }
+}

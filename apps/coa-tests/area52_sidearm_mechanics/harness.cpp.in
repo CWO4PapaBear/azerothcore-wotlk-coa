@@ -1,0 +1,81 @@
+#include <cassert>
+#include <map>
+#include <set>
+#include <cmath>
+using uint32=unsigned;using uint8=unsigned char;using int32=int;using SpellGroup=unsigned;
+constexpr unsigned SPEC_MASK_ALL=255;
+constexpr int SPELL_AURA_MOD_HIT_CHANCE=54,SPELL_AURA_ASCENSION_MOD_HIT_CHANCE_ALL_PCT=333,SPELL_AURA_MOD_SPELL_HIT_CHANCE=55;
+constexpr int CR_HIT_MELEE=0,CR_HIT_RANGED=1,CR_HIT_SPELL=2;
+struct SpellInfo {unsigned Id;int EquippedItemClass=2;unsigned GetSchoolMask()const{return 1;}bool IsPassive()const{return true;}bool HasAnyAura()const{return true;}SpellInfo const* GetFirstRankSpell()const;};
+SpellInfo first{23584};
+SpellInfo const* SpellInfo::GetFirstRankSpell()const{return Id>=23584&&Id<=23586?&first:this;}
+struct SpellMgr {
+ std::map<unsigned,SpellInfo> records{{23584,{23584}},{23585,{23585}},{23586,{23586}}};
+ std::multimap<unsigned,unsigned> groups{{23584,2000199},{957339,2000199}};
+ std::map<unsigned,std::set<unsigned>> mSpellSameEffectStack{{2000199,{10}}};
+ SpellInfo const* GetSpellInfo(unsigned s){auto i=records.find(s);return i==records.end()?nullptr:&i->second;}
+ unsigned GetNextSpellInChain(unsigned s){return s==23584||s==23585?s+1:0;}
+ auto GetSpellSpellGroupMapBounds(unsigned s)const{return groups.equal_range(s);}
+ bool IsEffectInSameEffectStackGroup(SpellInfo const* s,uint8,SpellGroup g)const{auto [a,b]=groups.equal_range(s->GetFirstRankSpell()->Id);for(;a!=b;++a)if(a->second==g)return true;return false;}
+ bool AddSameEffectStackRuleSpellGroups(SpellInfo const*,uint8,uint32,int32,std::map<SpellGroup,int32>&)const;
+} manager;
+auto sSpellMgr=&manager;
+@GROUP@
+struct Player {
+ bool realm=true,world=true,alive=true,weapon=true;std::set<unsigned> approved,spells,auras;unsigned casts=0;
+ float m_modMeleeHitChance=0,m_modRangedHitChance=0,m_modSpellHitChance=0;
+ bool IsInWorld()const{return world;}bool HasActiveSpell(unsigned s)const{return spells.contains(s);}bool HasSpell(unsigned s)const{return spells.contains(s);}
+ bool HasAura(unsigned s,unsigned=0)const{return auras.contains(s);}unsigned GetGUID()const{return 1;}
+ void removeSpell(unsigned s,unsigned,bool){spells.erase(s);auras.erase(s);}
+ void learnSpell(unsigned s){if(approved.contains(s))spells.insert(s);}
+ void RemoveAurasDueToSpell(unsigned s,unsigned){auras.erase(s);}
+ bool IsNeedCastPassiveSpellAtLearn(SpellInfo const*)const{return alive&&weapon;}
+ void CastSpell(Player*,unsigned s,bool){++casts;auras.erase(23584);auras.erase(23585);auras.erase(23586);auras.insert(s);}
+ int GetTotalAuraModifier(int,int)const{for(unsigned s:{23586u,23585u,23584u})if(auras.contains(s))return s-23583;return 0;}
+ float GetRatingBonusValue(int)const{return 2.5f;}
+ void UpdateMeleeHitChances();void UpdateRangedHitChances();void UpdateSpellHitChances();
+};
+@HIT@
+namespace AscensionFreePick {
+std::set<unsigned> TalentSpells{23584,23585,23586};
+bool Applies(Player const* p){return p&&p->realm;}
+std::set<unsigned> AuthorizedTalentSpells(Player const* p){return p->approved;}
+bool SynchronizeCarefulAim(Player*){return false;}
+@SYNC@
+}
+using namespace AscensionFreePick;
+struct AuraEffect {
+ SpellInfo const* info;SpellInfo const* GetSpellInfo()const{return info;}
+ bool IsAffectedOnSpell(SpellInfo const*)const{return false;}int GetMiscValue()const{return 0;}bool HasSpellClassMask()const{return false;}
+};
+struct Attacker {bool weapon=true;Attacker* ToPlayer(){return this;}bool HasItemFitToSpellRequirements(SpellInfo const*)const{return weapon;}};
+int main(){
+ Attacker owner;auto attacker=&owner;SpellInfo attack{75};auto spellInfo=&attack;
+ auto armorEligible=@ARMOR@;
+ SpellInfo talent{23584};AuraEffect armor{&talent};assert(armorEligible(&armor));
+ owner.weapon=false;assert(!armorEligible(&armor));owner.weapon=true;assert(armorEligible(&armor));
+
+ for(unsigned rank=1;rank<=3;++rank){
+  Player p;p.world=false;for(unsigned i=0;i<rank;++i)p.approved.insert(23584+i);
+  SynchronizeTalentRanks(&p);assert(p.spells.empty());p.world=true;SynchronizeTalentRanks(&p);
+  assert(p.HasAura(23583+rank));p.UpdateMeleeHitChances();p.UpdateRangedHitChances();p.UpdateSpellHitChances();
+  assert(p.m_modMeleeHitChance==rank+2.5f&&p.m_modRangedHitChance==rank+2.5f&&p.m_modSpellHitChance==rank+2.5f);
+  unsigned casts=p.casts;assert(!SynchronizeTalentRanks(&p));assert(p.casts==casts);
+  p.auras.clear();SynchronizeTalentRanks(&p);assert(p.HasAura(23583+rank));
+  p.approved.clear();SynchronizeTalentRanks(&p);assert(p.spells.empty()&&p.auras.empty());
+  p.approved={23584};SynchronizeTalentRanks(&p);assert(p.HasAura(23584)&&!p.HasSpell(23586));
+ }
+ Player stale;stale.spells={23586};stale.auras={23586};stale.approved={23584};SynchronizeTalentRanks(&stale);
+ assert(stale.HasAura(23584)&&!stale.HasSpell(23586));
+ Player independent;independent.approved={23586};SynchronizeTalentRanks(&independent);assert(independent.HasAura(23586));
+ Player other;other.realm=false;other.approved={23586};SynchronizeTalentRanks(&other);assert(other.spells.empty());
+ Player empty;SynchronizeTalentRanks(&empty);assert(empty.spells.empty());
+ Player gear;gear.weapon=false;gear.approved={23584};SynchronizeTalentRanks(&gear);assert(!gear.HasAura(23584));gear.weapon=true;SynchronizeTalentRanks(&gear);assert(gear.HasAura(23584));
+ SpellInfo sidearm{23586},helper{957339},unrelated{123};std::map<SpellGroup,int32> amounts;
+ assert(manager.AddSameEffectStackRuleSpellGroups(&sidearm,2,10,-20,amounts));
+ assert(manager.AddSameEffectStackRuleSpellGroups(&helper,0,10,-20,amounts));assert(amounts.size()==1&&amounts.at(2000199)==-20);
+ assert(!manager.AddSameEffectStackRuleSpellGroups(&sidearm,0,280,9,amounts));
+ assert(!manager.AddSameEffectStackRuleSpellGroups(&sidearm,1,333,3,amounts));
+ assert(!manager.AddSameEffectStackRuleSpellGroups(&unrelated,0,10,-20,amounts));
+ manager.AddSameEffectStackRuleSpellGroups(&helper,0,10,-30,amounts);assert(amounts.at(2000199)==-30);
+}

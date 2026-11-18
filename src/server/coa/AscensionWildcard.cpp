@@ -1,7 +1,10 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 
 #include "AscensionWildcard.h"
+#include "AscensionRemovedSpellActionBars.h"
 #include "AscensionCacheRewards.h"
+#include "AscensionHeroClass.h"
+#include "AscensionFreepick.h"
 #include "AscensionCoAConfig.h"
 #include "AscensionCompatOpcodes.h"
 #include "AscensionSpecialization.h"
@@ -17,10 +20,13 @@
 #include "ObjectMgr.h"
 #include "ItemScript.h"
 #include "Log.h"
+#include "Pet.h"
 #include "Player.h"
 #include "Random.h"
 #include "ScriptMgr.h"
+#include "ScriptedGossip.h"
 #include "Spell.h"
+#include "SpellAuraEffects.h"
 #include "SpellScript.h"
 #include "SpellScriptLoader.h"
 #include "SpellInfo.h"
@@ -105,6 +111,51 @@ constexpr std::array<std::pair<uint32, uint32>, 5> STARTING_KIT_ITEMS = { {
 constexpr uint32 DICE_OF_DESTINY_SPELL = 18283;
 constexpr uint32 AUTO_SHOT_ENTRY_SPELL = 965202;
 constexpr uint32 AUTO_SHOT_SPELL = 75;
+constexpr uint32 TAME_BEAST_ENTRY_SPELL = 965200;
+constexpr uint32 CAT_FORM_SPELL = 768;
+constexpr uint32 BEAR_FORM_SPELL = 5487;
+constexpr uint32 DIRE_BEAR_FORM_SPELL = 9634;
+constexpr uint32 FERAL_FORM_MASK = (1u << (FORM_CAT - 1)) | (1u << (FORM_BEAR - 1)) |
+    (1u << (FORM_DIREBEAR - 1));
+
+struct EntrySpells
+{
+    uint32 EntrySpell;
+    std::array<uint32, 6> Spells;
+};
+
+constexpr std::array<EntrySpells, 31> ENTRY_SPELLS = { {
+    { 84864, { 986202, 986203 } },
+    { 84865, { 986200, 986201 } },
+    { 84866, { 92839, 92840 } },
+    { 84867, { 92842, 92843 } },
+    { 129243, { 129245, 129246 } },
+    { AUTO_SHOT_ENTRY_SPELL, { AUTO_SHOT_SPELL } },
+    { TAME_BEAST_ENTRY_SPELL, { 1515, 883, 2641, 6991, 982, 1462 } },
+    { 891, { 885, 889, 893, 109980 } },
+    { 890, { 884, 887, 892, 109981 } },
+    { 91634, { 91631, 91633, 91652, 109982 } },
+    { 91606, { 91602, 91605, 91651, 109983 } },
+    { BEAR_FORM_SPELL, { 779, 277420 } },
+    { CAT_FORM_SPELL, { 1082 } },
+    { 49377, { 16979, 49376 } },
+    { 33917, { 33876, 33878 } },
+    { 850073, { 939300 } },
+    { 939300, { 939320, 939340 } },
+    { 939301, { 939321, 939341 } },
+    { 939302, { 939322, 939342 } },
+    { 939303, { 939323, 939343 } },
+    { 939304, { 939324, 939344 } },
+    { 939305, { 939325, 939345 } },
+    { 939306, { 939326, 939346 } },
+    { 939307, { 939327, 939347 } },
+    { 939308, { 939328, 939348 } },
+    { 939309, { 939329, 939349 } },
+    { 48263, { 56222 } },
+    { 25780, { 277422 } },
+    { 71, { 277421 } },
+    { 701463, { 277423 } },
+    { 275585, { 217364, 275588 } } } };
 constexpr uint32 SPELL_RANK_FIRST_SPELL = 1;
 constexpr uint32 SPELL_RANK_SPELL = 2;
 constexpr uint32 SPELL_RANK_RANK = 3;
@@ -115,6 +166,20 @@ constexpr uint32 SKILL_CARD_ITEM_SPELL = 92657;
 constexpr uint32 SPECIALIZATION_CACHE_ITEM = 2977359;
 constexpr std::array<std::pair<uint32, uint32>, 5> SPECIALIZATION_CACHE_CONTENTS = { {
     { 106954, 1 }, { 134980, 1 }, { 134981, 1 }, { 134982, 1 }, { 134983, 1 } } };
+constexpr uint32 PETE_ARR_CREATURE = 642829;
+constexpr uint32 PETE_ARR_TEXT = 642829;
+
+struct PeteArrSpawn
+{
+    uint32 Map;
+    float X;
+    float Y;
+    float Z;
+    float O;
+};
+
+constexpr std::array<PeteArrSpawn, 2> PETE_ARR_SPAWNS = { {
+    { 0, -8849.42f, 631.99f, 95.23f, 0.23f }, { 1, 1664.87f, -4430.04f, 17.66f, 1.99f } } };
 constexpr char DICE_OF_DESTINY_USED[] = "DICE_OF_DESTINY_USED";
 constexpr char SKILL_CARD_COLLECTION_ITEM_USED[] = "SKILL_CARD_COLLECTION_ITEM_USED";
 constexpr char WILDCARD_ROLL_READY[] = "WILDCARD_ROLL_READY";
@@ -130,6 +195,7 @@ constexpr char REROLLS_SETTING[] = "core.wildcard.rerolls";
 constexpr char ROLL_CARDS_SETTING[] = "core.wildcard.cards";
 constexpr char ACTIVE_SPEC_SETTING[] = "core.wildcard.spec";
 constexpr char ACTION_BARS_SETTING[] = "core.wildcard.bars";
+constexpr char TRAINED_RANKS_SETTING[] = "core.wildcard.trainedranks";
 constexpr char REPURCHASE_SETTING[] = "core.wildcard.repurchase";
 constexpr std::array<uint32, 8> PRESTIGE_DELETED_ITEMS = { 1278048, 1278049, 98453, 98454, 98465, 98466, 1478051,
     1478052 };
@@ -151,6 +217,7 @@ enum AdvancementDwordField : uint32
     ADVANCEMENT_SPELLS            = 5,
     ADVANCEMENT_RANK_COUNT        = 5,
     ADVANCEMENT_WILDCARD_LEVEL    = 28,
+    ADVANCEMENT_WILDCARD_AE       = 22,
     ADVANCEMENT_GROUP             = 29,
     ADVANCEMENT_FLAGS             = 120,
     ADVANCEMENT_MODES             = 121,
@@ -272,6 +339,8 @@ Spent SpentEssence(std::vector<Slot> const& slots)
             continue;
         if (slot.Talent)
             spent.Talent += TALENT_ROLL_COST;
+        else if (auto const cost = Loaded.AbilityCosts.find(slot.EntryId); cost != Loaded.AbilityCosts.end())
+            spent.Ability += cost->second;
         else
             spent.Ability += ABILITY_ROLL_COST;
     }
@@ -425,6 +494,10 @@ void LoadRankLadders(ClientDBC const& spellRanks, Tables& tables)
     for (Entry const& entry : tables.Entries)
         if (!entry.Talent)
             firstRanks.insert(entry.RankSpells.front());
+    for (EntrySpells const& entry : ENTRY_SPELLS)
+        for (uint32 spellId : entry.Spells)
+            if (spellId)
+                firstRanks.insert(spellId);
 
     for (uint32 row = 0; row < spellRanks.GetRecordCount(); ++row)
     {
@@ -436,6 +509,8 @@ void LoadRankLadders(ClientDBC const& spellRanks, Tables& tables)
         std::vector<uint32>& ladder = tables.RankLadders[first];
         ladder.resize(std::max<std::size_t>(ladder.size(), rank));
         ladder[rank - 1] = record.GetUInt32(SPELL_RANK_SPELL);
+        if (rank > 1 && ladder[rank - 1])
+            tables.RankRoots[ladder[rank - 1]] = first;
     }
 }
 
@@ -473,6 +548,11 @@ void LoadTables()
         if (entry.RankSpells.empty())
             continue;
         entry.Glyph = IsGlyph(entry.RankSpells.front());
+        if (!talent)
+        {
+            entry.AbilityCost = record.GetUInt32(ADVANCEMENT_WILDCARD_AE);
+            tables.AbilityCosts[entry.EntryId] = entry.AbilityCost;
+        }
         tables.Entries.push_back(std::move(entry));
     }
 
@@ -546,7 +626,21 @@ uint32 FirstSpellOf(uint32 entryId)
 
 bool CanTake(Player const* player, uint32 spellId)
 {
-    return sSpellMgr->GetSpellInfo(spellId) && !player->HasSpell(spellId);
+    SpellInfo const* spell = sSpellMgr->GetSpellInfo(spellId);
+    if (!spell || player->HasSpell(spellId))
+        return false;
+
+    if (!spell->Stances || (spell->Stances & ~FERAL_FORM_MASK) ||
+        spell->CheckShapeshift(FORM_NONE) == SPELL_CAST_OK)
+        return true;
+
+    for (AuraEffect const* effect : player->GetAuraEffectsByType(SPELL_AURA_MOD_IGNORE_SHAPESHIFT))
+        if (effect->IsAffectedOnSpell(spell))
+            return true;
+
+    return ((spell->Stances & (1u << (FORM_CAT - 1))) && player->HasSpell(CAT_FORM_SPELL)) ||
+        ((spell->Stances & (1u << (FORM_BEAR - 1))) && player->HasSpell(BEAR_FORM_SPELL)) ||
+        ((spell->Stances & (1u << (FORM_DIREBEAR - 1))) && player->HasSpell(DIRE_BEAR_FORM_SPELL));
 }
 
 uint32 PrimaryStatSpell(uint32 entryId)
@@ -572,6 +666,63 @@ void ClearSetting(Player* player, std::string const& source)
     if (PlayerSettingVector const* stored = player->FindPlayerSettings(source))
         for (uint32 index = 0; index < stored->size(); ++index)
             player->UpdatePlayerSetting(source, index, 0);
+}
+
+void RememberTrainedRank(Player* player, uint32 spellId)
+{
+    uint32 free = 0;
+    if (PlayerSettingVector const* stored = player->FindPlayerSettings(TRAINED_RANKS_SETTING))
+    {
+        free = uint32(stored->size());
+        for (uint32 index = 0; index < stored->size(); ++index)
+        {
+            if ((*stored)[index].value == spellId)
+                return;
+            if (!(*stored)[index].value && free == stored->size())
+                free = index;
+        }
+    }
+    player->UpdatePlayerSetting(TRAINED_RANKS_SETTING, free, spellId);
+}
+
+uint32 RankLevel(SpellInfo const* info)
+{
+    SpellEntry const* entry = sSpellStore.LookupEntry(info->Id);
+    uint32 const baseLevel = entry ? entry->BaseLevel : info->BaseLevel;
+    uint32 const spellLevel = entry ? entry->SpellLevel : info->SpellLevel;
+    return std::clamp<uint32>(baseLevel ? baseLevel : spellLevel, 1, 255);
+}
+
+void RestoreTrainedRanks(Player* player, uint32 firstSpellId)
+{
+    PlayerSettingVector const* stored = player->FindPlayerSettings(TRAINED_RANKS_SETTING);
+    if (!stored || !player->HasSpell(firstSpellId))
+        return;
+    std::unordered_map<uint32, uint32> remembered;
+    for (uint32 index = 0; index < stored->size(); ++index)
+        if (uint32 const spellId = (*stored)[index].value)
+            if (auto const root = Loaded.RankRoots.find(spellId); root != Loaded.RankRoots.end() && root->second == firstSpellId)
+                remembered.emplace(spellId, index);
+    if (remembered.empty())
+        return;
+    for (uint32 rankSpellId : Loaded.RankLadders.at(firstSpellId))
+    {
+        SpellInfo const* info = rankSpellId && rankSpellId != firstSpellId ? sSpellMgr->GetSpellInfo(rankSpellId) : nullptr;
+        if (!info)
+            continue;
+        auto const slot = remembered.find(rankSpellId);
+        if (slot == remembered.end())
+        {
+            if (!player->HasSpell(rankSpellId))
+                return;
+            continue;
+        }
+        if (RankLevel(info) > player->GetLevel())
+            return;
+        player->UpdatePlayerSetting(TRAINED_RANKS_SETTING, slot->second, 0);
+        if (!player->HasSpell(rankSpellId))
+            player->learnSpell(rankSpellId);
+    }
 }
 
 void AppendUInt32(std::vector<std::uint8_t>& out, std::uint32_t value)
@@ -683,6 +834,26 @@ void Enqueue(uint32 account, Request const& request)
     if (queue.size() < MaxQueuedRequests)
         queue.push_back(request);
     AnyPending = true;
+}
+
+struct BotRequests final : DataMap::Base
+{
+    std::deque<Request> Queue;
+};
+
+std::string const BotRequestsKey = "AscensionWildcardBotRequests";
+
+void Enqueue(Player* player, Request const& request)
+{
+    if (!player->GetSession()->IsBot())
+    {
+        Enqueue(player->GetSession()->GetAccountId(), request);
+        return;
+    }
+
+    std::deque<Request>& queue = player->CustomData.GetDefault<BotRequests>(BotRequestsKey)->Queue;
+    if (queue.size() < MaxQueuedRequests)
+        queue.push_back(request);
 }
 
 bool QueueRequest(WorldSession* session, WorldPacket const& packet)
@@ -1114,6 +1285,7 @@ char const* ClaimScrollRewards(Player* player, Request const& request)
     if (cost)
         player->DestroyItemCount(RUNE_OF_ASCENSION_ITEM, cost, true);
     player->UpdatePlayerSetting(source, track, claimed + request.Count);
+    sScriptMgr->OnPlayerCoAProgress(player, CoAProgressEvent::WildcardScrollsClaimed, request.Count);
     LOG_INFO("coa", "Wildcard {} scrolls {} to {} of spec {} claimed by {} for {} runes",
         leveling ? "leveling" : "endgame", claimed + 1, claimed + request.Count, spec + 1, player->GetName(), cost);
     return result;
@@ -1142,6 +1314,7 @@ char const* RepurchaseScrolls(Player* player, Scroll kind, uint32 count, bool go
         player->DestroyItemCount(RUNE_OF_ASCENSION_ITEM, price.Runes * count, true);
     player->UpdatePlayerSetting(SpecSettingSource(REPURCHASE_SETTING, spec), uint32(kind), available[kind] - count);
     SendRerollCounts(player, SMSG_WILDCARD_REROLL_COUNT);
+    sScriptMgr->OnPlayerCoAProgress(player, CoAProgressEvent::WildcardScrollsRepurchased, count);
     LOG_INFO("coa", "Wildcard scrolls of kind {} repurchased by {}: {} for {}", uint32(kind), player->GetName(), count,
         gold ? "gold" : "runes");
     return result;
@@ -1256,7 +1429,12 @@ char const* PurchaseSealedCards(Player* player, Request const& request)
     auto const pack = std::find_if(CARD_PACKS.begin(), CARD_PACKS.end(),
         [&request](CardPack const& candidate) { return request.CardType == candidate.PurchaseType; });
     if (pack != CARD_PACKS.end())
-        return OpenCardPacks(player, *pack, request.Count);
+    {
+        char const* result = OpenCardPacks(player, *pack, request.Count);
+        if (std::string_view(result) == PURCHASE_SEALED_CARD_OK)
+            sScriptMgr->OnPlayerCoAProgress(player, CoAProgressEvent::WildcardCardPackOpened, pack->Item);
+        return result;
+    }
     auto const sealed = std::find_if(SEALED_CARD_TYPE_NAMES.begin(), SEALED_CARD_TYPE_NAMES.end(),
         [&request](char const* name) { return request.CardType == name; });
     return BuySealedCards(player, std::size_t(sealed - SEALED_CARD_TYPE_NAMES.begin()), request.Count);
@@ -1472,6 +1650,7 @@ char const* RapidRollAbilities(Player* player, Request const& request)
     RevealLearnedEntry(player, *rapid.Rolled, rapid.StopCode);
     Save(player, slots);
     SendKnownEntries(player, slots);
+    sScriptMgr->OnPlayerCoAProgress(player, CoAProgressEvent::WildcardRapidRolled, rapid.Rolled->EntryId);
     LOG_INFO("coa", "Wildcard rapid roll of {}: {} after {} rerolls, {}{}", player->GetName(), rapid.Rolled->EntryId,
         rapid.Spent.size(), rapid.StopCode, reason);
     return nullptr;
@@ -1544,9 +1723,11 @@ char const* UnlearnWithScroll(Player* player, uint32 entryId)
     for (uint32 spellId : spells)
         player->removeSpell(spellId, SPEC_MASK_ALL, false);
     RemoveFromActionBars(player, spells);
+    bool const talent = slot->Talent;
     *slot = {};
     player->UpdatePlayerSetting(SpecSource(player, UNLEARNED_SETTING), 0, entryId);
     Save(player, slots);
+    sScriptMgr->OnPlayerCoAProgress(player, CoAProgressEvent::WildcardScrollUnlearned, talent ? 1 : 0);
     if (std::size_t(std::count_if(slots.begin(), slots.end(),
             [](Slot const& known) { return known.EntryId && !known.Talent; })) > STARTING_ABILITY_COUNT)
         SendKnownEntries(player, slots);
@@ -1588,6 +1769,7 @@ char const* SetSkillCard(Player* player, Request const& request)
     cards[*position] = { request.Card, false };
     SaveStarterCards(player, cards);
     SendStarterCard(player, *position, cards[*position]);
+    sScriptMgr->OnPlayerCoAProgress(player, CoAProgressEvent::WildcardStarterCardSet, request.Card);
     return result;
 }
 
@@ -1604,6 +1786,8 @@ char const* SetLocked(Player* player, uint32 entryId, bool locked)
     slot->Locked = locked;
     Save(player, slots);
     SendKnownEntries(player, slots);
+    if (locked)
+        sScriptMgr->OnPlayerCoAProgress(player, CoAProgressEvent::WildcardEntryLocked, entryId);
     return "OK";
 }
 
@@ -1612,6 +1796,22 @@ void SignalClientEvent(Player* player, char const* name)
     WorldPacket event(SMSG_FIRE_CLIENT_EVENT, 64);
     event << name;
     player->SendDirectMessage(&event);
+}
+
+constexpr Milliseconds ROLL_READY_DELAY = 1s;
+
+struct PendingRollReady final : DataMap::Base
+{
+    Milliseconds Due = Milliseconds::zero();
+};
+
+void SendDueRollReady(Player* player)
+{
+    PendingRollReady* pending = player->CustomData.Get<PendingRollReady>("AscensionWildcardRollReady");
+    if (!pending || pending->Due == Milliseconds::zero() || GameTime::GetGameTimeMS() < pending->Due)
+        return;
+    pending->Due = Milliseconds::zero();
+    SignalClientEvent(player, WILDCARD_ROLL_READY);
 }
 
 void SendActiveSpec(Player* player)
@@ -1703,7 +1903,7 @@ bool SwitchSpecialization(Player* player, uint32 spec)
     SendKnownEntries(player, slots);
     SendSkillCards(player);
     SendRerollCounts(player, SMSG_WILDCARD_REROLL_COUNT);
-    SignalClientEvent(player, WILDCARD_ROLL_READY);
+    SignalRollReady(player);
     LOG_INFO("coa", "Wildcard specialization of {}: {} -> {} ({} entries)", player->GetName(), active + 1, spec + 1,
         std::count_if(slots.begin(), slots.end(), [](Slot const& slot) { return slot.EntryId != 0; }));
     return true;
@@ -1800,31 +2000,48 @@ uint32 TrainerPrice(uint32 spellId, uint32 level)
 
 std::vector<Trainer::Spell> RankTrainerRows(Player const* player)
 {
-    std::vector<Trainer::Spell> rows;
+    std::vector<std::uint32_t> firstSpells;
     for (auto const& [firstSpellId, ladder] : Loaded.RankLadders)
-    {
-        auto const known = std::find_if(ladder.rbegin(), ladder.rend(),
-            [player](uint32 spellId) { return spellId && player->HasSpell(spellId); });
-        if (known == ladder.rend())
-            continue;
-        auto const next = std::find_if(known.base(), ladder.end(), [](uint32 spellId) { return spellId != 0; });
-        SpellInfo const* info = next != ladder.end() ? sSpellMgr->GetSpellInfo(*next) : nullptr;
-        if (!info)
-            continue;
+        if (std::any_of(ladder.begin(), ladder.end(), [player](uint32 spellId) { return spellId && player->HasSpell(spellId); }))
+            firstSpells.push_back(firstSpellId);
+    std::sort(firstSpells.begin(), firstSpells.end());
 
-        Trainer::Spell row;
-        row.SpellId = info->Id;
-        row.ReqLevel = uint8(std::clamp<uint32>(info->BaseLevel ? info->BaseLevel : info->SpellLevel, 1, 255));
-        row.MoneyCost = TrainerPrice(info->Id, row.ReqLevel);
-        rows.push_back(row);
+    std::vector<Trainer::Spell> rows;
+    for (std::uint32_t firstSpellId : firstSpells)
+    {
+        std::vector<uint32> const& ladder = Loaded.RankLadders.at(firstSpellId);
+        uint32 previous = 0;
+        for (uint32 spellId : ladder)
+        {
+            SpellInfo const* info = spellId ? sSpellMgr->GetSpellInfo(spellId) : nullptr;
+            if (!info)
+                continue;
+            if (previous)
+            {
+                Trainer::Spell row;
+                row.SpellId = info->Id;
+                row.ReqAbility[0] = previous;
+                row.ReqLevel = uint8(RankLevel(info));
+                row.MoneyCost = TrainerPrice(info->Id, row.ReqLevel);
+                rows.push_back(row);
+            }
+            previous = info->Id;
+        }
     }
     return rows;
 }
 
-void GrantAutoShot(Player* player)
+bool IsRealmHero(Player const* player);
+
+void GrantEntrySpells(Player* player)
 {
-    if (IsWildcardHero(player) && player->HasSpell(AUTO_SHOT_ENTRY_SPELL) && !player->HasSpell(AUTO_SHOT_SPELL))
-        player->learnSpell(AUTO_SHOT_SPELL);
+    if (!IsRealmHero(player) && !IsWildcardHero(player))
+        return;
+    for (EntrySpells const& entry : ENTRY_SPELLS)
+        if (player->HasSpell(entry.EntrySpell))
+            for (uint32 spell : entry.Spells)
+                if (spell && !player->HasSpell(spell))
+                    player->learnSpell(spell);
 }
 
 void GiveStartingKit(Player* player)
@@ -1961,6 +2178,54 @@ void SendLoginState(Player* player)
     SendRerollCounts(player, SMSG_WILDCARD_REROLL_COUNTS);
 }
 
+bool RealmPlaysWildcard = false;
+bool FreeScrolls = false;
+
+bool IsRealmHero(Player const* player)
+{
+    return player->getClass() == CLASS_HERO &&
+        (RealmPlaysWildcard || AscensionFreepick::RealmIsClassless() || IsWildcardHero(player));
+}
+
+struct SentRunes final : DataMap::Base
+{
+    bool Sent = false;
+    uint8 Ready = 0;
+    std::array<RuneType, MAX_RUNES> Types{};
+};
+
+void SyncRunes(Player* player)
+{
+    if (!IsRealmHero(player))
+        return;
+    SentRunes& sent = *player->CustomData.GetDefault<SentRunes>("AscensionWildcardRunes");
+    uint8 const ready = player->GetRunesState();
+    for (uint8 rune = 0; rune < MAX_RUNES; ++rune)
+    {
+        RuneType const type = player->GetCurrentRune(rune);
+        if (!sent.Sent)
+            player->ConvertRune(rune, type);
+        bool const retyped = !sent.Sent || sent.Types[rune] != type;
+        if ((ready & (1 << rune)) && (retyped || !(sent.Ready & (1 << rune))))
+            player->AddRunePower(rune);
+        sent.Types[rune] = type;
+    }
+    sent.Ready = ready;
+    sent.Sent = true;
+}
+
+static_assert(AscensionHeroClass::WARRIOR == CLASS_WARRIOR && AscensionHeroClass::PALADIN == CLASS_PALADIN &&
+    AscensionHeroClass::HUNTER == CLASS_HUNTER && AscensionHeroClass::ROGUE == CLASS_ROGUE &&
+    AscensionHeroClass::PRIEST == CLASS_PRIEST && AscensionHeroClass::DEATH_KNIGHT == CLASS_DEATH_KNIGHT &&
+    AscensionHeroClass::SHAMAN == CLASS_SHAMAN && AscensionHeroClass::MAGE == CLASS_MAGE &&
+    AscensionHeroClass::WARLOCK == CLASS_WARLOCK && AscensionHeroClass::DRUID == CLASS_DRUID);
+static_assert(AscensionHeroClass::CONTEXT_ABILITY == CLASS_CONTEXT_ABILITY &&
+    AscensionHeroClass::CONTEXT_ABILITY_REACTIVE == CLASS_CONTEXT_ABILITY_REACTIVE &&
+    AscensionHeroClass::CONTEXT_PET == CLASS_CONTEXT_PET &&
+    AscensionHeroClass::CONTEXT_PET_CHARM == CLASS_CONTEXT_PET_CHARM &&
+    AscensionHeroClass::CONTEXT_EQUIP_RELIC == CLASS_CONTEXT_EQUIP_RELIC &&
+    AscensionHeroClass::CONTEXT_EQUIP_SHIELDS == CLASS_CONTEXT_EQUIP_SHIELDS);
+
 class AscensionWildcardPlayer final : public PlayerScript
 {
 public:
@@ -1968,8 +2233,27 @@ public:
         { PLAYERHOOK_ON_UPDATE, PLAYERHOOK_ON_LOGOUT, PLAYERHOOK_ON_LOGIN,
             PLAYERHOOK_ON_SEND_INITIAL_PACKETS_BEFORE_ADD_TO_MAP, PLAYERHOOK_ON_CREATURE_KILL,
             PLAYERHOOK_ON_CREATURE_KILLED_BY_PET, PLAYERHOOK_ON_LEARN_SPELL, PLAYERHOOK_ON_FORGOT_SPELL,
-            PLAYERHOOK_ON_PLAYER_HAS_ACTIVE_POWER_TYPE })
+            PLAYERHOOK_ON_PLAYER_HAS_ACTIVE_POWER_TYPE, PLAYERHOOK_ON_PLAYER_IS_CLASS,
+            PLAYERHOOK_ON_BEFORE_GUARDIAN_INIT_STATS_FOR_LEVEL, PLAYERHOOK_ON_LEVEL_CHANGED })
     {
+    }
+
+    Optional<bool> OnPlayerIsClass(Player const* player, Classes playerClass, ClassContext context) override
+    {
+        if (!IsRealmHero(player))
+            return std::nullopt;
+        if (std::optional<bool> const answer = AscensionHeroClass::Answer(uint8(playerClass), uint8(context),
+            [player](uint32 spellId) { return player->HasSpell(spellId); }))
+            return *answer;
+        return std::nullopt;
+    }
+
+    void OnPlayerBeforeGuardianInitStatsForLevel(Player* player, Guardian* guardian, CreatureTemplate const*,
+        PetType& petType) override
+    {
+        if (!guardian->IsPet() || !IsRealmHero(player))
+            return;
+        petType = guardian->ToPet()->getPetType();
     }
 
     void OnPlayerCreatureKill(Player* killer, Creature* killed) override
@@ -1986,21 +2270,37 @@ public:
 
     bool OnPlayerHasActivePowerType(Player const* player, Powers power) override
     {
-        return (power == POWER_RAGE || power == POWER_ENERGY) && IsWildcardHero(player);
+        return (power == POWER_RAGE || power == POWER_ENERGY) && (IsRealmHero(player) || IsWildcardHero(player));
     }
 
     void OnPlayerLearnSpell(Player* player, uint32 spellId) override
     {
-        if (spellId == AUTO_SHOT_ENTRY_SPELL)
-            GrantAutoShot(player);
+        if (std::any_of(ENTRY_SPELLS.begin(), ENTRY_SPELLS.end(),
+            [spellId](EntrySpells const& entry) { return entry.EntrySpell == spellId; }))
+            GrantEntrySpells(player);
+        if ((IsRealmHero(player) || IsWildcardHero(player)) && Loaded.RankLadders.contains(spellId))
+            RestoreTrainedRanks(player, spellId);
+    }
+
+    void OnPlayerLevelChanged(Player* player, uint8) override
+    {
+        if (!IsRealmHero(player) && !IsWildcardHero(player))
+            return;
+        for (auto const& [firstSpellId, ladder] : Loaded.RankLadders)
+            RestoreTrainedRanks(player, firstSpellId);
     }
 
     void OnPlayerForgotSpell(Player* player, uint32 spellId) override
     {
-        if (!IsWildcardHero(player))
+        if (!IsRealmHero(player) && !IsWildcardHero(player))
             return;
-        if (spellId == AUTO_SHOT_ENTRY_SPELL)
-            player->removeSpell(AUTO_SHOT_SPELL, SPEC_MASK_ALL, false);
+        if (Loaded.RankRoots.contains(spellId))
+            RememberTrainedRank(player, spellId);
+        for (EntrySpells const& entry : ENTRY_SPELLS)
+            if (entry.EntrySpell == spellId)
+                for (uint32 spell : entry.Spells)
+                    if (spell)
+                        player->removeSpell(spell, SPEC_MASK_ALL, false);
         if (auto const ladder = Loaded.RankLadders.find(spellId); ladder != Loaded.RankLadders.end())
             for (uint32 rankSpellId : ladder->second)
                 if (rankSpellId && rankSpellId != spellId && player->HasSpell(rankSpellId))
@@ -2010,7 +2310,7 @@ public:
     void OnPlayerLogin(Player* player) override
     {
         GiveStartingKit(player);
-        GrantAutoShot(player);
+        GrantEntrySpells(player);
         GiveDiceOfDestiny(player);
         LearnFirstSpecialization(player);
         GiveSpecializationCache(player);
@@ -2032,6 +2332,8 @@ public:
             std::lock_guard<std::mutex> lock(CollectionLock);
             Collections.erase(account);
         }
+        if (player->GetSession()->IsBot())
+            return;
         std::lock_guard<std::mutex> lock(PendingLock);
         PendingRequests.erase(account);
         AnyPending = !PendingRequests.empty();
@@ -2039,6 +2341,15 @@ public:
 
     void OnPlayerUpdate(Player* player, uint32) override
     {
+        SyncRunes(player);
+        SendDueRollReady(player);
+        if (player->GetSession()->IsBot())
+        {
+            if (BotRequests* own = player->CustomData.Get<BotRequests>(BotRequestsKey))
+                for (Request const& request : std::exchange(own->Queue, {}))
+                    Process(player, request);
+            return;
+        }
         if (!AnyPending)
             return;
 
@@ -2081,7 +2392,7 @@ public:
             Request open{ CMSG_PURCHASE_SEALED_CARD };
             open.CardType = pack->PurchaseType;
             open.Count = 1;
-            Enqueue(player->GetSession()->GetAccountId(), open);
+            Enqueue(player, open);
         }
 
         if (std::optional<ScrollToken> const token = RedeemToken(spellInfo))
@@ -2145,6 +2456,91 @@ class spell_wildcard_specialization_swap : public SpellScript
     }
 };
 
+class aura_wildcard_victorious_state : public AuraScript
+{
+    PrepareAuraScript(aura_wildcard_victorious_state);
+
+    static constexpr std::array<uint32, 3> VICTORY_RUSH_SPELLS = { 34428, 634428, 1134428 };
+
+    bool KnowsVictoryRush(ProcEventInfo&)
+    {
+        Player const* player = GetTarget()->ToPlayer();
+        return player && std::any_of(VICTORY_RUSH_SPELLS.begin(), VICTORY_RUSH_SPELLS.end(),
+            [player](uint32 spell) { return player->HasSpell(spell); });
+    }
+
+    void Register() override
+    {
+        DoCheckProc += AuraCheckProcFn(aura_wildcard_victorious_state::KnowsVictoryRush);
+    }
+};
+
+std::vector<uint32> PeteArrWaresFor(Player const* player)
+{
+    if (!FreeScrolls || !IsWildcardHero(player))
+        return {};
+    return PeteArrWares(ActiveSpec(player), [player](uint32 spec) { return SpecializationUnlocked(player, spec); });
+}
+
+void SendPeteArrWares(Player* player, Creature const* pete)
+{
+    std::vector<ItemTemplate const*> wares;
+    for (uint32 item : PeteArrWaresFor(player))
+        if (ItemTemplate const* ware = sObjectMgr->GetItemTemplate(item))
+            wares.push_back(ware);
+
+    WorldPacket inventory(SMSG_LIST_INVENTORY, 8 + 1 + wares.size() * 8 * 4);
+    inventory << pete->GetGUID() << uint8(wares.size());
+    for (std::size_t slot = 0; slot < wares.size(); ++slot)
+        inventory << uint32(slot + 1) << wares[slot]->ItemId << wares[slot]->DisplayInfoID << int32(-1) << uint32(0)
+                  << wares[slot]->MaxDurability << uint32(1) << uint32(0);
+    if (wares.empty())
+        inventory << uint8(0);
+    player->SendDirectMessage(&inventory);
+}
+
+class AscensionWildcardPeteArr final : public CreatureScript
+{
+public:
+    AscensionWildcardPeteArr() : CreatureScript("npc_wildcard_pete_arr") { }
+
+    bool OnGossipHello(Player* player, Creature* creature) override
+    {
+        ClearGossipMenuFor(player);
+        AddGossipItemFor(player, GOSSIP_ICON_VENDOR, "Show me yer plunder.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_TRADE);
+        SendGossipMenuFor(player, PETE_ARR_TEXT, creature);
+        return true;
+    }
+
+    bool OnGossipSelect(Player* player, Creature* creature, uint32, uint32 action) override
+    {
+        CloseGossipMenuFor(player);
+        if (action == GOSSIP_ACTION_TRADE)
+            SendPeteArrWares(player, creature);
+        return true;
+    }
+};
+
+class AscensionWildcardPeteArrSale final : public PlayerScript
+{
+public:
+    AscensionWildcardPeteArrSale() : PlayerScript("AscensionWildcardPeteArrSale",
+        { PLAYERHOOK_ON_BEFORE_BUY_ITEM_FROM_VENDOR }) { }
+
+    void OnPlayerBeforeBuyItemFromVendor(Player* player, ObjectGuid vendorGuid, uint32, uint32& item, uint8 count,
+        uint8, uint8) override
+    {
+        if (vendorGuid.GetEntry() != PETE_ARR_CREATURE)
+            return;
+        std::vector<uint32> const wares = PeteArrWaresFor(player);
+        uint32 const amount = std::max<uint8>(count, 1);
+        if (player->GetNPCIfCanInteractWith(vendorGuid, UNIT_NPC_FLAG_VENDOR) &&
+            std::find(wares.begin(), wares.end(), item) != wares.end() && player->AddItem(item, amount))
+            LOG_INFO("coa", "Pete Arr gave {} x {} to {}", item, amount, player->GetName());
+        item = 0;
+    }
+};
+
 class AscensionWildcardWorld final : public WorldScript
 {
 public:
@@ -2154,13 +2550,18 @@ public:
     void OnAfterConfigLoad(bool) override
     {
         LoadSynergySettings();
+        FreeScrolls = sConfigMgr->GetOption<bool>("Wildcard.FreeScrolls", false);
     }
 
     void OnStartup() override
     {
         LoadTables();
-        if (PlaysWildcard(sConfigMgr->GetOption<std::string>("CoAChallenges.GameModes.Realm", "")))
+        RealmPlaysWildcard = PlaysWildcard(sConfigMgr->GetOption<std::string>("CoAChallenges.GameModes.Realm", ""));
+        if (RealmPlaysWildcard)
             sGameEventMgr->StartInternalEvent(WILDCARD_SEASON_EVENT);
+        if (RealmPlaysWildcard && FreeScrolls)
+            for (PeteArrSpawn const& spawn : PETE_ARR_SPAWNS)
+                sObjectMgr->AddCreData(PETE_ARR_CREATURE, spawn.Map, spawn.X, spawn.Y, spawn.Z, spawn.O);
     }
 };
 }
@@ -2353,7 +2754,7 @@ std::optional<Slot> RollLevelEntry(Tables const& tables, std::vector<Slot> const
 
     auto const eligible = [&](Entry const& entry)
     {
-        return entry.Talent == talent && !entry.Glyph && entry.MinLevel <= poolLevel && !known.count(entry.EntryId) &&
+        return entry.Talent == talent && !entry.Glyph && (entry.Talent || entry.AbilityCost) && entry.MinLevel <= poolLevel && !known.count(entry.EntryId) &&
             entry.EntryId != excludedEntry && !(tameKnown && entry.Group == TAME_GROUP) &&
             !entry.RankSpells.empty() && available(entry.RankSpells.front());
     };
@@ -2854,6 +3255,15 @@ std::vector<StoreCard> DarkmoonPrizeStore()
     return offers;
 }
 
+std::vector<std::uint32_t> PeteArrWares(std::uint32_t spec, std::function<bool(std::uint32_t)> const& unlocked)
+{
+    std::vector<std::uint32_t> wares = { ScrollItem(spec, SCROLL_GENERIC) };
+    for (std::uint32_t locked = 1; locked < SPECIALIZATION_COUNT; ++locked)
+        if (!unlocked(locked))
+            wares.push_back(SPECIALIZATION_TOME_ITEMS[locked]);
+    return wares;
+}
+
 std::vector<StoreCard> SkillCardStore(Tables const& tables, std::uint32_t store)
 {
     std::vector<StoreCard> offers;
@@ -2961,7 +3371,7 @@ std::optional<ScrollToken> ScrollTokenOf(std::int32_t tokenType)
 {
     if (tokenType < 0 || std::size_t(tokenType) >= SPECIALIZATION_COUNT * SCROLL_COUNT)
         return std::nullopt;
-    return ScrollToken{ std::uint32_t(tokenType) % SPECIALIZATION_COUNT,
+    return ScrollToken{ std::uint32_t(std::size_t(tokenType) % SPECIALIZATION_COUNT),
         Scroll(std::uint32_t(tokenType) / SPECIALIZATION_COUNT) };
 }
 
@@ -3020,6 +3430,11 @@ bool IsWildcardHero(Player const* player)
     return mask && (*mask & GAME_MODE_WILDCARD);
 }
 
+bool IsClasslessHero(Player const* player)
+{
+    return IsRealmHero(player);
+}
+
 std::uint32_t ActiveSpec(Player const* player)
 {
     return std::min<std::uint32_t>(FirstSetting(player, ACTIVE_SPEC_SETTING), SPECIALIZATION_COUNT - 1);
@@ -3072,7 +3487,8 @@ std::uint32_t PrestigeSpecialization(Player* player)
 
 void SignalRollReady(Player* player)
 {
-    SignalClientEvent(player, WILDCARD_ROLL_READY);
+    player->CustomData.GetDefault<PendingRollReady>("AscensionWildcardRollReady")->Due =
+        GameTime::GetGameTimeMS() + ROLL_READY_DELAY;
 }
 
 void SendPrestigeInfo(Player* player)
@@ -3089,8 +3505,13 @@ void SendPrestigeInfo(Player* player)
 
 std::vector<Slot> Slots(Player const* player)
 {
+    return Slots(player, ActiveSpec(player));
+}
+
+std::vector<Slot> Slots(Player const* player, std::uint32_t spec)
+{
     std::vector<Slot> slots;
-    if (PlayerSettingVector const* stored = player->FindPlayerSettings(SpecSource(player, SLOTS_SETTING)))
+    if (PlayerSettingVector const* stored = player->FindPlayerSettings(SpecSettingSource(SLOTS_SETTING, spec)))
         for (PlayerSetting const& value : *stored)
             slots.push_back(Decode(value.value));
     return slots;
@@ -3098,7 +3519,12 @@ std::vector<Slot> Slots(Player const* player)
 
 std::uint32_t PrimaryStat(Player const* player)
 {
-    return FirstSetting(player, SpecSource(player, PRIMARY_STAT_SETTING));
+    return PrimaryStat(player, ActiveSpec(player));
+}
+
+std::uint32_t PrimaryStat(Player const* player, std::uint32_t spec)
+{
+    return FirstSetting(player, SpecSettingSource(PRIMARY_STAT_SETTING, spec));
 }
 
 StarterCardSlots StarterCards(Player const* player)
@@ -3119,7 +3545,12 @@ CardCollection Collection(Player const* player)
 
 std::vector<AscensionCoATalentState::KnownEntry> KnownEntries(Player const* player)
 {
-    return KnownEntries(Slots(player), PrimaryStat(player));
+    return KnownEntries(player, ActiveSpec(player));
+}
+
+std::vector<AscensionCoATalentState::KnownEntry> KnownEntries(Player const* player, std::uint32_t spec)
+{
+    return KnownEntries(Slots(player, spec), PrimaryStat(player, spec));
 }
 
 BuildChoice ApplyBuildUpload(Player* player, std::vector<AscensionCoATalentState::KnownEntry> const& upload)
@@ -3177,6 +3608,7 @@ bool UnlearnForReroll(Player* player, std::uint32_t entryId)
 
 void AddAscensionWildcardScripts()
 {
+    new AscensionRemovedSpellActionBars::Script(AscensionWildcard::IsWildcardHero);
     for (uint16 opcode : { AscensionWildcard::CMSG_WILDCARD_REROLL_UNLOCKED_STARTING_ABILITIES,
              AscensionWildcard::CMSG_WILDCARD_ROLL_ABILITIES, AscensionWildcard::CMSG_WILDCARD_UNLEARN_ABILITY,
              AscensionWildcard::CMSG_CHARACTER_ADVANCEMENT_LOCK_ENTRY,
@@ -3207,8 +3639,12 @@ void AddAscensionWildcardScripts()
     new AscensionWildcard::AscensionWildcardItemSpells();
     new AscensionWildcard::AscensionWildcardItems();
     new AscensionWildcard::AscensionWildcardSpecializationCache();
+    new AscensionWildcard::AscensionWildcardPeteArr();
+    new AscensionWildcard::AscensionWildcardPeteArrSale();
     RegisterSpellScriptWithArgs(AscensionWildcard::spell_wildcard_specialization_swap,
         "spell_wildcard_specialization_swap");
+    RegisterSpellScriptWithArgs(AscensionWildcard::aura_wildcard_victorious_state, "aura_wildcard_victorious_state");
     new AscensionWildcard::AscensionWildcardWorld();
     Trainer::SetWildcardRankRows(&AscensionWildcard::RankTrainerRows);
+    Trainer::SetRankTrainerHero(&AscensionWildcard::IsClasslessHero);
 }

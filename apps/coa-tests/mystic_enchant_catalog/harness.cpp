@@ -42,13 +42,14 @@ int main(int argc, char** argv)
         owned.insert(id);
         limits[id] = 1;
     }
-    Slots slots;
-    for (std::uint32_t i = 0; i < slots.size(); ++i)
-        slots[i] = i + 1;
+    Slots slots{17, 14, 15, 16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
     check(ValidateSlots(synthetic, slots, 1, owned, limits), "13 mixed Rare/Uncommon, 3 Epic, 1 Legendary");
-    slots[16] = 18;
+    std::swap(slots[0], slots[1]);
+    check(!ValidateSlots(synthetic, slots, 1, owned, limits), "Legendary outside the center is rejected");
+    std::swap(slots[0], slots[1]);
+    slots[0] = 18;
     check(!ValidateSlots(synthetic, slots, 1, owned, limits), "Artifact cannot occupy Legendary slot");
-    slots[16] = 17;
+    slots[0] = 17;
     synthetic.BySpell.at(13).Quality = 4;
     check(!ValidateSlots(synthetic, slots, 1, owned, limits), "four Epics plus a Legendary are rejected");
     synthetic.BySpell.at(13).Quality = 3;
@@ -58,9 +59,10 @@ int main(int argc, char** argv)
     owned.erase(1);
     check(!ValidateSlots(synthetic, slots, 1, owned, limits), "unowned enchant is rejected");
     owned.insert(1);
-    slots[1] = 1;
+    slots[5] = 1;
     check(!ValidateSlots(synthetic, slots, 1, owned, limits), "duplicate beyond stack limit is rejected");
-    slots[1] = 2;
+    for (std::uint32_t i = 0; i < slots.size(); ++i)
+        slots[i] = i + 1;
     for (auto& [id, entry] : synthetic.BySpell)
         entry.Quality = id % 2 ? 2 : 3;
     check(ValidateSlots(synthetic, slots, 1, owned, limits), "seventeen Rare or Uncommon enchants are accepted");

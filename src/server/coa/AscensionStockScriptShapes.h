@@ -20,6 +20,7 @@ enum Effect : std::int32_t
     EFFECT_SCHOOL_DAMAGE = 2,
     EFFECT_DUMMY = 3,
     EFFECT_APPLY_AURA = 6,
+    EFFECT_SUMMON = 28,
     EFFECT_LEARN_SPELL = 36,
     EFFECT_TRIGGER_SPELL = 64,
     EFFECT_SUMMON_OBJECT_WILD = 76,
@@ -31,8 +32,10 @@ enum Aura : std::int32_t
     AURA_NONE = 0,
     AURA_DUMMY = 4,
     AURA_MOD_CHARM = 6,
+    AURA_PERIODIC_HEAL = 8,
     AURA_MOD_THREAT = 10,
     AURA_MOD_STUN = 12,
+    AURA_OBS_MOD_HEALTH = 20,
     AURA_PERIODIC_TRIGGER_SPELL = 23,
     AURA_MOD_DECREASE_SPEED = 33,
     AURA_MOD_INCREASE_HEALTH = 34,
@@ -108,6 +111,11 @@ constexpr Restore PartyBuff(std::uint32_t spellId, std::uint8_t index)
         { KEEP, KEEP, TARGET_UNIT_CASTER_AREA_PARTY } };
 }
 
+constexpr Restore MaxHealthPercentHeal(std::uint32_t spellId, std::uint8_t index)
+{
+    return { spellId, index, { EFFECT_APPLY_AURA, AURA_PERIODIC_HEAL, ANY }, { KEEP, AURA_OBS_MOD_HEALTH } };
+}
+
 constexpr Restore Targets(std::uint32_t spellId, std::uint8_t index, std::int32_t targetA, std::int32_t targetB,
     std::int32_t radius)
 {
@@ -145,6 +153,9 @@ constexpr Restore RESTORES[] = {
     { 30019, 1, {}, { KEEP, AURA_PERIODIC_DUMMY, TARGET_UNIT_CASTER, KEEP, KEEP, -1, KEEP, 2000 } },
     { 30019, 2, {}, { EFFECT_APPLY_AURA, AURA_MOD_CHARM, TARGET_UNIT_TARGET_ANY, KEEP, KEEP, 98 } },
     Targets(24778, 0, TARGET_DEST_CASTER, TARGET_UNIT_DEST_AREA_ENEMY, 15),
+    Targets(34341, 0, TARGET_DEST_CASTER, TARGET_UNIT_DEST_AREA_ENEMY, 14),
+    Targets(351392, 0, TARGET_DEST_CASTER, TARGET_UNIT_DEST_AREA_ENEMY, 14),
+    Targets(351393, 0, TARGET_DEST_CASTER, TARGET_UNIT_DEST_AREA_ENEMY, 14),
     { 40414, 2, {}, { EFFECT_SCRIPT_EFFECT, KEEP, TARGET_UNIT_TARGET_ENEMY, KEEP, KEEP, 40414, 1, KEEP, KEEP, KEEP,
         0 } },
     { 49026, 2, {}, { EFFECT_SCRIPT_EFFECT, KEEP, TARGET_UNIT_TARGET_ENEMY, KEEP, KEEP, 49028, 1, KEEP, KEEP, KEEP,
@@ -152,6 +163,8 @@ constexpr Restore RESTORES[] = {
     { 33525, 0, {}, { EFFECT_APPLY_AURA, AURA_PERIODIC_TRIGGER_SPELL, KEEP, KEEP, KEEP, KEEP, 1, 2000, KEEP, KEEP,
         39187 } },
     { 33525, 1, {}, { EFFECT_SCRIPT_EFFECT, AURA_NONE, KEEP, KEEP, KEEP, KEEP, KEEP, KEEP, 0 } },
+    { 33654, 0, { EFFECT_SCRIPT_EFFECT, ANY, TARGET_UNIT_TARGET_ENEMY },
+        { KEEP, KEEP, TARGET_SRC_CASTER, TARGET_UNIT_SRC_AREA_ENEMY, 12 } },
     Targets(30843, 0, TARGET_SRC_CASTER, TARGET_UNIT_SRC_AREA_ENEMY, KEEP),
     Targets(30843, 1, TARGET_SRC_CASTER, TARGET_UNIT_SRC_AREA_ENEMY, KEEP),
     Targets(802, 0, TARGET_SRC_CASTER, TARGET_UNIT_SRC_AREA_ENTRY, 20),
@@ -181,6 +194,7 @@ constexpr Restore RESTORES[] = {
     { 37676, 0, {}, { KEEP, AURA_DUMMY, TARGET_SRC_CASTER, TARGET_UNIT_SRC_AREA_ENEMY, 33, KEEP, KEEP, KEEP, 0, 0 } },
     { 45235, 1, {}, { EFFECT_SCRIPT_EFFECT, KEEP, KEEP, KEEP, KEEP, KEEP, KEEP, KEEP, KEEP, KEEP, 0 } },
     { 45236, 0, {}, { EFFECT_SUMMON_OBJECT_WILD, AURA_NONE, TARGET_DEST_CASTER, 0, 0, 0, 1, 0, 187366, 0, 0 } },
+    { 46217, 0, { EFFECT_DUMMY, ANY, TARGET_DEST_CASTER }, { EFFECT_SUMMON } },
 };
 
 constexpr Restore DEAD_CATALOG_SLOTS[] = {
@@ -195,6 +209,9 @@ constexpr Restore DEAD_CATALOG_SLOTS[] = {
         KEEP, 853513 } },
     { 760100, 0, { EFFECT_DUMMY, ANY, ANY }, { EFFECT_TRIGGER_SPELL, KEEP, KEEP, KEEP, KEEP, KEEP, KEEP, KEEP, KEEP,
         KEEP, 760101 } },
+    MaxHealthPercentHeal(28176, 1), MaxHealthPercentHeal(28189, 1), MaxHealthPercentHeal(47892, 1),
+    MaxHealthPercentHeal(47893, 1), MaxHealthPercentHeal(355621, 1), MaxHealthPercentHeal(1128176, 1),
+    MaxHealthPercentHeal(1128189, 1), MaxHealthPercentHeal(1147892, 1), MaxHealthPercentHeal(1147893, 1),
 };
 
 constexpr bool Matches(Shape const& broken, std::int32_t effect, std::int32_t aura, std::int32_t targetA)

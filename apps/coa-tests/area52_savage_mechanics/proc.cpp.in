@@ -1,0 +1,38 @@
+#include <cassert>
+#include <map>
+#include <set>
+using uint32=unsigned;using int32=int;
+constexpr int DISPEL_POISON=4,EFFECT_0=0,SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN=87;
+struct SpellInfo{int Dispel=4;};
+struct Aura{unsigned caster=1;SpellInfo info;unsigned GetCasterGUID()const{return caster;}SpellInfo const* GetSpellInfo()const{return &info;}};
+struct Application{Aura* aura;Aura* GetBase()const{return aura;}};
+struct Unit{using AuraApplicationMap=std::map<unsigned,Application*>;bool realm=true;unsigned guid=1;std::set<unsigned> talents;AuraApplicationMap auras;Unit* ToPlayer(){return this;}unsigned GetGUID()const{return guid;}auto const& GetAppliedAuras()const{return auras;}bool HasAura(unsigned id){return talents.contains(id);}};
+namespace AscensionFreePick{bool Applies(Unit* u){return u&&u->realm;}}
+struct ProcEventInfo{Unit* actor;Unit* target;SpellInfo* spell;Unit* GetActor(){return actor;}Unit* GetActionTarget(){return target;}SpellInfo const* GetSpellInfo(){return spell;}};
+struct AuraEffect{};
+struct Hook{void operator+=(int){}};
+struct AuraScript{Unit* owner=nullptr;Unit* caster=nullptr;unsigned id=58684;int duration=10000;Hook DoCheckProc,DoEffectCalcPeriodic,OnEffectUpdatePeriodic;virtual void Register(){}Unit* GetUnitOwner(){return owner;}Unit* GetCaster(){return caster;}unsigned GetCasterGUID(){return caster?caster->guid:0;}unsigned GetId(){return id;}void SetDuration(int d){duration=d;}};
+#define PrepareAuraScript(x) public:
+#define AuraCheckProcFn(x) 1
+#define AuraEffectCalcPeriodicFn(x,y,z) 1
+#define AuraEffectUpdatePeriodicFn(x,y,z) 1
+#define RegisterSpellScript(x) static_assert(sizeof(x)>0)
+@PARENT@
+@HELPER@
+int main(){
+ Unit caster,target,foreign;foreign.guid=2;SpellInfo poison,normal;normal.Dispel=0;
+ Aura own,other;other.caster=2;Application application{&own},foreignApplication{&other};
+ aura_area52_savage_combat talent;talent.owner=&caster;ProcEventInfo event{&caster,&target,&poison};
+ assert(!talent.Check(event));target.auras[1]=&foreignApplication;assert(!talent.Check(event));
+ target.auras[2]=&application;assert(talent.Check(event));event.spell=&normal;assert(!talent.Check(event));
+ event.spell=&poison;event.actor=&foreign;assert(!talent.Check(event));event.actor=&caster;event.target=nullptr;assert(!talent.Check(event));event.target=&target;
+ for(unsigned rank:{51682u,58413u}){
+  caster.talents={rank};spell_rog_savage_combat helper;helper.owner=&target;helper.caster=&caster;helper.id=rank==51682?58684:58683;
+  bool periodic=false;int amplitude=0;helper.CalcPeriodic(nullptr,periodic,amplitude);assert(periodic&&amplitude==1000);
+  helper.Update(nullptr);assert(helper.duration==10000);
+  target.auras.erase(2);helper.Update(nullptr);assert(helper.duration==0);target.auras[2]=&application;
+  helper.duration=10000;caster.talents.clear();helper.Update(nullptr);assert(helper.duration==0);
+ }
+ caster.talents={58413};spell_rog_savage_combat old;old.owner=&target;old.caster=&caster;old.id=58684;old.Update(nullptr);assert(old.duration==0);
+ caster.realm=false;old.duration=10000;old.Update(nullptr);assert(old.duration==10000);
+}

@@ -1,3 +1,4 @@
+#include "Area52MysticRealm.h"
 /*
  * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license: https://github.com/azerothcore/azerothcore-wotlk/blob/master/LICENSE-AGPL3
  */
@@ -13,6 +14,7 @@
 #include "UnitScript.h"
 #include "WorldScript.h"
 #include <algorithm>
+#include <map>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -21,6 +23,7 @@ namespace
     std::unordered_map<uint32, float> Multipliers;
     std::unordered_set<uint32> Bosses;
     std::unordered_map<uint32, float> CreatureMultipliers;
+    std::map<std::pair<uint32, uint32>, float> CreatureSpellMultipliers;
     std::unordered_map<uint32, float> HealShares;
 
     constexpr int32 TrashCapHeroic = 460;
@@ -47,24 +50,30 @@ namespace
         if (!creature || creature->GetCharmerOrOwnerPlayerOrPlayerItself())
             return 1.0f;
         Map const* map = creature->GetMap();
-        if (!map || !DungeonHealth::IsVanillaDungeon(map->GetId()) || !map->IsNonRaidDungeon() || map->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL)
+        if (!map || !map->IsDungeon() || (Area52MysticRealm::UsesFreePickEngine() && (!DungeonHealth::IsVanillaDungeon(map->GetId()) || !map->IsNonRaidDungeon() || map->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL))
+            || (map->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL && spellInfo->Id != 2102688))
             return 1.0f;
         auto itr = Multipliers.find(spellInfo->Id);
         return itr == Multipliers.end() ? 1.0f : itr->second;
     }
 
-    float CreatureMultiplier(Unit const* attacker)
+    float CreatureMultiplier(Unit const* attacker, SpellInfo const* spellInfo = nullptr)
     {
-        if (CreatureMultipliers.empty() || !attacker)
+        if ((CreatureMultipliers.empty() && CreatureSpellMultipliers.empty()) || !attacker)
             return 1.0f;
         Creature const* creature = attacker->ToCreature();
-        if (!creature || creature->GetCharmerOrOwnerPlayerOrPlayerItself())
+        if (!creature || (creature->IsControlledByPlayer() || (Area52MysticRealm::UsesFreePickEngine() && creature->GetCharmerOrOwnerPlayerOrPlayerItself())))
             return 1.0f;
         Map const* map = creature->GetMap();
-        if (!map || !DungeonHealth::IsVanillaDungeon(map->GetId()) || !map->IsNonRaidDungeon())
+        if (!map || !map->IsDungeon() || (Area52MysticRealm::UsesFreePickEngine() && (!DungeonHealth::IsVanillaDungeon(map->GetId()) || !map->IsNonRaidDungeon())))
             return 1.0f;
         auto itr = CreatureMultipliers.find(creature->GetEntry());
-        return itr == CreatureMultipliers.end() ? 1.0f : itr->second;
+        float multiplier = itr == CreatureMultipliers.end() ? 1.0f : itr->second;
+        if (spellInfo)
+            if (auto spell = CreatureSpellMultipliers.find({ creature->GetEntry(), spellInfo->Id });
+                spell != CreatureSpellMultipliers.end())
+                multiplier *= spell->second;
+        return multiplier;
     }
 }
 
@@ -95,15 +104,21 @@ public:
         }
         LOG_INFO("server.loading", ">> Loaded {} CoA dungeon boss entries (trash spell cap exempt)", Bosses.size());
         CreatureMultipliers.clear();
-        if (QueryResult result = WorldDatabase.Query("SELECT entry, multiplier FROM coa_dungeon_creature_damage"))
+        CreatureSpellMultipliers.clear();
+        if (PreparedQueryResult result = WorldDatabase.Query(WorldDatabase.GetPreparedStatement(WORLD_SEL_COA_DUNGEON_CREATURE_DAMAGE)))
         {
             do
             {
                 Field* fields = result->Fetch();
-                CreatureMultipliers[fields[0].Get<uint32>()] = fields[1].Get<float>();
+                uint32 const entry = fields[0].Get<uint32>();
+                if (uint32 const spellId = fields[1].Get<uint32>())
+                    CreatureSpellMultipliers[{ entry, spellId }] = fields[2].Get<float>();
+                else
+                    CreatureMultipliers[entry] = fields[2].Get<float>();
             } while (result->NextRow());
         }
-        LOG_INFO("server.loading", ">> Loaded {} CoA dungeon creature damage multipliers", CreatureMultipliers.size());
+        LOG_INFO("server.loading", ">> Loaded {} CoA dungeon creature damage multipliers",
+            CreatureMultipliers.size() + CreatureSpellMultipliers.size());
         HealShares.clear();
         if (QueryResult result = WorldDatabase.Query("SELECT entry, heal_pct FROM coa_dungeon_creature_heal"))
         {
@@ -144,7 +159,8 @@ public:
 
     void ModifySpellDamageTaken(Unit*, Unit* attacker, int32& damage, SpellInfo const* spellInfo) override
     {
-        if (float multiplier = Multiplier(attacker, spellInfo) * CreatureMultiplier(attacker); multiplier != 1.0f)
+        if (float multiplier = Multiplier(attacker, spellInfo) * CreatureMultiplier(attacker, spellInfo);
+            multiplier != 1.0f)
             damage = int32(damage * multiplier);
         if (int32 cap = TrashCap(attacker, spellInfo); cap && damage > cap)
             damage = cap + (damage - cap) / 20;
@@ -152,7 +168,8 @@ public:
 
     void ModifyPeriodicDamageAurasTick(Unit*, Unit* attacker, uint32& damage, SpellInfo const* spellInfo) override
     {
-        if (float multiplier = Multiplier(attacker, spellInfo) * CreatureMultiplier(attacker); multiplier != 1.0f)
+        if (float multiplier = Multiplier(attacker, spellInfo) * CreatureMultiplier(attacker, spellInfo);
+            multiplier != 1.0f)
             damage = uint32(damage * multiplier);
     }
 };

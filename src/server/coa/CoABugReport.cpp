@@ -92,7 +92,8 @@ namespace
     std::string ServerContext(Player* player, CoABugReport::Report const& report)
     {
         std::ostringstream context;
-        context << "\n\n### Server context\nCategory ID: " << report.Category << "\nPriority: " << report.Priority
+        context << "\n\n### Server context\nCharacter: " << player->GetName()
+            << "\nCategory ID: " << report.Category << "\nPriority: " << report.Priority
             << "\nClass ID: " << uint32(player->getClass()) << "\nLevel: " << uint32(player->GetLevel())
             << "\nMap ID: " << player->GetMapId() << "\nPosition: " << player->GetPositionX() << ", "
             << player->GetPositionY() << ", " << player->GetPositionZ() << "\nCore revision: "
@@ -149,6 +150,9 @@ namespace
 
         void OnPlayerLogout(Player* player) override
         {
+            if (player->GetSession()->IsBot())
+                return;
+
             std::lock_guard<std::mutex> lock(PendingLock);
             PendingReports.erase(player->GetSession()->GetAccountId());
             AnyPending = !PendingReports.empty();
@@ -156,7 +160,7 @@ namespace
 
         void OnPlayerUpdate(Player* player, uint32) override
         {
-            if (!AnyPending)
+            if (!AnyPending || player->GetSession()->IsBot())
                 return;
 
             std::deque<CoABugReport::Report> reports;

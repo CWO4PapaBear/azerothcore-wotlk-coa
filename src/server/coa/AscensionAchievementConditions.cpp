@@ -4,8 +4,12 @@
 #include "Config.h"
 #include "DBCStructure.h"
 #include <atomic>
+#include "AchievementMgr.h"
+#include "Map.h"
 #include "Player.h"
+#include "RBAC.h"
 #include "ScriptMgr.h"
+#include "WorldSession.h"
 
 namespace
 {
@@ -125,6 +129,67 @@ public:
 private:
     uint32 _modes;
 };
+
+struct DifficultyCriteria
+{
+    char const* Name;
+    Difficulty SpawnMode;
+};
+
+constexpr DifficultyCriteria DIFFICULTY_CRITERIA[] = {
+    { "achievement_coa_difficulty_normal", RAID_DIFFICULTY_10MAN_NORMAL },
+    { "achievement_coa_difficulty_heroic", RAID_DIFFICULTY_25MAN_NORMAL },
+    { "achievement_coa_difficulty_mythic", RAID_DIFFICULTY_10MAN_HEROIC },
+    { "achievement_coa_difficulty_ascended", RAID_DIFFICULTY_25MAN_HEROIC }
+};
+
+class AchievementDifficultyCriteria final : public AchievementCriteriaScript
+{
+public:
+    explicit AchievementDifficultyCriteria(DifficultyCriteria const& criteria)
+        : AchievementCriteriaScript(criteria.Name), _spawnMode(criteria.SpawnMode) { }
+
+    bool OnCheck(Player* player, Unit*, uint32) override
+    {
+        return player->GetMap()->GetSpawnMode() == _spawnMode;
+    }
+
+private:
+    Difficulty _spawnMode;
+};
+
+class RealmFirstAchievementPermission final : public PlayerScript
+{
+public:
+    RealmFirstAchievementPermission()
+        : PlayerScript("RealmFirstAchievementPermission", { PLAYERHOOK_ON_BEFORE_ACHI_COMPLETE }) { }
+
+    bool OnPlayerBeforeAchievementComplete(Player* player, AchievementEntry const* achievement) override
+    {
+        if (!(achievement->flags & (ACHIEVEMENT_FLAG_REALM_FIRST_REACH | ACHIEVEMENT_FLAG_REALM_FIRST_KILL)))
+            return true;
+
+        WorldSession* session = player->GetSession();
+        return !session || !session->HasPermission(rbac::RBAC_PERM_CANNOT_EARN_REALM_FIRST_ACHIEVEMENTS);
+    }
+};
+
+class LearnSkillLineSpellsCriteriaDataGate final : public AchievementScript
+{
+public:
+    LearnSkillLineSpellsCriteriaDataGate()
+        : AchievementScript("LearnSkillLineSpellsCriteriaDataGate", { ACHIEVEMENTHOOK_IS_COMPLETED_CRITERIA }) { }
+
+    bool IsCompletedCriteria(AchievementMgr* mgr, AchievementCriteriaEntry const* achievementCriteria,
+        AchievementEntry const*, CriteriaProgress const*) override
+    {
+        if (achievementCriteria->requiredType != ACHIEVEMENT_CRITERIA_TYPE_LEARN_SKILLLINE_SPELLS)
+            return true;
+
+        AchievementCriteriaDataSet const* data = sAchievementMgr->GetCriteriaDataSet(achievementCriteria);
+        return !data || data->Meets(mgr->GetPlayer(), nullptr);
+    }
+};
 }
 
 void AddAscensionAchievementConditionScripts()
@@ -134,4 +199,10 @@ void AddAscensionAchievementConditionScripts()
     new SeasonalAchievementCompletion();
     for (GameModeCriteria const& criteria : GAME_MODE_CRITERIA)
         new AchievementGameModeCriteria(criteria);
+
+    for (DifficultyCriteria const& criteria : DIFFICULTY_CRITERIA)
+        new AchievementDifficultyCriteria(criteria);
+
+    new RealmFirstAchievementPermission();
+    new LearnSkillLineSpellsCriteriaDataGate();
 }

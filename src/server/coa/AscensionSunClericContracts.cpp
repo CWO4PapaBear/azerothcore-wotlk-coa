@@ -1,6 +1,7 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 #include "AscensionSunCleric.h"
 #include "AscensionSunClericData.h"
+#include "AscensionClientSpellPatches.h"
 #include "DBCStores.h"
 #include "DynamicObject.h"
 #include "Player.h"
@@ -11,13 +12,19 @@
 namespace AscensionSunCleric
 {
 constexpr uint32 SpellRangeAnywhere = 13;
+constexpr uint32 SunDownDuration = 39;
+constexpr uint32 SunwellVisual = 560124;
 void ApplyContracts(SpellInfo* info)
 {
     if (!info || info->SpellFamilyName != 33)
         return;
     uint32 id = info->Id;
+    if (id == SunwellVisual)
+        info->AttributesCu |= SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED;
     if (id == 800624)
         info->AttributesEx &= ~SPELL_ATTR1_NO_THREAT;
+    if (id == 803493)
+        info->Effects[EFFECT_0].ChainTarget = 0;
     if (id == Rejuvenating)
         for (auto& effect : info->Effects)
             if (effect.IsAura())
@@ -83,6 +90,12 @@ void ApplyContracts(SpellInfo* info)
         info->Effects[0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ALLY);
         info->Effects[0].TargetB = SpellImplicitTargetInfo();
     }
+    if (id == DawnCast)
+    {
+        info->CasterAuraSpell = 0;
+        info->ExcludeCasterAuraSpell = 0;
+        Ascension::ClientSpellPatches::Instance().Register(id);
+    }
     if (id == Dawn)
     {
         dummy(0);
@@ -90,6 +103,7 @@ void ApplyContracts(SpellInfo* info)
         info->Attributes &= ~SPELL_ATTR0_AURA_IS_DEBUFF;
         info->Attributes &= ~SPELL_ATTR0_NO_AURA_CANCEL;
         info->AttributesCu &= ~SPELL_ATTR0_CU_NEGATIVE;
+        Ascension::ClientSpellPatches::Instance().Register(id);
     }
     if (id == SolarPower)
         dummy(1);
@@ -163,8 +177,9 @@ void ApplyContracts(SpellInfo* info)
         dummy(1);
     if (id == 300353)
     {
-        dummy(1);
-        dummy(2);
+        aura(1, SPELL_AURA_IGNORE_COMBAT_RESULT, 0, MELEE_HIT_DODGE, TARGET_UNIT_CASTER);
+        aura(2, SPELL_AURA_IGNORE_COMBAT_RESULT, 0, MELEE_HIT_PARRY, TARGET_UNIT_CASTER);
+        info->Effects[1].SpellClassMask = info->Effects[2].SpellClassMask = flag96(0, 32, 0);
     }
     if (id == 805816)
         dummy(0);
@@ -212,10 +227,13 @@ void ApplyContracts(SpellInfo* info)
         for (auto& effect : info->Effects)
             if (effect.Effect == 168)
                 effect.Effect = SPELL_EFFECT_DUMMY;
+    if (id == 804751)
+        info->AttributesEx2 &= ~SPELL_ATTR2_IGNORE_LINE_OF_SIGHT;
     if (id == 707768)
     {
         info->Effects[0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
         info->Effects[0].BasePoints = 9;
+        info->AttributesCu &= ~SPELL_ATTR0_CU_NEGATIVE_EFF0;
     }
     if (id == 520024 || id == 520026 || id == 807441 || id == 680630)
         for (auto& effect : info->Effects)
@@ -245,19 +263,22 @@ void ApplyContracts(SpellInfo* info)
                 if (info->Effects[slot].ApplyAuraName == SPELL_AURA_PERIODIC_TRIGGER_SPELL ||
                     info->Effects[slot].ApplyAuraName == SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE)
                     dummy(slot);
-    for (uint32 periodic : {300361,572752,704930,560123,570125})
+    for (uint32 periodic : {300361,572752,704930,570125})
         if (id == periodic)
         {
             uint8 slot = id == 570125 ? 2 : 0;
-            if (id == 560123 || id == 570125)
-                aura(slot, SPELL_AURA_PERIODIC_DUMMY, 0, 0, id == 570125 ? TARGET_UNIT_TARGET_ENEMY : TARGET_UNIT_CASTER);
+            if (id == 570125 || id == 572752)
+                aura(slot, SPELL_AURA_PERIODIC_DUMMY, 0, 0, TARGET_UNIT_TARGET_ENEMY);
             else
                 info->Effects[slot].ApplyAuraName = SPELL_AURA_PERIODIC_DUMMY;
             info->Effects[slot].TriggerSpell = 0;
-            if (id == 560123)
-                info->Effects[slot].Amplitude = 3000;
             if (id == 570125)
                 info->Effects[slot].Amplitude = 500;
+            if (id == 572752)
+            {
+                info->Effects[slot].Amplitude = 1900;
+                info->DurationEntry = sSpellDurationStore.LookupEntry(SunDownDuration);
+            }
         }
     info->_InitializeExplicitTargetMask();
 }
@@ -297,10 +318,6 @@ public:
                             player->SpellBaseDamageBonusDone(info->GetSchoolMask()));
         }
         value = std::clamp(value, float(INT32_MIN / 2), float(INT32_MAX / 2));
-    }
-    bool idIsJustice(SpellInfo const* info)
-    {
-        return Any(info, {524857,525005,525006,525007,572849,572850,572040,572041,572042,572043,572044,572045});
     }
     float Factor(Unit* target, Unit* caster, SpellInfo const* info)
     {

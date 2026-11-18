@@ -158,12 +158,7 @@ namespace Area52AccountFriends
     }
 }
 
-bool PlayerSocial::UsesAccountFriends() const
-{
-    return AscensionFreePick::Enabled();
-}
-
-void PlayerSocial::ProjectAccountFriends(Player* player, ObjectGuid excluded)
+void PlayerSocial::ProjectArea52AccountFriends(Player* player, ObjectGuid excluded)
 {
     for (auto itr = m_playerSocialMap.begin(); itr != m_playerSocialMap.end();)
     {

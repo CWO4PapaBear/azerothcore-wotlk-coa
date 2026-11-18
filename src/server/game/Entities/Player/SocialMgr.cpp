@@ -28,6 +28,7 @@
 #include "WorldPacket.h"
 #include "WorldSession.h"
 #include "../../../coa/Area52AccountFriends.inc"
+#include "AccountFriends.h"
 
 PlayerSocial::PlayerSocial(): m_playerGUID() { }
 
@@ -44,8 +45,11 @@ uint32 PlayerSocial::GetNumberOfSocialsWithFlag(SocialFlag flag) const
 
 bool PlayerSocial::AddToSocialList(ObjectGuid const& friendGuid, SocialFlag flag)
 {
-    if (flag == SOCIAL_FLAG_FRIEND && UsesAccountFriends())
+    if (flag == SOCIAL_FLAG_FRIEND && AscensionFreePick::Enabled())
         return Area52AccountFriends::Add(GetPlayerGUID(), friendGuid);
+
+    if (flag == SOCIAL_FLAG_FRIEND && (!AscensionFreePick::Enabled() && UsesAccountFriends()))
+        return AccountFriends::Add(GetPlayerGUID(), friendGuid);
 
     // check client limits
     if (GetNumberOfSocialsWithFlag(flag) >= (((flag & SOCIAL_FLAG_FRIEND) != 0) ? SOCIALMGR_FRIEND_LIMIT : SOCIALMGR_IGNORE_LIMIT))
@@ -81,9 +85,14 @@ bool PlayerSocial::AddToSocialList(ObjectGuid const& friendGuid, SocialFlag flag
 
 void PlayerSocial::RemoveFromSocialList(ObjectGuid const& friendGuid, SocialFlag flag)
 {
-    if (flag == SOCIAL_FLAG_FRIEND && UsesAccountFriends())
+    if (flag == SOCIAL_FLAG_FRIEND && AscensionFreePick::Enabled())
     {
         Area52AccountFriends::Remove(GetPlayerGUID(), friendGuid);
+        return;
+    }
+    if (flag == SOCIAL_FLAG_FRIEND && (!AscensionFreePick::Enabled() && UsesAccountFriends()))
+    {
+        AccountFriends::Remove(GetPlayerGUID(), friendGuid);
         return;
     }
     auto itr = m_playerSocialMap.find(friendGuid);
@@ -117,9 +126,14 @@ void PlayerSocial::RemoveFromSocialList(ObjectGuid const& friendGuid, SocialFlag
 
 void PlayerSocial::SetFriendNote(ObjectGuid const& friendGuid, std::string note)
 {
-    if (UsesAccountFriends() && Area52AccountFriends::Has(GetPlayerGUID(), friendGuid))
+    if (AscensionFreePick::Enabled() && Area52AccountFriends::Has(GetPlayerGUID(), friendGuid))
     {
         Area52AccountFriends::SetNote(GetPlayerGUID(), friendGuid, note);
+        return;
+    }
+    if ((!AscensionFreePick::Enabled() && UsesAccountFriends()) && AccountFriends::Has(GetPlayerGUID(), friendGuid))
+    {
+        AccountFriends::SetNote(GetPlayerGUID(), friendGuid, note);
         return;
     }
     auto itr = m_playerSocialMap.find(friendGuid);
@@ -144,8 +158,12 @@ void PlayerSocial::SendSocialList(Player* player, uint32 flags, ObjectGuid exclu
     if (!player)
         return;
 
+    std::unique_lock lock(AccountFriends::GetMutex(), std::defer_lock);
     if (UsesAccountFriends())
+    {
+        lock.lock();
         ProjectAccountFriends(player, excluded);
+    }
 
     uint32 friendsCount = 0;
     uint32 ignoredCount = 0;
@@ -196,8 +214,10 @@ void PlayerSocial::SendSocialList(Player* player, uint32 flags, ObjectGuid exclu
 
     data.put<uint32>(countPos, totalCount);
     player->SendDirectMessage(&data);
-    if (UsesAccountFriends())
+    if (AscensionFreePick::Enabled())
         Area52AccountFriends::SendMetadata(player, m_playerSocialMap);
+    if ((!AscensionFreePick::Enabled() && UsesAccountFriends()))
+        AccountFriends::SendMetadata(player, m_playerSocialMap);
     LOG_DEBUG("network", "WORLD: Sent SMSG_CONTACT_LIST");
 }
 
@@ -212,8 +232,10 @@ bool PlayerSocial::_checkContact(ObjectGuid const& guid, SocialFlag flags) const
 
 bool PlayerSocial::HasFriend(ObjectGuid const& friend_guid) const
 {
-    if (UsesAccountFriends())
+    if (AscensionFreePick::Enabled())
         return Area52AccountFriends::Has(GetPlayerGUID(), friend_guid);
+    if ((!AscensionFreePick::Enabled() && UsesAccountFriends()))
+        return AccountFriends::Has(GetPlayerGUID(), friend_guid);
     return _checkContact(friend_guid, SOCIAL_FLAG_FRIEND);
 }
 
@@ -263,7 +285,8 @@ void SocialMgr::GetFriendInfo(Player* player, ObjectGuid const& friendGUID, Frie
         pFriend->GetSession()->GetSecurity() > gmLevelInWhoList)
         return;
 
-    if (pFriend->GetTeamId() != teamId && !player->GetSession()->HasPermission(rbac::RBAC_PERM_TWO_SIDE_WHO_LIST))
+    if (pFriend->GetTeamId() != teamId && !sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_WHO_LIST) &&
+        !player->GetSession()->HasPermission(rbac::RBAC_PERM_TWO_SIDE_WHO_LIST))
         return;
 
     if (pFriend->IsVisibleGloballyFor(player))
@@ -273,6 +296,9 @@ void SocialMgr::GetFriendInfo(Player* player, ObjectGuid const& friendGUID, Frie
             friendInfo.Status = FRIEND_STATUS_AFK;
         if (pFriend->isDND())
             friendInfo.Status = FRIEND_STATUS_DND;
+        if (player->GetSession()->GetRecruiterId() == pFriend->GetSession()->GetAccountId() ||
+            pFriend->GetSession()->GetRecruiterId() == player->GetSession()->GetAccountId())
+            friendInfo.Status = FriendStatus(friendInfo.Status | FRIEND_STATUS_RAF);
         friendInfo.Area = pFriend->GetZoneId();
         friendInfo.Level = pFriend->GetLevel();
         friendInfo.Class = pFriend->getClass();
@@ -364,7 +390,8 @@ void SocialMgr::BroadcastToFriendListers(Player* player, WorldPacket* packet)
             if (!session->HasPermission(rbac::RBAC_PERM_WHO_SEE_ALL_SEC_LEVELS) && player->GetSession()->GetSecurity() > gmLevelInWhoList)
                 continue;
 
-            if (pFriend->GetTeamId() != teamId && !session->HasPermission(rbac::RBAC_PERM_TWO_SIDE_WHO_LIST))
+            if (pFriend->GetTeamId() != teamId && !sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_WHO_LIST) &&
+                !session->HasPermission(rbac::RBAC_PERM_TWO_SIDE_WHO_LIST))
                 continue;
 
             if (player->IsVisibleGloballyFor(pFriend))

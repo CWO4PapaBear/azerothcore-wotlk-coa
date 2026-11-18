@@ -1,11 +1,11 @@
+#include "../../../src/server/coa/Area52MysticRealm.h"
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 
 #include "AllBattlegroundScript.h"
-#include "CallboardRealmTier.h"
-#include "CallboardHuntRotation.h"
-#include "Chat.h"
 #include "Battleground.h"
+#include "ConditionMgr.h"
 #include "Config.h"
+#include "DBCStores.h"
 #include "GameObject.h"
 #include "GameObjectScript.h"
 #include "GlobalScript.h"
@@ -18,6 +18,7 @@
 #include "Player.h"
 #include "PlayerScript.h"
 #include "QuestDef.h"
+#include "ReputationMgr.h"
 #include "ScriptedGossip.h"
 #include "ServerScript.h"
 #include "World.h"
@@ -40,7 +41,8 @@ namespace
         CategoryPvE = 1,
         CategoryReturn = 2,
         CategoryProfessions = 3,
-        CategoryPvP = 4
+        CategoryPvP = 4,
+        CategoryHighRisk = 5
     };
 
     enum BoardQuestSort : int32
@@ -63,6 +65,11 @@ namespace
     constexpr uint32 MythicDungeonCredit = 80652;
     constexpr uint32 RaidLeaderCredit = 101000;
     constexpr uint32 DungeonLeaderCredit = 101001;
+    constexpr uint32 QuelLithienUnrestQuest = 18044;
+    constexpr uint32 SilvermoonRemnantFaction = 269;
+    constexpr uint32 QuelLithienLodgeFactionTemplate = 1576;
+    constexpr uint32 EasternPlaguelandsZone = 139;
+    constexpr uint32 HighRiskRulesetAura = 1004019;
     constexpr std::array<uint32, 16> FinalRaidBosses = { 10184, 11502, 11583, 14834, 15339, 15727, 15990, 110184,
         111502, 111583, 114834, 115339, 115727, 115990, 210184, 211502 };
 
@@ -70,6 +77,8 @@ namespace
     constexpr uint32 AutoQuestOffer = 0;
     constexpr uint32 HeroCallBoard = 402000;
     constexpr uint32 WarchiefCommandBoard = 402001;
+    constexpr uint32 PaleReachIntroduction = 175207;
+    constexpr std::array<uint32, 3> PaleReachOpeningQuests = { 175000, 175001, 175002 };
 
     std::atomic<bool> enabled{true};
     std::atomic<bool> autoOffer{true};
@@ -87,8 +96,22 @@ namespace
         }
     }
 
+    bool RequiresHighRisk(Quest const* quest)
+    {
+        ConditionList const conditions = sConditionMgr->GetConditionsForNotGroupedEntry(
+            CONDITION_SOURCE_TYPE_QUEST_AVAILABLE, quest->GetQuestId());
+        return std::any_of(conditions.begin(), conditions.end(), [](Condition const* condition)
+        {
+            return condition->ConditionType == CONDITION_AURA && condition->ConditionValue1 == HighRiskRulesetAura
+                && !condition->NegativeCondition;
+        });
+    }
+
     std::optional<uint32> CategoryOf(Quest const* quest)
     {
+        if (RequiresHighRisk(quest))
+            return CategoryHighRisk;
+
         int32 const sort = quest->GetZoneOrSort();
         if (sort > 0)
             return CategoryPvE;
@@ -118,7 +141,7 @@ namespace
 
     bool IsZoneOrder(Quest const* quest)
     {
-        return quest->GetZoneOrSort() > 0;
+        return quest->GetZoneOrSort() > 0 && !RequiresHighRisk(quest);
     }
 
     Quest const* FactionZoneOrder(Player const* player, uint32 questId)
@@ -132,6 +155,32 @@ namespace
         return nullptr;
     }
 
+    Quest const* PaleReachIntroductionFor(Player* player)
+    {
+        if (player->GetTeamId() != TEAM_ALLIANCE)
+            return nullptr;
+
+        for (uint32 questId : PaleReachOpeningQuests)
+            if (player->GetQuestStatus(questId) != QUEST_STATUS_NONE || player->GetQuestRewardStatus(questId))
+                return nullptr;
+
+        Quest const* quest = sObjectMgr->GetQuestTemplate(PaleReachIntroduction);
+        return quest && player->CanTakeQuest(quest, false) ? quest : nullptr;
+    }
+
+    void SendAutoQuestOffer(Player* player, Quest const* quest)
+    {
+        WorldPacket offer(SmsgAutoQuestUpdate, 2 * sizeof(uint32));
+        offer << quest->GetQuestId() << AutoQuestOffer;
+        player->SendDirectMessage(&offer);
+    }
+
+    void OfferPaleReachIntroduction(Player* player, uint32 previousLevel)
+    {
+        if (Quest const* quest = PaleReachIntroductionFor(player); quest && quest->GetMinLevel() > previousLevel)
+            SendAutoQuestOffer(player, quest);
+    }
+
     void OfferZoneOrdersUnlockedSince(Player* player, uint32 previousLevel)
     {
         auto const starters = sObjectMgr->GetGOQuestRelationBounds(FactionBoard(player));
@@ -143,9 +192,7 @@ namespace
                 || !player->CanTakeQuest(quest, false))
                 continue;
 
-            WorldPacket offer(SmsgAutoQuestUpdate, 2 * sizeof(uint32));
-            offer << quest->GetQuestId() << AutoQuestOffer;
-            player->SendDirectMessage(&offer);
+            SendAutoQuestOffer(player, quest);
         }
     }
 
@@ -184,6 +231,8 @@ namespace
         AddGossipItemFor(player, GOSSIP_ICON_CHAT, "PvE Quests", GOSSIP_SENDER_MAIN, CategoryPvE);
         AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Profession Quests", GOSSIP_SENDER_MAIN, CategoryProfessions);
         AddGossipItemFor(player, GOSSIP_ICON_CHAT, "PvP Quests", GOSSIP_SENDER_MAIN, CategoryPvP);
+        if (player->HasAura(HighRiskRulesetAura))
+            AddGossipItemFor(player, GOSSIP_ICON_CHAT, "High-Risk Quests", GOSSIP_SENDER_MAIN, CategoryHighRisk);
         SendBoardMenu(player, board);
     }
 
@@ -192,47 +241,36 @@ namespace
         ClearGossipMenuFor(player);
         QuestMenu& menu = player->PlayerTalkClass->GetQuestMenu();
 
-        struct Row { Quest const* quest; uint8 icon; uint8 priority; };
-        std::vector<Row> rows;
-        auto append = [&](Quest const* quest, uint8 icon)
-        {
-            if (std::any_of(rows.begin(), rows.end(), [&](Row const& row) { return row.quest == quest; }))
-                return;
-            bool today = CallboardHunts::ZoneFor(quest->GetQuestId()) && CallboardHunts::CanOffer(player, quest->GetQuestId());
-            rows.push_back({quest, icon, uint8(today ? 0 : icon == 4 ? 1 : 2)});
-        };
+        // Filter before adding: both categories together can exceed the 32-entry menu limit.
         auto const involved = sObjectMgr->GetGOQuestInvolvedRelationBounds(board->GetEntry());
         for (auto itr = involved.first; itr != involved.second; ++itr)
         {
             Quest const* quest = sObjectMgr->GetQuestTemplate(itr->second);
-            if (!quest || !InCategory(quest, category) || !CallboardRealmTier::CanUse(player, quest) || menu.HasItem(itr->second))
+            if (!quest || !InCategory(quest, category) || menu.HasItem(itr->second))
                 continue;
 
             QuestStatus const status = player->GetQuestStatus(itr->second);
-            if (status == QUEST_STATUS_COMPLETE || (status == QUEST_STATUS_INCOMPLETE
-                && CallboardHunts::CanOffer(player, quest->GetQuestId())))
-                append(quest, 4);
+            if ((status == QUEST_STATUS_INCOMPLETE || status == QUEST_STATUS_COMPLETE)
+                && menu.GetMenuItemCount() < GOSSIP_MAX_MENU_ITEMS)
+                menu.AddMenuItem(itr->second, 4);
         }
 
+        std::vector<Quest const*> offered;
         auto const available = sObjectMgr->GetGOQuestRelationBounds(board->GetEntry());
         for (auto itr = available.first; itr != available.second; ++itr)
         {
             Quest const* quest = sObjectMgr->GetQuestTemplate(itr->second);
             if (quest && InCategory(quest, category) && !menu.HasItem(itr->second)
                 && player->CanSeeStartQuest(quest) && player->CanTakeQuest(quest, false))
-                append(quest, 2);
+                offered.push_back(quest);
         }
 
-        std::stable_sort(rows.begin(), rows.end(), [](Row const& left, Row const& right)
-        {
-            if (left.priority != right.priority) return left.priority < right.priority;
-            return left.quest->GetMinLevel() > right.quest->GetMinLevel();
-        });
-        for (Row const& row : rows)
-        {
-            if (menu.GetMenuItemCount() >= GOSSIP_MAX_MENU_ITEMS) break;
-            menu.AddMenuItem(row.quest->GetQuestId(), row.icon);
-        }
+        // Past the menu limit the quests closest to the character's level stay listed.
+        std::stable_sort(offered.begin(), offered.end(),
+            [](Quest const* left, Quest const* right) { return left->GetMinLevel() > right->GetMinLevel(); });
+        for (Quest const* quest : offered)
+            if (menu.GetMenuItemCount() < GOSSIP_MAX_MENU_ITEMS)
+                menu.AddMenuItem(quest->GetQuestId(), 2);
 
         // CallBoardLayout reads the quests' QuestSort synchronously, even on a cold client cache.
         for (uint16 index = 0; index < menu.GetMenuItemCount(); ++index)
@@ -260,6 +298,30 @@ namespace
         ShowCategory(player, board, *category);
         return true;
     }
+
+    // Quest 18044 is offered on both faction boards, but the Quel'Lithien Lodge elves are friendly to the Alliance:
+    // they turn hostile to a character in Eastern Plaguelands while the quest is in its log. Their faction also has
+    // friendly quest givers and trainers elsewhere, so the forced reaction stays within the zone.
+    void UpdateQuelLithienReaction(Player* player, uint32 zoneId)
+    {
+        FactionTemplateEntry const* lodge = sFactionTemplateStore.LookupEntry(QuelLithienLodgeFactionTemplate);
+        if (!lodge)
+            return;
+
+        QuestStatus const status = player->GetQuestStatus(QuelLithienUnrestQuest);
+        bool const hostile = zoneId == EasternPlaguelandsZone
+            && (status == QUEST_STATUS_INCOMPLETE || status == QUEST_STATUS_COMPLETE);
+        ReputationMgr& reputation = player->GetReputationMgr();
+        if (hostile == (reputation.GetForcedRankIfAny(lodge) != nullptr))
+            return;
+
+        reputation.ApplyForceReaction(SilvermoonRemnantFaction, REP_HOSTILE, hostile);
+        reputation.SendForceReactions();
+
+        FactionTemplateEntry const* own = player->GetFactionTemplateEntry();
+        if (!hostile && own && lodge->IsFriendlyTo(*own))
+            player->StopAttackFaction(SilvermoonRemnantFaction);
+    }
 }
 
 class go_hero_call_board final : public GameObjectScript
@@ -267,10 +329,10 @@ class go_hero_call_board final : public GameObjectScript
 public:
     go_hero_call_board() : GameObjectScript("native_ascension_callboard") { }
 
-    uint32 GetDialogStatus(Player* player, GameObject* board) override
+    uint32 GetDialogStatus(Player* /*player*/, GameObject* board) override
     {
         // The board is a permanent service: daily quest flags must not turn its marker blue.
-        return enabled.load() && CallboardRealmTier::ForPlayer(player) && IsCallBoard(board->GetEntry()) ? DIALOG_STATUS_AVAILABLE
+        return enabled.load() && IsCallBoard(board->GetEntry()) ? DIALOG_STATUS_AVAILABLE
             : DIALOG_STATUS_SCRIPTED_NO_STATUS;
     }
 
@@ -279,25 +341,19 @@ public:
         if (!enabled.load() || !IsCallBoard(board->GetEntry()))
             return false;
 
-        if (!CallboardRealmTier::ForPlayer(player))
-        {
-            ChatHandler(player->GetSession()).SendSysMessage("The Callboard opens at level 60.");
-            return true;
-        }
         ShowCategories(player, board);
-        if (auto zone = CallboardHunts::Today(player))
-            ChatHandler(player->GetSession()).PSendSysMessage("Today's Callboard hunts and Wanted bounties: {}.", zone);
         return true;
     }
 
     bool OnGossipSelect(Player* player, GameObject* board, uint32 sender, uint32 action) override
     {
-        if (!enabled.load() || !CallboardRealmTier::ForPlayer(player) || !IsCallBoard(board->GetEntry()) || sender != GOSSIP_SENDER_MAIN)
+        if (!enabled.load() || !IsCallBoard(board->GetEntry()) || sender != GOSSIP_SENDER_MAIN)
             return false;
 
         if (action == CategoryReturn)
             ShowCategories(player, board);
-        else if (action == CategoryPvE || action == CategoryProfessions || action == CategoryPvP)
+        else if (action == CategoryPvE || action == CategoryProfessions || action == CategoryPvP
+            || action == CategoryHighRisk)
             ShowCategory(player, board, action);
         else
             return false;
@@ -316,12 +372,41 @@ class HeroCallBoardPlayers final : public PlayerScript
 public:
     HeroCallBoardPlayers() : PlayerScript("HeroCallBoardPlayers",
         { PLAYERHOOK_ON_REFRESH_QUEST_GIVER, PLAYERHOOK_ON_QUEST_ABANDON, PLAYERHOOK_ON_DUEL_END,
-            PLAYERHOOK_ON_CREATURE_KILL, PLAYERHOOK_ON_CREATURE_KILLED_BY_PET, PLAYERHOOK_ON_LEVEL_CHANGED }) { }
+            PLAYERHOOK_ON_CREATURE_KILL, PLAYERHOOK_ON_CREATURE_KILLED_BY_PET, PLAYERHOOK_ON_LEVEL_CHANGED,
+            PLAYERHOOK_ON_LOGIN, PLAYERHOOK_ON_UPDATE_ZONE, PLAYERHOOK_ON_PLAYER_QUEST_ACCEPT,
+            PLAYERHOOK_ON_PLAYER_COMPLETE_QUEST }) { }
+
+    void OnPlayerLogin(Player* player) override
+    {
+        UpdateQuelLithienReaction(player, player->GetZoneId());
+        if (OffersZoneOrders(player))
+            OfferPaleReachIntroduction(player, 0);
+    }
+
+    void OnPlayerUpdateZone(Player* player, uint32 newZone, uint32 /*newArea*/) override
+    {
+        UpdateQuelLithienReaction(player, newZone);
+    }
+
+    void OnPlayerQuestAccept(Player* player, Quest const* quest) override
+    {
+        if (quest->GetQuestId() == QuelLithienUnrestQuest)
+            UpdateQuelLithienReaction(player, player->GetZoneId());
+    }
+
+    void OnPlayerCompleteQuest(Player* player, Quest const* quest) override
+    {
+        if (quest->GetQuestId() == QuelLithienUnrestQuest)
+            UpdateQuelLithienReaction(player, player->GetZoneId());
+    }
 
     void OnPlayerLevelChanged(Player* player, uint8 oldLevel) override
     {
         if (OffersZoneOrders(player) && player->GetLevel() > oldLevel)
+        {
             OfferZoneOrdersUnlockedSince(player, oldLevel);
+            OfferPaleReachIntroduction(player, oldLevel);
+        }
     }
 
     void OnPlayerCreatureKill(Player* killer, Creature* killed) override { CreditRaidLeader(killer, killed); }
@@ -337,6 +422,9 @@ public:
 
     void OnPlayerQuestAbandon(Player* player, uint32 questId) override
     {
+        if (questId == QuelLithienUnrestQuest)
+            UpdateQuelLithienReaction(player, player->GetZoneId());
+
         if (!enabled.load())
             return;
 
@@ -428,8 +516,7 @@ public:
             // The dailies require a dungeon finder group assigned to this dungeon; the durable state keeps the
             // assignment while the group looks for a replacement.
             Group const* group = player->GetGroup();
-            if (CallboardRealmTier::DungeonMatches(CallboardRealmTier::ForPlayer(player), map->GetEntry()->Expansion())
-                && group && group->isLFGGroup() && sLFGMgr->GetDungeon(group->GetGUID()) == dungeonId
+            if (group && group->isLFGGroup() && sLFGMgr->GetDungeon(group->GetGUID()) == dungeonId
                 && sLFGMgr->GetOldState(group->GetGUID()) == lfg::LFG_STATE_DUNGEON
                 && sLFGMgr->GetOldState(player->GetGUID()) == lfg::LFG_STATE_DUNGEON)
                 player->KilledMonsterCredit(credit);
@@ -457,16 +544,25 @@ public:
 
     bool CanPacketReceive(WorldSession* session, WorldPacket const& packet) override
     {
-        if (packet.GetOpcode() != CMSG_QUESTGIVER_ACCEPT_QUEST || packet.size() != 16 || packet.read<uint64>(0) != 0
+        bool const accepting = packet.GetOpcode() == CMSG_QUESTGIVER_ACCEPT_QUEST;
+        if ((!accepting && packet.GetOpcode() != CMSG_QUESTGIVER_QUERY_QUEST)
+            || packet.size() != (accepting ? 16u : 13u) || packet.read<uint64>(0) != 0
             || !enabled.load() || !autoOffer.load() || !session)
             return true;
 
         Player* player = session->GetPlayer();
-        Quest const* quest = player ? FactionZoneOrder(player, packet.read<uint32>(8)) : nullptr;
+        uint32 const questId = packet.read<uint32>(8);
+        if (!player || (!accepting && questId != PaleReachIntroduction))
+            return true;
+
+        Quest const* quest = questId == PaleReachIntroduction ? PaleReachIntroductionFor(player)
+            : FactionZoneOrder(player, questId);
         if (!quest)
             return true;
 
-        if (player->CanTakeQuest(quest, true) && player->CanAddQuest(quest, true))
+        if (!accepting)
+            player->PlayerTalkClass->SendQuestGiverQuestDetails(quest, ObjectGuid::Empty, true);
+        else if (player->CanTakeQuest(quest, true) && player->CanAddQuest(quest, true))
             player->AddQuestAndCheckCompletion(quest, nullptr);
 
         return false;
@@ -485,8 +581,15 @@ public:
     }
 };
 
+void AddHeroCallBoardScriptsArea52();
+
 void AddHeroCallBoardScripts()
 {
+    if (Area52MysticRealm::UsesFreePickEngine())
+    {
+        AddHeroCallBoardScriptsArea52();
+        return;
+    }
     new go_hero_call_board();
     new HeroCallBoardPlayers();
     new HeroCallBoardBattlegrounds();

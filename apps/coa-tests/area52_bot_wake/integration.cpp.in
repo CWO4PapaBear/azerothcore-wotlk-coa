@@ -1,0 +1,47 @@
+#include "Area52BotWakeSchedule.h"
+#include <cassert>
+#include <memory>
+#include <string>
+#include <type_traits>
+#include <unordered_set>
+using uint32=std::uint32_t;using uint8=std::uint8_t;
+Area52BotWakeSchedule::Clock::time_point now;
+struct Field{std::string value;template<class T>T Get(){if constexpr(std::is_same_v<T,std::string>)return value;else return T(std::stoul(value));}};
+struct Result{std::vector<std::array<Field,5>> rows;unsigned index=0;Field* Fetch(){return rows[index].data();}bool NextRow(){return ++index<rows.size();}};
+using QueryResult=std::shared_ptr<Result>;
+struct Database{std::vector<std::array<Field,5>> rows;unsigned calls=0;
+ QueryResult Query(char const* sql,uint32 lo,uint32 hi){assert(lo==30&&hi==31);assert(std::string(sql).find("core.area52.bot.pilot")!=std::string::npos);++calls;return rows.empty()?nullptr:std::make_shared<Result>(Result{rows});}}CharacterDatabase;
+struct Setting{uint32 value;};
+namespace PlayerSettingsStore{std::vector<Setting> ParseSettingsData(std::string const& data){return data.empty()?std::vector<Setting>{}:std::vector<Setting>{{uint32(std::stoul(data))}};}}
+namespace Area52PilotProfiles{struct Profile{unsigned role;};Profile const* Find(unsigned id){static Profile p{2};return id==999?&p:nullptr;}}
+bool IsAlliance(uint8 race){return race==1;}
+class RandomPlayerbotMgr{public:
+ Area52BotWakeSchedule area52WakeSchedule;bool area52WakeLoginAuthorized=false;
+ std::vector<uint32> rndBotTypeAccounts{30,31};std::set<uint32> currentBots,online,blocked;std::vector<uint32> calls;uint32 fail=0;
+ void* GetPlayerBot(uint32 id){return online.contains(id)?this:nullptr;}
+ uint32 GetEventValue(uint32 id,char const* event){return std::string(event)=="add"?1:blocked.contains(id);}
+ bool ProcessBot(uint32 id){assert(area52WakeLoginAuthorized);calls.push_back(id);if(id!=fail)online.insert(id);return id!=fail;}
+ void LoginArea52Party(uint32 room);
+};
+@@METHOD@@
+int main(){
+ RandomPlayerbotMgr manager;unsigned id=0;
+ for(unsigned faction=0;faction<2;++faction)for(unsigned party=0;party<2;++party)for(unsigned role:{1u,2u,3u,3u,3u}){
+ ++id;manager.currentBots.insert(id);CharacterDatabase.rows.push_back({Field{std::to_string(id)},Field{std::to_string(30+faction)},Field{faction?"2":"1"},Field{std::to_string(role)+" "}});
+ }
+ CharacterDatabase.rows.push_back({Field{"99"},Field{"50"},Field{"1"},Field{"1 "}});manager.currentBots.insert(99);
+ manager.area52WakeSchedule.Observe(true,true,now);
+ now+=std::chrono::seconds(59);manager.LoginArea52Party(20);assert(CharacterDatabase.calls==0&&manager.calls.empty());
+ now+=std::chrono::seconds(1);manager.fail=1;manager.LoginArea52Party(20);assert(CharacterDatabase.calls==1&&manager.calls.size()==5&&manager.online.size()==4);assert(!manager.area52WakeLoginAuthorized);
+ manager.LoginArea52Party(16);assert(CharacterDatabase.calls==1);
+ now+=std::chrono::minutes(1);manager.fail=0;manager.LoginArea52Party(16);assert(manager.calls.size()==6&&manager.calls.back()==1&&manager.online.size()==5);
+ now+=std::chrono::minutes(1);manager.LoginArea52Party(15);assert(manager.calls.size()==11&&manager.online.size()==10);
+ assert(!manager.online.contains(99));assert(!manager.area52WakeLoginAuthorized);
+ RandomPlayerbotMgr switched;switched.currentBots=manager.currentBots;
+ CharacterDatabase.rows[0][4].value="999 ";now={};switched.area52WakeSchedule.Observe(true,true,now);
+ now+=std::chrono::minutes(1);switched.LoginArea52Party(20);
+ assert(switched.calls==std::vector<unsigned>({6,1,3,4,5}));
+ CharacterDatabase.rows[0][4].value="";
+
+ manager.area52WakeSchedule.Observe(true,false,now);now+=std::chrono::minutes(5);manager.LoginArea52Party(10);assert(manager.calls.size()==11);
+}

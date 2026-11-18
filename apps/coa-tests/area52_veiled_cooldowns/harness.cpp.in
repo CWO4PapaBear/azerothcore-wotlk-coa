@@ -1,0 +1,42 @@
+#include <cassert>
+#include <algorithm>
+#include <map>
+#include <vector>
+using uint32=unsigned;using int32=int;
+enum SpellModOp{SPELLMOD_COOLDOWN,SPELLMOD_CASTING_TIME,SPELLMOD_COST,SPELLMOD_CRITICAL_CHANCE,SPELLMOD_THREAT,SPELLMOD_RANGE,SPELLMOD_GLOBAL_COOLDOWN,SPELLMOD_DAMAGE,SPELLMOD_DOT,SPELLMOD_RADIUS,SPELLMOD_EFFECT1,SPELLMOD_DURATION};
+constexpr int SPELLMOD_FLAT=0,SPELLMOD_PCT=1,CLASS_SON_OF_ARUGAL=99;
+struct Unit{bool IsPlayer()const{return true;}};
+struct Aura{bool IsUsingCharges(){return false;}unsigned GetStackAmount(){return 1;}};
+struct SpellInfo{unsigned Id,SpellFamilyName=6;unsigned flags[3]={};};
+struct SpellModifier{SpellModOp op=SPELLMOD_COOLDOWN;int type=SPELLMOD_FLAT,value=0;unsigned spellId=0;Aura* ownerAura=nullptr;unsigned mask[3]={};};
+struct Player;
+struct Spell{Player* GetCaster(){return nullptr;}bool IsTriggered(){return false;}SpellInfo* GetSpellInfo(){return nullptr;}int GetScriptValue(int){return 0;}};
+struct Manager{std::map<unsigned,SpellInfo> records;SpellInfo const* GetSpellInfo(unsigned id){auto it=records.find(id);return it==records.end()?nullptr:&it->second;}}manager;auto sSpellMgr=&manager;
+namespace AscensionFreePick{bool Applies(Player*){return true;}float LoneWolfDamageMultiplier(Player*,SpellInfo const*){return 1;}}
+namespace AscensionBloodmage{enum Empowerment{None,Mend,CrimsonTide,Fleshcraft,Apotheosis,AnimatedBlood,Transfusion};constexpr int PooledVitalityTalent=0;Empowerment GetEmpowerment(unsigned){return None;}}
+float CalculatePct(float value,float percent){return value*percent/100;}
+bool AuraAlsoModifiesCastingTime(Aura*){return false;}
+struct Player:Unit {
+ std::map<SpellModOp,std::vector<SpellModifier*>> m_spellMods;Spell* m_spellModTakingSpell=nullptr;unsigned applied=0;
+ int getClass(){return 10;}bool MatchesSpellInteraction(unsigned,unsigned){return false;}
+ void ApplyModToSpell(SpellModifier*,Spell*){++applied;}bool HasSpellModApplied(SpellModifier*,Spell*){return false;}
+ bool IsAffectedBySpellmod(SpellInfo const* info,SpellModifier* mod,Spell*){auto parent=manager.GetSpellInfo(mod->spellId);if(!parent||parent->SpellFamilyName!=info->SpellFamilyName)return false;for(int i=0;i<3;++i)if(info->flags[i]&mod->mask[i])return true;return false;}
+ template<class T>void ApplyTargetedSpellModTrackingDamage(unsigned,SpellModOp,T&,Spell*,bool,float*,Unit const*);
+};
+template<class T>
+@NATIVE@
+int main(){
+ @DATA@
+ Player p;
+ for(unsigned rank=0;rank<2;++rank){
+  SpellModifier fade,shared;fade.value=-1000*int(rank+1);shared.value=-30000*int(rank+1);fade.spellId=shared.spellId=rank?15311:15274;
+  fade.mask[0]=16384;shared.mask[1]=256;shared.mask[2]=16777216;
+  p.m_spellMods[SPELLMOD_COOLDOWN]={&fade,&shared};
+  for(auto item:std::vector<std::pair<unsigned,int>>{{586,30000},{34433,150000},{954522,180000}}){
+   int value=item.second;unsigned before=p.applied;p.ApplyTargetedSpellModTrackingDamage(item.first,SPELLMOD_COOLDOWN,value,nullptr,false,nullptr,nullptr);
+   assert(value==item.second-(item.first==586?1000:30000)*int(rank+1));assert(p.applied==before+1);
+  }
+  int unchanged=30000;p.ApplyTargetedSpellModTrackingDamage(1,SPELLMOD_COOLDOWN,unchanged,nullptr,false,nullptr,nullptr);assert(unchanged==30000);
+ }
+ p.m_spellMods.clear();int restored=30000;p.ApplyTargetedSpellModTrackingDamage(586,SPELLMOD_COOLDOWN,restored,nullptr,false,nullptr,nullptr);assert(restored==30000);
+}

@@ -17,18 +17,25 @@ namespace AscensionNecromancer
 {
 void CorpseExplosion(Player* player, Unit* center)
 {
-    for (Unit* unit : Nearby(center, 15.0f, false))
-        if (Creature* corpse = unit->ToCreature())
-            if (corpse->getDeathState() == DeathState::Corpse &&
-                corpse->GetCreatureType() != CREATURE_TYPE_MECHANICAL &&
-                corpse->GetCreatureType() != CREATURE_TYPE_ELEMENTAL && center->IsWithinLOSInMap(corpse))
-            {
-                auto targets = Nearby(corpse, 10.0f);
-                corpse->RemoveCorpse();
-                for (Unit* target : targets)
-                    if (player->IsValidAttackTarget(target))
-                        Copy(player, target, 533240, std::max(1, Amount(KnownRank(player, 533236), 0, player)));
-            }
+    std::list<Creature*> corpses;
+    center->GetDeadCreatureListInGrid(corpses, 15.0f, true);
+    for (Creature* corpse : corpses)
+        if (corpse->getDeathState() == DeathState::Corpse && corpse->GetDisplayId() == corpse->GetNativeDisplayId() &&
+            corpse->GetCreatureType() != CREATURE_TYPE_MECHANICAL &&
+            corpse->GetCreatureType() != CREATURE_TYPE_ELEMENTAL && center->InSamePhase(corpse) &&
+            center->IsWithinLOSInMap(corpse))
+        {
+            auto targets = Nearby(corpse, 10.0f);
+            corpse->SendPlaySpellVisual(10290);
+            corpse->SendPlaySpellVisual(220);
+            bool halved = roll_chance_i(50);
+            corpse->SetDisplayId(halved ? 25539 : 25538);
+            if (halved)
+                corpse->SetObjectScale(corpse->GetObjectScale() * 0.5f);
+            for (Unit* target : targets)
+                if (player->IsValidAttackTarget(target))
+                    Copy(player, target, 533240, std::max(1, Amount(KnownRank(player, 533236), 0, player)));
+        }
 }
 }
 namespace
@@ -111,8 +118,18 @@ class necromancer_casts : public AllSpellScript
         : AllSpellScript("necromancer_casts",
                          {ALLSPELLHOOK_ON_SPELL_CHECK_CAST, ALLSPELLHOOK_ON_BEFORE_EFFECTS, ALLSPELLHOOK_ON_CAST,
                           ALLSPELLHOOK_ON_CALC_MAX_DURATION, ALLSPELLHOOK_ON_SUCCESSFUL_INTERRUPT,
-                           ALLSPELLHOOK_ON_CALCULATED_TARGET, ALLSPELLHOOK_ON_HIT_RESULT})
+                           ALLSPELLHOOK_ON_CALCULATED_TARGET, ALLSPELLHOOK_ON_HIT_RESULT,
+                           ALLSPELLHOOK_ON_CRIT_CHANCE})
     {
+    }
+    void OnSpellCritChance(Spell* spell, Unit*, float& chance) override
+    {
+        Player* player = Owner(spell->GetCaster());
+        if (!player || player != spell->GetCaster() || spell->GetSpellInfo()->Id != 707592)
+            return;
+        if (Aura const* stacks = player->GetAura(712434))
+            if (stacks->GetStackAmount() >= stacks->GetSpellInfo()->StackAmount)
+                chance = 100.0f;
     }
     void OnSpellHitResult(Spell* spell, Unit* target, uint8 miss, uint32, uint32,
                           bool) override
@@ -140,7 +157,7 @@ class necromancer_casts : public AllSpellScript
         Unit* target = spell->m_targets.GetUnitTarget();
         if (player->HasAura(500730))
             result = SPELL_FAILED_CASTER_AURASTATE;
-        if (Cost(player, id) && int32(Capacity(player)) - Used(player) < Cost(player, id))
+        if (Cost(player, id) > Capacity(player))
             result = SPELL_FAILED_ALREADY_HAVE_SUMMON;
         if (Command(info) && (player->HasAura(500983) ||
             (!Named(info, 504868) && Minions(player).empty())))
@@ -153,6 +170,8 @@ class necromancer_casts : public AllSpellScript
             !player->HasAura(801747))
             result = SPELL_FAILED_TARGET_AURASTATE;
         if (id == 802121 && Minions(player).empty())
+            result = SPELL_FAILED_NO_PET;
+        if (Family(info, 2, 67108864) && Minions(player).empty())
             result = SPELL_FAILED_NO_PET;
         if (id == 807098)
         {
@@ -227,7 +246,10 @@ class necromancer_casts : public AllSpellScript
     void OnSpellCast(Spell* spell, Unit* caster, SpellInfo const* info, bool) override
     {
         Player* player = Owner(caster);
-        if (!player || player != caster || spell->IsTriggered())
+        constexpr uint32 castWhileCastingFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_CAST_DIRECTLY;
+        bool const castWhileCasting = info->HasAttribute(SPELL_ATTR4_ALLOW_CAST_WHILE_CASTING) &&
+            !(uint32(spell->GetTriggeredCastFlags()) & TRIGGERED_FULL_MASK & ~castWhileCastingFlags);
+        if (!player || player != caster || (spell->IsTriggered() && !castWhileCasting))
             return;
         uint32 id = info->Id;
         Unit* target = spell->m_targets.GetUnitTarget();
@@ -238,17 +260,22 @@ class necromancer_casts : public AllSpellScript
                     aura && aura->GetScriptValue(805011) == spell->GetScriptValue(buff))
                     aura->DropCharge();
         };
-        consume(801747, true);
-        consume(800979, Named(info, 801760));
-        consume(707176, Lichfrost(info) || Family(info, 2, 8192));
-        consume(807856, Lichfrost(info));
-        consume(572777, Command(info));
-        if (Chance(player, 704681))
+        if (!castWhileCasting)
+        {
+            consume(801747, Lichfrost(info) || Named(info, 801760) || id == 704355 || (id >= 707399 && id <= 707402));
+            consume(800979, Named(info, 801760));
+            consume(707176, Lichfrost(info) || Family(info, 2, 8192));
+            consume(807856, Lichfrost(info));
+            consume(572777, Command(info));
+        }
+        if (info->SpellFamilyName == 29 && Chance(player, 704681))
             Ready(player, 801747, 2);
         if (Chance(player, 92122))
             Cast(player, player, 707421);
-        if (player->HasAura(704723))
-            Cast(player, player, 706504);
+        if (info->SpellFamilyName == 29 && player->HasAura(704723))
+            Cast(player, player, 707133);
+        if (castWhileCasting)
+            return;
         if (Command(info))
         {
             if (Chance(player, 300940))
@@ -291,7 +318,7 @@ class necromancer_casts : public AllSpellScript
             if (Chance(player, 704724))
                 Ready(player, 572777);
             if (Chance(player, 805649))
-                player->EnergizeBySpell(player, 359505, int32(spell->GetScriptValue(359505)), POWER_RUNIC_POWER);
+                player->EnergizeBySpell(player, 359505, 100, POWER_RUNIC_POWER);
             uint32 count = ++State(player).commands;
             if (count % 3 == 0)
             {
@@ -318,9 +345,6 @@ class necromancer_casts : public AllSpellScript
                                 break;
                         }
                 }
-                if (player->HasAura(707133))
-                    for (uint8 stack = 0; stack < 3; ++stack)
-                        Cast(player, target, 707133);
                 if (player->HasAura(705754))
                     Cast(player, target, 500443);
             }
@@ -440,19 +464,29 @@ class spell_ascension_necromancer_ability : public SpellScript
     }
 };
 
-class spell_ascension_necromancer_transfer_life : public SpellScript
+class aura_ascension_necromancer_transfer_life : public AuraScript
 {
-    PrepareSpellScript(spell_ascension_necromancer_transfer_life);
-    void Filter(std::list<WorldObject*>& targets)
+    PrepareAuraScript(aura_ascension_necromancer_transfer_life);
+
+    bool Check(Unit* target)
     {
         Player* player = Owner(GetCaster());
-        targets.remove_if([player](WorldObject* object)
-                          { return !player || !object->ToUnit() || !IsMinion(player, object->ToUnit(), true); });
+        if (!player || !target || !target->IsAlive())
+            return false;
+        if (target == player)
+            return true;
+        if (!IsMinion(player, target, true))
+            return false;
+        auto count = GetAura()->GetApplicationMap().size();
+        if (GetAura()->GetApplicationOfTarget(player->GetGUID()))
+            --count;
+        return GetAura()->GetApplicationOfTarget(target->GetGUID()) ||
+            !GetSpellInfo()->MaxAffectedTargets || count < GetSpellInfo()->MaxAffectedTargets;
     }
+
     void Register() override
     {
-        OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_ascension_necromancer_transfer_life::Filter,
-                                                                  EFFECT_ALL, TARGET_UNIT_SRC_AREA_ALLY);
+        DoCheckAreaTarget += AuraCheckAreaTargetFn(aura_ascension_necromancer_transfer_life::Check);
     }
 };
 }
@@ -460,5 +494,5 @@ void AddAscensionNecromancerAbilityScripts()
 {
     new necromancer_casts();
     RegisterSpellScript(spell_ascension_necromancer_ability);
-    RegisterSpellScript(spell_ascension_necromancer_transfer_life);
+    RegisterSpellScript(aura_ascension_necromancer_transfer_life);
 }

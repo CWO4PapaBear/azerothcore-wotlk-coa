@@ -1,0 +1,57 @@
+#include <cassert>
+#include <initializer_list>
+using uint32 = unsigned;
+using SpellCastResult = int;
+enum {CURRENT_AUTOREPEAT_SPELL, RANGED_ATTACK, BASE_ATTACK, OFF_ATTACK, TRIGGERED_FULL_MASK, SPELL_CAST_OK};
+struct Unit;
+struct SpellInfo {unsigned Id; bool IsAutoRepeatRangedSpell() const {return Id==75;}};
+struct Targets {unsigned guid=2; unsigned GetUnitTargetGUID() const {return guid;}};
+struct Spell {
+    Unit* owner; const SpellInfo* m_spellInfo; Targets m_targets;
+    Spell(Unit* p,const SpellInfo* info,int):owner(p),m_spellInfo(info){}
+    const SpellInfo* GetSpellInfo(){return m_spellInfo;}
+    int CheckCast(bool);
+    void prepare(Targets*);
+};
+struct Unit {
+    SpellInfo info{75}; Spell storage{this,&info,0};
+    Spell* m_currentSpells[1]={nullptr};
+    bool m_AutoRepeatFirstCast=false, eligible=true,casting=false;
+    int timer=0,starts=0,shots=0,resets=0;
+    Unit* ToPlayer(){return this;} bool IsPlayer(){return true;} bool isMoving(){return false;}
+    bool IsNonMeleeSpellCast(bool,bool,bool,bool){return casting;}
+    void InterruptSpell(int){m_currentSpells[0]=nullptr;}
+    Spell* GetCurrentSpell(int){return m_currentSpells[0];}
+    unsigned GetGUID(){return 2;} bool HasAura(int){return true;} bool HasSpell(int){return true;}
+    bool IsValidAttackTarget(Unit*){return true;}
+    void CastSpell(Unit*,int id,bool triggered){assert(id==75&&!triggered);++starts;m_currentSpells[0]=&storage;m_AutoRepeatFirstCast=true;}
+    int getAttackTimer(int){return timer;} bool isAttackReady(int){return !timer;}
+    void setAttackTimer(int,int value){timer=value;}
+    void resetAttackTimer(int attack){if(attack==RANGED_ATTACK){timer=2000;++resets;}}
+    void _UpdateAutoRepeatSpell();
+};
+using Player=Unit;
+int Spell::CheckCast(bool){return owner->eligible?SPELL_CAST_OK:-1;}
+void Spell::prepare(Targets* targets){assert(targets->guid==2);++owner->shots;delete this;}
+namespace AscensionFreePick { bool Applies(Player*){return true;} }
+struct Manager { unsigned GetFirstSpellInChain(unsigned id){return id>=997526?997526:997517;} } manager; auto sSpellMgr=&manager;
+struct Arrow {
+    Unit* p; SpellInfo info; const SpellInfo* GetSpellInfo(){return &info;} Unit* GetCaster(){return p;} Unit* GetExplTargetUnit(){return p;}
+ARROW_IMPL
+};
+
+UPDATE_IMPL
+int main(){
+ for(unsigned id=997517;id<=997535;++id)for(int initial:{0,340,1700}){
+  Unit p; Arrow arrow{&p,{id}};p.timer=initial;
+  arrow.StartAutoShot();arrow.StartAutoShot();assert(p.starts==1&&p.timer==initial);
+  p.casting=true;p._UpdateAutoRepeatSpell();p._UpdateAutoRepeatSpell();
+  assert(p.m_currentSpells[0]&&p.shots==0&&p.timer==initial);
+  p.casting=false;p._UpdateAutoRepeatSpell();p._UpdateAutoRepeatSpell();
+  assert(p.shots==int(initial==0)&&p.resets==p.shots);
+  int before=p.timer;arrow.StartAutoShot();assert(p.starts==1&&p.timer==before);
+  p.timer=0;int shots=p.shots;p._UpdateAutoRepeatSpell();p._UpdateAutoRepeatSpell();
+  assert(p.shots==shots+1&&p.resets==p.shots&&p.timer==2000);
+  p.InterruptSpell(CURRENT_AUTOREPEAT_SPELL);p.timer=0;p._UpdateAutoRepeatSpell();assert(p.shots==shots+1);
+ }
+}

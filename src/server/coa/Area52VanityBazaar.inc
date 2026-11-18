@@ -49,7 +49,7 @@ private:
         return (info.CategoryMask & 0x40000000u) != 0;
     }
 
-    static bool IsVanityItemOffered(Player* player, VanityInfo const& info)
+    static bool Area52VanityItemOffered(Player* player, VanityInfo const& info)
     {
         if ((info.Flags & 8u) || !info.StoreRecord[7])
             return false;
@@ -61,7 +61,7 @@ private:
             && (!races || (raceIndex < 32 && (races & (uint32(1) << raceIndex))));
     }
 
-    void SendVanityCollectionAdded(Player* player, uint32 itemId)
+    void SendArea52VanityCollectionAdded(Player* player, uint32 itemId)
     {
         WorldPacket packet(SMSG_VANITY_COLLECTION_ADDED, sizeof(uint32));
         packet << itemId;

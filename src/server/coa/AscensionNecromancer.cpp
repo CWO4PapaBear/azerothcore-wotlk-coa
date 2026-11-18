@@ -235,6 +235,20 @@ bool Chance(Player* player, uint32 talent, float multiplier, uint32 cooldown)
         State(player).cooldowns.ScheduleEvent(talent, Milliseconds(cooldown));
     return true;
 }
+bool MinionChance(Player* player, Unit* holder, uint32 talent, float multiplier, uint32 cooldown)
+{
+    SpellInfo const* info = sSpellMgr->GetSpellInfo(talent);
+    if (!info || !holder || !holder->HasAura(talent, player->GetGUID()) ||
+        State(player).cooldowns.HasTimeUntilEvent(talent))
+        return false;
+    float chance = info->ProcChance * multiplier;
+    player->ApplySpellMod(talent, SPELLMOD_CHANCE_OF_SUCCESS, chance);
+    if (!roll_chance_f(std::clamp(chance, 0.0f, 100.0f)))
+        return false;
+    if (cooldown)
+        State(player).cooldowns.ScheduleEvent(talent, Milliseconds(cooldown));
+    return true;
+}
 bool Disease(SpellInfo const* info)
 {
     return info && info->SpellFamilyName == 29 &&
@@ -321,23 +335,28 @@ void Spread(Player* player, Unit* source, bool refresh, bool allDiseases, uint32
 namespace
 {
 using namespace AscensionNecromancer;
+void Reward(Player* player, Unit* killed)
+{
+    if (player && Owner(player) == player && killed && killed->GetCharmerOrOwnerPlayerOrPlayerItself() != player &&
+        player->isHonorOrXPTarget(killed) && player->HasAura(707562))
+        Cast(player, player, 712434);
+}
 class necromancer_sessions : public PlayerScript
 {
   public:
     necromancer_sessions()
-        : PlayerScript("necromancer_sessions", {PLAYERHOOK_ON_LOGOUT, PLAYERHOOK_ON_PVP_KILL,
+        : PlayerScript("necromancer_sessions", {PLAYERHOOK_ON_LOGIN, PLAYERHOOK_ON_LOGOUT, PLAYERHOOK_ON_PVP_KILL,
                                                 PLAYERHOOK_ON_CREATURE_KILL, PLAYERHOOK_ON_CREATURE_KILLED_BY_PET})
     {
+    }
+    void OnPlayerLogin(Player* player) override
+    {
+        if (player->HasAura(500981) && !player->HasAura(504691))
+            Cast(player, player, 504691);
     }
     void OnPlayerLogout(Player* player) override
     {
         Forget(player);
-    }
-    void Reward(Player* player, Unit* killed)
-    {
-        if (player && Owner(player) == player && killed && killed->GetCharmerOrOwnerPlayerOrPlayerItself() != player &&
-            player->isHonorOrXPTarget(killed) && player->HasAura(707562))
-            Cast(player, player, 712434);
     }
     void OnPlayerPVPKill(Player* player, Player* killed) override
     {
@@ -359,8 +378,10 @@ class necromancer_lifecycle : public UnitScript
         : UnitScript("necromancer_lifecycle", true, {UNITHOOK_ON_UNIT_UPDATE, UNITHOOK_ON_UNIT_DEATH})
     {
     }
-    void OnUnitDeath(Unit* unit, Unit*) override
+    void OnUnitDeath(Unit* unit, Unit* killer) override
     {
+        if (killer && !killer->IsPlayer() && !killer->IsPet() && !killer->IsTotem())
+            Reward(Owner(killer), unit);
         Player* player = Owner(unit);
         if (player == unit)
             Prune(player, true);
@@ -386,7 +407,7 @@ class necromancer_lifecycle : public UnitScript
             {
                 Sync(player);
                 for (uint32 id : {572638, 706472, 531126, 560012, 500982, 500985, 301207})
-                    if (Aura* aura = player->GetAura(id))
+                    if (Aura* aura = player->GetOwnedAura(id))
                         aura->RecalculateAmountOfEffects();
                 state.events.ScheduleEvent(1, 500ms);
             }

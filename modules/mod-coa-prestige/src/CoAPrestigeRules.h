@@ -58,6 +58,8 @@ namespace CoAPrestige
         uint32_t level = 0;
         bool active = false;
         uint32_t specialization = 0;
+        bool signaturePending = false;
+        uint32_t dailyQuest = 0;
 
         bool operator==(State const&) const = default;
     };
@@ -71,12 +73,21 @@ namespace CoAPrestige
             state.active = values[1] != 0;
         if (values.size() > 2)
             state.specialization = values[2];
+        if (values.size() > 3)
+            state.signaturePending = values[3] != 0;
+        if (values.size() > 4)
+            state.dailyQuest = values[4];
         return state;
     }
 
     inline std::vector<uint32_t> EncodeState(State const& state)
     {
-        return { state.level, state.active ? 1u : 0u, state.specialization };
+        std::vector<uint32_t> values{ state.level, state.active ? 1u : 0u, state.specialization };
+        if (state.signaturePending || state.dailyQuest)
+            values.push_back(state.signaturePending ? 1u : 0u);
+        if (state.dailyQuest)
+            values.push_back(state.dailyQuest);
+        return values;
     }
 
     enum class Refusal
@@ -92,11 +103,16 @@ namespace CoAPrestige
         NotInOpenWorld
     };
 
+    inline uint32_t ResolveRequiredLevel(uint32_t realmCap)
+    {
+        return std::max(2u, realmCap);
+    }
+
     struct ActivationFacts
     {
         bool enabled = true;
         uint32_t level = 0;
-        uint32_t requiredLevel = 60;
+        uint32_t requiredLevel = 0;
         bool active = false;
         uint32_t specialization = 0;
         bool alive = true;
@@ -153,8 +169,8 @@ namespace CoAPrestige
         return {};
     }
 
-    // Once Prestige Mode is active the specialization stays locked until the character is back at
-    // the required level; choosing the locked specialization again is not a switch.
+    // Warcraft Reborn keeps its talent specialization locked during Prestige. Custom-class
+    // archetypes use separate slot-switch protection instead.
     inline bool IsSpecializationSwitchAllowed(State const& state, uint32_t requestedSpecialization)
     {
         return !state.active || !state.specialization || requestedSpecialization == state.specialization;
@@ -170,7 +186,9 @@ namespace CoAPrestige
     constexpr uint32_t QuestTypeNormal = 0;
     constexpr uint32_t QuestTypeGroup = 1;
     constexpr uint32_t QuestTypeLife = 21;
+    constexpr uint32_t QuestTypeDungeon = 81;
     constexpr uint32_t QuestTypeEscort = 84;
+    constexpr int32_t ScaledQuestLevel = -1;
 
     struct QuestTraits
     {
@@ -178,17 +196,20 @@ namespace CoAPrestige
         int32_t level = 0;
         uint32_t type = QuestTypeNormal;
         bool repeatable = false;
+        uint32_t minLevel = 0;
     };
 
-    // A reset hands the zone quests of the levelling path back to the character. Class and
-    // profession quests (negative sort), dungeon, raid, PvP and event quests, anything above the
-    // Prestige level and every daily, weekly, monthly, seasonal or repeatable quest stay done.
+    // A reset hands the zone and dungeon quests of the levelling path back to the character,
+    // including quests that scale with the player (their minimum level decides). Class and
+    // profession quests (negative sort), raid, PvP and event quests, anything above the Prestige
+    // level and every daily, weekly, monthly, seasonal or repeatable quest stay done.
     inline bool IsReplayableQuest(QuestTraits const& quest, uint32_t maxLevel)
     {
         bool const ordinary = quest.type == QuestTypeNormal || quest.type == QuestTypeGroup ||
-            quest.type == QuestTypeLife || quest.type == QuestTypeEscort;
-        return ordinary && !quest.repeatable && quest.zoneOrSort > 0 && quest.level >= 1 &&
-            uint32_t(quest.level) <= maxLevel;
+            quest.type == QuestTypeLife || quest.type == QuestTypeEscort || quest.type == QuestTypeDungeon;
+        bool const levelling = quest.level == ScaledQuestLevel ? quest.minLevel <= maxLevel :
+            quest.level >= 1 && uint32_t(quest.level) <= maxLevel;
+        return ordinary && !quest.repeatable && quest.zoneOrSort > 0 && levelling;
     }
 
     struct RewardItem
@@ -229,9 +250,9 @@ namespace CoAPrestige
         return rewards;
     }
 
-    inline uint32_t ApplyExperienceBonus(uint32_t amount, uint32_t bonusPercent)
+    inline uint32_t ApplyExperienceBonus(uint32_t amount, uint32_t totalPercent)
     {
-        uint64_t const boosted = uint64_t(amount) * (100u + uint64_t(bonusPercent)) / 100u;
+        uint64_t const boosted = uint64_t(amount) * totalPercent / 100u;
         return uint32_t(std::min<uint64_t>(boosted, std::numeric_limits<uint32_t>::max()));
     }
 
@@ -294,6 +315,24 @@ namespace CoAPrestige
     constexpr uint32_t DailyCreditBattlegrounds = 900002; // "Battlegrounds Completed"
     constexpr uint32_t DailyCreditDungeons      = 900003; // "Dungeons Completed"
     constexpr uint32_t DailyCreditWorldQuests   = 900004; // "Daily Quests Completed"
+
+    struct RidingTome
+    {
+        uint32_t spell = 0;
+        uint32_t tome = 0;
+    };
+
+    // The "Riding Tome: <tier> (Prestige)" items, which the CoA world package
+    // (data/coa-world) defines; data/sql holds no item_template row for them.
+    constexpr RidingTome RidingTomes[] =
+    {
+        { 33388, 2200037 },
+        { 33391, 1039605 },
+        { 34090, 1046168 },
+        { 34091, 1052731 },
+        { 91774, 2179243 },
+        { 54197, 2179244 },
+    };
 
     constexpr uint32_t DailyQuestBattlegrounds = 80954; // "Prestige: Battlegrounds"
     constexpr uint32_t DailyQuestDungeons = 80955;      // "Prestige: Dungeons"

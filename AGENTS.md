@@ -1,6 +1,21 @@
+## PR #113 historical migration preservation
+
+The owner authorized reconciliation of the merged Area 52 source and its policy/lint failures on November 18. Preserve imported SQL byte-for-byte: `docs/coa/baselines/area52-20261118/inherited-sql.json` pins the reviewed import to commit `c34210b657d71081a11cffef815a219a72acdc31`. The boundary checker permits only those exact Git blobs outside pending updates. New SQL and changed bytes receive no exception. This is not authority to execute historical migrations.
+
+For the historical catch-up diff, run SQL lint with `--preserve-imported`: verify every pinned input and lint all non-inherited selected files. Retain the original historical lint report; do not describe inherited SQL as lint-clean or rewrite deployed checksums for formatting. Any new data repair belongs in pending updates with separate verification.
+
+## GitHub provenance and Development-to-Cloud promotion — November 18, 2026
+
+Use the existing CWO4PapaBear/azerothcore-wotlk-coa fork for the merged Area 52 server; do not create a separate server repository. Keep upstream ancestry and Area 52 fixes together on a scoped development/integration branch and prepare a reviewed PR to main. Record the source commit, pinned playerbots revision/patch, ordered migrations, verification evidence and artifact hashes for each Development activation. Source PR preparation is separate from deployment and does not announce a tester release. Preserve unrelated pending work and private recovery archives.
+
+After Development acceptance, promote the exact reviewed source/artifacts and applicable migrations in one explicitly authorized Cloud Test release. Compare with the actual Cloud baseline first, preserving cloud-only fixes, tester certifications and player/account state. Never copy Development character databases over Cloud. Keep Development-only pending changes identified until they are selected for promotion. Main integration follows the existing accepted-package policy; an explicit PR-only or hold-merge instruction takes precedence.
+
+Keep server, client-feed and launcher source in their established repositories, with cross-linked PRs and exact release commits where relevant. GitHub source receipts, Cloud activation, launcher asset/feed publication and Discord delivery are distinct outcomes. Publish tester patch notes only for the authorized Cloud release and describe actual delivered changes; do not send routine Development iteration announcements. Verify uploaded hashes, live feed and Discord receipts before calling a tester release complete. Never infer restart or publication permission from a source push, PR, merge or Development activation.
+
 # AGENTS.md
 
 AzerothCore is a C++ MMORPG server emulator for World of Warcraft 3.3.5a (WotLK), built with CMake, backed by MySQL.
+This fork implements Conquest of Azeroth (CoA).
 
 ## Agent rules
 
@@ -61,6 +76,21 @@ Follow this sequence within the task's authorized scope:
 - Gameplay runs on a simulated clock by default: also report `acceleration_sensitive` ids, and confirm timing
   results with `--gameplay-clock real` ([accelerated mode](docs/coa/verification.md#accelerated-single-server-mode)).
 - `run.py validate`, `catalog.py` and `workflow.py` remain authoring and discovery tools, not verification.
+## Rules
+
+Read every rule file before starting work; they apply to all tasks. Claude Code imports them through the
+references below.
+
+- General rules, comments and expected values → @.agents/rules/general.md
+- Development workflow, superpowers process skills and their repository overrides → @.agents/rules/workflow.md
+- Investigating reported defects → @.agents/rules/defects.md
+- Verification through `tools/verify_all.py` → @.agents/rules/verification.md
+- Git safety, branches, worktrees and ownership → @.agents/rules/git-safety.md
+
+## Skill
+
+`.agents/skills/coa-development/SKILL.md` is the repository's development skill: task routing, the issue queue
+workflow, gameplay scenarios, PR descriptions, the CoA Knowledge MCP and the optional guide tooling.
 
 ## Task references
 
@@ -70,18 +100,24 @@ Read the relevant sections when needed for the work. Do not read every guide or 
 - Verification setup, stages, selection, outputs and gameplay queue-mode limits → `docs/coa/verification.md`
 - Writing or modifying C++ → `.agents/docs/cpp-guidelines.md`
   - Script work (under `src/server/scripts/`) → also `.agents/docs/cpp-scripts.md`
+- Class conformance work → `docs/coa/conformance-start-a-class.md`
 - Creating or modifying SQL → `.agents/docs/sql-guidelines.md`
   - SmartAI work (`smart_scripts` data) → also `.agents/docs/cpp-scripts.md`
 - Reviewing a changeset or PR → `.agents/docs/code-review.md`
 - Preparing an actual PR → `.agents/docs/self-review-rules.md`
-- Requested issue queue / issue-to-PR workflow → `.agents/skills/coa-fix-issues/SKILL.md`
+- Requested issue queue or topic fixes (class mechanics, quests, crashes, etc.) →
+  `.agents/skills/coa-development/references/issue-queue.md` (topic requests default to 32 issues and one PR per
+  batch)
 - Subsystem-specific questions → the relevant section in `.agents/docs/systems/`
 - Ascension damage/healing, AP/RAP/SP coefficients, triggered spells or tooltip parity →
   `.agents/docs/systems/ascension-spell-parity.md`
+- Warcraft Reborn spell twins, namesakes, `GetSpellTwinFor` or stock code running for Reborn spells →
+  `.agents/docs/systems/warcraft-reborn-spell-twins.md`
 - DBC record retrieval, links, provenance or data comparison → `apps/coa-dbc/README.md` (`coa-dbc-viewer`, JSON CLI)
 - Spell/quest ranks, acquisition, expected behavior, execution paths and regression links →
   `apps/coa-mechanics/README.md` (compact mechanic maps)
 - Finding gameplay regression scenarios or checking recorded results → `apps/coa-gameplay-test/README.md`
+- Class conformance (tooltip → behaviour proof per class) → `docs/coa/class-conformance.md`
 - Scoped source checks (boundaries, registrations, tooling regressions) →
   `python -B tools/verify_all.py --stages source --base <ref>`; `report.json` and `source.log` list the suites
   it selected (`--plan` shows only the command).
@@ -95,16 +131,20 @@ Read the relevant sections when needed for the work. Do not read every guide or 
 
 - `src/common/` — networking (Asio), crypto, config, logging, shared utilities.
 - `src/server/game/` — core gameplay; compiled into worldserver.
-- `src/server/scripts/` — content scripts grouped by region (`EasternKingdoms/`, `Northrend/`, …), class (`Spells/spell_mage.cpp`, …), and domain (`Commands/`, `Pet/`, `OutdoorPvP/`, `World/`).
+- `src/server/scripts/` — content scripts grouped by region (`EasternKingdoms/`, `Northrend/`, …), class
+  (`Spells/spell_mage.cpp`, …), and domain (`Commands/`, `Pet/`, `OutdoorPvP/`, `World/`).
+- `src/server/coa/` — the CoA server component.
 - `src/server/database/` — DB abstraction and schema updater.
 - `src/server/shared/` — code shared by auth and world servers.
 - `src/server/apps/{authserver,worldserver}/` — entry points (ports 3724 and 8085).
 - `src/test/` — unit tests + mocks.
-- `data/sql/` — `base/` (historical schema), `updates/db_*/` (merged), `updates/pending_db_*/` (in-flight), `custom/` (gitignored).
+- `data/sql/` — `base/` (historical schema), `updates/db_*/` (merged), `updates/pending_db_*/` (in-flight),
+  `custom/` (gitignored).
 - `modules/` — external modules (see below).
-- `apps/` — helper scripts; `apps/codestyle/` holds the lint scripts.
+- `apps/` — helper scripts; `apps/codestyle/` holds the lint scripts; `apps/coa-*` hold CoA tooling and tests.
 - `conf/dist/` — distributed config templates; `conf/*.conf` is gitignored.
 - `deps/` — vendored third-party dependencies.
+- `.agents/` — agent rules, skills and docs ([README](.agents/README.md)); `.claude/` — Claude Code entry points.
 
 ## Modules
 
@@ -129,3 +169,6 @@ This section supersedes earlier blanket instructions to keep gameplay/status cha
 Jealous Sound upstream PRs remain separate, feature-scoped and based on upstream main. This policy does not authorize merging upstream PRs or pushing directly to upstream main. Activation, live SQL, restarts, client/DLL installation and distribution retain their separate permission boundaries. In-game package acceptance does not automatically change ability/talent/enchant Certified labels; tester records remain authoritative.
 
 For the current reconciliation, the owner explicitly authorized beginning integration of the active server into our main and preserving old branch tips as annotated archive tags. Reconstruct reproducible source and ordered migrations, exclude secrets/binaries/private data, and validate before merging. Preserve open PR branches and unresolved local/pending work. Archive old redundant branches only after verifying the tag resolves to the exact current tip and their unique work is preserved. Never force-push or delete a branch whose tip changed since review.
+Keep only stable conventions and essential routing here; rules belong in `.agents/rules/`, task guides in
+`.agents/docs/`, workflows in the skill. Update guidance when requested or when a durable correction is needed;
+do not automatically offer lesson capture, install skills, or append task histories.

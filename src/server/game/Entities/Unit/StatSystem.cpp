@@ -15,6 +15,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "AscensionLevelDamageSummons.h"
 #include "ClassicPlusStats.h"
 #include "../../../coa/AscensionFreePick.h"
 #include "Config.h"
@@ -163,6 +164,7 @@ bool Player::UpdateStats(Stats stat)
     {
         case STAT_STRENGTH:
             UpdateShieldBlockValue();
+            UpdateArmor();                                  //SPELL_AURA_MOD_RESISTANCE_OF_STAT_PERCENT, strength term
             break;
         case STAT_AGILITY:
             UpdateArmor();
@@ -245,6 +247,11 @@ bool Player::UpdateStats(Stats stat)
     }
 
     return true;
+}
+
+float Player::GetExactStatValue(Stats stat) const
+{
+    return GetTotalStatValue(stat, GetAscensionStatFromStatBonus(*this, stat));
 }
 
 void Player::ApplySpellPowerBonus(int32 amount, bool apply)
@@ -870,6 +877,7 @@ void Player::UpdateCritPercentage(WeaponAttackType attType)
     float value = GetBaseModValue(modGroup, FLAT_MOD) + GetBaseModValue(modGroup, PCT_MOD) + GetRatingBonusValue(cr);
     // Modify crit from weapon skill and maximized defense skill of same level victim difference
     value += (int32(GetWeaponSkillValue(attType)) - int32(GetMaxSkillValueForLevel())) * 0.04f;
+    value += GetTotalAuraModifierByMiscMask(SPELL_AURA_ASCENSION_MOD_CRIT_CHANCE, SPELL_SCHOOL_MASK_NORMAL);
 
     if (sConfigMgr->GetOption<bool>("Stats.Limits.Enable", false))
     {
@@ -955,12 +963,12 @@ void Player::UpdateParryPercentage()
     // No parry
     float value = 0.0f;
     m_realParry = 0.0f;
-    // Starcaller and Primalist need Hunter's parry curve; their general Druid fallback has no parry cap.
     // Sun Cleric's March of the Valkyr uses the Paladin curve with its Strength-based melee scaling.
-    Classes const parryClass = AscensionFreePick::Applies(this) ? CLASS_WARRIOR :
-        getClass() == CLASS_STARCALLER || getClass() == CLASS_WILDWALKER ? CLASS_HUNTER :
-        getClass() == CLASS_SUN_CLERIC ? CLASS_PALADIN :
+    // Other custom classes whose legacy fallback has no parry cap (Druid, Priest, Mage, Warlock) use Hunter's curve.
+    Classes parryClass = AscensionFreePick::Applies(this) ? CLASS_WARRIOR : getClass() == CLASS_SUN_CLERIC ? CLASS_PALADIN :
         GetLegacyClassForCustomClass(Classes(getClass()));
+    if (parryClass != getClass() && parry_cap[parryClass - 1] <= 0.0f)
+        parryClass = CLASS_HUNTER;
     uint32 const pclass = parryClass - 1;
     if (CanParry() && parry_cap[pclass] > 0.0f)
     {
@@ -1156,7 +1164,8 @@ void Player::ApplyHealthRegenBonus(int32 amount, bool apply)
 
 void Player::UpdateManaRegen()
 {
-    if (HasAuraTypeWithMiscvalue(SPELL_AURA_PREVENT_REGENERATE_POWER, POWER_MANA + 1))
+    if (HasAuraTypeWithMiscvalue(SPELL_AURA_PREVENT_REGENERATE_POWER, POWER_MANA + 1)
+        || !sScriptMgr->OnPlayerCanRegenerate(this, POWER_MANA))
     {
         SetStatFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER, 0);
         SetStatFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER, 0);
@@ -1447,8 +1456,9 @@ bool Guardian::UpdateAllStats()
 
 void Guardian::UpdateArmor()
 {
-    if (GetOwner() && ((HasAura(805015) && GetOwner()->getClass() == CLASS_NECROMANCER) ||
-        (HasAura(707698) && GetOwner()->getClass() == CLASS_TINKER)))
+    if ((GetOwner() && ((HasAura(805015) && GetOwner()->getClass() == CLASS_NECROMANCER) ||
+        (HasAura(707698) && GetOwner()->getClass() == CLASS_TINKER))) ||
+        GetUInt32Value(UNIT_CREATED_BY_SPELL) == 290444)
         return Creature::UpdateArmor();
     float value = GetFlatModifierValue(UNIT_MOD_ARMOR, BASE_VALUE);
     value *= GetPctModifierValue(UNIT_MOD_ARMOR, BASE_PCT);
@@ -1460,14 +1470,15 @@ void Guardian::UpdateArmor()
 
 void Guardian::UpdateMaxHealth()
 {
-    if (GetOwner() && ((HasAura(805015) && GetOwner()->getClass() == CLASS_NECROMANCER) ||
-        (HasAura(707698) && GetOwner()->getClass() == CLASS_TINKER)))
+    if ((GetOwner() && ((HasAura(805015) && GetOwner()->getClass() == CLASS_NECROMANCER) ||
+        (HasAura(707698) && GetOwner()->getClass() == CLASS_TINKER))) ||
+        GetUInt32Value(UNIT_CREATED_BY_SPELL) == 290444)
         return Creature::UpdateMaxHealth();
     UnitMods unitMod = UNIT_MOD_HEALTH;
     float stamina = std::max<float>(GetStat(STAT_STAMINA) - GetCreateStat(STAT_STAMINA), 0.0f);
 
     float multiplicator;
-    switch (GetEntry())
+    switch (GetStockPetEntry(GetEntry()))
     {
         case NPC_IMP:
             multiplicator = 8.4f;
@@ -1508,15 +1519,16 @@ void Guardian::UpdateMaxHealth()
 
 void Guardian::UpdateMaxPower(Powers power)
 {
-    if (GetOwner() && ((HasAura(805015) && GetOwner()->getClass() == CLASS_NECROMANCER) ||
-        (HasAura(707698) && GetOwner()->getClass() == CLASS_TINKER)))
+    if ((GetOwner() && ((HasAura(805015) && GetOwner()->getClass() == CLASS_NECROMANCER) ||
+        (HasAura(707698) && GetOwner()->getClass() == CLASS_TINKER))) ||
+        GetUInt32Value(UNIT_CREATED_BY_SPELL) == 290444)
         return Creature::UpdateMaxPower(power);
     UnitMods unitMod = UnitMods(static_cast<uint16>(UNIT_MOD_POWER_START) + power);
 
     float addValue = (power == POWER_MANA) ? std::max<float>(GetStat(STAT_INTELLECT) - GetCreateStat(STAT_INTELLECT), 0.0f) : 0.0f;
     float multiplicator = 15.0f;
 
-    switch (GetEntry())
+    switch (GetStockPetEntry(GetEntry()))
     {
         case NPC_IMP:
         case NPC_WATER_ELEMENTAL_TEMP:
@@ -1546,8 +1558,9 @@ void Guardian::UpdateMaxPower(Powers power)
 void Guardian::UpdateAttackPowerAndDamage(bool ranged)
 {
     // Necromancy supplies weighted owner AP. Native guardian Strength must not overwrite that base on aura updates.
-    if (GetOwner() && ((HasAura(805015) && GetOwner()->getClass() == CLASS_NECROMANCER) ||
-        (HasAura(707698) && GetOwner()->getClass() == CLASS_TINKER)))
+    if ((GetOwner() && ((HasAura(805015) && GetOwner()->getClass() == CLASS_NECROMANCER) ||
+        (HasAura(707698) && GetOwner()->getClass() == CLASS_TINKER))) ||
+        GetUInt32Value(UNIT_CREATED_BY_SPELL) == 290444)
         return Creature::UpdateAttackPowerAndDamage(ranged);
     if (ranged)
         return;
@@ -1555,10 +1568,12 @@ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
     float val = 0.0f;
     UnitMods unitMod = UNIT_MOD_ATTACK_POWER;
 
-    if (GetEntry() == NPC_IMP)                                     // imp's attack power
+    if (GetStockPetEntry(GetEntry()) == NPC_IMP)                                     // imp's attack power
         val = GetStat(STAT_STRENGTH) - 10.0f;
     else if (IsPetGhoul())                                         // DK's ghoul attack power
         val = 589 /*xinef: base ap!*/ + GetStat(STAT_STRENGTH) + GetStat(STAT_AGILITY);
+    else if (IsAscensionLevelDamageSummon(GetEntry()))
+        val = GetFlatModifierValue(unitMod, BASE_VALUE);
     else
         val = 2 * GetStat(STAT_STRENGTH) - 20.0f;
 
@@ -1568,6 +1583,12 @@ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
     float base_attPower  = GetFlatModifierValue(unitMod, BASE_VALUE) * GetPctModifierValue(unitMod, BASE_PCT);
     float attPowerMod = GetFlatModifierValue(unitMod, TOTAL_VALUE);
     float attPowerMultiplier = GetPctModifierValue(unitMod, TOTAL_PCT) - 1.0f;
+
+    // Glyph of Felguard: the Felguard's total attack power +20%
+    if (GetStockPetEntry(GetEntry()) == NPC_FELGUARD)
+        if (Unit* owner = GetOwner())
+            if (AuraEffect const* glyph = owner->GetAuraEffectOfRankedSpellOrTwin(SPELL_GLYPH_OF_FELGUARD, EFFECT_0))
+                attPowerMultiplier += glyph->GetAmount() / 100.0f;
 
     //UNIT_FIELD_(RANGED)_ATTACK_POWER field
     SetInt32Value(UNIT_FIELD_ATTACK_POWER, (int32)base_attPower);
@@ -1582,8 +1603,9 @@ void Guardian::UpdateAttackPowerAndDamage(bool ranged)
 
 void Guardian::UpdateDamagePhysical(WeaponAttackType attType)
 {
-    if (GetOwner() && ((HasAura(805015) && GetOwner()->getClass() == CLASS_NECROMANCER) ||
-        (HasAura(707698) && GetOwner()->getClass() == CLASS_TINKER)))
+    if ((GetOwner() && ((HasAura(805015) && GetOwner()->getClass() == CLASS_NECROMANCER) ||
+        (HasAura(707698) && GetOwner()->getClass() == CLASS_TINKER))) ||
+        GetUInt32Value(UNIT_CREATED_BY_SPELL) == 290444)
         return Creature::UpdateDamagePhysical(attType);
     if (attType > BASE_ATTACK)
         return;

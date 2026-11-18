@@ -38,6 +38,9 @@ constexpr std::size_t SPECIALIZATION_COUNT = 20;
 constexpr std::array<std::uint32_t, SPECIALIZATION_COUNT> SPECIALIZATION_SWAP_SPELLS = { 979993, 979994, 979995,
     979996, 979997, 979986, 979987, 979988, 84874, 84876, 84878, 84880, 84882, 84884, 84886, 84888, 84890, 84892,
     84894, 84896 };
+constexpr std::array<std::uint32_t, SPECIALIZATION_COUNT> SPECIALIZATION_TOME_ITEMS = { 0, 106954, 134980, 134981,
+    134982, 134983, 106960, 106961, 752030, 752031, 752032, 752033, 97400, 97401, 97402, 97403, 97404, 97405, 97406,
+    97407 };
 constexpr std::array<std::uint32_t, SPECIALIZATION_COUNT> SCROLL_OF_FORTUNE_ITEMS = { 1101244, 1111244, 1121244,
     1131244, 1141244, 1151244, 1161244, 1171244, 752026, 752027, 752028, 752029, 752039, 752040, 752041, 752042,
     752043, 752044, 752045, 752046 };
@@ -93,6 +96,7 @@ struct Entry
     std::uint32_t Group = 0;
     std::vector<std::uint32_t> RankSpells;
     bool Glyph = false;
+    std::uint32_t AbilityCost = ABILITY_ROLL_COST;
 };
 
 struct Essence
@@ -185,6 +189,8 @@ struct Tables
     std::unordered_map<std::uint32_t, std::unordered_set<std::uint32_t>> Mentioned;
     std::unordered_map<std::uint32_t, std::string> TagNames;
     std::unordered_map<std::uint32_t, std::vector<std::uint32_t>> RankLadders;
+    std::unordered_map<std::uint32_t, std::uint32_t> RankRoots;
+    std::unordered_map<std::uint32_t, std::uint32_t> AbilityCosts;
 };
 
 struct PendingCard
@@ -496,6 +502,7 @@ CardClaim ClaimPendingCards(Tables const& tables, CardCollection& collection, st
 
 std::vector<StoreCard> SkillCardStore(Tables const& tables, std::uint32_t store);
 std::vector<StoreCard> DarkmoonPrizeStore();
+std::vector<std::uint32_t> PeteArrWares(std::uint32_t spec, std::function<bool(std::uint32_t)> const& unlocked);
 
 std::vector<std::uint8_t> CustomStorePayload(std::uint32_t store, std::vector<StoreCard> const& cards);
 
@@ -522,6 +529,7 @@ inline Slot Decode(std::uint32_t value)
 
 Tables const& LoadedTables();
 bool IsWildcardHero(Player const* player);
+bool IsClasslessHero(Player const* player);
 bool PlaysWildcard(std::string_view realmModes);
 
 std::uint32_t ActiveSpec(Player const* player);
@@ -533,11 +541,14 @@ void SendPrestigeInfo(Player* player);
 void SignalRollReady(Player* player);
 
 std::vector<Slot> Slots(Player const* player);
+std::vector<Slot> Slots(Player const* player, std::uint32_t spec);
 std::uint32_t PrimaryStat(Player const* player);
+std::uint32_t PrimaryStat(Player const* player, std::uint32_t spec);
 StarterCardSlots StarterCards(Player const* player);
 RollCardSlots RollCards(Player const* player);
 CardCollection Collection(Player const* player);
 std::vector<AscensionCoATalentState::KnownEntry> KnownEntries(Player const* player);
+std::vector<AscensionCoATalentState::KnownEntry> KnownEntries(Player const* player, std::uint32_t spec);
 BuildChoice ApplyBuildUpload(Player* player, std::vector<AscensionCoATalentState::KnownEntry> const& upload);
 using StarterPick = std::function<std::size_t(std::vector<std::vector<Slot>> const& candidates)>;
 void DraftBuild(Player* player, StarterPick const& pickStarters = {}, std::uint32_t starterDraws = 1);

@@ -1,0 +1,11 @@
+{
+  "base_patched_tree": "ea205e1c465fa33f1f59ed66343e405f882b47e2",
+  "patched_tree": "c9f6bdf4f7b968b9b1ef37bec51f317b416e8266",
+  "patch_sha256": "b6f73815ad254753b05521a531818ae37d22a7855358b12a995995ef0eacb881",
+  "changed_files": [
+    "src/Ai/Coa/Area52PilotProfiles.h",
+    "src/Bot/RandomPlayerbotMgr.cpp",
+    "src/Area52BotWakeSchedule.h"
+  ],
+  "verification": "Exact patch replay matches current module source tree"
+}

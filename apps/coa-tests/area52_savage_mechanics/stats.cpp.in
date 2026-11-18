@@ -1,0 +1,19 @@
+#include <cassert>
+#include <cmath>
+#include <initializer_list>
+using uint8=unsigned char;
+constexpr int AURA_EFFECT_HANDLE_CHANGE_AMOUNT_MASK=1,AURA_EFFECT_HANDLE_STAT=2,UNIT_MOD_ATTACK_POWER=0,UNIT_MOD_ATTACK_POWER_RANGED=1,TOTAL_PCT=0,SPELL_AURA_MOD_ATTACK_POWER_PCT=166,SPELL_AURA_MOD_RANGED_ATTACK_POWER_PCT=167;
+constexpr unsigned CLASSMASK_WAND_USERS=(1<<4)|(1<<7)|(1<<8);
+struct Unit {unsigned cls=1<<9;float amount=0,melee=1,ranged=1;unsigned getClassMask(){return cls;}float GetTotalAuraMultiplier(int aura){assert(aura==166||aura==167);return 1+amount/100;}void SetStatPctModifier(int mod,int,float multiplier){(mod==0?melee:ranged)=multiplier;}};
+struct AuraApplication{Unit* target;Unit* GetTarget()const{return target;}};
+struct AuraEffect{void HandleAuraModAttackPowerPercent(AuraApplication const*,uint8,bool)const;void HandleAuraModRangedAttackPowerPercent(AuraApplication const*,uint8,bool)const;};
+@HANDLERS@
+int main(){
+ Unit hero;AuraApplication application{&hero};AuraEffect effect;
+ for(float amount:{2.f,4.f,2.f,0.f}){
+  hero.amount=amount;effect.HandleAuraModAttackPowerPercent(&application,1,true);effect.HandleAuraModRangedAttackPowerPercent(&application,1,true);
+  assert(std::abs(hero.melee-(1+amount/100))<0.00001f);assert(hero.melee==hero.ranged);
+ }
+ hero.amount=4;effect.HandleAuraModAttackPowerPercent(&application,0,true);assert(hero.melee==1);
+ hero.cls=1<<7;effect.HandleAuraModRangedAttackPowerPercent(&application,1,true);assert(hero.ranged==1);
+}

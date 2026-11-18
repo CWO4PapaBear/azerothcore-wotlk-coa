@@ -25,11 +25,13 @@
 
 #include "ThreatManager.h"
 #include "../../coa/AscensionFreePick.h"
+#include "AscensionTankStances.h"
 #include "CombatManager.h"
 #include "Containers.h"
 #include "Creature.h"
 #include "CreatureAI.h"
 #include "CreatureGroups.h"
+#include "LocalLevelScaling.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
@@ -39,9 +41,11 @@
 #include "TemporarySummon.h"
 #include "Unit.h"
 #include "UnitAI.h"
+#include "World.h"
 #include "WorldPacket.h"
 #include <algorithm>
 #include <boost/heap/fibonacci_heap.hpp>
+#include <cmath>
 
 const CompareThreatLessThan ThreatManager::CompareThreat;
 
@@ -114,7 +118,7 @@ bool ThreatReference::ShouldBeOffline() const
 {
     if (!_owner->CanSeeOrDetect(_victim))
         return true;
-    if (!_owner->_IsTargetAcceptable(_victim) || !_owner->CanCreatureAttack(_victim))
+    if (!_owner->_IsTargetAcceptable(_victim) || !_owner->CanCreatureAttack(_victim, _owner->IsNpcFightingMe(_victim)))
         return true;
     if (!FlagsAllowFighting(_owner, _victim) || !FlagsAllowFighting(_victim, _owner))
         return true;
@@ -774,6 +778,10 @@ void ThreatManager::ProcessAIUpdates()
             break;
         }
     }
+
+    if (victimMgr._inTankStance)
+        threat *= sWorld->getRate(RATE_THREAT_TANK_STANCE);
+
     return threat;
 }
 
@@ -798,7 +806,10 @@ void ThreatManager::ForwardThreatForAssistingMe(Unit* assistant, float baseAmoun
     {
         float const perTarget = baseAmount / canBeThreatened.size();
         for (Creature* threatened : canBeThreatened)
-            threatened->GetThreatMgr().AddThreat(assistant, perTarget, spell, ignoreModifiers);
+        {
+            float const amount = LocalLevelScaling::PoolThreatFor(assistant, threatened, perTarget);
+            threatened->GetThreatMgr().AddThreat(assistant, amount, spell, ignoreModifiers);
+        }
     }
 
     for (Creature* threatened : cannotBeThreatened)
@@ -830,10 +841,12 @@ void ThreatManager::UpdateMyTempModifiers()
         return;
 
     auto it = _threatenedByMe.begin();
-    bool const isIncrease = (it->second->_tempModifier < mod);
     do
     {
-        it->second->_tempModifier = mod;
+        float const converted = LocalLevelScaling::PoolThreatFor(_owner, it->second->GetOwner(), float(mod));
+        int32 const referenceMod = int32(std::lround(converted));
+        bool const isIncrease = (it->second->_tempModifier < referenceMod);
+        it->second->_tempModifier = referenceMod;
         if (isIncrease)
             it->second->HeapNotifyIncreased();
         else
@@ -846,6 +859,10 @@ void ThreatManager::UpdateMySpellSchoolModifiers()
     for (uint8 i = 0; i < MAX_SPELL_SCHOOL; ++i)
         _singleSchoolModifiers[i] = _owner->GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_THREAT, 1 << i);
     _multiSchoolModifiers.clear();
+
+    Unit::AuraEffectList const& threatAuras = _owner->GetAuraEffectsByType(SPELL_AURA_MOD_THREAT);
+    _inTankStance = _owner->IsPlayer() && std::any_of(threatAuras.begin(), threatAuras.end(),
+        [](AuraEffect const* effect) { return Ascension::IsTankStanceAura(effect->GetId()); });
 }
 
 void ThreatManager::RegisterRedirectThreat(uint32 spellId, ObjectGuid const& victim, uint32 pct)

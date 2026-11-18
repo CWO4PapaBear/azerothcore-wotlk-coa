@@ -1,0 +1,54 @@
+#include <cassert>
+#include <array>
+#include <cstdint>
+#include <map>
+#include <set>
+#include <fstream>
+#include "AscensionMysticEnchantCatalog.h"
+using namespace AscensionMysticEnchant;
+using uint32=uint32_t;
+struct Aura { unsigned stack=1;void SetStackAmount(uint8_t n){stack=n;} };
+struct State {bool Loaded=false,DraftResolved=true;std::set<uint32> Applied;std::set<uint32> Known{919159,914983},DraftEntitlement;};
+constexpr int StateKey=1;
+struct Storage {State state;template<class T>T* Get(int){return &state;}};
+struct Player {Storage CustomData;bool world=false,alive=true,realm=true,owned=true,draft=false;unsigned adds=0,removes=0;Slots slots{};std::map<uint32,Aura> auras;
+ bool IsInWorld(){return world;}bool IsAlive(){return alive;}unsigned GetLevel(){return 80;}unsigned GetGUID(){return 1;}
+ struct Setting{unsigned value;};Setting GetPlayerSetting(char const*,int n){return {unsigned(draft&&n==4)};}
+ void UpdatePlayerSetting(int,unsigned,unsigned){}void SaveToDB(bool,bool){}
+ Aura* GetAura(uint32 id,unsigned){auto i=auras.find(id);return i==auras.end()?nullptr:&i->second;}
+ Aura* AddAura(uint32 id,Player*){++adds;return &auras[id];}
+ void RemoveAurasDueToSpell(uint32 id,unsigned){++removes;auras.erase(id);}
+};
+Catalog Data;
+std::map<uint32,uint32> Connected{{919159,3},{914983,1}};
+bool Applies(Player* p){return p->realm;}int Setting(Player*){return 1;}void SendSlots(Player*){}
+Slots ReadSlots(Player* p){return p->slots;}
+bool InvestmentMet(Player*,Entry const&,bool){return true;}
+@@VALIDATE@@
+@@SYNC@@
+int main(){
+ for(unsigned id:{919159u,914983u}){Entry e;e.Spell=id;e.Quality=3;Data.BySpell[id]=e;}
+ Player p;p.slots[4]=919159;p.slots[5]=919159;p.slots[6]=919159;p.slots[7]=914983;
+ auto& state=p.CustomData.state;
+ Synchronize(&p);assert(p.adds==0);p.world=true;Synchronize(&p);assert(p.adds==0);
+ state.Loaded=true;Synchronize(&p);assert(p.adds==2&&p.auras.at(919159).stack==3&&p.auras.at(914983).stack==1);
+ Synchronize(&p);assert(p.adds==2);
+ p.slots[6]=0;Synchronize(&p);assert(p.auras.at(919159).stack==2);
+ p.slots[5]=0;Synchronize(&p);assert(p.auras.at(919159).stack==1);
+ p.auras.at(919159).stack=3;Synchronize(&p);assert(p.auras.at(919159).stack==1);
+ p.auras.clear();Synchronize(&p);assert(p.auras.size()==2);
+ auto saved=p.slots;p.slots={};Synchronize(&p);assert(p.auras.empty());
+ p.slots=saved;Synchronize(&p);assert(p.auras.size()==2);
+ p.slots[8]=914983;Synchronize(&p);assert(p.auras.empty());p.slots[8]=0;
+ p.slots[5]=p.slots[6]=p.slots[8]=919159;Synchronize(&p);assert(p.auras.empty());p.slots=saved;
+ state.Known.clear();Synchronize(&p);assert(p.auras.empty());state.DraftEntitlement={919159,914983};
+ p.draft=true;state.DraftResolved=false;Synchronize(&p);assert(p.auras.empty());
+ state.DraftResolved=true;Synchronize(&p);assert(p.auras.size()==2);
+ state.DraftEntitlement.clear();Synchronize(&p);assert(p.auras.empty());state.Known={919159,914983};
+ p.realm=false;Synchronize(&p);assert(p.auras.empty());p.realm=true;
+ p.alive=false;Synchronize(&p);assert(p.auras.empty());p.alive=true;Synchronize(&p);assert(p.auras.size()==2);
+ Player q;q.slots=saved;q.CustomData.state.Loaded=true;Synchronize(&q);assert(q.adds==0);
+ q.world=true;Synchronize(&q);assert(q.adds==2&&q.auras.at(919159).stack==1&&q.auras.at(914983).stack==1);
+ Connected.clear();Synchronize(&q);assert(q.auras.empty());Connected={{919159,3},{914983,1}};
+ Synchronize(&q);assert(q.auras.size()==2);
+}

@@ -23,6 +23,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace
@@ -40,10 +41,32 @@ constexpr float InteractionRange = 30.0f;
 
 constexpr uint32 StatusCheckIntervalMs = 2000;
 
-constexpr uint32 QuestsCompletedWithoutPlayerAction[] = { 5722, 5724 };
+constexpr uint32 QuestsCompletedWithoutPlayerAction[] = { 3801, 3981, 3982, 4001, 4002, 4004, 4122, 4128, 4133, 4264, 4324, 4341, 4342, 4361, 4363, 5722, 5724, 7498, 7499, 7500, 7501, 7502, 7503, 7504, 7505, 7506, 7507, 7508, 8619, 8948, 11454, 11486, 11487, 12062 };
+
+struct OverworldQuestSort
+{
+    uint32 mapId;
+    uint32 questSortAreaId;
+};
 
 constexpr uint32 RazorfenKraulMapId = 47;
 constexpr uint32 RazorfenKraulOverworldQuestSortAreaId = 1717;
+
+constexpr uint32 UldamanMapId = 70;
+constexpr uint32 UldamanOverworldQuestSortAreaId = 1517;
+
+constexpr uint32 GnomereganMapId = 90;
+constexpr uint32 GnomereganQuestSortAreaId = 133;
+
+constexpr uint32 ZulFarrakMapId = 209;
+constexpr uint32 ZulFarrakOverworldQuestSortAreaId = 978;
+
+constexpr OverworldQuestSort OverworldQuestSorts[] = {
+    { RazorfenKraulMapId, RazorfenKraulOverworldQuestSortAreaId },
+    { UldamanMapId, UldamanOverworldQuestSortAreaId },
+    { GnomereganMapId, GnomereganQuestSortAreaId },
+    { ZulFarrakMapId, ZulFarrakOverworldQuestSortAreaId }
+};
 
 struct DungeonQuests
 {
@@ -77,6 +100,7 @@ std::unordered_map<uint32, DungeonQuests> _questsByMap;
 std::mutex _dungeonQuestLock;
 bool _dungeonQuestsLoaded = false;
 std::vector<uint32> _dungeonQuests;
+std::vector<uint32> _questsEndedInDungeons;
 
 std::mutex _statusLock;
 std::unordered_map<uint32, StatusState> _statusByPlayer;
@@ -108,6 +132,17 @@ std::string IdList(std::vector<uint32> const& ids)
     return list;
 }
 
+std::vector<uint32> ExtraQuestSortAreas(uint32 mapId)
+{
+    std::vector<uint32> areas;
+
+    for (OverworldQuestSort const& sort : OverworldQuestSorts)
+        if (sort.mapId == mapId)
+            areas.push_back(sort.questSortAreaId);
+
+    return areas;
+}
+
 std::vector<uint32> AreasOfMap(uint32 mapId)
 {
     std::vector<uint32> areas;
@@ -117,8 +152,8 @@ std::vector<uint32> AreasOfMap(uint32 mapId)
             if (area->mapid == mapId)
                 areas.push_back(area->ID);
 
-    if (mapId == RazorfenKraulMapId)
-        areas.push_back(RazorfenKraulOverworldQuestSortAreaId);
+    for (uint32 extra : ExtraQuestSortAreas(mapId))
+        areas.push_back(extra);
 
     if (mapId == 90)
         areas.push_back(133);
@@ -214,13 +249,20 @@ std::vector<uint32> DungeonMaps()
     return maps;
 }
 
-std::vector<uint32> LoadAllDungeonQuests()
+struct DungeonQuestIndex
 {
-    std::vector<uint32> ids;
+    std::vector<uint32> quests;
+    std::vector<uint32> endedInside;
+};
+
+DungeonQuestIndex LoadAllDungeonQuests()
+{
+    DungeonQuestIndex index;
+    std::vector<uint32>& ids = index.quests;
 
     std::vector<uint32> const maps = DungeonMaps();
     if (maps.empty())
-        return ids;
+        return index;
 
     std::string const mapList = IdList(maps);
 
@@ -230,32 +272,51 @@ std::vector<uint32> LoadAllDungeonQuests()
             if (std::binary_search(maps.begin(), maps.end(), area->mapid))
                 areas.push_back(area->ID);
 
+    for (uint32 map : maps)
+        for (uint32 extra : ExtraQuestSortAreas(map))
+            areas.push_back(extra);
+
     if (!areas.empty())
         ReadQuestIds(ids, "SELECT ID FROM quest_template WHERE QuestSortID IN (" + IdList(areas) + ")");
 
     ReadQuestIds(ids,
         "SELECT DISTINCT qs.quest FROM creature c JOIN creature_queststarter qs ON qs.id = c.id WHERE c.map IN (" + mapList + ")");
-    ReadQuestIds(ids,
+    ReadQuestIds(index.endedInside,
         "SELECT DISTINCT qe.quest FROM creature c JOIN creature_questender qe ON qe.id = c.id WHERE c.map IN (" + mapList + ")");
     ReadQuestIds(ids,
         "SELECT DISTINCT qs.quest FROM gameobject g JOIN gameobject_queststarter qs ON qs.id = g.id WHERE g.map IN (" + mapList + ")");
-    ReadQuestIds(ids,
+    ReadQuestIds(index.endedInside,
         "SELECT DISTINCT qe.quest FROM gameobject g JOIN gameobject_questender qe ON qe.id = g.id WHERE g.map IN (" + mapList + ")");
 
+    SortUnique(index.endedInside);
+    ids.insert(ids.end(), index.endedInside.begin(), index.endedInside.end());
     SortUnique(ids);
-    return ids;
+    return index;
+}
+
+void EnsureDungeonQuestsLoaded()
+{
+    if (_dungeonQuestsLoaded)
+        return;
+
+    DungeonQuestIndex index = LoadAllDungeonQuests();
+    _dungeonQuests = std::move(index.quests);
+    _questsEndedInDungeons = std::move(index.endedInside);
+    _dungeonQuestsLoaded = true;
 }
 
 std::vector<uint32> const& AllDungeonQuests()
 {
     std::lock_guard<std::mutex> lock(_dungeonQuestLock);
-    if (!_dungeonQuestsLoaded)
-    {
-        _dungeonQuests = LoadAllDungeonQuests();
-        _dungeonQuestsLoaded = true;
-    }
-
+    EnsureDungeonQuestsLoaded();
     return _dungeonQuests;
+}
+
+std::vector<uint32> const& QuestsEndedInDungeons()
+{
+    std::lock_guard<std::mutex> lock(_dungeonQuestLock);
+    EnsureDungeonQuestsLoaded();
+    return _questsEndedInDungeons;
 }
 
 bool InDungeon(Player* player)
@@ -277,6 +338,7 @@ std::vector<uint32> CarriedDungeonQuests(Player* player)
 {
     std::vector<uint32> carried;
     std::vector<uint32> const& dungeons = AllDungeonQuests();
+    std::vector<uint32> const& endedInside = QuestsEndedInDungeons();
 
     for (auto const& status : player->getQuestStatusMap())
     {
@@ -286,7 +348,11 @@ std::vector<uint32> CarriedDungeonQuests(Player* player)
         if (!Contains(dungeons, status.first))
             continue;
 
-        if (IsPlaceholder(sObjectMgr->GetQuestTemplate(status.first)))
+        Quest const* quest = sObjectMgr->GetQuestTemplate(status.first);
+        if (IsPlaceholder(quest) || quest->IsRepeatable())
+            continue;
+
+        if (CompletesWithoutPlayerAction(quest) && Contains(endedInside, status.first))
             continue;
 
         carried.push_back(status.first);
@@ -303,6 +369,12 @@ bool CanOffer(Player* player, uint32 questId)
         return false;
 
     if (CompletesWithoutPlayerAction(quest))
+        return false;
+
+    if (quest->HasFlag(QUEST_FLAGS_UNAVAILABLE))
+        return false;
+
+    if (quest->IsRepeatable())
         return false;
 
     if (player->GetQuestStatus(questId) != QUEST_STATUS_NONE)

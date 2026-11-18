@@ -4,9 +4,11 @@ units, standalone Python/C++ harness scripts and the catalog gameplay scenarios 
 Stages run in order: source, build, unit, harness, gameplay. --stages and --skip choose stages; --scenario,
 --spell, --quest and --query narrow gameplay and --harness narrows the harness stage without disabling others.
 Gameplay runs by default in one worldserver on a simulated clock, with --gameplay-lanes concurrent cases and
---gameplay-db-workers character database workers at READ-COMMITTED isolation; cases that fail there are rerun at real
-pace on the same server. --gameplay-clock real runs the real-clock reference instead: --gameplay-jobs parallel
-worldservers, one case at a time each, with one character database worker and isolated single-mode reruns.
+--gameplay-db-workers character database workers at READ-COMMITTED isolation; --gameplay-jobs N runs N such
+worldservers, each with its own world-cache slot, and spreads exclusive cases over them. Accelerated failures
+remain failed; --gameplay-real-pace-rerun explicitly enables slower same-server diagnostics. --gameplay-clock real
+runs the real-clock reference instead: --gameplay-jobs parallel worldservers, one case at a time each, with one
+character database worker and isolated single-mode reruns.
 Settings come from the optional conf/verify-all.json plus auto-detection. --plan prints the resolved plan as JSON
 and executes nothing. Exit status: 0 every selected stage passed, 1 something failed or was blocked, 3 nothing
 failed but some scope was unavailable (a gameplay selection of exploratory scenario files only included),
@@ -42,8 +44,8 @@ GAMEPLAY_DIRECTORY = 'apps/coa-gameplay-test'
 DEFAULT_SETTINGS = 'conf/verify-all.json'
 PATH_SETTINGS = ('build_directory', 'worldserver', 'worldserver_config', 'mysql', 'mysqldump',
                  'database_client_config', 'server_modules_dir', 'modules_config_dir', 'dbc_directory',
-                 'workspace_tools', 'datamine_directory', 'mysql_server_bin')
-COUNT_SETTINGS = ('jobs', 'gameplay_jobs', 'gameplay_db_workers')
+                 'workspace_tools', 'datamine_directory', 'mysql_server_bin', 'client_lab')
+COUNT_SETTINGS = ('jobs', 'gameplay_jobs', 'gameplay_db_workers', 'gameplay_copy_workers')
 SETTING_KEYS = frozenset((*PATH_SETTINGS, *COUNT_SETTINGS, 'cmake_args'))
 CONFIGURED_DIRECTORIES = ('dbc_directory', 'datamine_directory', 'workspace_tools', 'mysql_server_bin')
 PROGRAM_SETTINGS = ('mysql', 'mysqldump')
@@ -78,6 +80,7 @@ DEFAULT_GAMEPLAY_LANES = 15
 MAXIMUM_GAMEPLAY_LANES = 15
 DEFAULT_GAMEPLAY_DB_WORKERS = 16
 MAXIMUM_GAMEPLAY_DB_WORKERS = 32
+MAXIMUM_GAMEPLAY_COPY_WORKERS = 32
 USAGE_ERROR = 2
 GAMEPLAY_EXPLORATORY_EXIT = 3
 EXPLORATORY_ONLY = 'only exploratory scenarios ran; they passed natively, without combined verification'
@@ -115,6 +118,8 @@ class Context:
     environment: dict
     world_databases: str | None = None
     gameplay_db_workers: int = 1
+    gameplay_real_pace_rerun: bool = False
+    gameplay_copy_workers: int | None = None
 
 
 def absolute(value, base):
@@ -153,6 +158,8 @@ def load_settings(path, explicit):
             raise ValueError(f'Setting {key} must be a positive integer')
     if data.get('gameplay_db_workers', 1) > MAXIMUM_GAMEPLAY_DB_WORKERS:
         raise ValueError(f'Setting gameplay_db_workers must be at most {MAXIMUM_GAMEPLAY_DB_WORKERS}')
+    if data.get('gameplay_copy_workers', 1) > MAXIMUM_GAMEPLAY_COPY_WORKERS:
+        raise ValueError(f'Setting gameplay_copy_workers must be at most {MAXIMUM_GAMEPLAY_COPY_WORKERS}')
     arguments = data.get('cmake_args', [])
     if not isinstance(arguments, list) or not all(isinstance(argument, str) for argument in arguments):
         raise ValueError('Setting cmake_args must be a list of strings')
@@ -467,6 +474,8 @@ def stage_source(context, log):
     failed = [command_text(result.get('command', [])[2:]) for result in results if result.get('status') != 'passed']
     summary = {'counts': {'passed': len(results) - len(failed), 'failed': len(failed)},
                'selected_suites': data.get('selected_suites', []), 'failed_commands': failed}
+    if data.get('conformance_reruns'):
+        summary['conformance_reruns'] = data['conformance_reruns']
     passed = outcome.returncode == 0 and data.get('status') == 'passed' and not failed
     return ('passed' if passed else 'failed'), summary
 
@@ -496,7 +505,24 @@ def configure_arguments(context):
         generator = []
     prefix = (context.root / 'env/dist').as_posix()
     return [*generator, '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '-DAPPS_BUILD=world-only', '-DSCRIPTS=static',
-            '-DMODULES=static', '-DBUILD_TESTING=ON', f'-DCMAKE_INSTALL_PREFIX={prefix}', *readline_arguments()]
+            '-DMODULES=static', '-DBUILD_TESTING=ON', f'-DCMAKE_INSTALL_PREFIX={prefix}', *readline_arguments(),
+            *line_table_debug_arguments(), *linux_development_arguments(context.environment)]
+
+
+def line_table_debug_arguments(platform=sys.platform):
+    if platform not in ('darwin', 'linux'):
+        return []
+    flags = '-O2 -g1 -DNDEBUG'
+    return [f'-DCMAKE_C_FLAGS_RELWITHDEBINFO={flags}', f'-DCMAKE_CXX_FLAGS_RELWITHDEBINFO={flags}']
+
+
+def linux_development_arguments(environment, platform=sys.platform):
+    if platform != 'linux':
+        return []
+    thin_archives = [f'-DCMAKE_{language}_ARCHIVE_{step}=<CMAKE_AR> {flags} <TARGET> <LINK_FLAGS> <OBJECTS>'
+                     for language in ('C', 'CXX') for step, flags in (('CREATE', 'qcT'), ('APPEND', 'qT'))]
+    linker = ['-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=mold'] if find_program('mold', environment) else []
+    return ['-DWITH_GAME_UNITY_BUILD=ON', *thin_archives, *linker]
 
 
 def readline_arguments(platform=sys.platform, candidates=HOMEBREW_READLINE_DIRECTORIES):
@@ -685,14 +711,21 @@ def reachable_sources(name, source, root):
     return texts
 
 
+def environment_value(environment, name):
+    if name in environment or not WINDOWS:
+        return environment.get(name)
+    folded = name.upper()
+    return next((value for key, value in environment.items() if key.upper() == folded), None)
+
+
 def compiler_problem(source, environment):
-    if 'VCToolsInstallDir' not in source or environment.get('VCToolsInstallDir'):
+    if 'VCToolsInstallDir' not in source or environment_value(environment, 'VCToolsInstallDir'):
         return None
     fallback = MSVC_LOOKUP if WINDOWS else PORTABLE_COMPILER
     if MSVC_REQUIREMENT.search(source) and not fallback.search(source):
         return 'requires the MSVC toolchain (VCToolsInstallDir is unset)'
     if WINDOWS:
-        compiler = environment.get('CXX') or 'cl.exe'
+        compiler = environment_value(environment, 'CXX') or 'cl.exe'
         if find_program(compiler, environment) is None:
             return f'requires the MSVC toolchain or {compiler} on PATH (VCToolsInstallDir is unset)'
     return None
@@ -730,6 +763,9 @@ def supplied_arguments(settings):
         values['--dbc-dir'] = dbc
     if datamine and datamine.is_dir():
         values['--datamine-dir'] = datamine
+    lab = settings.get('client_lab')
+    if lab and lab.is_file():
+        values['--client-lab'] = lab
     server = settings.get('mysql_server_bin')
     if server and all(is_executable(server / executable_name(name)) for name in ('mysql', 'mysqld')):
         values['--mysql-bin'] = server
@@ -837,7 +873,7 @@ def resolve_scenarios(args):
         if value in known:
             selected.append(value)
         elif Path(value).is_file():
-            selected.append(scenario_file(value, rows))
+            selected.append(scenario_file(value, rows, args.gameplay_clock))
         else:
             raise ValueError(f'Unknown scenario (neither a catalog id nor a file): {value}')
     if filtered:
@@ -849,23 +885,53 @@ def resolve_scenarios(args):
     return [] if set(selected) == known else selected
 
 
-def scenario_file(value, rows):
+def scenario_file(value, rows, clock=REAL_CLOCK):
     resolved = Path(value).resolve()
     catalog_id = next((row['id'] for row in rows if (ROOT / row['path']).resolve() == resolved), None)
     if catalog_id:
         return catalog_id
     runner = gameplay_module('run')
     try:
-        runner.validate(runner.read_json(resolved))
+        runner.validate(runner.read_json(resolved), clock)
     except (OSError, ValueError, KeyError, TypeError) as error:
         raise ValueError(f'Invalid scenario file {value}: {error}') from None
     return str(resolved)
+
+
+def inactive_module_scenarios(context, rows=None):
+    rows = load_catalog().catalog() if rows is None else rows
+    modules = [row for row in rows if row.get('module')]
+    if not modules or context.scenarios:
+        return []
+    runner = gameplay_module('run')
+    cache = cmake_cache(context.settings['build_directory'])
+    config_path = context.settings.get('worldserver_config')
+    config = runner.read_config(config_path) if config_path and config_path.is_file() else {}
+    config_directory = context.settings.get('modules_config_dir')
+    if config_directory is None and config_path:
+        config_directory = config_path.parent / 'modules'
+    if config_directory:
+        for path in sorted(config_directory.glob('*.conf')):
+            config.update(runner.read_config(path))
+    skipped = []
+    for row in modules:
+        mode = cache.get('MODULE_' + row['module'].upper(), 'default')
+        built = mode != 'disabled' and (mode != 'default' or cache.get('MODULES', 'static') != 'disabled')
+        enabled = all(str(runner.source_setting(config, key, default, context.environment)).upper() in CMAKE_TRUE
+                      for key, default in row.get('configuration', {}).items())
+        if (built and enabled) != row.get('module_active', True):
+            skipped.append(row['id'])
+    return skipped
 
 
 def scenario_plan(context):
     catalog = load_catalog()
     rows = catalog.catalog()
     if not context.scenarios:
+        skipped = inactive_module_scenarios(context, rows)
+        if skipped:
+            return {'selection': 'all enabled catalog scenarios', 'count': len(rows) - len(skipped),
+                    'skipped_optional': skipped}
         return {'selection': 'all catalog scenarios', 'count': len(rows)}
     known = {row['id'] for row in rows}
     cases = [value for value in context.scenarios if value in known]
@@ -935,10 +1001,18 @@ def gameplay_command(context):
     if context.gameplay_clock == SIMULATED_CLOCK:
         command += ['--clock', SIMULATED_CLOCK, '--lanes', context.gameplay_lanes,
                     '--character-db-workers', context.gameplay_db_workers]
+    if context.gameplay_copy_workers:
+        command += ['--copy-workers', context.gameplay_copy_workers]
+    if context.gameplay_real_pace_rerun:
+        command.append('--real-pace-rerun')
     if context.world_databases:
         command.append(WORLD_DATABASE_FLAGS[context.world_databases])
     if context.scenarios:
         command += ['--scenario', *context.scenarios]
+    else:
+        skipped = inactive_module_scenarios(context)
+        if skipped:
+            command += ['--skip-scenario', *skipped]
     return [str(part) for part in command]
 
 
@@ -1213,11 +1287,16 @@ def parser():
     result.add_argument('--base', help='Source checks for the diff against this Git ref instead of --all')
     result.add_argument('--jobs', type=positive_integer, help='Build, unit and harness parallelism')
     result.add_argument('--gameplay-clock', choices=GAMEPLAY_CLOCKS, default=SIMULATED_CLOCK,
-                        help='Gameplay clock: one accelerated worldserver, or the real-clock reference '
+                        help='Gameplay clock: accelerated worldservers with lanes, or the real-clock reference '
                              f'(default: {SIMULATED_CLOCK})')
+    result.add_argument('--gameplay-real-pace-rerun', action='store_true',
+                        help='Diagnose failed accelerated cases with slower same-server reruns '
+                             '(default: off; requires --gameplay-clock simulated)')
     result.add_argument('--gameplay-lanes', type=lane_count,
                         help=f'Concurrent cases in the simulated-clock worldserver (default: {DEFAULT_GAMEPLAY_LANES})')
-    result.add_argument('--gameplay-jobs', type=positive_integer, help='Concurrent real-clock gameplay worldservers')
+    result.add_argument('--gameplay-jobs', type=positive_integer,
+                        help='Concurrent gameplay worldservers (simulated clock: default 1; real clock: default '
+                             'the gameplay_jobs setting)')
     result.add_argument('--gameplay-db-workers', type=database_worker_count,
                         help='Asynchronous character database workers of the simulated-clock worldserver '
                              f'(default: settings gameplay_db_workers or {DEFAULT_GAMEPLAY_DB_WORKERS}; the real clock '
@@ -1268,9 +1347,8 @@ def claim_output(requested, root):
 
 
 def check_gameplay_concurrency(args):
-    if args.gameplay_clock == SIMULATED_CLOCK and args.gameplay_jobs not in (None, 1):
-        raise ValueError('--gameplay-jobs above 1 requires --gameplay-clock real; the simulated clock runs one '
-                         'worldserver with --gameplay-lanes concurrent cases')
+    if args.gameplay_real_pace_rerun and args.gameplay_clock != SIMULATED_CLOCK:
+        raise ValueError('--gameplay-real-pace-rerun requires --gameplay-clock simulated')
     if args.gameplay_clock == REAL_CLOCK and args.gameplay_lanes not in (None, 1):
         raise ValueError('--gameplay-lanes above 1 requires --gameplay-clock simulated; real-clock worldservers '
                          'run one case at a time')
@@ -1281,7 +1359,7 @@ def check_gameplay_concurrency(args):
 
 def gameplay_concurrency(args, raw, cpu):
     if args.gameplay_clock == SIMULATED_CLOCK:
-        return 1, args.gameplay_lanes or DEFAULT_GAMEPLAY_LANES
+        return args.gameplay_jobs or 1, args.gameplay_lanes or DEFAULT_GAMEPLAY_LANES
     return args.gameplay_jobs or raw.get('gameplay_jobs') or max(1, min(4, cpu // 3)), 1
 
 
@@ -1314,7 +1392,7 @@ def prepare(args, root, environment):
     scenarios = resolve_scenarios(args) if 'gameplay' in stages else []
     context = Context(root, raw, settings, output, stages, jobs, gameplay_jobs, args.gameplay_clock, gameplay_lanes,
                       args.base, scenarios, harness, environment, args.world_databases,
-                      gameplay_db_workers(args, raw))
+                      gameplay_db_workers(args, raw), args.gameplay_real_pace_rerun, raw.get('gameplay_copy_workers'))
     check_command_length(context)
     if not args.plan:
         context.output = claim_output(requested, root)

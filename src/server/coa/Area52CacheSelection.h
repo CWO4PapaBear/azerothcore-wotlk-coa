@@ -39,6 +39,16 @@ struct Result
     std::vector<Choice> choices;
 };
 
+inline float CallboardAverage(std::vector<Candidate> const& catalog, float equipped, std::uint32_t realmCap)
+{
+    std::uint32_t lowest = UINT32_MAX;
+    for (Candidate const& candidate : catalog)
+        if (candidate.requiredLevel == realmCap && candidate.contentUnlocked
+            && candidate.usable && candidate.bonusesQualified)
+            lowest = std::min(lowest, candidate.itemLevel);
+    return lowest == UINT32_MAX ? equipped : std::max(equipped, float(lowest));
+}
+
 inline Result Select(std::vector<Candidate> const& catalog, std::uint32_t average,
     std::uint32_t allowance, std::set<std::uint32_t> const& declined, std::uint32_t realmCap,
     bool catalogAndOwnershipComplete = false)

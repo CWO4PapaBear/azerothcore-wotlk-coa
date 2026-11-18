@@ -1,8 +1,10 @@
+#include "Area52MysticRealm.h"
 /*
  * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license: https://github.com/azerothcore/azerothcore-wotlk/blob/master/LICENSE-AGPL3
  */
 
 #include "AllCreatureScript.h"
+#include "CoADungeonNormal.h"
 #include "Creature.h"
 #include "DungeonHealth.h"
 #include "CreatureAI.h"
@@ -168,7 +170,7 @@ public:
         if (itr == Kits.end())
             return;
         Map const* map = me->GetMap();
-        if (!map || !DungeonHealth::IsVanillaDungeon(map->GetId()) || !map->IsNonRaidDungeon() || map->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL || me->IsCharmedOwnedByPlayerOrPlayer())
+        if (!map || !map->IsNonRaidDungeon() || (Area52MysticRealm::UsesFreePickEngine() && (!DungeonHealth::IsVanillaDungeon(map->GetId()) || map->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL)) || me->IsCharmedOwnedByPlayerOrPlayer())
             return;
 
         std::vector<KitEntry> const& kits = itr->second;
@@ -179,7 +181,7 @@ public:
             return;
         }
 
-        bool mythic = map->GetDifficulty() != DUNGEON_DIFFICULTY_HEROIC;
+        bool mythic = map->GetDifficulty() == DUNGEON_DIFFICULTY_EPIC;
         KitState* state = me->CustomData.GetDefault<KitState>("coa_boss_kit");
         if (!state->running)
         {
@@ -215,7 +217,7 @@ public:
                 timer = 250;
                 continue;
             }
-            timer = kit.repeatMin ? int32(KitRoll(kit.repeatMin, kit.repeatMax)) : -1;
+            timer = kit.repeatMin ? int32(CoADungeonNormal::KitRepeat(me, KitRoll(kit.repeatMin, kit.repeatMax))) : -1;
             if (kit.event == KIT_HEALTH && kit.repeatMin)
                 timer = std::max(timer, 1);
         }

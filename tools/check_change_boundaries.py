@@ -7,6 +7,8 @@ import re
 import subprocess
 import sys
 
+from inherited_sql import preserved_paths
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -32,12 +34,17 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         paths = changed_paths(args.base)
-        rejected = violations(paths, args.allow_historical_sql)
+        preserved = preserved_paths(ROOT)
+        rejected = violations([path for path in paths if path not in preserved], args.allow_historical_sql)
         print(json.dumps({'changed_files': len(paths), 'sql_outside_pending': rejected,
+                          'preserved_inherited_sql': len(set(paths) & preserved),
                           'authorized_exception': args.allow_historical_sql}, indent=2))
         return int(bool(rejected))
     except subprocess.CalledProcessError:
         print('Cannot resolve the comparison base; fetch it before checking change boundaries', file=sys.stderr)
+        return 1
+    except (ValueError, OSError) as error:
+        print('Inherited SQL verification failed: ' + str(error), file=sys.stderr)
         return 1
 
 

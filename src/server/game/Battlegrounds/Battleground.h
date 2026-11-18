@@ -430,6 +430,7 @@ public:
 
     void AddPlayerToResurrectQueue(ObjectGuid npc_guid, ObjectGuid player_guid);
     void RemovePlayerFromResurrectQueue(Player* player);
+    [[nodiscard]] bool IsPlayerInResurrectQueue(ObjectGuid playerGuid) const;
 
     /// Relocate all players in ReviveQueue to the closest graveyard
     void RelocateDeadPlayers(ObjectGuid queueIndex);
@@ -490,7 +491,8 @@ public:
     [[nodiscard]] Group* GetBgRaid(TeamId teamId) const { return m_BgRaids[teamId]; }
     void SetBgRaid(TeamId teamId, Group* bg_raid);
 
-    void BuildPvPLogDataPacket(WorldPacket& data);
+    void BuildPvPLogDataPacket(WorldPacket& data, Player const* receiver = nullptr);
+    void SetArenaPersonalScore(ObjectGuid playerGuid, TeamId teamId, int32 ratingChange, uint32 matchmakerRating);
     virtual bool UpdatePlayerScore(Player* player, uint32 type, uint32 value, bool doAddHonor = true);
 
     [[nodiscard]] uint32 GetPlayersCountByTeam(TeamId teamId) const { return m_PlayersCount[teamId]; }
@@ -648,6 +650,15 @@ protected:
     int32 m_TeamScores[PVP_TEAMS_COUNT];
 
     ArenaTeamScore _arenaTeamScores[PVP_TEAMS_COUNT];
+
+    struct ArenaPersonalScore
+    {
+        PvPTeamId PvPTeam;
+        int32 RatingChange;
+        uint32 MatchmakerRating;
+    };
+
+    std::unordered_map<ObjectGuid, ArenaPersonalScore> _arenaPersonalScores;
 
     // pussywizard:
     uint32 m_UpdateTimer;

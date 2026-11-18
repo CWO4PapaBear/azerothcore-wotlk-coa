@@ -2,6 +2,7 @@
 
 #include "AscensionBarbarianCompletion.h"
 #include "CellImpl.h"
+#include "GameTime.h"
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
 #include "MotionMaster.h"
@@ -14,12 +15,15 @@
 #include "SpellMgr.h"
 #include "SpellScript.h"
 #include <algorithm>
+#include <cmath>
 #include <set>
 #include <vector>
 
 namespace
 {
 using namespace AscensionBarbarian;
+
+constexpr uint32 SPELL_WHIRLING_ADVANCE = 500919;
 
 class spell_ascension_barbarian_ability : public SpellScript
 {
@@ -38,6 +42,25 @@ class spell_ascension_barbarian_ability : public SpellScript
         if (GetCaster()->HasUnitState(UNIT_STATE_ROOT))
             return SPELL_FAILED_ROOTED;
         return SPELL_CAST_OK;
+    }
+
+    void Advance(SpellDestination& destination)
+    {
+        Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr;
+        if (!player)
+            return;
+        float forward = player->HasUnitMovementFlag(MOVEMENTFLAG_BACKWARD) ? -1.0f
+                        : player->HasUnitMovementFlag(MOVEMENTFLAG_FORWARD) ? 1.0f : 0.0f;
+        float strafe = player->HasUnitMovementFlag(MOVEMENTFLAG_STRAFE_LEFT) ? 1.0f
+                       : player->HasUnitMovementFlag(MOVEMENTFLAG_STRAFE_RIGHT) ? -1.0f : 0.0f;
+        if (!forward && !strafe)
+            return;
+        float distance = GetSpellInfo()->Effects[EFFECT_1].CalcRadius(player);
+        if (distance < player->GetCombatReach())
+            distance = player->GetCombatReach();
+        Position position = player->GetPosition();
+        player->MovePositionToFirstCollision(position, distance, std::atan2(strafe, forward));
+        destination.Relocate(position);
     }
 
     void Select(std::list<WorldObject*>& targets)
@@ -168,6 +191,9 @@ class spell_ascension_barbarian_ability : public SpellScript
         }
         if (info && info->HasEffect(SPELL_EFFECT_CHARGE_DEST))
             OnCheckCast += SpellCheckCastFn(spell_ascension_barbarian_ability::CheckRoot);
+        if (info && sSpellMgr->GetFirstSpellInChain(info->Id) == SPELL_WHIRLING_ADVANCE)
+            OnDestinationTargetSelect += SpellDestinationTargetSelectFn(
+                spell_ascension_barbarian_ability::Advance, EFFECT_1, TARGET_DEST_CASTER_FRONT);
         AfterHit += SpellHitFn(spell_ascension_barbarian_ability::Hit);
         AfterCast += SpellCastFn(spell_ascension_barbarian_ability::Finish);
     }
@@ -196,10 +222,40 @@ class aura_ascension_barbarian_volley : public AuraScript
             EFFECT_ALL, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
     }
 };
+
+class spell_ascension_hero_spite_leap_back : public SpellScript
+{
+    PrepareSpellScript(spell_ascension_hero_spite_leap_back);
+
+    bool Load() override
+    {
+        return GetCaster()->IsPlayer();
+    }
+
+    void Launch(SpellEffIndex index)
+    {
+        Player* player = GetCaster()->ToPlayer();
+        if (GetHitUnit() != player)
+            return;
+
+        PreventHitDefaultEffect(index);
+        SpellEffectInfo const& leap = GetSpellInfo()->Effects[index];
+        player->JumpTo(leap.MiscValue / 10.0f, leap.CalcValue() / 10.0f, false);
+        sScriptMgr->AnticheatSetUnderACKmount(player);
+        player->SetFallInformation(GameTime::GetGameTime().count(), player->GetPositionZ());
+    }
+
+    void Register() override
+    {
+        OnEffectLaunchTarget += SpellEffectFn(spell_ascension_hero_spite_leap_back::Launch,
+            EFFECT_0, SPELL_EFFECT_LEAP_BACK);
+    }
+};
 }
 
 void AddAscensionBarbarianAbilityScripts()
 {
     RegisterSpellScript(spell_ascension_barbarian_ability);
     RegisterSpellScript(aura_ascension_barbarian_volley);
+    RegisterSpellScript(spell_ascension_hero_spite_leap_back);
 }

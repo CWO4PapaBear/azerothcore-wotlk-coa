@@ -16,6 +16,8 @@ namespace AscensionWitchDoctor
 {
 void SyncReplacements(Player* player)
 {
+    if (!player->HasAura(MassAllcureTalent) && player->HasSpell(MassAllcure))
+        player->removeSpell(MassAllcure, SPEC_MASK_ALL, false);
     std::vector<uint32> known;
     for (auto const& [id, state] : player->GetSpellMap())
         if (state->State != PLAYERSPELL_REMOVED)
@@ -35,7 +37,7 @@ void SyncReplacements(Player* player)
         else if (IsHex(info))
         {
             selected = true;
-            if (player->HasAura(UmbralReady))
+            if (player->HasAura(UmbralReady) && id == KnownRank(player, id))
                 child = Umbral;
         }
         else if (Family(info, 1, 32768) && !IsArrow(info) && id != HexfireWrath)
@@ -77,7 +79,7 @@ void SyncReplacements(Player* player)
             continue;
         if (child && !player->HasSpell(child))
             player->learnSpell(child, true);
-        player->SetTemporarySpellReplacement(id, child);
+        player->SetTemporarySpellReplacement(id, child, child != Volley && child != Umbral);
     }
 }
 }

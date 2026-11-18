@@ -1,9 +1,10 @@
+/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
+#include "Area52MysticRealm.h"
 #include "Area52FeaturedPets.h"
 #include "Area52DraftPet.h"
 #include "Area52DraftVanity.h"
 #include "Area52WorldforgedCatalog.h"
 #include "Area52Worldforged.h"
-/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 #include "AscensionMysticEnchantCatalog.h"
 #include "Area52BuildProtocol.h"
 #include "Area52ActiveBuild.h"
@@ -716,7 +717,7 @@ bool HasDarkRangerHandlers()
 
 bool HasShieldFinesseHandlers()
 {
-    // This enchant reacts to casts through spell_area52_shield_tools.
+
     auto hasBinding = [](uint32 spell, uint32 script)
     {
         auto [first, last] = sObjectMgr->GetSpellScriptsBounds(spell);
@@ -893,6 +894,16 @@ void LoadConnections()
         if (spell == 997115)
         {
             if (HasDarkRangerHandlers())
+                Connected.emplace(spell, 1);
+            continue;
+        }
+        if (spell == 954634)
+        {
+            auto script = sObjectMgr->GetScriptId("aura_area52_blinding_dispersion");
+            auto [begin, end] = sObjectMgr->GetSpellScriptsBounds(47585);
+            if (sSpellMgr->GetSpellInfo(47585) && sSpellMgr->GetSpellInfo(954635)
+                && script && ScriptRegistry<SpellScriptLoader>::GetScriptById(script)
+                && std::any_of(begin, end, [script](auto const& row) { return row.second == script; }))
                 Connected.emplace(spell, 1);
             continue;
         }
@@ -1431,7 +1442,6 @@ bool ReleaseDraftEnchants(Player* player, std::uint64_t build, std::uint32_t rev
     if (!state || !CanChange(player, state) || !build || !revision)
         return false;
 
-    // The character-wide rewarded flag can refer to a different build or revision.
     auto claim = CharacterDatabase.Query(
         "SELECT EXISTS(SELECT 1 FROM area52_draft_reward WHERE guid={} AND account={} AND build_id={} AND revision={})",
         player->GetGUID().GetCounter(), player->GetSession()->GetAccountId(), build, revision);
@@ -1440,7 +1450,6 @@ bool ReleaseDraftEnchants(Player* player, std::uint64_t build, std::uint32_t rev
     if (!claim->Fetch()[0].Get<std::uint32_t>())
         return ClearDraftEnchants(player);
 
-    // Ownership must already be loaded before releasing the temporary entitlement.
     for (auto spell : ReadSlots(player))
         if (spell && !state->Known.contains(spell))
             return false;
@@ -1494,7 +1503,7 @@ bool GrantDraftReward(Player* player, std::uint64_t build, std::uint32_t revisio
         "WHERE guid={} AND account={} AND build_id={} AND revision={} "
         "ON DUPLICATE KEY UPDATE build_id=area52_build_trophy_claim.build_id",
         mailId, guid.GetCounter(), account, build, revision);
-    // Item serialization and conditional delivery share the guarded completion transaction.
+
     (*trophy)->SaveToDB(transaction);
     transaction->Append("INSERT INTO mail (id,messageType,stationery,mailTemplateId,sender,receiver,subject,body,"
         "has_items,expire_time,deliver_time,money,cod,checked) SELECT mail_id,0,{},0,0,completion_guid,"
@@ -1629,7 +1638,7 @@ float NonstackingCostCorrection(Unit const* caster, std::uint32_t schoolMask)
     {
         if (!Data.BySpell.contains(effect->GetId()))
             continue;
-        // The normal cost field already contains modifiers for the primary school.
+
         if (matches(effect, primarySchool))
         {
             sum += effect->GetAmount();
@@ -1833,7 +1842,6 @@ public:
     area52_dark_arrows() : AllSpellScript("area52_dark_arrows",
         {ALLSPELLHOOK_ON_BEFORE_EFFECTS, ALLSPELLHOOK_ON_HIT_RESULT}) { }
 
-    // Preserve eligibility from launch through missile travel.
     enum : uint32 { OldBoltCharge = 0xDA520001, Spent = 0xDA520002 };
 
     void OnSpellBeforeEffects(Spell* spell, Unit* caster, SpellInfo const* info) override
@@ -2069,7 +2077,6 @@ public:
     }
 };
 
-
 class spell_area52_dark_ranger_auto_shot : public SpellScript
 {
     PrepareSpellScript(spell_area52_dark_ranger_auto_shot);
@@ -2172,7 +2179,6 @@ public:
 };
 }
 
-
 namespace
 {
 void ClearInvalidDefiasBuffs(Player* player)
@@ -2186,8 +2192,6 @@ void ClearInvalidDefiasBuffs(Player* player)
     player->RemoveAurasDueToSpell(997054, guid);
 }
 }
-
-
 
 class spell_area52_defias_weapon final : public SpellScript
 {
@@ -2290,14 +2294,12 @@ class spell_area52_void_eruption : public SpellScript
         if (!enemy || !caster->IsValidAttackTarget(enemy))
             return;
 
-        // The default launch effect has already granted this cast's personal buff.
         if (Aura* buff = caster->GetAura(760185, caster->GetGUID()))
         {
             int32 extension = sSpellMgr->GetSpellInfo(760186)->Effects[EFFECT_0].CalcValue();
             buff->SetDuration(buff->GetDuration() + extension);
         }
 
-        // The original tooltip exposes Worgen Form only with the Wildcard rune.
         if (caster->GetShapeshiftForm() != FORM_SHADOW &&
             !(caster->HasSpell(973827) && caster->GetShapeshiftForm() == FORM_CAT &&
               (caster->HasAura(275737) || caster->HasAura(982807) || caster->HasAura(1575492))))
@@ -2306,7 +2308,7 @@ class spell_area52_void_eruption : public SpellScript
         for (uint32 rank = sSpellMgr->GetLastSpellInChain(589); rank; rank = sSpellMgr->GetPrevSpellInChain(rank))
             if (caster->HasActiveSpell(rank))
             {
-                // Apply to the already-hit target, preserving aura immunities and caster ownership.
+
                 caster->AddAura(rank, enemy);
                 break;
             }
@@ -2320,6 +2322,8 @@ class spell_area52_void_eruption : public SpellScript
 
 void AddSC_AscensionMysticEnchant()
 {
+    if (!Area52MysticRealm::UsesFreePickEngine())
+        return;
     new area52_defias_combat();
     RegisterSpellScript(spell_area52_defias_weapon);
     RegisterSpellScript(aura_area52_dark_arrow_mark);

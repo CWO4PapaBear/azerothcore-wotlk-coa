@@ -103,7 +103,10 @@ void ApplyContracts(SpellInfo* info)
         info->ProcFlags = 0;
     }
     if (Named(info,801709))
+    {
         info->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_PERIODIC_DUMMY;
+        info->SpellLevel = 0;
+    }
     if (id == 573054)
     {
         info->Effects[EFFECT_0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ENEMY);
@@ -194,6 +197,8 @@ void ApplyContracts(SpellInfo* info)
         info->Effects[0].Amplitude = 0;
         info->ProcFlags = 0;
     }
+    if (id == 706698)
+        info->DurationEntry = sSpellDurationStore.LookupEntry(32);
     if (id == 808008)
     {
         info->Effects[0].Effect = SPELL_EFFECT_APPLY_AURA;
@@ -278,6 +283,19 @@ void ApplyBeaconChargePool(SpellInfo* info)
     for (uint32 beacon : TinkerBeacons)
         if (info->Id == beacon)
             info->ChargeRecoveryKey = TinkerBeaconChargeRoot;
+}
+void ApplyReplenishmentFieldAura(SpellInfo* info)
+{
+    if (!info || info->Id != TinkerReplenishmentFieldAura)
+        return;
+    for (SpellEffectInfo& effect : info->Effects)
+        if (effect.Effect == SPELL_EFFECT_PERSISTENT_AREA_AURA)
+        {
+            effect.Effect = SPELL_EFFECT_APPLY_AURA;
+            effect.TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ALLY);
+            effect.TargetB = SpellImplicitTargetInfo();
+        }
+    info->_InitializeExplicitTargetMask();
 }
 }
 namespace

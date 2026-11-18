@@ -15,6 +15,7 @@
 namespace
 {
 using namespace AscensionTinker;
+constexpr uint32 SnapshotTaken = Scrap;
 bool Select(uint32 id, SpellInfo const* info)
 {
     switch (id)
@@ -29,10 +30,16 @@ bool Select(uint32 id, SpellInfo const* info)
         default: return false;
     }
 }
+bool TrainingDummy(Unit const* unit)
+{
+    Creature const* creature = unit->ToCreature();
+    return creature && creature->GetScriptName() == "npc_training_dummy";
+}
 void Snapshot(Player* player, Spell* spell)
 {
-    if (spell->IsTriggered())
+    if (spell->IsTriggered() || spell->GetScriptValue(SnapshotTaken))
         return;
+    spell->SetScriptValue(SnapshotTaken,1);
     for (uint32 id : TinkerFinite)
         if (Select(id,spell->GetSpellInfo()))
             if (Aura* aura = player->GetAura(id))
@@ -69,7 +76,7 @@ class tinker_spells : public AllSpellScript
 {
 public:
     tinker_spells() : AllSpellScript("tinker_spells",
-        {ALLSPELLHOOK_ON_SPELL_CHECK_CAST,ALLSPELLHOOK_ON_BEFORE_EFFECTS,ALLSPELLHOOK_ON_CAST,
+        {ALLSPELLHOOK_ON_SPELL_CHECK_CAST,ALLSPELLHOOK_ON_PREPARE,ALLSPELLHOOK_ON_BEFORE_EFFECTS,ALLSPELLHOOK_ON_CAST,
          ALLSPELLHOOK_ON_CRIT_CHANCE,ALLSPELLHOOK_ON_HIT_RESULT}) { }
     void OnSpellCheckCast(Spell* spell, bool, SpellCastResult& result) override
     {
@@ -87,6 +94,16 @@ public:
             result = SPELL_FAILED_NO_POWER;
         if (info->Id == 504594 && !player->HasAura(681245))
             result = SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
+    }
+    void OnSpellPrepare(Spell* spell, Unit* caster, SpellInfo const* info) override
+    {
+        Player* player = Owner(caster);
+        if (!player || player != caster || info->SpellFamilyName != 34)
+            return;
+        if (spell->getState() == SPELL_STATE_PREPARING)
+            Snapshot(player,spell);
+        if (Named(info,801005) && spell->GetScriptValue(707272))
+            player->GetGlobalCooldownMgr().CancelGlobalCooldown(info);
     }
     void OnSpellBeforeEffects(Spell* spell, Unit* caster, SpellInfo const* info) override
     {
@@ -193,9 +210,12 @@ public:
             for (Creature* device : Devices(player))
                 if (device->GetEntry() == 467073)
                 {
-                    Position position = device->GetPosition();
                     for (uint8 n = 0; n < 3; ++n)
+                    {
+                        Position position = device->GetPosition();
+                        device->MovePositionToFirstCollision(position,1.5f,n * 2 * float(M_PI) / 3);
                         Summon(player,target,500535,&position);
+                    }
                     break;
                 }
         if (id == 802052 && player->HasAura(300636))
@@ -238,23 +258,21 @@ public:
             return;
         if (target->IsPlayer())
             target->RemoveAurasDueToSpell(560711);
-        if (damage && Named(info,801005) && player->HasAura(805314))
+        if ((damage || TrainingDummy(target)) && Named(info,801005) && player->HasAura(805314))
             if (Aura* tracer = target->GetAura(653247,player->GetGUID()); tracer && tracer->GetStackAmount() >= 10)
                 Cast(player,target,803438);
         if (Nanobots(player,target) && player->HasAura(560734) &&
             Any(info,{801809,801709,502537,801808,803552}))
             Cast(player,target,560736);
-        if (healing && Named(info,680196))
-        {
-            if (critical && player->HasAura(805306))
-                for (Unit* ally : Allies(player,target,Radius(706255),sSpellMgr->GetSpellInfo(706255)->MaxAffectedTargets))
-                    Copy(player,ally,706255,CalculatePct(healing,15));
-            if (player->HasAura(560787))
-                for (Creature* device : Devices(player))
-                    for (Unit* ally : Allies(player,device,Radius(681513),1))
-                        Cast(device,ally,681513);
-        }
-        if (healing && Named(info,801707) && player->HasAura(524834))
+        if (uint32 shotHealing = spell->GetScriptHealingIncludingOverheal(); shotHealing && critical &&
+            Named(info,680196) && player->HasAura(805306))
+            for (Unit* ally : Allies(player,target,Radius(706255),sSpellMgr->GetSpellInfo(706255)->MaxAffectedTargets))
+                Copy(player,ally,706255,CalculatePct(shotHealing,15));
+        if (healing && Named(info,680196) && player->HasAura(560787))
+            for (Creature* device : Devices(player))
+                for (Unit* ally : Allies(player,device,Radius(681513),1))
+                    Cast(device,ally,681513);
+        if (Named(info,801707) && player->HasAura(524834))
             if (Creature* device = target->ToCreature(); device && Owned(player,device))
                 Overcharge(player,device);
         bool brilliance = spell->GetScriptValue(653273) != 0;
@@ -346,7 +364,21 @@ class spell_ascension_tinker_ability : public SpellScript
         }
         if ((id == 802176 || id == 802236) && GetCaster()->IsCreature())
             if (Creature* device = GetCaster()->ToCreature(); Owned(player,device) && device->GetEntry() == 50300)
-                device->DespawnOrUnsummon(100ms);
+            {
+                ObjectGuid const guid = device->GetGUID();
+                player->m_Events.AddEventAtOffset([player, guid]()
+                {
+                    if (!player)
+                        return;
+                    player->RemoveAurasDueToSpell(804673);
+                    Creature* bot = ObjectAccessor::GetCreature(*player, guid);
+                    if (!bot)
+                        return;
+                    if (bot->GetCharmerGUID() == player->GetGUID())
+                        bot->RemoveCharmedBy(player);
+                    bot->DespawnOrUnsummon();
+                }, 100ms);
+            }
     }
     void Hit()
     {

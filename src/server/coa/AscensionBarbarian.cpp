@@ -81,8 +81,19 @@ void HandleAscensionBarbarianAura(Player* player, uint32 spellId, bool apply)
             break;
         case FILL_LEVEL:
             helper = FILL_LEVEL_EFFECTS;
-            if (!apply)
+            if (apply)
+            {
+                if (!player->HasSpell(helper))
+                    player->learnSpell(helper, false);
+            }
+            else
+            {
                 player->RemoveAurasDueToSpell(TANKARD);
+                player->RemoveAurasDueToSpell(AscensionBarbarian::SPELL_FULL_TANKARD);
+                player->RemoveAurasDueToSpell(AscensionBarbarian::SPELL_EMPTY_TANKARD);
+                if (player->HasSpell(helper))
+                    player->removeSpell(helper, SPEC_MASK_ALL, false);
+            }
             break;
         case BODY_BUILDER:
             helper = BODY_BUILDER_SIZE;
@@ -98,16 +109,6 @@ void HandleAscensionBarbarianAura(Player* player, uint32 spellId, bool apply)
     }
     else
         player->RemoveAurasDueToSpell(helper);
-}
-
-void HandleAscensionBarbarianAttackPower(Player* player, float& modifier, bool ranged)
-{
-    if (!player || player->getClass() != CLASS_BARBARIAN || ranged ||
-        player->GetStat(STAT_STRENGTH) < player->GetStat(STAT_AGILITY))
-        return;
-
-    if (AuraEffect const* effect = player->GetAuraEffect(BODY_BUILDER, EFFECT_0))
-        modifier -= CalculatePct(player->GetStat(STAT_STRENGTH), effect->GetAmount());
 }
 
 void HandleAscensionBarbarianCast(Spell* spell)
@@ -126,7 +127,10 @@ void HandleAscensionBarbarianCast(Spell* spell)
         SpellInfo const* resource = tankard->GetSpellInfo();
         if (!preserveTankard && resource->SpellFamilyName == info->SpellFamilyName &&
             (resource->Effects[EFFECT_0].SpellClassMask & info->SpellFamilyFlags))
+        {
             player->RemoveAurasDueToSpell(TANKARD);
+            player->AddAura(AscensionBarbarian::SPELL_EMPTY_TANKARD, player);
+        }
     }
 
     if (info->SpellFamilyName != 18 || !(info->SpellFamilyFlags[1] & 0x00040000) ||
@@ -147,10 +151,5 @@ void HandleAscensionBarbarianCast(Spell* spell)
             reset.push_back(spellId);
     }
     for (uint32 spellId : reset)
-    {
         player->RemoveSpellCooldown(spellId, true);
-        if (SpellInfo const* spear = sSpellMgr->GetSpellInfo(spellId))
-            if (uint32 category = spear->GetCategory())
-                player->RemoveCategoryCooldown(category);
-    }
 }

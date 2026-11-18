@@ -1,0 +1,20 @@
+#include <cassert>
+#include <set>
+#include <vector>
+#include <cstdint>
+using uint8=unsigned char;using uint32=unsigned;using uint64=std::uint64_t;using AuraType=int;using SpellEffects=int;
+constexpr int MAX_SPELL_EFFECTS=3,MAX_MECHANIC=64,IMMUNITY_SCHOOL=0,IMMUNITY_MECHANIC=1,IMMUNITY_DISPEL=2,IMMUNITY_DAMAGE=3,IMMUNITY_STATE=4,IMMUNITY_EFFECT=5,SPELL_ATTR1_IMMUNITY_PURGES_EFFECT=1,SPELL_ATTR1_IMMUNITY_TO_HOSTILE_AND_FRIENDLY_EFFECTS=2,AURA_REMOVE_BY_DEFAULT=0;
+struct Unit;struct SpellEffectInfo{unsigned EffectIndex;};struct ImmunityInfo{unsigned SchoolImmuneMask=0,DispelImmuneMask=0,DamageSchoolMask=0;uint64 MechanicImmuneMask=0;std::vector<int>AuraTypeImmune,SpellEffectImmune;};
+struct SpellInfo{unsigned Id=954696,Dispel=0;ImmunityInfo _immunityInfo[3];bool HasAttribute(int)const{return false;}bool IsPassive()const{return false;}unsigned GetSchoolMask()const{return 0;}bool CanDispelAura(SpellInfo const*)const{return false;}bool HasAura(int)const{return false;}void ApplyAllSpellImmunitiesTo(Unit*,SpellEffectInfo const*,bool)const;};
+struct Aura{SpellInfo info;SpellInfo const* GetSpellInfo()const{return &info;}Unit* GetCaster()const{return nullptr;}};
+struct AuraApplication{Aura aura;Aura const* GetBase()const{return &aura;}};
+struct Unit{std::set<std::pair<unsigned,unsigned>> mechanics;void ApplySpellImmune(unsigned spell,int type,unsigned mechanic,bool apply){if(type==IMMUNITY_MECHANIC){if(apply)mechanics.insert({spell,mechanic});else mechanics.erase({spell,mechanic});}}template<class F>void RemoveAppliedAuras(F){}void RemoveAurasWithMechanic(uint64,int,unsigned){}bool IsFriendlyTo(Unit*)const{return false;}};
+@NATIVE@
+int main(){SpellInfo helper;helper._immunityInfo[0].MechanicImmuneMask=1ULL<<7;helper._immunityInfo[1].MechanicImmuneMask=1ULL<<11;Unit target;SpellEffectInfo root{0},snare{1};
+ target.ApplySpellImmune(999,IMMUNITY_MECHANIC,7,true);
+ helper.ApplyAllSpellImmunitiesTo(&target,&root,true);helper.ApplyAllSpellImmunitiesTo(&target,&snare,true);
+ assert(target.mechanics.contains({954696,7})&&target.mechanics.contains({954696,11})&&!target.mechanics.contains({954696,12}));
+ helper.ApplyAllSpellImmunitiesTo(&target,&root,true);assert(target.mechanics.size()==3);
+ helper.ApplyAllSpellImmunitiesTo(&target,&root,false);helper.ApplyAllSpellImmunitiesTo(&target,&snare,false);
+ assert(target.mechanics.size()==1&&target.mechanics.contains({999,7}));
+}

@@ -1,0 +1,27 @@
+/* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
+
+#ifndef ASCENSION_RULESETS_H
+#define ASCENSION_RULESETS_H
+
+class Player;
+
+namespace AscensionRulesets
+{
+enum class Ruleset
+{
+    WarMode,
+    HighRisk,
+    PvE
+};
+
+using Guard = bool (*)(Player*, Ruleset);
+
+void RegisterGuard(Guard guard);
+bool CanApply(Player* player, Ruleset ruleset, bool forChallenge = false);
+void Apply(Player* player, Ruleset ruleset, bool forChallenge = false);
+bool Has(Player* player, Ruleset ruleset);
+bool InTeamBattle(Player const* player);
+bool HighRiskSuspended(Player const* player);
+}
+
+#endif

@@ -10,9 +10,21 @@
  * modules/mod-coa-raid-difficulty -> Addmod_coa_raid_difficultyScripts.
  */
 void AddCoaBossAIScripts();
+void AddCoaLucifronScripts();
+void AddCoaGeddonScripts();
+void AddCoaSacrificialChainsScripts();
+void AddCoaGarrScripts();
+void AddCoaGolemaggScripts();
+void AddCoaSonOfFlameScripts();
+void AddCoaShazzrahScripts();
+void AddCoaSulfuronDisciplesScripts();
+void AddCoaMagmadarScripts();
 void AddCoaFlexHealthScripts();
+void AddCoaFlexLootScripts();
+void AddCoaFlexItemsScripts();
 void AddCoaOnyxiaScripts();
 void AddCoaSpellFixScripts();
+void AddCoaDamageInfoScripts();
 void AddCoaRazorgoreScripts();
 void AddCoaVaelastraszScripts();
 void AddCoaBroodlordScripts();
@@ -46,9 +58,21 @@ void AddCoaCustomWorldBossScripts();
 void Addmod_coa_raid_difficultyScripts()
 {
     AddCoaBossAIScripts();
+    AddCoaLucifronScripts();
+    AddCoaGeddonScripts();
+    AddCoaSacrificialChainsScripts();
+    AddCoaGarrScripts();
+    AddCoaGolemaggScripts();
+    AddCoaSonOfFlameScripts();
+    AddCoaShazzrahScripts();
+    AddCoaSulfuronDisciplesScripts();
+    AddCoaMagmadarScripts();
     AddCoaFlexHealthScripts();
+    AddCoaFlexLootScripts();
+    AddCoaFlexItemsScripts();
     AddCoaOnyxiaScripts();
     AddCoaSpellFixScripts();
+    AddCoaDamageInfoScripts();
     AddCoaRazorgoreScripts();
     AddCoaVaelastraszScripts();
     AddCoaBroodlordScripts();

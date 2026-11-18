@@ -1859,6 +1859,20 @@ namespace lfg
             }
         }
 
+        // Whether any teleported player queued for a random dungeon, independent of whether they
+        // already carry the cooldown aura from a previous pop (#8947): that aura's presence must not
+        // gate the instance-unbind decision below, or a repeat-queue with the same party can reuse the
+        // group's already-progressed instance instead of resetting it.
+        bool hasRandomLfgQueuer = false;
+        for (ObjectGuid const& guid : playersToTeleport)
+        {
+            if (selectedRandomLfgDungeon(guid))
+            {
+                hasRandomLfgQueuer = true;
+                break;
+            }
+        }
+
         bool randomDungeon = false;
         std::vector<Player*> playersTeleported;
         // Teleport Player
@@ -1871,11 +1885,11 @@ namespace lfg
 
                 // Add the cooldown spell if queued for a random dungeon
                 // xinef: add aura
-                if ((randomDungeon || selectedRandomLfgDungeon(player->GetGUID())) && !player->HasAura(LFG_SPELL_DUNGEON_COOLDOWN))
+                if (hasRandomLfgQueuer)
                 {
                     randomDungeon = true;
                     // if player is debugging, don't add dungeon cooldown
-                    if (!m_Testing)
+                    if (!player->HasAura(LFG_SPELL_DUNGEON_COOLDOWN) && !m_Testing)
                     {
                         player->AddAura(LFG_SPELL_DUNGEON_COOLDOWN, player);
                     }
@@ -1883,8 +1897,9 @@ namespace lfg
 
                 if (player->GetMapId() == uint32(dungeon->map))
                 {
-                    // check instance id with leader
-                    if (!leaderTeleportIncluded)
+                    // check instance id with leader, only when the group fills up a dungeon it is still running:
+                    // a new dungeon on the same map (another wing, the same dungeon again) starts a fresh instance
+                    if (!proposal.isNew && !leaderTeleportIncluded)
                     {
                         if (InstancePlayerBind* ilb = sInstanceSaveMgr->PlayerGetBoundInstance(grp->GetLeaderGUID(), dungeon->map, player->GetDungeonDifficulty()))
                         {
@@ -1901,8 +1916,9 @@ namespace lfg
                 }
                 else
                 {
-                    // RDF removes all binds to that map
-                    if (randomDungeon)
+                    // RDF removes all binds to that map, a new dungeon the temporary bind of an earlier run
+                    InstancePlayerBind const* bind = sInstanceSaveMgr->PlayerGetBoundInstance(player->GetGUID(), dungeon->map, player->GetDungeonDifficulty());
+                    if (randomDungeon || (proposal.isNew && bind && !bind->perm))
                         sInstanceSaveMgr->PlayerUnbindInstance(player->GetGUID(), dungeon->map, player->GetDungeonDifficulty(), true);
                 }
 
@@ -2285,6 +2301,10 @@ namespace lfg
         {
             error = LFG_TELEPORTERROR_COMBAT;
         }
+        else if (!out && !sScriptMgr->OnPlayerCanLfgTeleport(player))
+        {
+            error = LFG_TELEPORTERROR_INVALID_LOCATION;
+        }
         else if (out && error == LFG_TELEPORTERROR_OK)
         {
             if (player->GetMapId() == uint32(dungeon->map))
@@ -2331,6 +2351,17 @@ namespace lfg
 
     }
 
+    LFGDungeonData const* LFGMgr::GetClassicRandomFallback(uint32 completedDungeonId)
+    {
+        LFGDungeonData const* completed = GetLFGDungeon(completedDungeonId);
+        if (!completed || completed->type != LFG_TYPE_DUNGEON || completed->seasonal || completed->expansion != 0 ||
+            completed->difficulty != DUNGEON_DIFFICULTY_NORMAL)
+            return nullptr;
+
+        LFGDungeonData const* random = GetLFGDungeon(LFG_DUNGEON_RANDOM_CLASSIC);
+        return random && random->type == LFG_TYPE_RANDOM ? random : nullptr;
+    }
+
     /**
        Finish a dungeon and give reward, if any.
 
@@ -2374,6 +2405,15 @@ namespace lfg
 
             // Give rewards only if its a random dungeon
             LFGDungeonData const* dungeon = GetLFGDungeon(rDungeonId);
+
+            if (!dungeon || (dungeon->type != LFG_TYPE_RANDOM && !dungeon->seasonal))
+            {
+                if (LFGDungeonData const* classicRandom = GetClassicRandomFallback(dungeonId))
+                {
+                    rDungeonId = classicRandom->id;
+                    dungeon = classicRandom;
+                }
+            }
 
             if (!dungeon || (dungeon->type != LFG_TYPE_RANDOM && !dungeon->seasonal))
             {

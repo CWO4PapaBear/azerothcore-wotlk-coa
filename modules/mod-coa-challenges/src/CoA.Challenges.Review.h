@@ -369,7 +369,8 @@ char const* ChallengeResponseString(uint32 code);
     void ReapplyActiveSpells(Player* player, std::vector<ActiveChallengeRow> const& rows);
     void StripOrphanChallengeAuras(Player* player);
     std::vector<RewardDef> GetChallengeRewards(uint32 challengeID, uint32 level);
-    void GrantChallengeRewards(Player* player, uint32 challengeID, uint32 level, bool firstTime);
+    void GrantChallengeRewards(Player* player, uint32 challengeID, uint32 level, bool firstItemReward,
+        bool firstAchievement);
 uint32 HungerFoodSpell();
 uint32 HungerDrinkSpell();
 void SetMeterAura(Player* player, uint32 spell, int32 value);
@@ -411,6 +412,12 @@ void RefreshInvertedBreathTracking(Player* player);
     void RefreshHighRiskTracking(Player* player);
     void UntrackHighRisk(Player* player);
     bool HighRiskTracked(uint32 guid);
+    // NO_CREATURE_LEVEL_SCALING / NO_QUEST_LEVEL_SCALING: the parts of level
+    // scaling the active challenges switch off, as LocalLevelScaling's
+    // ChallengeBlocks* mask (refreshed on login/activate/deactivate/complete/fail).
+    void RefreshLevelScalingTracking(Player* player);
+    void UntrackLevelScaling(Player* player);
+    uint8 LevelScalingBlocks(Player const* player);
     // NO_NON_LOOTED_ITEMS ("Scavenger"): item-instance looted tracking.
     void RefreshLootedTracking(Player* player);
     void UntrackLootedItems(uint32 guid);
@@ -502,6 +509,7 @@ bool HasPermaDeathFailure(Player* player);
 uint32 ValidateChallenge(Player* player, uint32 challengeID, uint32 level);
 void DoActivateChallenge(Player* player, uint32 challengeID, uint32 level);
 uint32 ActivateChallenge(Player* player, uint32 challengeID, uint32 level);
+bool AdventureModeChangeBlocked(Player* player);
 void DeactivateChallenge(Player* player, uint32 challengeID);
 bool RuleListContains(std::string const& list, std::string const& rule);
 bool PlayerHasRule(Player* player, char const* rule);
@@ -536,6 +544,12 @@ void FailChallenge(Player* player, uint32 challengeID, uint32 level, uint32 deat
     ObjectGuid const& killerSource = ObjectGuid::Empty,
     KillerKind causeKind = KillerKind::Unknown, uint32 causeEntry = 0, std::string causeName = "");
 void FailSharedFate(Player* dead, uint32 challengeID);
+std::vector<Objective> TrackedObjectives(uint32 challengeID);
+std::string DescribeObjective(Objective const& o);
+bool CreditObjective(Player* player, uint32 challengeID, uint32 number, std::string& message);
+void SaveFailureSnapshot(uint32 guid, uint32 challengeID, uint32 characterLevel);
+void ForgetFailureSnapshot(uint32 guid, uint32 challengeID);
+bool RestoreFailedChallenge(Player* player, uint32 challengeID, std::string& message);
 void FailSharedFateHolders(Group* group, ObjectGuid extraGuid);
 void HandlePlayerDeath(Player* player);
 uint32 CraftedItemRarity(SkillLineAbilityEntry const* ability);

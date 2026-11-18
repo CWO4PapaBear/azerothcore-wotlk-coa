@@ -1,3 +1,4 @@
+#include "AscensionFreePick.h"
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 
 #include "Player.h"
@@ -60,7 +61,7 @@ public:
     {
         Player* player = spell->GetCaster()->ToPlayer();
         if (!strict || result != SPELL_CAST_OK || !player || spell->IsTriggered() ||
-            player->GetShapeshiftForm() != FORM_TREE || !player->HasAura(TREE_OF_LIFE))
+            player->GetShapeshiftForm() != FORM_TREE || (AscensionFreePick::Applies(player) && !player->HasAura(TREE_OF_LIFE)))
             return;
         if (!AllowedInTreeOfLife(spell->GetSpellInfo()))
             player->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT);

@@ -68,9 +68,20 @@ void Replace(Player* player, uint32 root, uint32 replacement)
             if (player->HasActiveSpell(id) && Named(sSpellMgr->GetSpellInfo(id), replacement) &&
                 sSpellMgr->GetSpellRank(id) > sSpellMgr->GetSpellRank(replacement))
                 replacement = id;
+    bool barChanged = false;
     for (auto const& pair : player->GetSpellMap())
         if (player->HasSpell(pair.first) && Named(sSpellMgr->GetSpellInfo(pair.first), root))
+        {
             player->SetTemporarySpellReplacement(pair.first, replacement);
+            if (!replacement || player->GetTemporarySpellReplacement(pair.first) != replacement)
+                continue;
+            for (uint8 button = 0; button < MAX_ACTION_BUTTONS; ++button)
+                if (ActionButton const* action = player->GetActionButton(button);
+                    action && action->GetType() == ACTION_BUTTON_SPELL && action->GetAction() == pair.first)
+                    barChanged = player->addActionButton(button, replacement, ACTION_BUTTON_SPELL) || barChanged;
+        }
+    if (barChanged)
+        player->SendInitialActionButtons();
 }
 
 bool Spender(SpellInfo const* info)
@@ -162,6 +173,12 @@ void Blood(Player* player)
         Unleash(player, player, .5f);
     Refresh(player);
 }
+void SetRemainingUses(Aura* aura, uint8 uses)
+{
+    aura->SetScriptValue(aura->GetId(), uses);
+    aura->SetCharges(uses);
+    aura->SetUsingCharges(false);
+}
 void Refresh(Player* player)
 {
     auto& state = State(player);
@@ -194,10 +211,9 @@ void Refresh(Player* player)
     scale(302573, player->HasAura(804340) ? imps * Amount(302573) : 0);
     scale(302574, player->HasAura(804340) ? -int32(imps) * Amount(302574) : 0);
     scale(302592, imps);
-    scale(805965, -150 * int32(imps));
     if (AuraEffect* effect = player->GetAuraEffect(573066, EFFECT_0))
         effect->ChangeAmount(Amount(573066) + imps * Amount(805916, 2));
-    for (uint32 id : {704195, 704217, 707630})
+    for (uint32 id : {704195, 704217, 707630, 805965})
         player->RemoveAurasDueToSpell(id);
     if (AuraEffect* effect = player->GetAuraEffect(704186, EFFECT_0))
         effect->ChangeAmount(Amount(704186) + 10 * Count(player, 500906));
@@ -205,6 +221,22 @@ void Refresh(Player* player)
         effect->ChangeAmount(Count(player, 500906));
 
     scale(573075, player->HasAura(573035) ? player->GetUInt32Value(PLAYER_FIELD_COMBAT_RATING_1 + CR_BLOCK) / 2 : 0);
+    if (player->HasAura(706502) && !player->HasSpell(504581))
+        player->learnSpell(504581, true);
+    if (!player->HasAura(706502))
+    {
+        player->RemoveAurasDueToSpell(712294);
+        if (player->HasSpell(504581))
+            player->removeSpell(504581, SPEC_MASK_ALL, false);
+    }
+    Replace(player, 800340, player->HasAura(706502) && player->HasAura(712294) ? 504581 : 0);
+    if (player->HasAura(800710) && !player->HasSpell(520005))
+        player->learnSpellWithoutAnnouncement(520005);
+    if (!player->HasAura(800710) && player->HasSpell(520005))
+    {
+        Replace(player, 500904, 0);
+        player->removeSpell(520005, SPEC_MASK_ALL, true);
+    }
     for (auto const& replacement : {std::array<uint32, 3>{800710, 500904, 520005},
                                     {570727, 801059, 802581},
                                     {807587, 801059, 520292}})
@@ -376,8 +408,18 @@ class xoroth_player : public PlayerScript
         states.erase(player->GetGUID());
     }
 };
+class xoroth_greater_imp_pet : public PetScript
+{
+public:
+    xoroth_greater_imp_pet() : PetScript("xoroth_greater_imp_pet", { PETHOOK_CAN_UNLEARN_SPELL_SET }) { }
+    bool CanUnlearnSpellSet(Pet* pet, uint32, uint32 spell) override
+    {
+        return pet->GetEntry() != 510100 || (spell != 630930 && spell != 630931);
+    }
+};
 }
 void AddSC_AscensionXoroth()
 {
     new xoroth_player();
+    new xoroth_greater_imp_pet();
 }

@@ -206,7 +206,7 @@ SetRelevance EvaluateSet(Player* player, uint32 setId)
         if (metadata == CacheBonuses.end() || !info)
             return {};
         unsigned const mode = metadata->second.mode;
-        if (mode == 3) // Cosmetic disguise is not a combat reward benefit.
+        if (mode == 3)
             continue;
         if (mode == 0)
         {
@@ -261,23 +261,38 @@ bool IsVisiblePosition(uint8 bag, uint8 slot)
     return bag >= INVENTORY_SLOT_BAG_START && bag < INVENTORY_SLOT_BAG_END;
 }
 
+bool FitsAt(Player* player, uint8 bag, uint8 slot, uint32 itemId, uint32 count, bool onExistingStack,
+    ItemPosCountVec& dest)
+{
+    Item const* held = player->GetItemByPos(bag, slot);
+    if (onExistingStack != (held && held->GetEntry() == itemId))
+        return false;
+
+    dest.clear();
+    return player->CanStoreItem(bag, slot, dest, itemId, count) == EQUIP_ERR_OK;
+}
+
 bool FindVisibleDestination(Player* player, uint32 itemId, uint32 count, ItemPosCountVec& dest)
 {
-    for (uint8 slot = INVENTORY_SLOT_ITEM_START; slot < INVENTORY_SLOT_ITEM_END; ++slot)
-        if (player->CanStoreItem(INVENTORY_SLOT_BAG_0, slot, dest, itemId, count) == EQUIP_ERR_OK)
-            return true;
-
-    for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)
+    for (bool const onExistingStack : { true, false })
     {
-        Bag* container = player->GetBagByPos(bag);
-        if (!container)
-            continue;
-
-        for (uint8 slot = 0; slot < container->GetBagSize(); ++slot)
-            if (player->CanStoreItem(bag, slot, dest, itemId, count) == EQUIP_ERR_OK)
+        for (uint8 slot = INVENTORY_SLOT_ITEM_START; slot < INVENTORY_SLOT_ITEM_END; ++slot)
+            if (FitsAt(player, INVENTORY_SLOT_BAG_0, slot, itemId, count, onExistingStack, dest))
                 return true;
+
+        for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)
+        {
+            Bag* container = player->GetBagByPos(bag);
+            if (!container)
+                continue;
+
+            for (uint8 slot = 0; slot < container->GetBagSize(); ++slot)
+                if (FitsAt(player, bag, slot, itemId, count, onExistingStack, dest))
+                    return true;
+        }
     }
 
+    dest.clear();
     return false;
 }
 
@@ -333,8 +348,6 @@ void UndoOne(Player* player, Item* item, uint32 count)
 }
 }
 
-// Called only by the world-thread cache service. Reject pending native/database
-// disagreement rather than treating an uncertain attachment or auction as unowned.
 bool ReadExternalOwnedItems(Player* player, std::unordered_set<uint32>& items)
 {
     items.clear();
