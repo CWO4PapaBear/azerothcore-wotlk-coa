@@ -27,6 +27,7 @@
 #include "InstanceSaveMgr.h"
 #include "LFG.h"
 #include "LFGMgr.h"
+#include "LocalLevelScaling.h"
 #include "Log.h"
 #include "MapMgr.h"
 #include "MiscPackets.h"
@@ -949,7 +950,11 @@ void Group::SendLootStartRoll(uint32 CountDown, uint32 mapid, Roll const& r)
             continue;
 
         if (itr->second == NOT_EMITED_YET)
+        {
+            if (uint32 level = LocalLevelScaling::RollPreviewLevel(p))
+                r.previewLevels[p->GetGUID()] = level;
             p->SendDirectMessage(&data);
+        }
     }
 }
 
@@ -1016,6 +1021,8 @@ void Group::SendLootStartRollToPlayer(uint32 countDown, uint32 mapId, Player* p,
         voteMask &= ~ROLL_FLAG_TYPE_NEED;
     data << uint8(voteMask);                                // roll type mask
 
+    if (uint32 level = LocalLevelScaling::RollPreviewLevel(p))
+        r.previewLevels[p->GetGUID()] = level;
     p->SendDirectMessage(&data);
 }
 
@@ -1959,13 +1966,20 @@ void Group::UpdatePlayerOutOfRange(Player* player)
         return;
 
     WorldPacket data;
-    player->GetSession()->BuildPartyMemberStatsChangedPacket(player, &data);
 
     for (GroupReference* itr = GetFirstMember(); itr != nullptr; itr = itr->next())
     {
         Player* member = itr->GetSource();
-        if (member && (!member->IsInMap(player) || !member->IsWithinDist(player, member->GetSightRange(player), false)))
+        if (!member || member->GetSession()->IsHeadlessBot())
+            continue;
+
+        if (!member->IsInMap(player) || !member->IsWithinDist(player, member->GetSightRange(player), false))
+        {
+            if (data.GetOpcode() == NULL_OPCODE)
+                player->GetSession()->BuildPartyMemberStatsChangedPacket(player, &data);
+
             member->SendDirectMessage(&data);
+        }
     }
 }
 

@@ -17,6 +17,7 @@
 
 #include "Trainer.h"
 #include "../../../coa/AscensionFreePick.h"
+#include "TrainerProficiencyFilter.h"
 #include "Creature.h"
 #include "DBCStores.h"
 #include "NPCPackets.h"
@@ -32,7 +33,8 @@
 
 namespace
 {
-    // A Hero playing Wildcard (the game mode bit of AscensionWildcard::GAME_MODE_WILDCARD).
+    // A Hero playing Wildcard (the game mode bit of AscensionWildcard::GAME_MODE_WILDCARD), until
+    // AscensionWildcard installs its own rule.
     bool IsWildcardHero(Player const* player)
     {
         if (player->getClass() != CLASS_HERO)
@@ -45,6 +47,7 @@ namespace
     // class nor the core's rank chains (which miss Ascension's added ranks) decide what it may learn.
     constexpr uint32 WILDCARD_RANK_TRAINER_ID = std::numeric_limits<uint32>::max();
     Trainer::WildcardRankRows WildcardRankRowsOf = nullptr;
+    Trainer::ClassTrainerFor ClassTrainerOf = nullptr;
     Trainer::RankTrainerHero RankTrainerHeroOf = nullptr;
 
     bool IsRankTrainerHero(Player const* player)
@@ -53,26 +56,13 @@ namespace
             (RankTrainerHeroOf ? RankTrainerHeroOf(player) : IsWildcardHero(player));
     }
 
-    uint8 ProfessionExpansion(uint32 skill)
-    {
-        switch (skill)
-        {
-            case SKILL_JEWELCRAFTING:
-                return EXPANSION_THE_BURNING_CRUSADE;
-            case SKILL_INSCRIPTION:
-                return EXPANSION_WRATH_OF_THE_LICH_KING;
-            default:
-                return EXPANSION_CLASSIC;
-        }
-    }
-
     bool TeachesProfessionBeyondExpansion(SpellInfo const* spellInfo, uint8 expansion)
     {
         for (SpellEffectInfo const& spellEffectInfo : spellInfo->GetEffects())
             if ((spellEffectInfo.IsEffect(SPELL_EFFECT_SKILL_STEP) || spellEffectInfo.IsEffect(SPELL_EFFECT_SKILL))
                 && IsProfessionSkill(spellEffectInfo.MiscValue)
                 && (spellEffectInfo.CalcValue() > GetMaxProfessionSkillStep(expansion)
-                    || ProfessionExpansion(spellEffectInfo.MiscValue) > expansion))
+                    || GetProfessionExpansion(spellEffectInfo.MiscValue) > expansion))
                 return true;
 
         return false;
@@ -158,6 +148,9 @@ namespace Trainer
                 !player->IsSpellFitByClassAndRace(trainerSpell.SpellId))
                 continue;
 
+            if (TrainerProficiencyFilter::Refuses(player, trainerSpell.SpellId))
+                continue;
+
             // The state is asked once and then decides both whether the row is written at all and what
             // the row reads: the same call that gates the purchase gates the window, so a trainer can
             // never leave out a spell it would have sold, or offer a row it would have refused.
@@ -166,17 +159,23 @@ namespace Trainer
                 spellState == SpellState::Unavailable)
                 continue;
 
+            if (spellState == SpellState::Unavailable && trainerSpell.ReqSkillLine == SKILL_RIDING
+                && player->GetBaseSkillValue(SKILL_RIDING) < trainerSpell.ReqSkillRank)
+                continue;
+
             SpellInfo const* trainerSpellInfo = sSpellMgr->AssertSpellInfo(trainerSpell.SpellId);
 
-            bool primaryProfessionFirstRank = false;
+            bool spendsPrimaryProfessionSlot = false;
+            bool knownOnlyBySkillMaximum = false;
+            bool teachesLearnedSpell = false;
             for (SpellEffectInfo const& spellEffectInfo : trainerSpellInfo->GetEffects())
             {
                 if (!spellEffectInfo.IsEffect(SPELL_EFFECT_LEARN_SPELL))
                     continue;
 
                 SpellInfo const* learnedSpellInfo = sSpellMgr->GetSpellInfo(spellEffectInfo.TriggerSpell);
-                if (learnedSpellInfo && learnedSpellInfo->IsPrimaryProfessionFirstRank())
-                    primaryProfessionFirstRank = true;
+                if (learnedSpellInfo && player->SpendsPrimaryProfessionSlot(learnedSpellInfo))
+                    spendsPrimaryProfessionSlot = true;
             }
 
             trainerList.Spells.emplace_back();
@@ -185,7 +184,7 @@ namespace Trainer
             trainerListSpell.Usable = AsUnderlyingType(spellState);
             trainerListSpell.MoneyCost = int32(trainerSpell.MoneyCost * reputationDiscount);
             trainerListSpell.PointCost[0] = 0; // spells don't cost talent points
-            trainerListSpell.PointCost[1] = (primaryProfessionFirstRank ? 1 : 0);
+            trainerListSpell.PointCost[1] = (spendsPrimaryProfessionSlot ? 1 : 0);
             trainerListSpell.ReqLevel = trainerSpell.ReqLevel;
             trainerListSpell.ReqSkillLine = trainerSpell.ReqSkillLine;
             trainerListSpell.ReqSkillRank = trainerSpell.ReqSkillRank;
@@ -274,25 +273,23 @@ namespace Trainer
         return nullptr;
     }
 
+    // A rank trainer's next rank turns trainable once the rank below it is bought, so its list is sent again.
+    // So is a list holding a spell the client knows only as its temporary replacement: on the next spell
+    // learned the client redraws rows from its own spellbook and would offer that held spell again.
+    bool Trainer::RepublishesAfterPurchase(Player const* player) const
+    {
+        if (_trainerId == WILDCARD_RANK_TRAINER_ID)
+            return true;
+
+        return std::any_of(_spells.begin(), _spells.end(), [player](Spell const& trainerSpell)
+        {
+            return player->GetTemporarySpellReplacement(trainerSpell.SpellId) != trainerSpell.SpellId;
+        });
+    }
+
     bool Trainer::CanTeachSpell(Player const* player, Spell const* trainerSpell) const
     {
-        SpellState state = GetSpellState(player, trainerSpell);
-        if (state != SpellState::Available)
-            return false;
-
-        SpellInfo const* trainerSpellInfo = sSpellMgr->AssertSpellInfo(trainerSpell->SpellId);
-
-        for (SpellEffectInfo const& spellEffectInfo : trainerSpellInfo->GetEffects())
-        {
-            if (!spellEffectInfo.IsEffect(SPELL_EFFECT_LEARN_SPELL))
-                continue;
-
-            SpellInfo const* learnedSpellInfo = sSpellMgr->GetSpellInfo(spellEffectInfo.TriggerSpell);
-            if (learnedSpellInfo && learnedSpellInfo->IsPrimaryProfessionFirstRank() && !player->GetFreePrimaryProfessionPoints())
-                return false;
-        }
-
-        return true;
+        return GetSpellState(player, trainerSpell) == SpellState::Available;
     }
 
     SpellState Trainer::GetSpellState(Player const* player, Spell const* trainerSpell) const
@@ -303,6 +300,9 @@ namespace Trainer
         // check race/class requirement
         bool const wildcardRanks = _trainerId == WILDCARD_RANK_TRAINER_ID;
         if (!wildcardRanks && !player->IsSpellFitByClassAndRace(trainerSpell->SpellId))
+            return SpellState::Unavailable;
+
+        if (TrainerProficiencyFilter::Refuses(player, trainerSpell->SpellId))
             return SpellState::Unavailable;
 
         // check skill requirement
@@ -319,7 +319,7 @@ namespace Trainer
 
         // check expansion requirement of professions, their ranks and their recipes
         uint8 const expansion = player->GetSession()->Expansion();
-        if (ProfessionExpansion(trainerSpell->ReqSkillLine) > expansion
+        if (GetProfessionExpansion(trainerSpell->ReqSkillLine) > expansion
             || RecipeExpansion(trainerSpell->SpellId) > expansion)
             return SpellState::Unavailable;
 
@@ -341,7 +341,13 @@ namespace Trainer
 
             hasLearnSpellEffect = true;
             if (!player->HasSpell(spellEffectInfo.TriggerSpell))
+            {
                 knowsAllLearnedSpells = false;
+
+                SpellInfo const* learnedSpellInfo = sSpellMgr->GetSpellInfo(spellEffectInfo.TriggerSpell);
+                if (learnedSpellInfo && player->SpendsPrimaryProfessionSlot(learnedSpellInfo) && !player->GetFreePrimaryProfessionPoints())
+                    return SpellState::Unavailable;
+            }
 
             if (uint32 previousRankSpellId = sSpellMgr->GetPrevSpellInChain(spellEffectInfo.TriggerSpell))
                 if (!wildcardRanks && !player->HasSpell(previousRankSpellId))
@@ -425,9 +431,11 @@ namespace Trainer
         return _trainerId == WILDCARD_RANK_TRAINER_ID;
     }
 
-    void SetRankTrainerHero(RankTrainerHero heroes)
+    Trainer Trainer::WithSpells(std::vector<Spell> spells) const
     {
-        RankTrainerHeroOf = heroes;
+        Trainer trainer(*this);
+        trainer._spells = std::move(spells);
+        return trainer;
     }
 
     void SetWildcardRankRows(WildcardRankRows rows)
@@ -435,13 +443,41 @@ namespace Trainer
         WildcardRankRowsOf = rows;
     }
 
+    void SetClassTrainerFor(ClassTrainerFor trainers)
+    {
+        ClassTrainerOf = trainers;
+    }
+
+    void SetRankTrainerHero(RankTrainerHero heroes)
+    {
+        RankTrainerHeroOf = heroes;
+    }
+
+    // The class's full trainer list: the largest class trainer for it, the others being starter and portal lists.
+    Trainer* OwnClassTrainer(Player const* player)
+    {
+        Trainer const* best = nullptr;
+        for (auto const& [id, candidate] : sObjectMgr->GetTrainers())
+            if (candidate.GetTrainerType() == Type::Class && candidate.GetTrainerRequirement() == player->getClass() &&
+                (!best || candidate.GetSpells().size() > best->GetSpells().size()))
+                best = &candidate;
+        return const_cast<Trainer*>(best);
+    }
+
     Trainer* GetTrainerFor(Creature const* npc, Player const* player)
     {
         Trainer* trainer = sObjectMgr->GetTrainer(npc->GetEntry());
+        bool const rankTrainerHero = IsRankTrainerHero(player);
+        if (!trainer && !rankTrainerHero && npc->HasNpcFlag(UNIT_NPC_FLAG_TRAINER_CLASS))
+            trainer = OwnClassTrainer(player);
+        if (trainer && trainer->GetTrainerType() == Type::Class && ClassTrainerOf)
+            if (Trainer* replacement = ClassTrainerOf(*trainer, player))
+                return replacement;
+
         bool const classTrainerUnit = trainer ? trainer->GetTrainerType() == Type::Class
                                               : npc->HasNpcFlag(UNIT_NPC_FLAG_TRAINER_CLASS);
         bool const freepick = AscensionFreePick::Applies(player);
-        if (!classTrainerUnit || (!WildcardRankRowsOf && !freepick) || !IsRankTrainerHero(player))
+        if (!classTrainerUnit || (!WildcardRankRowsOf && !freepick) || !rankTrainerHero)
             return trainer;
 
         std::vector<Spell> rows;

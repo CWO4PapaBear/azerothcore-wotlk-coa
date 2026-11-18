@@ -26,6 +26,7 @@
 #include "Unit.h"
 #include <algorithm>
 #include <list>
+#include <memory>
 
 class SpellInfo;
 
@@ -140,6 +141,9 @@ public:
     bool isCanInteractWithBattleMaster(Player* player, bool msg) const;
     bool CanResetTalents(Player* player) const;
     bool CanCreatureAttack(Unit const* victim, bool skipDistCheck = false) const;
+    bool IsWithinLeashArea() const;
+    bool IsNpcFightingMe(Unit const* who) const;
+    void EndCombatWithUnitsLeftBehind();
     bool IsImmunedToSpell(SpellInfo const* spellInfo, Spell const* spell = nullptr) override;
 
     [[nodiscard]] bool HasMechanicTemplateImmunity(uint64 mask) const;
@@ -256,7 +260,8 @@ public:
     void setDeathState(DeathState s, bool despawn = false) override;    // override virtual Unit::setDeathState
 
     bool LoadFromDB(ObjectGuid::LowType guid, Map* map, bool allowDuplicate = false) { return LoadCreatureFromDB(guid, map, false, allowDuplicate); }
-    bool LoadCreatureFromDB(ObjectGuid::LowType guid, Map* map, bool addToMap = true, bool allowDuplicate = false);
+    bool LoadCreatureFromDB(ObjectGuid::LowType guid, Map* map, bool addToMap = true, bool allowDuplicate = false,
+        CreatureData const* privateData = nullptr);
     [[nodiscard]] bool IsRespawnCompatibilityMode() const { return _respawnCompatibilityMode; }
     void SaveToDB();
 
@@ -269,6 +274,14 @@ public:
     [[nodiscard]] ObjectGuid::LowType GetLootRecipientGroupGUID() const { return m_lootRecipientGroup; }
     [[nodiscard]] Group* GetLootRecipientGroup() const;
     [[nodiscard]] bool hasLootRecipient() const { return m_lootRecipient || m_lootRecipientGroup; }
+    bool IsSharedQuestTarget() const;
+    [[nodiscard]] uint32 GetQuestTargetRespawnCap() const;
+    void RegisterSharedQuestContributor(Unit* attacker);
+    void FinalizeSharedQuestParticipants();
+    void RewardSharedQuestParticipants(ObjectGuid rewardedPlayer, ObjectGuid rewardedGroup);
+    bool IsSharedQuestParticipant(Player const* player) const;
+    bool IsSharedQuestItem(uint32 itemId) const;
+    GuidSet const& GetSharedQuestParticipants() const { return m_sharedQuestParticipants; }
     bool isTappedBy(Player const* player) const;    // return true if the creature is tapped by the player or a member of his party.
     [[nodiscard]] bool CanGeneratePickPocketLoot() const;
     void SetPickPocketLootTime();
@@ -419,6 +432,8 @@ public:
     void ResetPlayerDamageReq();
     [[nodiscard]] uint32 GetPlayerDamageReq() const;
     [[nodiscard]] uint8 GetHighestPlayerAttackerLevel() const { return _highestPlayerAttackerLevel; }
+    void AddDirectPlayerAttacker(ObjectGuid guid) { _directPlayerAttackers.insert(guid); }
+    [[nodiscard]] bool WasAttackedDirectlyBy(ObjectGuid guid) const { return _directPlayerAttackers.contains(guid); }
 
     [[nodiscard]] uint32 GetOriginalEntry() const { return m_originalEntry; }
     void SetOriginalEntry(uint32 entry) { m_originalEntry = entry; }
@@ -503,6 +518,7 @@ protected:
 
     static float _GetHealthMod(int32 Rank);
 
+    GuidSet m_sharedQuestParticipants;
     ObjectGuid m_lootRecipient;
     ObjectGuid::LowType m_lootRecipientGroup;
 
@@ -552,6 +568,7 @@ protected:
 
     CreatureTemplate const* m_creatureInfo;   // in difficulty mode > 0 can different from sObjectMgr->GetCreatureTemplate(GetEntry())
     CreatureData const* m_creatureData;
+    std::unique_ptr<CreatureData> m_privateCreatureData;
 
     float m_detectionDistance;
     uint16 m_LootMode;  // bitmask, default LOOT_MODE_DEFAULT, determines what loot will be lootable
@@ -596,6 +613,7 @@ private:
     uint32 _playerDamageReq;
     bool _damagedByPlayer;
     uint8 _highestPlayerAttackerLevel;
+    GuidUnorderedSet _directPlayerAttackers;
     bool _isCombatMovementAllowed;
 };
 

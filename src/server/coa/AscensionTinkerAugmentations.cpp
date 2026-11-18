@@ -22,6 +22,7 @@ constexpr uint32 SPELL_TRACER_MARK = 653247;
 constexpr uint32 SPELL_TRACER_REVEAL = 653252;
 constexpr uint32 SPELL_STIM_PASSIVE = 653240;
 constexpr uint32 SPELL_STIM_HEAL = 653241;
+constexpr uint32 SPELL_STIM_PACK_COOLDOWN = 653255;
 
 struct Augmentation
 {
@@ -320,6 +321,13 @@ class aura_ascension_tinker_tracer : public AuraScript
             caster->CastSpell(GetTarget(), SPELL_TRACER_REVEAL, true, nullptr, effect);
     }
 
+    void ExplodeAtExpiry(AuraEffect const*, bool& isPeriodic, int32& amplitude)
+    {
+        int32 const extension = GetMaxDuration() - GetSpellInfo()->GetMaxDuration();
+        if (isPeriodic && extension > 0)
+            amplitude += extension;
+    }
+
     void OneExplosion(AuraEffect const*)
     {
         if (_exploded)
@@ -330,7 +338,9 @@ class aura_ascension_tinker_tracer : public AuraScript
     void Register() override
     {
         AfterEffectApply += AuraEffectApplyFn(aura_ascension_tinker_tracer::Reveal,
-            EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        DoEffectCalcPeriodic += AuraEffectCalcPeriodicFn(aura_ascension_tinker_tracer::ExplodeAtExpiry,
+            EFFECT_2, SPELL_AURA_PERIODIC_DAMAGE);
         OnEffectPeriodic += AuraEffectPeriodicFn(aura_ascension_tinker_tracer::OneExplosion,
             EFFECT_2, SPELL_AURA_PERIODIC_DAMAGE);
     }
@@ -362,7 +372,7 @@ class aura_ascension_tinker_stim : public AuraScript
         HealInfo const* heal = eventInfo.GetHealInfo();
         SpellInfo const* spellInfo = heal ? heal->GetSpellInfo() : nullptr;
         return player && player->getClass() == CLASS_TINKER && eventInfo.GetActor() == player &&
-            heal && heal->GetHealer() == player && heal->GetTarget() && heal->GetEffectiveHeal() &&
+            heal && heal->GetHealer() == player && heal->GetTarget() && heal->GetHeal() &&
             spellInfo && spellInfo->Id != SPELL_STIM_HEAL &&
             !(eventInfo.GetTypeMask() & PROC_FLAG_DONE_PERIODIC);
     }
@@ -374,7 +384,7 @@ class aura_ascension_tinker_stim : public AuraScript
             return;
 
         HealInfo const* heal = eventInfo.GetHealInfo();
-        double amount = double(heal->GetEffectiveHeal()) * effect->GetAmount() / 100.0;
+        double amount = double(heal->GetHeal()) * effect->GetAmount() / 100.0;
         if (amount < 1.0 || amount > std::numeric_limits<int32>::max())
             return;
 
@@ -402,6 +412,24 @@ void NormalizeBandageGun(SpellInfo* spellInfo)
         effect.BasePoints = 1;
 }
 
+bool IsStimTriggeredSpell(SpellInfo const* spellInfo)
+{
+    return (spellInfo->Id == SPELL_STIM_HEAL && spellInfo->Effects[EFFECT_0].Effect == SPELL_EFFECT_HEAL) ||
+        (spellInfo->Id == SPELL_STIM_PACK_COOLDOWN &&
+            spellInfo->Effects[EFFECT_0].Effect == SPELL_EFFECT_ASCENSION_MODIFY_COOLDOWN);
+}
+
+void NormalizeStimWeaponRequirement(SpellInfo* spellInfo)
+{
+    if (!spellInfo || !IsStimTriggeredSpell(spellInfo) || spellInfo->SpellFamilyName != uint32(CLASS_TINKER) + 6 ||
+        spellInfo->EquippedItemClass != ITEM_CLASS_WEAPON || spellInfo->EquippedItemSubClassMask != 173555)
+        return;
+
+    spellInfo->EquippedItemClass = -1;
+    spellInfo->EquippedItemSubClassMask = 0;
+    spellInfo->EquippedItemInventoryTypeMask = 0;
+}
+
 class AscensionTinkerAugmentationMetadata : public GlobalScript
 {
 public:
@@ -411,6 +439,7 @@ public:
     void OnLoadSpellCustomAttr(SpellInfo* spellInfo) override
     {
         NormalizeBandageGun(spellInfo);
+        NormalizeStimWeaponRequirement(spellInfo);
     }
 };
 }

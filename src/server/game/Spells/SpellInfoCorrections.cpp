@@ -22,6 +22,32 @@
 #include "SpellInfo.h"
 #include "SpellMgr.h"
 
+// Warcraft Reborn crossover Mystic Enchants (stock talent + 1,300,000) already carry Ascension's own retargeting at
+// Reborn spells (Improved Devotion Aura's modifier names Reborn Devotion Aura); a stock correction would undo it
+constexpr uint32 CROSSOVER_TWIN_OFFSET = 1300000;
+
+inline bool SameSpellTuning(SpellInfo const* first, SpellInfo const* second)
+{
+    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+    {
+        SpellEffectInfo const& a = first->Effects[i];
+        SpellEffectInfo const& b = second->Effects[i];
+        if (a.BasePoints != b.BasePoints || a.DieSides != b.DieSides || a.RealPointsPerLevel != b.RealPointsPerLevel ||
+            a.PointsPerComboPoint != b.PointsPerComboPoint || a.ValueMultiplier != b.ValueMultiplier ||
+            a.DamageMultiplier != b.DamageMultiplier || a.BonusMultiplier != b.BonusMultiplier || a.Amplitude != b.Amplitude ||
+            a.MiscValue != b.MiscValue || a.MiscValueB != b.MiscValueB || a.RadiusEntry != b.RadiusEntry ||
+            a.ChainTarget != b.ChainTarget)
+            return false;
+    }
+    return first->DurationEntry == second->DurationEntry && first->RangeEntry == second->RangeEntry &&
+        first->CastTimeEntry == second->CastTimeEntry && first->RecoveryTime == second->RecoveryTime &&
+        first->CategoryRecoveryTime == second->CategoryRecoveryTime && first->StartRecoveryTime == second->StartRecoveryTime &&
+        first->ProcChance == second->ProcChance && first->ProcCharges == second->ProcCharges &&
+        first->StackAmount == second->StackAmount && first->MaxAffectedTargets == second->MaxAffectedTargets &&
+        first->ManaCost == second->ManaCost && first->ManaCostPercentage == second->ManaCostPercentage &&
+        first->Speed == second->Speed;
+}
+
 inline void ApplySpellFix(std::initializer_list<uint32> spellIds, void(*fix)(SpellInfo*))
 {
     for (uint32 spellId : spellIds)
@@ -33,7 +59,16 @@ inline void ApplySpellFix(std::initializer_list<uint32> spellIds, void(*fix)(Spe
             continue;
         }
 
+        std::vector<SpellInfo*> twins;
+        auto const [begin, end] = sSpellMgr->GetSpellTwins().equal_range(spellId);
+        for (auto itr = begin; itr != end; ++itr)
+            if (SpellInfo const* twin = sSpellMgr->GetSpellInfo(itr->second); twin && SameSpellTuning(spellInfo, twin) &&
+                itr->second - spellId != CROSSOVER_TWIN_OFFSET)
+                twins.push_back(const_cast<SpellInfo*>(twin));
+
         fix(const_cast<SpellInfo*>(spellInfo));
+        for (SpellInfo* twin : twins)
+            fix(twin);
     }
 }
 
@@ -50,6 +85,20 @@ void SpellMgr::LoadSpellInfoCorrections()
 
         spellInfo->Mechanic = MECHANIC_STUN;
         spellInfo->Effects[EFFECT_0].Mechanic = MECHANIC_STUN;
+    });
+
+    // The Recruit a Friend Blazing Hippogryph and X-53 Touring Rocket are ground
+    // mounts here: their wrappers and mount spells would otherwise refuse every
+    // cast outside a flying area, and the mount spells would grant flight.
+    ApplySpellFix({ 74854, 74855, 75957, 75972, 76154, 75973 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->AttributesEx4 &= ~SPELL_ATTR4_ONLY_FLYING_AREAS;
+        for (SpellEffectInfo& effect : spellInfo->Effects)
+            if (effect.IsAura(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED))
+            {
+                effect.Effect = 0;
+                effect.ApplyAuraName = SPELL_AURA_NONE;
+            }
     });
 
     // Local Guardian formations have mixed bonuses and penalties but are
@@ -71,6 +120,19 @@ void SpellMgr::LoadSpellInfoCorrections()
             return;
         spellInfo->Attributes |= SPELL_ATTR0_NO_AURA_CANCEL;
         spellInfo->AttributesEx |= SPELL_ATTR1_NO_AURA_ICON;
+    });
+    // Pulverize Reset is Guardbreaker's cooldown reset, but its effect names
+    // only Ram's rank 1 record. Ram is a ten rank ability whose later ranks are
+    // the ones a levelled Guardian has on the bar, and its ranks share spell
+    // category 1096, so the reset has to clear that category as well or the
+    // talent's 20% proc changed nothing the player could see.
+    ApplySpellFix({ 802895 }, [](SpellInfo* spellInfo)
+    {
+        if (spellInfo->SpellFamilyName != 24 ||
+            spellInfo->Effects[EFFECT_0].Effect != SPELL_EFFECT_ASCENSION_RESET_COOLDOWN ||
+            spellInfo->Effects[EFFECT_0].MiscValue != 802284)
+            return;
+        spellInfo->Effects[EFFECT_0].MiscValueB = 1;
     });
     // Reclaim uses the owner's exact standard GUID in its script; the authored
     // entry-area target must not enumerate nearby unrelated creatures first.
@@ -324,6 +386,12 @@ void SpellMgr::LoadSpellInfoCorrections()
         spellInfo->AttributesEx3 |= SPELL_ATTR3_DOT_STACKING_RULE;
     });
 
+    // Revive (Chained Spirit, Zul'Gurub): the dead player can accept it while the corpse reclaim delay runs
+    ApplySpellFix({ 24341 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->AttributesEx3 |= SPELL_ATTR3_NO_RES_TIMER;
+    });
+
     // Ascendance (Talisman of Ascendance trinket)
     ApplySpellFix({ 28200 }, [](SpellInfo* spellInfo)
     {
@@ -363,6 +431,16 @@ void SpellMgr::LoadSpellInfoCorrections()
     ApplySpellFix({ 48422 }, [](SpellInfo* spellInfo)
     {
         spellInfo->Stances = 1 << (FORM_TREE - 1);
+    });
+
+    // Murder Rush's damage aura: the client's effect 1 names the aura and its 10% but no effect type, so the
+    // aura that Murder Rush keeps up while Sprint is active was never applied.
+    ApplySpellFix({ 1180881 }, [](SpellInfo* spellInfo)
+    {
+        if (spellInfo->Effects[EFFECT_1].Effect != 0 ||
+            spellInfo->Effects[EFFECT_1].ApplyAuraName != SPELL_AURA_ADD_PCT_MODIFIER)
+            return;
+        spellInfo->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AURA;
     });
 
     // Elemental Oath
@@ -1238,10 +1316,18 @@ void SpellMgr::LoadSpellInfoCorrections()
         spellInfo->Effects[EFFECT_0].TriggerSpell = 58374;
     });
 
-    // Sweeping Strikes stance change
-    ApplySpellFix({ 12328 }, [](SpellInfo* spellInfo)
+    // CoA tooltips read "This ability is usable while shapeshifted" (#11978): Sweeping Strikes, Bloodthirst,
+    // Hunger For Blood, Strength of Earth Totem, Titanic Bloodthirst, Fel Strike
+    ApplySpellFix({ 12328, 23881, 63848, 65991, 823881, 1568346 }, [](SpellInfo* spellInfo)
     {
-        spellInfo->Attributes |= SPELL_ATTR0_NOT_SHAPESHIFTED;
+        spellInfo->Attributes &= ~SPELL_ATTR0_NOT_SHAPESHIFTED;
+    });
+
+    // Mycelial Ring (#11933): its triggered ring spells share spell category 38 with the 45 sec Mycelial Ring 681056
+    // and carry a 2 min category cooldown, which they put on Mycelial Ring itself.
+    ApplySpellFix({ 681291, 681552, 681553, 681554, 681555, 681556 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->CategoryRecoveryTime = 0;
     });
 
     // Damage Shield
@@ -2936,6 +3022,19 @@ void SpellMgr::LoadSpellInfoCorrections()
     ApplySpellFix({ 69055, 70814 }, [](SpellInfo* spellInfo)
     {
         spellInfo->Effects[EFFECT_0].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_5_YARDS); // 5yd
+    });
+
+    // Summon Robot (quest 9433 A Dip in the Moonwell): the 50 yd random spot can be up the hill behind the control panel
+    ApplySpellFix({ 30009 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->Effects[EFFECT_0].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_5_YARDS);
+    });
+
+    // Woodworking upgrade kits ship without the interrupt flags every other recipe has, so moving does not stop a Create All queue
+    ApplySpellFix({ 1015015, 1015016, 1015017, 1015018, 1015019 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->InterruptFlags = SPELL_INTERRUPT_FLAG_MOVEMENT | SPELL_INTERRUPT_FLAG_PUSH_BACK
+            | SPELL_INTERRUPT_FLAG_UNK3 | SPELL_INTERRUPT_FLAG_INTERRUPT;
     });
 
     // Impaled (Lord Marrowgar)
@@ -5348,6 +5447,7 @@ void SpellMgr::LoadSpellInfoCorrections()
 
     ApplySpellFix({
         42292,  // PvP Trinket
+        1142292, // PvP Trinket (Ascension)
         59752,  // Every Man for Himself
         19574,  // Bestial Wrath
         34471   // The Beast Within
@@ -5410,20 +5510,6 @@ void SpellMgr::LoadSpellInfoCorrections()
     {
         spellInfo->Effects[EFFECT_0].TargetA = SpellImplicitTargetInfo(TARGET_DEST_TARGET_ENEMY);
         spellInfo->Effects[EFFECT_0].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_DEST_AREA_ENEMY);
-    });
-
-    // CoA: Bladestorm (Rhahk'Zor, Deadmines Mythic): two hits per second, follows at 80 % speed
-    ApplySpellFix({ 2102554 }, [](SpellInfo* spellInfo)
-    {
-        spellInfo->Effects[EFFECT_0].Amplitude = 500;
-        spellInfo->Effects[EFFECT_1].BasePoints = -21; // -20%
-    });
-
-    // CoA: Whirlwind (Rhahk'Zor, Bladestorm tick): 100 % weapon damage in 5 yards instead of 75 % in 2
-    ApplySpellFix({ 2102555 }, [](SpellInfo* spellInfo)
-    {
-        spellInfo->Effects[EFFECT_0].BasePoints = 99;
-        spellInfo->Effects[EFFECT_0].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_5_YARDS);
     });
 
     // CoA: Wing Flap (Hazzas, Morphaz, Sunken Temple): 1 s cast, damage to the cone in front plus the knockback
@@ -5497,15 +5583,6 @@ void SpellMgr::LoadSpellInfoCorrections()
         spellInfo->StackAmount = 5;
     });
 
-    // CoA: The Beast (Blackrock Spire) has a 12 yard combat reach; Flamebreak and Bellowing Roar reach 10 yards from his
-    // center and never hit anyone in melee -> 20 yards
-    ApplySpellFix({ 16785, 2100439 }, [](SpellInfo* spellInfo)
-    {
-        for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
-            if (spellInfo->Effects[i].RadiusEntry)
-                spellInfo->Effects[i].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_20_YARDS);
-    });
-
     // CoA: Conflagration (General Drakkisath) Heroic/Mythic tiers: a percent-of-health DoT that ticked for millions
     // here; one hit instead (Heroic 770, Mythic 1000), the panic effect stays
     ApplySpellFix({ 158874, 386225 }, [](SpellInfo* spellInfo)
@@ -5523,10 +5600,43 @@ void SpellMgr::LoadSpellInfoCorrections()
         spellInfo->Effects[EFFECT_1].Effect = 0;
     });
 
-    // CoA: Buzzing Saw Blade (Sneed's Shredder): the blade on the ground hits in 3 yards instead of 1
-    ApplySpellFix({ 2102565, 2102566, 2102567, 2102568 }, [](SpellInfo* spellInfo)
+    // CoA: Fierce Blow (the dungeon and raid bosses' kit strike): it takes the place of the next
+    // melee swing instead of landing on top of one, and never goes off while another spell is cast.
+    ApplySpellFix({ 975011 }, [](SpellInfo* spellInfo)
     {
-        spellInfo->Effects[EFFECT_0].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_3_YARDS);
+        spellInfo->Attributes |= SPELL_ATTR0_ON_NEXT_SWING;
+    });
+
+    // CoA: Sacrifice (Zevrim Thornhoof): the 2100215 tooltip drains 17% maximum health per second, but the
+    // periodic effect of 2100216 ticked every 2 seconds.
+    ApplySpellFix({ 2100216 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->Effects[EFFECT_1].Amplitude = 1000;
+    });
+
+    // CoA: Summon Eye of Immol'thar puts the eyes anywhere up to 30 yards away; keep them close around him.
+    ApplySpellFix({ 2100246 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->Effects[EFFECT_0].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_10_YARDS);
+    });
+
+    // CoA: Sun Stride starts its normal 24 sec cooldown on cast; the cooldown-on-event flag left it
+    // stuck at "Ability is not ready yet" with no timer.
+    ApplySpellFix({ 680700 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->Attributes &= ~SPELL_ATTR0_COOLDOWN_ON_EVENT;
+    });
+
+    // CoA: Baron Geddon's Living Bomb - Knock Up (2105712) is a pure vertical KNOCK_BACK (MiscValue 0,
+    // so Spell::EffectKnockBack's speedxy stays 0) whose EffectBasePoints 499 gives a fixed damage value
+    // of 500 (DieSides 1), read by EffectKnockBack as speedz = damage * 0.1 = 50.0 yd/s. With
+    // Movement::gravity = 19.29110527038574, the DBC apex (speedz^2 / (2 * gravity)) is about 64.8 yards,
+    // which a player confirmed in-game by going through the ceiling of Geddon's room. Geddon's own vmap
+    // ceiling height could not be measured without a server deploy, so this halves the apex instead
+    // (speedz / sqrt(2)): BasePoints 353 gives damage 354, speedz 35.4 yd/s, apex about 32.5 yards.
+    ApplySpellFix({ 2105712 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->Effects[EFFECT_0].BasePoints = 353;
     });
 
     // CoA: Fierce Blow (the dungeon and raid bosses' kit strike): it takes the place of the next

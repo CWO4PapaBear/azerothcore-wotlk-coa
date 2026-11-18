@@ -1,3 +1,4 @@
+#include "../../coa/Area52MysticRealm.h"
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
@@ -17,71 +18,23 @@
 
 #include "LootMgr.h"
 #include "DatabaseEnv.h"
-#include "DungeonLoot.h"
+#include "../../coa/DungeonLoot.h"
 #include "Field.h"
 #include "Map.h"
+#include "AscensionEquippedGearLoot.h"
 #include "Containers.h"
 #include "DisableMgr.h"
 #include "Group.h"
 #include "ItemEnchantmentMgr.h"
 #include "Log.h"
 #include "ObjectMgr.h"
-#include "Creature.h"
 #include "Player.h"
-#include <algorithm>
 #include "ScriptMgr.h"
 #include "SharedDefines.h"
 #include "SpellInfo.h"
 #include "SpellMgr.h"
 #include "Util.h"
 #include "World.h"
-
-namespace
-{
-    DungeonLoot::Variants dungeonLootVariants;
-}
-
-void LoadDungeonLootVariants()
-{
-    dungeonLootVariants.clear();
-    auto* statement = WorldDatabase.GetPreparedStatement(WORLD_SEL_COA_DUNGEON_LOOT_VARIANT);
-    if (PreparedQueryResult result = WorldDatabase.Query(statement))
-    {
-        do
-        {
-            Field* fields = result->Fetch();
-            uint32 const base = fields[0].Get<uint32>();
-            ItemTemplate const* original = sObjectMgr->GetItemTemplate(base);
-            if (!original || (original->Class != ITEM_CLASS_WEAPON && original->Class != ITEM_CLASS_ARMOR)
-                || original->StartQuest || original->Bonding == BIND_QUEST_ITEM)
-                continue;
-
-            std::array<uint32, 2> variants{};
-            for (uint8 tier = 0; tier < 2; ++tier)
-            {
-                uint32 const entry = fields[tier + 1].Get<uint32>();
-                if (!entry)
-                    continue;
-
-                ItemTemplate const* target = sObjectMgr->GetItemTemplate(entry);
-                if (!target || target->Class != original->Class || target->SubClass != original->SubClass
-                    || target->InventoryType != original->InventoryType || target->StartQuest
-                    || target->Bonding == BIND_QUEST_ITEM)
-                {
-                    LOG_ERROR("sql.sql", "Invalid dungeon loot variant {} -> {} (difficulty {})", base, entry, tier + 1);
-                    continue;
-                }
-
-                variants[tier] = entry;
-            }
-
-            if (variants[0] || variants[1])
-                dungeonLootVariants.emplace(base, variants);
-        } while (result->NextRow());
-    }
-
-    LOG_INFO("server.loading", ">> Loaded {} dungeon loot variant families", dungeonLootVariants.size());
-}
 
 ServerConfigs const qualityToRate[] =
 {
@@ -531,19 +484,27 @@ void LootItem::AddAllowedLooter(Player const* player)
 //
 
 // Inserts the item into the loot (called by LootTemplate processors)
-void Loot::AddItem(LootStoreItem const& original)
+void Loot::AddItem(LootStoreItem const& item)
 {
-    LootStoreItem item(original);
-    item.itemid = DungeonLoot::Resolve(dungeonLootVariants, original.itemid, dungeonDifficulty, original.needs_quest);
     ItemTemplate const* proto = sObjectMgr->GetItemTemplate(item.itemid);
     if (!proto)
         return;
 
+    if (proto->Class == ITEM_CLASS_RECIPE && proto->SubClass == ITEM_SUBCLASS_JEWELCRAFTING_RECIPE)
+        if (Player* owner = ObjectAccessor::FindPlayer(lootOwnerGUID))
+            if (owner->GetSession()->Expansion() < EXPANSION_THE_BURNING_CRUSADE)
+                return;
+
     uint32 count = urand(item.mincount, item.maxcount);
     uint32 stacks = count / proto->GetMaxStackSize() + (count % proto->GetMaxStackSize() ? 1 : 0);
 
-    std::vector<LootItem>& lootItems = item.needs_quest ? quest_items : items;
-    uint32 limit = item.needs_quest ? MAX_NR_QUEST_ITEMS : MAX_NR_LOOT_ITEMS;
+    bool needsQuest = item.needs_quest;
+    if (sharedQuestLoot && !needsQuest)
+        if (Player* owner = ObjectAccessor::FindPlayer(lootOwnerGUID))
+            if (Creature* source = owner->GetMap()->GetCreature(sourceWorldObjectGUID))
+                needsQuest = source->IsSharedQuestItem(item.itemid);
+    std::vector<LootItem>& lootItems = needsQuest ? quest_items : items;
+    uint32 limit = needsQuest ? MAX_NR_QUEST_ITEMS : (Area52MysticRealm::UsesFreePickEngine() ? MAX_NR_LOOT_ITEMS : maxItemCount);
 
     for (uint32 i = 0; i < stacks && lootItems.size() < limit; ++i)
     {
@@ -591,6 +552,34 @@ void Loot::AddItem(LootStoreItem const& original)
     }
 }
 
+void LootTemplate::CollectItems(std::vector<LootStoreItem const*>& out, uint8 depth) const
+{
+    if (depth > 4)
+        return;
+
+    auto collect = [&](LootStoreItemList const& list)
+    {
+        for (LootStoreItem const* item : list)
+        {
+            if (item->reference > 0)
+            {
+                if (LootTemplate const* referenced = LootTemplates_Reference.GetLootFor(item->reference))
+                    referenced->CollectItems(out, depth + 1);
+            }
+            else
+                out.push_back(item);
+        }
+    };
+
+    collect(Entries);
+    for (LootGroup* group : Groups)
+        if (group)
+        {
+            collect(*group->GetExplicitlyChancedItemList());
+            collect(*group->GetEqualChancedItemList());
+        }
+}
+
 // Calls processor of corresponding LootTemplate (which handles everything including references)
 bool Loot::FillLoot(uint32 lootId, LootStore const& store, Player* lootOwner, bool personal, bool noEmptyError, uint16 lootMode /*= LOOT_MODE_DEFAULT*/, WorldObject* lootSource /*= nullptr*/)
 {
@@ -599,10 +588,12 @@ bool Loot::FillLoot(uint32 lootId, LootStore const& store, Player* lootOwner, bo
         return false;
 
     lootOwnerGUID = lootOwner->GetGUID();
+    Creature* sharedSource = lootSource ? lootSource->ToCreature() : nullptr;
+    sharedQuestLoot = !Area52MysticRealm::UsesFreePickEngine() && sharedSource && &store == &LootTemplates_Creature && sharedSource->IsSharedQuestTarget();
     Map const* sourceMap = lootSource ? lootSource->FindMap() : nullptr;
     bool const worldLoot = &store == &LootTemplates_Creature || &store == &LootTemplates_Gameobject;
     dungeonDifficulty = sourceMap ? DungeonLoot::Difficulty(sourceMap->GetId(),
-        uint8(sourceMap->GetSpawnMode()), worldLoot) : 0;
+        uint8(sourceMap->GetSpawnMode()), worldLoot, Area52MysticRealm::UsesFreePickEngine()) : 0;
 
     LootTemplate const* tab = store.GetLootFor(lootId);
 
@@ -613,7 +604,12 @@ bool Loot::FillLoot(uint32 lootId, LootStore const& store, Player* lootOwner, bo
         return false;
     }
 
-    items.reserve(MAX_NR_LOOT_ITEMS);
+    // These two personal containers guarantee twenty distinct Fortune Scrolls.
+    // Ordinary creature/object/item loot keeps the standard eighteen-slot cap.
+    maxItemCount = &store == &LootTemplates_Item &&
+        (lootId == 1278048 || lootId == 1278049) ? 20 : MAX_NR_LOOT_ITEMS;
+    fixedMoneyLoot = &store == &LootTemplates_Item && (lootId == 1478051 || lootId == 1478052);
+    items.reserve(maxItemCount);
     quest_items.reserve(MAX_NR_QUEST_ITEMS);
 
     // Initial group is 0, top level set to True
@@ -714,7 +710,7 @@ QuestItemList* Loot::FillFFALoot(Player* player)
 
 QuestItemList* Loot::FillQuestLoot(Player* player)
 {
-    if (items.size() == MAX_NR_LOOT_ITEMS)
+    if (items.size() >= maxItemCount)
         return nullptr;
 
     QuestItemList* ql = new QuestItemList();
@@ -750,7 +746,7 @@ QuestItemList* Loot::FillQuestLoot(Player* player)
             }
         }
 
-        if (items.size() + ql->size() == MAX_NR_LOOT_ITEMS)
+        if (items.size() + ql->size() >= maxItemCount)
             break;
     }
 
@@ -868,7 +864,9 @@ void Loot::generateMoneyLoot(uint32 minAmount, uint32 maxAmount)
 {
     if (maxAmount > 0)
     {
-        if (maxAmount <= minAmount)
+        if (fixedMoneyLoot)
+            gold = minAmount;
+        else if (maxAmount <= minAmount)
             gold = uint32(maxAmount * sWorld->getRate(RATE_DROP_MONEY));
         else if ((maxAmount - minAmount) < 32700)
             gold = uint32(urand(minAmount, maxAmount) * sWorld->getRate(RATE_DROP_MONEY));

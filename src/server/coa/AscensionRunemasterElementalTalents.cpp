@@ -1,5 +1,6 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 #include "Containers.h"
+#include "AscensionSpecialization.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "SpellAuraEffects.h"
@@ -10,7 +11,6 @@
 #include <algorithm>
 #include <array>
 #include <limits>
-#include <vector>
 
 namespace
 {
@@ -22,7 +22,8 @@ enum RunemasterElementalTalentSpells : uint32
     SPELL_EARTH_CARVING_HEAL = 712356,
     SPELL_AIR_CARVING = 653253,
     SPELL_WINDSAGE_STRIKE = 706457,
-    SPELL_PRIMORDIAL_BLAST = 800732
+    SPELL_PRIMORDIAL_BLAST = 800732,
+    SPELL_SURGING_SLASH_ARMED = 572358
 };
 
 constexpr uint32 RUNEMASTER_SPELL_FAMILY = 38;
@@ -43,8 +44,12 @@ constexpr std::array<PrimordialAlteration, 4> Alterations =
     {713003, 712668}, {717070, 712858}, {718040, 713002}, {721085, 712404}
 }};
 
+constexpr PrimordialAlteration RunicObliteration = {805742, 805794};
+
 PrimordialAlteration const* AlterationByAura(uint32 aura)
 {
+    if (aura == RunicObliteration.Aura)
+        return &RunicObliteration;
     auto itr = std::find_if(Alterations.begin(), Alterations.end(),
         [aura](PrimordialAlteration const& alteration) { return alteration.Aura == aura; });
     return itr == Alterations.end() ? nullptr : &*itr;
@@ -52,6 +57,8 @@ PrimordialAlteration const* AlterationByAura(uint32 aura)
 
 PrimordialAlteration const* AlterationByBlast(uint32 blast)
 {
+    if (blast == RunicObliteration.Blast)
+        return &RunicObliteration;
     auto itr = std::find_if(Alterations.begin(), Alterations.end(),
         [blast](PrimordialAlteration const& alteration) { return alteration.Blast == blast; });
     return itr == Alterations.end() ? nullptr : &*itr;
@@ -60,15 +67,6 @@ PrimordialAlteration const* AlterationByBlast(uint32 blast)
 bool IsRunemaster(Unit const* unit)
 {
     return unit && unit->IsPlayer() && unit->getClass() == CLASS_SPIRIT_MAGE;
-}
-
-std::vector<uint32> KnownPrimordialBlasts(Player* player)
-{
-    std::vector<uint32> ranks;
-    for (auto const& [id, entry] : player->GetSpellMap())
-        if (entry->State != PLAYERSPELL_REMOVED && sSpellMgr->GetFirstSpellInChain(id) == SPELL_PRIMORDIAL_BLAST)
-            ranks.push_back(id);
-    return ranks;
 }
 
 class spell_ascension_runemaster_primeval_carving : public SpellScript
@@ -188,31 +186,24 @@ class aura_ascension_runemaster_primordial_alteration : public AuraScript
         for (PrimordialAlteration const& other : Alterations)
             if (other.Aura != alteration->Aura)
                 player->RemoveAurasDueToSpell(other.Aura, player->GetGUID());
-        std::vector<uint32> ranks = KnownPrimordialBlasts(player);
-        if (ranks.empty())
-            return;
-        if (player->GetSpellMap().find(alteration->Blast) == player->GetSpellMap().end())
-            player->learnSpell(alteration->Blast, true);
-        for (uint32 rank : ranks)
-            player->SetTemporarySpellReplacement(rank, alteration->Blast);
+        if (alteration->Aura != RunicObliteration.Aura)
+            player->RemoveAurasDueToSpell(RunicObliteration.Aura, player->GetGUID());
+        SynchronizeAscensionTalentReplacements(player);
     }
 
     void Restore(AuraEffect const*, AuraEffectHandleModes)
     {
         Player* player = GetTarget()->ToPlayer();
         PrimordialAlteration const* alteration = AlterationByAura(GetId());
-        if (!player || !alteration)
+        if (!IsRunemaster(player) || !alteration || GetCaster() != player)
             return;
-        for (uint32 rank : KnownPrimordialBlasts(player))
-            if (player->GetTemporarySpellReplacement(rank) == alteration->Blast)
-                player->SetTemporarySpellReplacement(rank, 0);
-        player->removeSpell(alteration->Blast, SPEC_MASK_ALL, true);
+        SynchronizeAscensionTalentReplacements(player);
     }
 
     void Register() override
     {
         AfterEffectApply += AuraEffectApplyFn(aura_ascension_runemaster_primordial_alteration::Transform, EFFECT_0,
-            SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+            SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
         AfterEffectRemove += AuraEffectRemoveFn(aura_ascension_runemaster_primordial_alteration::Restore, EFFECT_0,
             SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
     }
@@ -233,6 +224,43 @@ class spell_ascension_runemaster_primordial_alteration_cast : public SpellScript
     void Register() override
     {
         AfterCast += SpellCastFn(spell_ascension_runemaster_primordial_alteration_cast::Consume);
+    }
+};
+
+class aura_ascension_runemaster_surging_slash_armed : public AuraScript
+{
+    PrepareAuraScript(aura_ascension_runemaster_surging_slash_armed);
+
+    void Synchronize(AuraEffect const*, AuraEffectHandleModes)
+    {
+        Player* player = GetTarget()->ToPlayer();
+        if (IsRunemaster(player) && GetCaster() == player)
+            SynchronizeAscensionTalentReplacements(player);
+    }
+
+    void Register() override
+    {
+        AfterEffectApply += AuraEffectApplyFn(aura_ascension_runemaster_surging_slash_armed::Synchronize, EFFECT_0,
+            SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+        AfterEffectRemove += AuraEffectRemoveFn(aura_ascension_runemaster_surging_slash_armed::Synchronize, EFFECT_0,
+            SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
+class spell_ascension_runemaster_surging_slash_cast : public SpellScript
+{
+    PrepareSpellScript(spell_ascension_runemaster_surging_slash_cast);
+
+    bool Load() override { return IsRunemaster(GetCaster()); }
+
+    void Consume()
+    {
+        GetCaster()->RemoveAurasDueToSpell(SPELL_SURGING_SLASH_ARMED, GetCaster()->GetGUID());
+    }
+
+    void Register() override
+    {
+        AfterCast += SpellCastFn(spell_ascension_runemaster_surging_slash_cast::Consume);
     }
 };
 
@@ -259,6 +287,13 @@ public:
             info->AttributesCu &= ~SPELL_ATTR0_CU_FORCE_AURA_SAVING;
             info->AttributesCu |= SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED;
         }
+        if (info->Id == RunicObliteration.Blast || info->Id == 807014)
+        {
+            if (SpellInfo const* blast = sSpellMgr->GetSpellInfo(SPELL_PRIMORDIAL_BLAST))
+                info->SpellFamilyFlags |= blast->SpellFamilyFlags;
+            if (info->Id == RunicObliteration.Blast)
+                info->CasterAuraSpell = RunicObliteration.Aura;
+        }
     }
 };
 }
@@ -272,4 +307,6 @@ void AddSC_AscensionRunemasterElementalTalents()
     RegisterSpellScript(spell_ascension_runemaster_alteration_trigger);
     RegisterSpellScript(aura_ascension_runemaster_primordial_alteration);
     RegisterSpellScript(spell_ascension_runemaster_primordial_alteration_cast);
+    RegisterSpellScript(aura_ascension_runemaster_surging_slash_armed);
+    RegisterSpellScript(spell_ascension_runemaster_surging_slash_cast);
 }

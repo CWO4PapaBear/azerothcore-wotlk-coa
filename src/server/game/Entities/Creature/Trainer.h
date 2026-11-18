@@ -75,11 +75,15 @@ namespace Trainer
             void SendSpells(Creature* npc, Player* player, LocaleConstant locale, bool onlyTrainable = false) const;
             bool RepublishesAfterPurchase() const;
             bool CanTeachSpell(Player const* player, Spell const* trainerSpell) const;
+            bool RepublishesAfterPurchase(Player const* player) const;
             void TeachSpell(Creature* npc, Player* player, uint32 spellId);
 
+            [[nodiscard]] uint32 GetTrainerId() const { return _trainerId; }
             [[nodiscard]] Type GetTrainerType() const { return _type; }
             [[nodiscard]] uint32 GetTrainerRequirement() const { return _requirement; }
             bool IsTrainerValidForPlayer(Player const* player) const;
+            /// This trainer, greetings included, teaching `spells` instead of its own.
+            [[nodiscard]] Trainer WithSpells(std::vector<Spell> spells) const;
 
             private:
             SpellState GetSpellState(Player const* player, Spell const* trainerSpell) const;
@@ -103,9 +107,18 @@ namespace Trainer
     using RankTrainerHero = bool (*)(Player const* player);
     AC_GAME_API void SetRankTrainerHero(RankTrainerHero heroes);
 
-    /// The trainer that serves this player at this unit: its own, except that a Wildcard Hero is taught the next rank
-    /// of each Wildcard ability it knows at any class trainer or Book of Ascension. Valid until the next call on this
-    /// thread.
+    /// Whether this Hero trains those rows: a Wildcard Hero, or any Hero on a classless realm, set by AscensionWildcard.
+    using RankTrainerHero = bool (*)(Player const* player);
+    AC_GAME_API void SetRankTrainerHero(RankTrainerHero heroes);
+
+    /// The class trainer a realm serves this player in place of `trainer`, or nullptr to keep it.
+    using ClassTrainerFor = Trainer* (*)(Trainer const& trainer, Player const* player);
+    AC_GAME_API void SetClassTrainerFor(ClassTrainerFor trainers);
+
+    /// The trainer that serves this player at this unit: its own, or the class trainer the realm puts in its place,
+    /// except that a rank-training Hero is taught the next rank of each ability it knows at any class trainer or
+    /// Book of Ascension. A class trainer unit without a trainer of its own (a Book of Ascension) serves the player's
+    /// own class trainer. Valid until the next call on this thread.
     AC_GAME_API Trainer* GetTrainerFor(Creature const* npc, Player const* player);
 }
 

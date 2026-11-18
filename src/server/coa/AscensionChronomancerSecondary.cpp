@@ -31,13 +31,23 @@ enum ChronomancerSecondarySpells : uint32
     SPELL_ARC_COLLISION = 524853,
     SPELL_ECHO_DURATION = 807711,
     SPELL_UNMAKE = 804418,
+    SPELL_ANOMALY_SPIKE = 503826,
+    SPELL_FATEBREAKER = 503835,
+    SPELL_FATEBREAKER_DAMAGE = 504725,
+    SPELL_CHROMATIC_SHARD = 801292,
+    SPELL_CHROMATIC_SHARD_CAST_TIME = 503829,
+    SPELL_DECOMPOSITION = 800856,
+    SPELL_INCARNATION_OF_CHAOS = 570067,
     SPELL_INFINITE_KEEPER = 806312,
     SPELL_INFINITE_KEEPER_TRIGGER = 806314,
     SPELL_SHIFTING_CHAOS = 706059,
     SPELL_SHIFTING_CHAOS_BLAST = 801269,
     SPELL_GRAVITY_BOMB_EXPLOSION = 801282,
     SPELL_TEMPORAL_ANOMALY = 806315,
-    SPELL_TEMPORAL_ANOMALY_HEAL = 807799
+    SPELL_TEMPORAL_ANOMALY_HEAL = 807799,
+    SPELL_INFINITE_SHIELD_HEAL = 520458,
+    SPELL_AEON_REND = 583248,
+    SPELL_TIME_LOOP_SHARD = 807989
 };
 
 constexpr uint32 ChronomancerSpellFamily = 28;
@@ -74,11 +84,54 @@ bool IsChromaticShardOrAnomalySpike(SpellInfo const* info)
         (flags[0] & AnomalySpikeFamilyFlag0);
 }
 
+bool IsDecomposition(uint32 id)
+{
+    return id == SPELL_DECOMPOSITION || (id >= 801028 && id <= 801033) || id == 802597;
+}
+
+bool IsChromaticShardRank(uint32 id)
+{
+    return id == SPELL_CHROMATIC_SHARD || (id >= 501836 && id <= 501840) || id == 574346 ||
+        id == 567543 || id == 567544;
+}
+
+uint32 OwnedChromaticShardRank(Player const* player)
+{
+    uint32 owned = SPELL_CHROMATIC_SHARD;
+    for (uint32 rank = SPELL_CHROMATIC_SHARD; rank; rank = sSpellMgr->GetNextSpellInChain(rank))
+        if (player->HasSpell(rank))
+            owned = rank;
+    return owned;
+}
+
+void ResetChromaticShard(Player* player)
+{
+    for (auto const& [known, value] : player->GetSpellMap())
+        if (value->State != PLAYERSPELL_REMOVED && IsChromaticShardRank(known))
+        {
+            player->RemoveSpellCooldown(known, true);
+            if (SpellInfo const* shard = sSpellMgr->GetSpellInfo(known))
+                if (uint32 category = shard->GetCategory())
+                    player->RemoveCategoryCooldown(category);
+        }
+}
+
 void EruptInfiniteKeeper(Player* player, Unit* target)
 {
     AuraEffect const* keeper = player->GetAuraEffect(SPELL_INFINITE_KEEPER, EFFECT_0);
     if (keeper && player->IsValidAttackTarget(target) && HasOwnTimerend(target, player->GetGUID()))
         player->CastSpell(target, SPELL_INFINITE_KEEPER_TRIGGER, true, nullptr, keeper);
+}
+
+void BreakFate(Player* player, Unit* target, uint32 damage)
+{
+    AuraEffect const* fatebreaker = player->GetAuraEffect(SPELL_FATEBREAKER, EFFECT_0);
+    if (!fatebreaker || fatebreaker->GetAmount() <= 0)
+        return;
+    uint64 amount = uint64(damage) * uint64(fatebreaker->GetAmount()) / 100;
+    if (amount)
+        player->CastCustomSpell(SPELL_FATEBREAKER_DAMAGE, SPELLVALUE_BASE_POINT0,
+            int32(std::min<uint64>(amount, std::numeric_limits<int32>::max())), target, true, nullptr, fatebreaker);
 }
 
 void ReplicateShiftingChaos(Player* player, Unit* target, uint32 damage)
@@ -194,6 +247,26 @@ class aura_ascension_desynchronization : public AuraScript
     {
         AfterEffectRemove += AuraEffectRemoveFn(aura_ascension_desynchronization::End,
             EFFECT_0, SPELL_AURA_MOD_DISARM, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
+class aura_ascension_infinite_shield : public AuraScript
+{
+    PrepareAuraScript(aura_ascension_infinite_shield);
+
+    bool Validate(SpellInfo const*) override { return ValidateSpellInfo({SPELL_INFINITE_SHIELD_HEAL}); }
+
+    void Heal(AuraEffect const* effect, ProcEventInfo&)
+    {
+        PreventDefaultAction();
+        if (Unit* caster = GetCaster())
+            caster->CastSpell(GetTarget(), SPELL_INFINITE_SHIELD_HEAL, true, nullptr, effect);
+    }
+
+    void Register() override
+    {
+        OnEffectProc += AuraEffectProcFn(aura_ascension_infinite_shield::Heal,
+            EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
     }
 };
 
@@ -358,6 +431,59 @@ class aura_ascension_temporal_anomaly : public AuraScript
     }
 };
 
+class aura_ascension_aeon_rend : public AuraScript
+{
+    PrepareAuraScript(aura_ascension_aeon_rend);
+
+    bool Validate(SpellInfo const*) override { return ValidateSpellInfo({SPELL_CHROMATIC_SHARD}); }
+
+    void Restrike(AuraEffect const* effect, ProcEventInfo& event)
+    {
+        PreventDefaultAction();
+        Unit* target = event.GetActionTarget();
+        SpellInfo const* shard = event.GetSpellInfo();
+        if (target && shard)
+            GetTarget()->CastSpell(target, IsChromaticShardRank(shard->Id) ? shard->Id : uint32(SPELL_CHROMATIC_SHARD),
+                true, nullptr, effect);
+    }
+
+    void Register() override
+    {
+        OnEffectProc += AuraEffectProcFn(aura_ascension_aeon_rend::Restrike, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
+    }
+};
+
+class spell_ascension_time_loop_shard : public SpellScript
+{
+    PrepareSpellScript(spell_ascension_time_loop_shard);
+
+    bool Validate(SpellInfo const*) override { return ValidateSpellInfo({SPELL_CHROMATIC_SHARD}); }
+
+    void Fire(SpellEffIndex effIndex)
+    {
+        Player* player = GetCaster()->ToPlayer();
+        if (!player)
+            return;
+        PreventHitDefaultEffect(effIndex);
+        if (Unit* target = GetExplTargetUnit())
+            player->CastSpell(target, OwnedChromaticShardRank(player),
+                TriggerCastFlags(TRIGGERED_FULL_MASK & ~TRIGGERED_NO_PERIODIC_RESET));
+    }
+
+    void Suppress(SpellEffIndex effIndex)
+    {
+        if (GetCaster()->IsPlayer())
+            PreventHitDefaultEffect(effIndex);
+    }
+
+    void Register() override
+    {
+        OnEffectLaunch += SpellEffectFn(spell_ascension_time_loop_shard::Fire, EFFECT_0, SPELL_EFFECT_TRIGGER_SPELL);
+        OnEffectLaunchTarget += SpellEffectFn(spell_ascension_time_loop_shard::Suppress, EFFECT_0,
+            SPELL_EFFECT_TRIGGER_SPELL);
+    }
+};
+
 class chronomancer_secondary_casts : public AllSpellScript
 {
 public:
@@ -367,6 +493,31 @@ public:
     {
         if (SecondaryChronomancer(caster) && !spell->IsTriggered() && info->Id == SPELL_ARC_COLLISION)
             caster->RemoveAurasDueToSpell(SPELL_ECHO_FRAGMENT, caster->GetGUID());
+        if (Player* player = SecondaryChronomancer(caster); player && !spell->IsTriggered())
+        {
+            if (IsDecomposition(info->Id))
+            {
+                uint32 fragments = 0;
+                if (Aura* echo = player->GetAura(SPELL_ECHO_FRAGMENT, player->GetGUID()))
+                    fragments = echo->GetStackAmount();
+                if (fragments)
+                {
+                    player->RemoveAurasDueToSpell(SPELL_ECHO_FRAGMENT, player->GetGUID());
+                    spell->SetScriptValue(SPELL_ECHO_FRAGMENT, fragments);
+                }
+            }
+            if (info->Id == SPELL_INCARNATION_OF_CHAOS)
+                ResetChromaticShard(player);
+            if (IsChromaticShardRank(info->Id))
+            {
+                if (Aura* incarnation = player->GetAura(SPELL_INCARNATION_OF_CHAOS, player->GetGUID());
+                    incarnation && incarnation->GetScriptValue(SPELL_CHROMATIC_SHARD))
+                {
+                    incarnation->SetScriptValue(SPELL_CHROMATIC_SHARD, 0);
+                    ResetChromaticShard(player);
+                }
+            }
+        }
     }
 };
 
@@ -378,13 +529,39 @@ public:
     void OnSpellHitResult(Spell* spell, Unit* target, uint8 miss, uint32 damage, uint32, bool) override
     {
         Player* player = SecondaryChronomancer(spell->GetCaster());
-        if (!player || !target || target == player || miss != SPELL_MISS_NONE || !target->IsInWorld())
+        if (!player || !target || !target->IsInWorld())
             return;
         SpellInfo const* info = spell->GetSpellInfo();
+        if (info->Id == SPELL_INCARNATION_OF_CHAOS)
+        {
+            if (target == player && miss == SPELL_MISS_NONE)
+                if (Aura* incarnation = player->GetAura(SPELL_INCARNATION_OF_CHAOS, player->GetGUID()))
+                    incarnation->SetScriptValue(SPELL_CHROMATIC_SHARD, 1);
+            return;
+        }
+        if (target == player || miss != SPELL_MISS_NONE)
+            return;
+        if (damage && info->Id == SPELL_ANOMALY_SPIKE && player->HasSpell(SPELL_CHROMATIC_SHARD))
+            player->CastSpell(player, SPELL_CHROMATIC_SHARD_CAST_TIME, true);
+        if (damage && info->Id == SPELL_ANOMALY_SPIKE)
+            BreakFate(player, target, damage);
         if (sSpellMgr->GetFirstSpellInChain(info->Id) == SPELL_UNMAKE)
             EruptInfiniteKeeper(player, target);
         else if (damage && IsChromaticShardOrAnomalySpike(info))
             ReplicateShiftingChaos(player, target, damage);
+        if (IsDecomposition(info->Id))
+        {
+            uint64 fragments = spell->GetScriptValue(SPELL_ECHO_FRAGMENT);
+            SpellInfo const* echo = sSpellMgr->GetSpellInfo(SPELL_ECHO_FRAGMENT);
+            if (fragments && echo)
+                if (Aura* dot = target->GetAura(info->Id, player->GetGUID()))
+                    if (AuraEffect* effect = dot->GetEffect(EFFECT_0))
+                    {
+                        int64 amount = int64(effect->GetAmount()) *
+                            (100 + int64(echo->Effects[EFFECT_0].CalcValue(player)) * int64(fragments)) / 100;
+                        effect->ChangeAmount(int32(std::clamp(amount, int64(INT32_MIN / 2), int64(INT32_MAX / 2))));
+                    }
+        }
     }
 };
 
@@ -417,7 +594,8 @@ public:
             info->AscensionInheritsResolvedAmount = true;
             info->Effects[EFFECT_0].BonusMultiplier = 0.0f;
         }
-        if (info->Id == SPELL_SHIFTING_CHAOS_BLAST && info->SpellFamilyName == ChronomancerSpellFamily)
+        if ((info->Id == SPELL_SHIFTING_CHAOS_BLAST || info->Id == SPELL_FATEBREAKER_DAMAGE) &&
+            info->SpellFamilyName == ChronomancerSpellFamily)
         {
             info->AttributesEx2 |= SPELL_ATTR2_CANT_CRIT;
             info->AttributesEx3 |= SPELL_ATTR3_IGNORE_CASTER_MODIFIERS;
@@ -425,12 +603,16 @@ public:
             info->AscensionInheritsResolvedAmount = true;
             info->Effects[EFFECT_0].BonusMultiplier = 0.0f;
         }
-        if ((info->Id == SPELL_INFINITE_KEEPER || info->Id == SPELL_SHIFTING_CHAOS) &&
-            info->SpellFamilyName == ChronomancerSpellFamily)
+        if ((info->Id == SPELL_INFINITE_KEEPER || info->Id == SPELL_SHIFTING_CHAOS ||
+            info->Id == SPELL_FATEBREAKER) && info->SpellFamilyName == ChronomancerSpellFamily)
         {
             info->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
             info->Effects[EFFECT_0].TriggerSpell = 0;
         }
+        if (info->Id == SPELL_ANOMALY_SPIKE && info->SpellFamilyName == ChronomancerSpellFamily &&
+            info->Effects[EFFECT_1].Effect == SPELL_EFFECT_TRIGGER_SPELL &&
+            info->Effects[EFFECT_1].TriggerSpell == SPELL_FATEBREAKER_DAMAGE)
+            info->Effects[EFFECT_1].Effect = 0;
         if (info->Id == SPELL_ECHO_DURATION || info->Id == SPELL_AHEAD_COUNTER || info->Id == SPELL_RIPPLE_CHARGE)
         {
             info->AttributesCu &= ~SPELL_ATTR0_CU_FORCE_AURA_SAVING;
@@ -449,8 +631,11 @@ void AddSC_AscensionChronomancerSecondary()
     new chronomancer_secondary_metadata();
     RegisterSpellScript(spell_ascension_melt_copy);
     RegisterSpellScript(aura_ascension_desynchronization);
+    RegisterSpellScript(aura_ascension_infinite_shield);
     RegisterSpellScript(aura_ascension_ahead_of_the_game);
     RegisterSpellScript(aura_ascension_ripple_release);
     RegisterSpellScript(aura_ascension_echo_duration);
     RegisterSpellScript(aura_ascension_temporal_anomaly);
+    RegisterSpellScript(aura_ascension_aeon_rend);
+    RegisterSpellScript(spell_ascension_time_loop_shard);
 }

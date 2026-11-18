@@ -24,7 +24,8 @@ enum class Behaviour : std::uint8_t
     Turret,
     Mine,
     Vortex,
-    Return
+    Return,
+    Ravager
 };
 
 enum class Motion : std::uint8_t
@@ -158,19 +159,80 @@ constexpr Summon SUMMONS[] = {
 
 };
 
-constexpr Summon const* Find(std::uint32_t summonSpell, std::uint32_t creature)
+constexpr Summon OTHER_REALM_SUMMONS[] = {
+    Ranked(1954861, 840037, Behaviour::Tick, 1954834, 1954833),
+    Ranked(1954862, 840037, Behaviour::Tick, 1955063, 1954868),
+    Ranked(1954863, 840037, Behaviour::Tick, 1955064, 1954869),
+    Ranked(1954864, 840037, Behaviour::Tick, 1955065, 1954870),
+    Ranked(1954865, 840037, Behaviour::Tick, 1955066, 1954871),
+    Ranked(1954866, 840037, Behaviour::Tick, 1955067, 1954872),
+    Ranked(1954867, 840037, Behaviour::Tick, 1955068, 1954873),
+    Ranked(2304861, 2304861, Behaviour::Tick, 2304834, 2304833),
+    Ranked(2304862, 2304861, Behaviour::Tick, 2305063, 2304868),
+    Ranked(2304863, 2304861, Behaviour::Tick, 2305064, 2304869),
+    Ranked(2304864, 2304861, Behaviour::Tick, 2305065, 2304870),
+    Ranked(2304865, 2304861, Behaviour::Tick, 2305066, 2304871),
+    Ranked(2304866, 2304861, Behaviour::Tick, 2305067, 2304872),
+    Ranked(2304867, 2304861, Behaviour::Tick, 2305068, 2304873),
+    Ranked(1186384, 2404861, Behaviour::Tick, 1186383, 1186385),
+    Ranked(280575, 280576, Behaviour::Tick, 280577, 280578),
+    Ranked(280635, 280576, Behaviour::Tick, 280577, 280671),
+    Ranked(280636, 280576, Behaviour::Tick, 280577, 280672),
+    Ranked(280637, 280576, Behaviour::Tick, 280577, 280673),
+    Ranked(280638, 280576, Behaviour::Tick, 280577, 280674),
+    Still(2110080, 840059),
+    Still(997495, 160000),
+    Still(276922, 160001),
+    Still(997494, 160001),
+    Still(1578139, 160001),
+    Still(284579, 300099),
+    Still(982477, 300099),
+    Still(1587655, 300099),
+    Still(271986, 840031),
+    Still(954328, 840031),
+    Still(1569647, 840100),
+    Still(1133050, 840081),
+    Timed(293180, 840082, Behaviour::Ravager, 293181, 1000, 293182),
+    Still(1143180, 840082),
+    Still(290063, 841091),
+    Still(901308, 841103),
+    Still(277776, 841104),
+    Timed(724, 960124, Behaviour::Heal, 7001, 1000),
+    Timed(27870, 960124, Behaviour::Heal, 27873, 1000),
+    Timed(27871, 960124, Behaviour::Heal, 27874, 1000),
+    Timed(28275, 960124, Behaviour::Heal, 28276, 1000),
+    Timed(48086, 960124, Behaviour::Heal, 48084, 1000),
+    Timed(48087, 960124, Behaviour::Heal, 48085, 1000),
+    Still(290441, 840095),
+    Still(283494, 840051),
+    Still(283494, 840052),
+    Still(955108, 840051),
+    Still(955108, 840052),
+    Still(1584780, 840051),
+    Still(1584780, 840052),
+};
+
+constexpr Summon const* Find(std::uint32_t summonSpell, std::uint32_t creature, bool otherRealm = true)
 {
     for (Summon const& summon : SUMMONS)
         if (summon.SummonSpell == summonSpell && summon.Creature == creature)
             return &summon;
+    if (otherRealm)
+        for (Summon const& summon : OTHER_REALM_SUMMONS)
+            if (summon.SummonSpell == summonSpell && summon.Creature == creature)
+                return &summon;
     return nullptr;
 }
 
-constexpr Summon const* FindByHelper(std::uint32_t helper, Behaviour kind)
+constexpr Summon const* FindByHelper(std::uint32_t helper, Behaviour kind, bool otherRealm = true)
 {
     for (Summon const& summon : SUMMONS)
         if (summon.Helper == helper && summon.Kind == kind)
             return &summon;
+    if (otherRealm)
+        for (Summon const& summon : OTHER_REALM_SUMMONS)
+            if (summon.Helper == helper && summon.Kind == kind)
+                return &summon;
     return nullptr;
 }
 

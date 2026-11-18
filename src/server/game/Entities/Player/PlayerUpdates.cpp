@@ -17,6 +17,7 @@
  */
 
 #include "AchievementMgr.h"
+#include "AscensionQuestMarkers.h"
 #include "BattlefieldMgr.h"
 #include "CellImpl.h"
 #include "Channel.h"
@@ -28,6 +29,7 @@
 #include "Guild.h"
 #include "InstanceScript.h"
 #include "Language.h"
+#include "LocalLevelScaling.h"
 #include "OutdoorPvPMgr.h"
 #include "Pet.h"
 #include "Player.h"
@@ -108,6 +110,8 @@ void Player::Update(uint32 p_time)
         }
     }
 
+    GetSession()->UpdateRecruitAFriendRewards();
+
     time_t lastTick = m_Last_tick;
     if (now > m_Last_tick)
     {
@@ -137,6 +141,9 @@ void Player::Update(uint32 p_time)
         stmt->SetData(3, GetSession()->GetAccountId());
         LoginDatabase.Execute(stmt);
     }
+
+    if (m_questLogPromotionPending && IsInWorld())
+        PromoteOverflowQuests();
 
     if (!m_timedquests.empty())
     {
@@ -805,7 +812,7 @@ inline int SkillGainChance(uint32 SkillValue, uint32 GrayLevel,
 }
 
 void Player::RewardProfessionXP(uint32 skillId, uint32 current, uint32 gray, uint32 green, uint32 yellow,
-    bool disenchanting)
+    bool disenchanting, bool crafted)
 {
     if (!IsInWorld() || !GetPureSkillValue(skillId) || !sScriptMgr->OnPlayerCanUpdateSkill(this, skillId))
         return;
@@ -813,7 +820,7 @@ void Player::RewardProfessionXP(uint32 skillId, uint32 current, uint32 gray, uin
     ServerConfigs profession;
     switch (skillId)
     {
-        case SKILL_MINING: profession = RATE_XP_PROFESSION_MINING; break;
+        case SKILL_MINING: profession = crafted ? RATE_XP_PROFESSION_SMELTING : RATE_XP_PROFESSION_MINING; break;
         case SKILL_HERBALISM: profession = RATE_XP_PROFESSION_HERBALISM; break;
         case SKILL_SKINNING: profession = RATE_XP_PROFESSION_SKINNING; break;
         case SKILL_FISHING: profession = RATE_XP_PROFESSION_FISHING; break;
@@ -827,6 +834,8 @@ void Player::RewardProfessionXP(uint32 skillId, uint32 current, uint32 gray, uin
         case SKILL_TAILORING: profession = RATE_XP_PROFESSION_TAILORING; break;
         case SKILL_LOCKPICKING: profession = RATE_XP_PROFESSION_LOCKPICKING; break;
         case SKILL_INSCRIPTION: profession = RATE_XP_PROFESSION_INSCRIPTION; break;
+        case SKILL_WOODCUTTING: profession = RATE_XP_PROFESSION_WOODCUTTING; break;
+        case SKILL_WOODWORKING: profession = RATE_XP_PROFESSION_WOODWORKING; break;
         case SKILL_ENCHANTING:
             profession = disenchanting ? RATE_XP_PROFESSION_DISENCHANTING : RATE_XP_PROFESSION_ENCHANTING;
             break;
@@ -851,7 +860,7 @@ void Player::RewardProfessionXP(uint32 skillId, uint32 current, uint32 gray, uin
     double const reward = rates * auraMultiplier;
     uint32 xp = static_cast<uint32>(std::min(reward, double(std::numeric_limits<uint32>::max())));
     sScriptMgr->OnPlayerGiveXP(this, xp, nullptr, XPSOURCE_PROFESSION);
-    GiveXP(xp, nullptr);
+    GiveXP(xp, nullptr, 1.0f, false, XPSOURCE_PROFESSION);
 }
 
 bool Player::UpdateGatherSkill(uint32 SkillId, uint32 SkillValue,
@@ -950,7 +959,7 @@ bool Player::UpdateCraftSkill(uint32 spellid)
                 _spell_idx->second->TrivialSkillLineRankHigh,
                 (_spell_idx->second->TrivialSkillLineRankHigh + _spell_idx->second->TrivialSkillLineRankLow) / 2,
                 _spell_idx->second->TrivialSkillLineRankLow,
-                spellInfo && spellInfo->HasEffect(SPELL_EFFECT_DISENCHANT));
+                spellInfo && spellInfo->HasEffect(SPELL_EFFECT_DISENCHANT), true);
 
             return UpdateSkillPro(
                 _spell_idx->second->SkillLine,
@@ -1147,6 +1156,10 @@ void Player::UpdateCombatSkills(Unit* victim, WeaponAttackType attType, bool def
 
     uint8 greylevel = Acore::XP::GetGrayLevel(playerLevel);
     uint8 moblevel = defence ? victim->getLevelForTarget(this) : victim->GetLevel(); // if defense than victim == attacker
+    if (!defence)
+        if (Creature const* creature = victim->ToCreature())
+            if (uint8 const view = LocalLevelScaling::ViewLevelFor(this, creature))
+                moblevel = view;
     /*if (moblevel < greylevel)
         return;*/
     // Patch 3.0.8 (2009-01-20): You can no longer skill up weapons on mobs that are immune to damage.
@@ -1817,6 +1830,8 @@ void Player::UpdateVisibilityOf(T* target, UpdateData& data,
 void Player::GetInitialVisiblePackets(Unit* target)
 {
     GetAurasForTarget(target);
+    if (Creature* creature = target->ToCreature())
+        AscensionQuestMarkers::Refresh(this, creature);
     if (target->IsAlive())
     {
         if (target->HasUnitState(UNIT_STATE_MELEE_ATTACKING) &&
@@ -1901,6 +1916,9 @@ void Player::UpdateTriggerVisibility()
 
 void Player::UpdateForQuestWorldObjects()
 {
+    if (!GetSession() || GetSession()->IsHeadlessBot())
+        return;
+
     if (GetObjectVisibilityContainer().GetVisibleWorldObjectsMap()->empty())
         return;
 
@@ -1929,8 +1947,19 @@ void Player::UpdateForQuestWorldObjects()
                     ConditionList conds = sConditionMgr->GetConditionsForSpellClickEvent(obj->GetEntry(), _itr->second.spellId);
                     bool buildUpdateBlock = false;
                     for (ConditionList::const_iterator jtr = conds.begin(); jtr != conds.end() && !buildUpdateBlock; ++jtr)
-                        if ((*jtr)->ConditionType == CONDITION_QUESTREWARDED || (*jtr)->ConditionType == CONDITION_QUESTTAKEN)
-                            buildUpdateBlock = true;
+                        switch ((*jtr)->ConditionType)
+                        {
+                            case CONDITION_QUESTREWARDED:
+                            case CONDITION_QUESTTAKEN:
+                            case CONDITION_QUEST_NONE:
+                            case CONDITION_QUEST_COMPLETE:
+                            case CONDITION_QUESTSTATE:
+                            case CONDITION_QUEST_OBJECTIVE_PROGRESS:
+                                buildUpdateBlock = true;
+                                break;
+                            default:
+                                break;
+                        }
 
                     if (buildUpdateBlock)
                     {
@@ -1962,8 +1991,24 @@ void Player::UpdateTitansGrip()
         else if (!spiritPenalty)
             RemoveAurasDueToSpell(818047, GetGUID());
     }
+    else
+    {
+        constexpr uint32 TitansGrip = 46917;
+        constexpr uint32 TitansGripStaffPenalty = 818047;
+        Item const* main = GetWeaponForAttack(BASE_ATTACK);
+        bool const staff = getClass() == CLASS_HERO && HasActiveSpell(TitansGrip) && CanTitanGrip() && main &&
+            main->GetTemplate()->SubClass == ITEM_SUBCLASS_WEAPON_STAFF;
+        if (staff)
+        {
+            if (!HasAura(TitansGripStaffPenalty))
+                CastSpell(this, TitansGripStaffPenalty, TRIGGERED_FULL_MASK);
+        }
+        else
+            RemoveAurasDueToSpell(TitansGripStaffPenalty);
+
+    }
     // 10% damage reduce if 2x2h weapons are used
-    if (HasBurningCommander() || !CanTitanGrip())
+    if (HasBurningCommander() || HasValkyrGrip() || !CanTitanGrip())
         RemoveAurasDueToSpell(49152);
     else if (Aura* aur = GetAura(49152))
         aur->RecalculateAmountOfEffects();

@@ -707,6 +707,8 @@ void WorldSession::SendPlayTimeWarning(PlayTimeFlag flag, int32 playTimeRemainin
 /// %Log the player out
 void WorldSession::LogoutPlayer(bool save, bool redirecting)
 {
+    UpdateRecruitAFriendRewards(true);
+    ClearRecruitAFriendRequests();
     // finish pending transfers before starting the logout
     while (_player && _player->IsBeingTeleportedFar())
         HandleMoveWorldportAck();
@@ -1335,6 +1337,7 @@ void WorldSession::ReadAddonsInfo(ByteBuffer& data)
 
                 /// @todo: Find out when to not use CRC/pubkey, and other possible states.
                 m_addonsList.push_back(addon);
+                m_clientAddonNames.push_back(addon.Name);
             }
 
             uint32 currentTime;

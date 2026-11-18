@@ -30,6 +30,12 @@ namespace AscensionPersonalBank
     bool AddTab(Player* player, uint8 kind);
 
     void SendKindHint(Player* player, uint8 kind);
+
+    using AccessGuard = bool (*)(Player*, uint8 kind);
+
+    void RegisterAccessGuard(AccessGuard guard);
+
+    [[nodiscard]] bool CanAccess(Player* player, uint8 kind);
 }
 
 #endif

@@ -1,6 +1,7 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 
 #include "AscensionConditionalCombat.h"
+#include "Area52MysticRealm.h"
 #include "SpellInfo.h"
 #include "SpellDefines.h"
 #include "AscensionConditionalCombatData.h"
@@ -11,6 +12,7 @@ namespace
 constexpr uint32 SPELL_EVIL_DOERS_BEWARE = 681328;
 constexpr uint32 SPELL_REAPER_HEMORRHAGE = 705432;
 constexpr uint32 SPELL_REAPER_THE_TIME_HAS_COME = 572879;
+constexpr uint32 SPELL_GLYPH_OF_SHADOWBURN = 56229;
 
 void ApplyFrozenPowerDamageContract(SpellInfo* spellInfo)
 {
@@ -83,6 +85,24 @@ void ApplyReaperHemorrhageDamageContract(SpellInfo* spellInfo)
     effect.MiscValueB = ASCENSION_CLASSMASK_AURASTATE_DAMAGE;
 }
 
+void ApplyGlyphOfShadowburnDamageContract(SpellInfo* spellInfo)
+{
+    if (spellInfo->Id != SPELL_GLYPH_OF_SHADOWBURN || spellInfo->SpellFamilyName != SPELLFAMILY_WARLOCK ||
+        !spellInfo->HasAttribute(SPELL_ATTR0_PASSIVE))
+        return;
+
+    SpellEffectInfo& effect = spellInfo->Effects[EFFECT_1];
+    if (effect.Effect != SPELL_EFFECT_APPLY_AURA || effect.ApplyAuraName != SPELL_AURA_OVERRIDE_CLASS_SCRIPTS ||
+        effect.MiscValue != 20004 || effect.MiscValueB != AURA_STATE_HEALTHLESS_35_PERCENT ||
+        effect.BasePoints != 19 || effect.DieSides != 1 || effect.SpellClassMask != flag96(0x80, 0, 0) ||
+        effect.TargetA.GetTarget() != TARGET_UNIT_CASTER || effect.TargetB.GetTarget())
+        return;
+
+    effect.ApplyAuraName = SPELL_AURA_MOD_DAMAGE_DONE_VERSUS_AURASTATE;
+    effect.MiscValue = AURA_STATE_HEALTHLESS_35_PERCENT;
+    effect.MiscValueB = ASCENSION_CLASSMASK_AURASTATE_DAMAGE;
+}
+
 void ApplyReaperTheTimeHasComeDamageContract(SpellInfo* spellInfo)
 {
     if (spellInfo->Id != SPELL_REAPER_THE_TIME_HAS_COME || spellInfo->SpellFamilyName != 36 ||
@@ -139,5 +159,7 @@ void ApplyAscensionConditionalCombatContracts(SpellInfo* spellInfo)
     ApplyReaperHemorrhageDamageContract(spellInfo);
     ApplyReaperTheTimeHasComeDamageContract(spellInfo);
     ApplyFrozenPowerDamageContract(spellInfo);
-    ApplyArea52TargetDamageContracts(spellInfo);
+    if (Area52MysticRealm::UsesFreePickEngine())
+        ApplyArea52TargetDamageContracts(spellInfo);
+    ApplyGlyphOfShadowburnDamageContract(spellInfo);
 }

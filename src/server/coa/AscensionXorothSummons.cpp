@@ -1,5 +1,6 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 #include "AscensionXoroth.h"
+#include "GossipDef.h"
 #include "Map.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
@@ -106,12 +107,14 @@ struct npc_ascension_xoroth_summon : public ScriptedAI
             me->SetReactState(REACT_DEFENSIVE);
             if (me->GetEntry() == 50301)
             {
+                me->SetCreatorGUID(owner);
                 me->m_ControlledByPlayer = true;
                 me->SetUnitFlag(UNIT_FLAG_PLAYER_CONTROLLED);
                 me->SetByteValue(UNIT_FIELD_BYTES_2, 1, player->GetByteValue(UNIT_FIELD_BYTES_2, 1));
                 State(player).imps.push_back(me->GetGUID());
                 me->GetThreatMgr().RegisterRedirectThreat(706571, owner, 100);
                 Cast(player, me, 800443);
+                Cast(me, me, 805916);
             }
             else
                 Cast(me, me, 302580);
@@ -127,10 +130,15 @@ struct npc_ascension_xoroth_summon : public ScriptedAI
     }
     void sGossipHello(Player* player) override
     {
+        if (me->GetEntry() == 50268)
+            player->PlayerTalkClass->SendCloseGossip();
         Player* summoner = ObjectAccessor::GetPlayer(*me, owner);
         if (me->GetEntry() == 50268 && summoner && player->IsAlive() && !player->IsInCombat() &&
             player->IsWithinDistInMap(me, 5) && (player == summoner || summoner->IsInRaidWith(player)))
-            Cast(player, player, 804775);
+        {
+            player->CastCustomSpell(23161, SPELLVALUE_BASE_POINT1,
+                GetRidingGroundMountSpeed(player->GetBaseSkillValue(SKILL_RIDING)), player, true);
+        }
     }
     void JustDied(Unit*) override
     {

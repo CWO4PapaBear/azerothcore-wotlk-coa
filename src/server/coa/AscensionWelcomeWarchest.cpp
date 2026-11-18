@@ -1,8 +1,8 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
+#include "AscensionBazaarTokenReserve.h"
 #include "AscensionWildcard.h"
 #include "AscensionFreePick.h"
 #include "DatabaseEnv.h"
-#include "DBCStores.h"
 #include "GameTime.h"
 #include "Item.h"
 #include "ItemScript.h"
@@ -139,6 +139,9 @@ constexpr uint32 SCROLL_OF_RETREAT_ALLIANCE = 1175626;
 
 void DeliverOrQueueMail(Player* player, std::vector<Item*>& mailQueue, uint32 entry, uint32 count)
 {
+    if (entry == AscensionBazaarTokenReserve::TOKEN_ITEM)
+        AscensionBazaarTokenReserve::AddReserve(player, count);
+
     ItemPosCountVec dest;
     if (player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, entry, count) == EQUIP_ERR_OK)
     {
@@ -187,21 +190,6 @@ void FlushMailQueue(Player* player, std::vector<Item*> const& mailQueue,
     CharacterDatabase.CommitTransaction(trans);
 }
 
-void UnlockAllFlightPoints(Player* player)
-{
-    TeamId const team = player->GetTeamId();
-    for (TaxiNodesEntry const* node : sTaxiNodesStore)
-    {
-        if (!node)
-            continue;
-
-        if (sObjectMgr->GetTaxiMountDisplayId(node->ID, team, true))
-            player->m_taxi.SetTaximaskNode(node->ID);
-    }
-
-    player->SendTaxiNodeStatusMultiple();
-}
-
 class item_coa_elite_warchest : public ItemScript
 {
 public:
@@ -218,7 +206,6 @@ public:
         DeliverOrQueueMail(player, mailQueue, scrollOfRetreat, 1);
 
         FlushMailQueue(player, mailQueue);
-        UnlockAllFlightPoints(player);
 
         uint32 count = 1;
         player->DestroyItemCount(item, count, true);
@@ -234,7 +221,7 @@ public:
     bool OnUse(Player* player, Item* item, SpellCastTargets const&) override
     {
         std::vector<Item*> mailQueue;
-        DeliverOrQueueMail(player, mailQueue, 1004039, 3);
+        DeliverOrQueueMail(player, mailQueue, 1004039, 4);
         FlushMailQueue(player, mailQueue, "Bag of Bags");
 
         uint32 count = 1;

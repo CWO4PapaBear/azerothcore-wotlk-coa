@@ -17,23 +17,25 @@
 #include "QueryResult.h"
 #include "Item.h"
 #include "Log.h"
+#include "Mail.h"
 #include "ObjectMgr.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 
+#include <algorithm>
 #include <unordered_map>
 #include <vector>
 
 namespace
 {
-    std::unordered_map<uint32, std::vector<uint32>> g_setCaches;
+    std::unordered_map<uint32, std::vector<std::pair<uint32, uint32>>> g_setCaches;
 
     void LoadSetCaches()
     {
         g_setCaches.clear();
 
         QueryResult result = WorldDatabase.Query(
-            "SELECT cache_item, member_item FROM ethereal_bazaar_set_cache ORDER BY cache_item, idx");
+            "SELECT cache_item, member_item, count FROM ethereal_bazaar_set_cache ORDER BY cache_item, idx");
         if (!result)
         {
             LOG_WARN("module.bazaar", "Ethereal Bazaar: no set cache contents defined.");
@@ -46,13 +48,14 @@ namespace
             Field* f = result->Fetch();
             uint32 const cache = f[0].Get<uint32>();
             uint32 const member = f[1].Get<uint32>();
+            uint32 const count = std::max<uint32>(1, f[2].Get<uint8>());
 
             if (!sObjectMgr->GetItemTemplate(member))
             {
                 ++skipped;
                 continue;
             }
-            g_setCaches[cache].push_back(member);
+            g_setCaches[cache].emplace_back(member, count);
         } while (result->NextRow());
 
         std::size_t total = 0;
@@ -78,33 +81,47 @@ public:
             return true;
         }
 
-        // Every piece has to fit before anything is handed over. Opening a
-        // nine-piece set into two free slots and losing seven of them would be
-        // the kind of bug a player never forgives.
-        ItemPosCountVec dest;
-        for (uint32 member : it->second)
+        uint32 const cacheEntry = item->GetEntry();
+        player->DestroyItemCount(cacheEntry, 1, true);
+
+        std::vector<Item*> mail;
+        for (auto const& [member, count] : it->second)
         {
-            ItemPosCountVec one;
-            InventoryResult const check = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, one, member, 1);
-            if (check != EQUIP_ERR_OK)
+            uint32 const stackSize = std::max<uint32>(1, sObjectMgr->GetItemTemplate(member)->GetMaxStackSize());
+            for (uint32 left = count; left > 0;)
             {
-                player->SendEquipError(check, nullptr, nullptr, member);
-                return true;
+                uint32 const stack = std::min(left, stackSize);
+                left -= stack;
+
+                ItemPosCountVec dest;
+                if (player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, member, stack) == EQUIP_ERR_OK)
+                {
+                    if (Item* given = player->StoreNewItem(dest, member, true, Item::GenerateItemRandomPropertyId(member)))
+                        player->SendNewItem(given, stack, true, false);
+                }
+                else if (Item* piece = Item::CreateItem(member, stack, player))
+                    mail.push_back(piece);
             }
         }
 
-        player->DestroyItemCount(item->GetEntry(), 1, true);
-        for (uint32 member : it->second)
+        if (!mail.empty())
         {
-            ItemPosCountVec one;
-            if (player->CanStoreNewItem(NULL_BAG, NULL_SLOT, one, member, 1) != EQUIP_ERR_OK)
-                continue;
-            if (Item* given = player->StoreNewItem(one, member, true, Item::GenerateItemRandomPropertyId(member)))
-                player->SendNewItem(given, 1, true, false);
+            CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+            for (std::size_t index = 0; index < mail.size(); index += MAX_MAIL_ITEMS)
+            {
+                MailDraft draft("Set cache", "Your bags were full, so the rest of your set was sent by mail.");
+                for (std::size_t i = index; i < std::min(index + std::size_t(MAX_MAIL_ITEMS), mail.size()); ++i)
+                {
+                    mail[i]->SaveToDB(trans);
+                    draft.AddItem(mail[i]);
+                }
+                draft.SendMailTo(trans, MailReceiver(player), MailSender(player));
+            }
+            CharacterDatabase.CommitTransaction(trans);
         }
 
         LOG_DEBUG("module.bazaar", "Ethereal Bazaar: {} opened set cache {} for {} pieces.",
-                  player->GetName(), item->GetEntry(), it->second.size());
+                  player->GetName(), cacheEntry, it->second.size());
         return true;
     }
 };

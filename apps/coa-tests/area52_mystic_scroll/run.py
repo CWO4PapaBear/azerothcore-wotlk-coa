@@ -46,10 +46,24 @@ int main(){
  {Player p;Item item;item.Count=1;p.space=false;assert(ReplaceMysticScroll(&p,&item,100,250,0));assert(p.consumed==1&&p.runes==4750);}
  {Player p;Item item;item.trade=true;assert(!ReplaceMysticScroll(&p,&item,100,0,0));assert(!p.consumed);}
  {Player p;Item item;p.runes=0;assert(!ReplaceMysticScroll(&p,&item,100,250,0));assert(!p.consumed);manager.exists=false;assert(!ReplaceMysticScroll(&p,&item,100,0,0));manager.exists=true;}
- {Player p;Item item{100,1};assert(!CollectMysticScroll(&p,&p.state,&item,false));assert(p.state.Known.contains(10)&&p.extracts==0&&p.runes==5000&&p.consumed==1);}
- {Player p;Item item{100,1};p.extracts=0;assert(!CollectMysticScroll(&p,&p.state,&item,true));assert(p.state.Known.contains(10)&&p.runes==3800&&p.consumed==1);}
- for(int reason=0;reason<6;++reason){Player p;Item item{100,1};if(reason==0)p.state.Known.insert(10);if(reason==1)altar=false;if(reason==2)change=false;if(reason==3)item.trade=true;if(reason==4){p.extracts=0;p.runes=0;}if(reason==5)item.Entry=999;assert(CollectMysticScroll(&p,&p.state,&item,true));assert(!p.consumed&&p.extracts==(reason==4?0:1));altar=true;change=true;}
- {Player p;Item item{100,1};p.extracts=0;assert(CollectMysticScroll(&p,&p.state,&item,false));assert(!p.consumed&&p.runes==5000);}
+ for(bool nearby : {false,true}) for(bool buy : {false,true}) for(bool funded : {false,true}) {
+     Player p; Item item{100,2}; altar=nearby;
+     p.extracts=funded?1:0; p.runes=funded?5000:0;
+     int commits=CharacterDatabase.commits;
+     assert(!CollectMysticScroll(&p,&p.state,&item,buy));
+     assert(p.state.Known.contains(10)&&item.Count==1&&p.consumed==1);
+     assert(p.extracts==(funded?1u:0u)&&p.runes==(funded?5000u:0u)&&p.money==25000);
+     assert(p.saves==1&&CharacterDatabase.commits==commits+1);
+     assert(CollectMysticScroll(&p,&p.state,&item,buy));
+     assert(item.Count==1&&CharacterDatabase.commits==commits+1);
+ }
+ for(int reason=0;reason<4;++reason){
+     Player p;Item item{100,1};change=reason!=0;item.trade=reason==1;
+     if(reason==2)item.Entry=999;
+     int commits=CharacterDatabase.commits;
+     assert(CollectMysticScroll(&p,&p.state,reason==3?nullptr:&item,true));
+     assert(!p.consumed&&p.state.Known.empty()&&CharacterDatabase.commits==commits);
+ }
  Data.BySpell.clear();assert(!DrawScroll());
 }
 """
@@ -59,5 +73,5 @@ with tempfile.TemporaryDirectory() as directory:
     cpp.write_text(prefix + code + suffix)
     subprocess.run([os.environ.get('CXX', 'c++'), '-std=c++20', str(cpp), '-o', str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
-print('PASS: full-pool draw creates items without learning; bag capacity; payment; trade protection; collection Extract/rune costs; duplicate and altar rejection')
+print('PASS: full-pool draw creates items without learning; bag capacity; payment; trade protection; free collection near or away from altar; duplicate and invalid item rejection')
 

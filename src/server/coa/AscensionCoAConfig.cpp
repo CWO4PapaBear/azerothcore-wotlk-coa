@@ -15,7 +15,8 @@ struct ClientRate
     ServerConfigs setting;
 };
 
-constexpr ClientRate XpRates[] = {
+constexpr ClientRate ClientRates[] = {
+    { "RATE_AUCTION_DEPOSIT", RATE_AUCTION_DEPOSIT },
     { "RATE_XP_GLOBAL", RATE_XP_GLOBAL },
     { "RATE_XP_KILL", RATE_XP_KILL },
     { "RATE_XP_KILL_TBC", RATE_XP_KILL_TBC },
@@ -47,6 +48,8 @@ constexpr ClientRate XpRates[] = {
     { "RATE_XP_PROFESSION_TAILORING_MODIFIER", RATE_XP_PROFESSION_TAILORING },
     { "RATE_XP_PROFESSION_LOCKPICKING_MODIFIER", RATE_XP_PROFESSION_LOCKPICKING },
     { "RATE_XP_PROFESSION_INSCRIPTION_MODIFIER", RATE_XP_PROFESSION_INSCRIPTION },
+    { "RATE_XP_PROFESSION_WOODCUTTING_MODIFIER", RATE_XP_PROFESSION_WOODCUTTING },
+    { "RATE_XP_PROFESSION_WOODWORKING_MODIFIER", RATE_XP_PROFESSION_WOODWORKING },
 };
 
 std::vector<AscensionClientConfigSource>& Sources()
@@ -111,14 +114,19 @@ void RegisterAscensionClientConfig(AscensionClientConfigSource source)
     Sources().push_back(source);
 }
 
-WorldPacket BuildAscensionCoAConfig()
+AscensionClientConfig CollectAscensionClientConfig()
 {
     AscensionClientConfig config;
-    for (ClientRate const& rate : XpRates)
+    for (ClientRate const& rate : ClientRates)
         config.Rates.emplace_back(std::string(rate.key), sWorld->getRate(rate.setting));
     for (AscensionClientConfigSource source : Sources())
         source(config);
+    return config;
+}
 
+WorldPacket BuildAscensionCoAConfig()
+{
+    AscensionClientConfig const config = CollectAscensionClientConfig();
     WorldPacket packet(SMSG_COA_CONFIG);
     uint32 constexpr integerVectorConfigCount = 0;
     uint32 constexpr floatVectorConfigCount = 0;

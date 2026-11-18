@@ -5,6 +5,7 @@
 #include "Spell.h"
 #include "SpellAuraEffects.h"
 #include "SpellAuras.h"
+#include "SpellMgr.h"
 #include "SpellScript.h"
 #include <algorithm>
 #include <cmath>
@@ -15,6 +16,8 @@ namespace
 using namespace AscensionBloodmage;
 constexpr uint32 VitalityCost = 10;
 constexpr uint32 Hemopulse = 524906;
+constexpr uint32 DarkfallenLamentLeech = 630874;
+constexpr uint32 DarkLiturgy = 800781;
 
 bool IsBloodmage(Player const* player)
 {
@@ -101,7 +104,9 @@ public:
     void ModifySpellEffectBaseValue(Unit const* caster, SpellInfo const* info, uint8 index, float& value) override
     {
         if (!caster || !caster->IsPlayer() || caster->getClass() != CLASS_SON_OF_ARUGAL ||
-            info->SpellFamilyName != 26 || index != EFFECT_0 || info->Effects[EFFECT_0].Effect != SPELL_EFFECT_HEAL)
+            info->SpellFamilyName != 26 || index != EFFECT_0 ||
+            (info->Effects[EFFECT_0].Effect != SPELL_EFFECT_HEAL &&
+             info->Effects[EFFECT_0].Effect != SPELL_EFFECT_HEALTH_LEECH))
             return;
 
         double bonus;
@@ -109,6 +114,24 @@ public:
             bonus = caster->GetStat(STAT_SPIRIT) * 0.5;
         else if (info->Id == Hemopulse)
             bonus = caster->GetStat(STAT_SPIRIT) * 0.45 + caster->GetStat(STAT_STAMINA) * 0.35;
+        else if (GetEmpowerment(info->Id) == Heartbreak)
+            bonus = std::max(0, const_cast<Unit*>(caster)->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_SHADOW)) * 0.5 +
+                caster->GetStat(STAT_SPIRIT);
+        else if (GetEmpowerment(info->Id) == Mend || sSpellMgr->GetFirstSpellInChain(info->Id) == DarkLiturgy)
+            bonus = caster->GetStat(STAT_SPIRIT) * 0.25;
+        else if (info->Id == DarkfallenLamentLeech &&
+            info->Effects[EFFECT_0].Effect == SPELL_EFFECT_HEALTH_LEECH &&
+            info->Effects[EFFECT_0].BonusMultiplier == 0)
+        {
+            if (SpellBonusEntry const* native = sSpellMgr->GetSpellBonusData(info->Id))
+                if (native->direct_damage != 0 || native->ap_bonus != 0)
+                    return;
+            float coefficient = 100.0f;
+            if (Player* owner = caster->GetSpellModOwner())
+                owner->ApplySpellMod(info->Id, SPELLMOD_BONUS_MULTIPLIER, coefficient);
+            bonus = std::max(0, const_cast<Unit*>(caster)->SpellBaseHealingBonusDone(SPELL_SCHOOL_MASK_SHADOW)) *
+                coefficient / 100.0f;
+        }
         else
             return;
 
@@ -225,6 +248,38 @@ class spell_ascension_bloodmage_empowered : public SpellScript
         OnHit += SpellHitFn(spell_ascension_bloodmage_empowered::ModifyHit);
     }
 };
+
+void SyncEmpoweredIndicator(Unit* unit)
+{
+    Player* player = unit ? unit->ToPlayer() : nullptr;
+    if (!player || player->getClass() != CLASS_SON_OF_ARUGAL)
+        return;
+    if (!CanEmpower(player))
+        player->RemoveAurasDueToSpell(EmpoweredIndicator, player->GetGUID());
+    else if (!player->HasAura(EmpoweredIndicator, player->GetGUID()))
+        player->CastSpell(player, EmpoweredIndicator, true);
+}
+
+class aura_ascension_bloodmage_empowered_indicator : public AuraScript
+{
+    PrepareAuraScript(aura_ascension_bloodmage_empowered_indicator);
+
+    bool Validate(SpellInfo const*) override { return ValidateSpellInfo({EmpoweredIndicator}); }
+
+    void Sync(AuraEffect const*, AuraEffectHandleModes)
+    {
+        SyncEmpoweredIndicator(GetTarget());
+    }
+
+    void Register() override
+    {
+        AfterEffectApply += AuraEffectApplyFn(aura_ascension_bloodmage_empowered_indicator::Sync, EFFECT_FIRST_FOUND,
+            SPELL_AURA_ANY, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+        AfterEffectRemove += AuraEffectRemoveFn(aura_ascension_bloodmage_empowered_indicator::Sync,
+            EFFECT_FIRST_FOUND, SPELL_AURA_ANY, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
 constexpr uint32 EternalPresenceBuff = 560010;
 
 class aura_ascension_eternal_presence : public AuraScript
@@ -300,6 +355,7 @@ void AddSC_AscensionBloodmageVitality()
     new bloodmage_vitality_scaling();
     RegisterSpellScript(spell_ascension_bloodmage_transfusion);
     RegisterSpellScript(spell_ascension_bloodmage_empowered);
+    RegisterSpellScript(aura_ascension_bloodmage_empowered_indicator);
     RegisterSpellScript(aura_ascension_eternal_presence);
     RegisterSpellScript(aura_ascension_endure_the_curse);
 }

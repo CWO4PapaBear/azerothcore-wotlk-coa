@@ -57,6 +57,7 @@ enum WarlockSpells
     SPELL_WARLOCK_GLYPH_OF_SIPHON_LIFE              = 56216,
     SPELL_WARLOCK_HAUNT                             = 48181,
     SPELL_WARLOCK_HAUNT_HEAL                        = 48210,
+    SPELL_WARLOCK_HAUNT_HEAL_REBORN                 = 1148210,
     SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R1           = 18692,
     SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R2           = 18693,
     SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R1         = 18703,
@@ -153,7 +154,8 @@ class spell_warl_shadowflame : public SpellScript
     void HandleSchoolDMG(SpellEffIndex /*effIndex*/)
     {
         if (Unit* target = GetHitUnit())
-            GetCaster()->CastSpell(target, (GetSpellInfo()->Id == 47897 ? 47960 : 61291), true);
+            GetCaster()->CastSpell(target, sSpellMgr->GetSpellTwinFor(
+                sSpellMgr->GetSpellTwinSource(GetSpellInfo()->Id) == 47897 ? 47960 : 61291, GetSpellInfo()->Id), true);
     }
 
     void Register() override
@@ -202,8 +204,15 @@ class spell_warl_improved_demonic_tactics : public AuraScript
         amplitude = 10 * IN_MILLISECONDS;
     }
 
+    bool IsCrit(AuraEffect const* aurEff) const
+    {
+        return aurEff->GetEffIndex() == EFFECT_0 || sSpellMgr->GetSpellTwinSource(GetId()) == GetId();
+    }
+
     void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool&  /*canBeRecalculated*/)
     {
+        if (!IsCrit(aurEff))
+            return;
         if (aurEff->GetEffIndex() == EFFECT_0)
             amount = CalculatePct<int32, float>(GetUnitOwner()->ToPlayer()->GetFloatValue(PLAYER_SPELL_CRIT_PERCENTAGE1 + static_cast<uint8>(SPELL_SCHOOL_FROST)), GetSpellInfo()->Effects[EFFECT_0].CalcValue());
         else
@@ -212,6 +221,8 @@ class spell_warl_improved_demonic_tactics : public AuraScript
 
     void HandleEffectCalcSpellMod(AuraEffect const* aurEff, SpellModifier*& spellMod)
     {
+        if (!IsCrit(aurEff))
+            return;
         if (!spellMod)
         {
             spellMod = new SpellModifier(aurEff->GetBase());
@@ -351,9 +362,9 @@ class spell_warl_generic_scaling : public AuraScript
                 amount = CalculatePct(std::max<int32>(0, maximum), 57);
 
                 // Glyph of felguard, 99% sure this is a HACK
-                if (pet->GetEntry() == NPC_FELGUARD)
+                if (GetStockPetEntry(pet->GetEntry()) == NPC_FELGUARD)
                 {
-                    if (AuraEffect* glyph = owner->GetAuraEffect(SPELL_GLYPH_OF_FELGUARD, EFFECT_0))
+                    if (AuraEffect* glyph = owner->GetAuraEffectOfRankedSpellOrTwin(SPELL_GLYPH_OF_FELGUARD, EFFECT_0))
                     {
                         amount += CalculatePct(pet->GetTotalAuraModValue(UNIT_MOD_ATTACK_POWER) - aurEff->GetAmount() + amount, glyph->GetAmount());
                     }
@@ -636,7 +647,7 @@ class spell_warl_create_healthstone : public SpellScript
             // Improved Healthstone
             if (AuraEffect const* aurEff = unitTarget->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, 284, 0))
             {
-                switch (aurEff->GetId())
+                switch (sSpellMgr->GetSpellTwinSource(aurEff->GetId()))
                 {
                     case SPELL_WARLOCK_IMPROVED_HEALTHSTONE_R1:
                         rank = 1;
@@ -816,7 +827,7 @@ class spell_warl_siphon_life : public AuraScript
 
         int32 amount = CalculatePct(static_cast<int32>(eventInfo.GetDamageInfo()->GetDamage()), aurEff->GetAmount());
         // Glyph of Siphon Life
-        if (AuraEffect const* glyph = GetTarget()->GetAuraEffect(SPELL_WARLOCK_GLYPH_OF_SIPHON_LIFE, EFFECT_0))
+        if (AuraEffect const* glyph = GetTarget()->GetAuraEffectOfRankedSpellOrTwin(SPELL_WARLOCK_GLYPH_OF_SIPHON_LIFE, EFFECT_0))
             AddPct(amount, glyph->GetAmount());
 
         GetTarget()->CastCustomSpell(SPELL_WARLOCK_SIPHON_LIFE_HEAL, SPELLVALUE_BASE_POINT0, amount, GetTarget(), true, nullptr, aurEff);
@@ -854,7 +865,9 @@ class spell_warl_life_tap : public SpellScript
             int32 spellEffect = area52 ? Area52LifeTap::Cost(caster->GetMaxHealth(), caster->GetMaxPower(POWER_MANA)) : GetEffectValue();
             if (area52 && !Area52LifeTap::CanPay(caster->GetHealth(), spellEffect))
                 return;
-            int32 mana = area52 ? spellEffect : int32(spellEffect + (caster->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_SHADOW) * 0.5f));
+            SpellBonusEntry const* bonus = sSpellMgr->GetSpellBonusData(GetSpellInfo()->Id);
+            float const coefficient = bonus ? bonus->direct_damage : 0.5f;
+            int32 mana = area52 ? spellEffect : int32(spellEffect + (caster->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_SHADOW) * coefficient));
 
             // Shouldn't Appear in Combat Log
             target->ModifyHealth(-spellEffect);
@@ -1046,7 +1059,9 @@ class spell_warl_haunt_aura : public AuraScript
         if (Unit* caster = GetCaster())
         {
             int32 amount = aurEff->GetAmount();
-            GetTarget()->CastCustomSpell(caster, SPELL_WARLOCK_HAUNT_HEAL, &amount, nullptr, nullptr, true, nullptr, aurEff, GetCasterGUID());
+            uint32 const heal = sSpellMgr->GetSpellTwinSource(GetId()) != GetId() ? SPELL_WARLOCK_HAUNT_HEAL_REBORN :
+                SPELL_WARLOCK_HAUNT_HEAL;
+            GetTarget()->CastCustomSpell(caster, heal, &amount, nullptr, nullptr, true, nullptr, aurEff, GetCasterGUID());
         }
     }
 
@@ -1297,6 +1312,33 @@ class spell_warl_drain_soul : public AuraScript
     }
 };
 
+// -1101120 - Reborn Drain Soul: its ranks reverse the stock chain's effect order (channel death item at
+// EFFECT_0, periodic damage at EFFECT_1), so the per-tick Soul Shard chance needs its own registration.
+class spell_warl_drain_soul_reborn : public AuraScript
+{
+    PrepareAuraScript(spell_warl_drain_soul_reborn);
+
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARLOCK_CREATE_SOULSHARD });
+    }
+
+    void HandleTick(AuraEffect const* aurEff)
+    {
+        Unit* caster = GetCaster();
+        Unit* target = GetTarget();
+
+        if (caster && caster->IsPlayer() && caster->ToPlayer()->isHonorOrXPTarget(target))
+            if (roll_chance_i(20))
+                caster->CastSpell(caster, SPELL_WARLOCK_CREATE_SOULSHARD, aurEff);
+    }
+
+    void Register() override
+    {
+        OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_drain_soul_reborn::HandleTick, EFFECT_1, SPELL_AURA_PERIODIC_DAMAGE);
+    }
+};
+
 // 29341 - Shadowburn
 class spell_warl_shadowburn : public AuraScript
 {
@@ -1332,7 +1374,7 @@ class spell_warl_voidwalker_pet_passive : public AuraScript
         if (Unit* pet = GetUnitOwner())
             if (pet->IsPet())
                 if (Unit* owner = pet->ToPet()->GetOwner())
-                    if (AuraEffect* aurEff = owner->GetAuraEffect(SPELL_WARLOCK_GLYPH_OF_VOIDWALKER, EFFECT_0))
+                    if (AuraEffect* aurEff = owner->GetAuraEffectOfRankedSpellOrTwin(SPELL_WARLOCK_GLYPH_OF_VOIDWALKER, EFFECT_0))
                         amount += aurEff->GetAmount();
     }
 
@@ -1528,7 +1570,10 @@ class spell_warl_improved_drain_soul : public AuraScript
         // Make sure that dying unit is afflicted by the caster's Drain Soul debuff
         Unit* caster = eventInfo.GetActor();
         Unit* victim = eventInfo.GetActionTarget();
-        return victim->GetAuraApplicationOfRankedSpell(SPELL_WARLOCK_DRAIN_SOUL_R1, caster->GetGUID()) != nullptr;
+        for (uint32 drainSoul : sSpellMgr->GetSpellAndRelatives(SPELL_WARLOCK_DRAIN_SOUL_R1))
+            if (victim->GetAuraApplicationOfRankedSpell(drainSoul, caster->GetGUID()))
+                return true;
+        return false;
     }
 
     void HandleProc(ProcEventInfo& eventInfo)
@@ -1579,10 +1624,11 @@ class spell_warl_seed_of_corruption_dummy : public AuraScript
         Unit* host = GetUnitOwner();
         host->CastSpell(host, SPELL_WARLOCK_SEED_OF_CORRUPTION_VISUAL, true, nullptr, aurEff);
 
-        // Cast at the host's location, including on death. Supplying this Seed
-        // as a triggering aura would exclude neighboring Seeds of the same rank.
-        uint32 spellId = sSpellMgr->GetSpellWithRank(SPELL_WARLOCK_SEED_OF_CORRUPTION_DAMAGE_R1, GetSpellInfo()->GetRank());
-        caster->CastSpell(host->GetPositionX(), host->GetPositionY(), host->GetPositionZ(), spellId, true);
+        uint32 const spellId = sSpellMgr->GetSpellWithRankFor(SPELL_WARLOCK_SEED_OF_CORRUPTION_DAMAGE_R1, GetId());
+        if (AscensionFreePick::Applies(caster->ToPlayer()))
+            caster->CastSpell(host->GetPositionX(), host->GetPositionY(), host->GetPositionZ(), spellId, true);
+        else
+            caster->CastSpell(GetUnitOwner(), spellId, true, nullptr, aurEff);
     }
 
     void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
@@ -1692,7 +1738,7 @@ class spell_warl_soul_leech : public AuraScript
         caster->CastCustomSpell(SPELL_WARLOCK_SOUL_LEECH_HEAL, SPELLVALUE_BASE_POINT0, healAmount, caster, true, nullptr, aurEff);
 
         // Improved Soul Leech code below
-        AuraEffect const* impSoulLeech = GetTarget()->GetAuraEffectOfRankedSpell(SPELL_WARLOCK_IMP_SOUL_LEECH_R1, EFFECT_1, aurEff->GetCasterGUID());
+        AuraEffect const* impSoulLeech = GetTarget()->GetAuraEffectOfRankedSpellOrTwin(SPELL_WARLOCK_IMP_SOUL_LEECH_R1, EFFECT_1, aurEff->GetCasterGUID());
         if (!impSoulLeech)
             return;
 
@@ -1867,6 +1913,7 @@ void AddSC_warlock_spell_scripts()
     RegisterSpellScript(spell_warl_soulshatter);
     RegisterSpellScript(spell_warl_unstable_affliction);
     RegisterSpellScript(spell_warl_drain_soul);
+    RegisterSpellScript(spell_warl_drain_soul_reborn);
     RegisterSpellScript(spell_warl_shadowburn);
     RegisterSpellScript(spell_warl_voidwalker_pet_passive);
     RegisterSpellScript(spell_warl_curse_of_agony);

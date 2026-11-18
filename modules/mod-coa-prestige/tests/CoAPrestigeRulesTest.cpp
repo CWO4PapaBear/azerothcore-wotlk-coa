@@ -42,10 +42,23 @@ TEST(CoAPrestige, StateRoundTripsThroughTheSetting)
     EXPECT_EQ(DecodeState({ 2, 0, 31 }), (State{ 2, false, 31 }));
 }
 
+TEST(CoAPrestige, CycleDailySurvivesSavingWithoutReinterpretingSignaturePending)
+{
+    State const cycle{ 4, true, 39, false, 80956 };
+    EXPECT_EQ(EncodeState(cycle), (std::vector<uint32_t>{ 4, 1, 39, 0, 80956 }));
+    EXPECT_EQ(DecodeState(EncodeState(cycle)), cycle);
+    State const pending{ 4, true, 39, true, 80956 };
+    EXPECT_EQ(DecodeState(EncodeState(pending)), pending);
+    EXPECT_EQ(DecodeState({ 4, 1, 39 }).dailyQuest, 0u);
+    EXPECT_EQ(DecodeState({ 4, 1, 39, 1 }).dailyQuest, 0u);
+    EXPECT_TRUE(DecodeState({ 4, 1, 39, 1 }).signaturePending);
+}
+
 TEST(CoAPrestige, ActivationNeedsTheLevelAndASpecialization)
 {
     ActivationFacts ready;
     ready.level = 60;
+    ready.requiredLevel = 60;
     ready.specialization = 25;
     EXPECT_EQ(CheckActivation(ready), Refusal::None);
     ready.specialization = 1;
@@ -76,6 +89,7 @@ TEST(CoAPrestige, ActivationNeedsAQuietMomentInTheOpenWorld)
 {
     ActivationFacts ready;
     ready.level = 60;
+    ready.requiredLevel = 60;
     ready.specialization = 25;
 
     ActivationFacts facts = ready;
@@ -119,7 +133,18 @@ TEST(CoAPrestige, TheSpecializationStaysLockedWhilePrestiging)
         "Your active specialization is prestige locked until you reach level 60.");
 }
 
-TEST(CoAPrestige, OnlyOrdinaryZoneQuestsAreReplayed)
+TEST(CoAPrestige, CompletedPrestigeKeepsOnlySignatureRestorationPending)
+{
+    State const pending{ 1, false, 17, true };
+    EXPECT_EQ(EncodeState(pending), (std::vector<uint32_t>{ 1, 0, 17, 1 }));
+    EXPECT_EQ(DecodeState(EncodeState(pending)), pending);
+    EXPECT_TRUE(IsSpecializationSwitchAllowed(DecodeState(EncodeState(pending)), 18));
+
+    EXPECT_FALSE(DecodeState({ 1, 0, 17 }).signaturePending);
+    EXPECT_FALSE(DecodeState({ 1, 0, 17, 0 }).signaturePending);
+}
+
+TEST(CoAPrestige, OnlyLevellingZoneAndDungeonQuestsAreReplayed)
 {
     QuestTraits const zoneQuest{ 12, 20, QuestTypeNormal, false };
     EXPECT_TRUE(IsReplayableQuest(zoneQuest, 60));
@@ -130,9 +155,10 @@ TEST(CoAPrestige, OnlyOrdinaryZoneQuestsAreReplayed)
     quest.type = QuestTypeEscort;
     EXPECT_TRUE(IsReplayableQuest(quest, 60));
 
+    quest.type = QuestTypeDungeon;
+    EXPECT_TRUE(IsReplayableQuest(quest, 60)) << "dungeon";
+
     quest = zoneQuest;
-    quest.type = 81;
-    EXPECT_FALSE(IsReplayableQuest(quest, 60)) << "dungeon";
     quest.type = 62;
     EXPECT_FALSE(IsReplayableQuest(quest, 60)) << "raid";
     quest.type = 41;
@@ -153,8 +179,18 @@ TEST(CoAPrestige, OnlyOrdinaryZoneQuestsAreReplayed)
     EXPECT_FALSE(IsReplayableQuest(quest, 60));
     quest.level = 60;
     EXPECT_TRUE(IsReplayableQuest(quest, 60));
-    quest.level = -1;
-    EXPECT_FALSE(IsReplayableQuest(quest, 60)) << "scales with the player";
+    quest.level = 0;
+    EXPECT_FALSE(IsReplayableQuest(quest, 60));
+
+    quest = zoneQuest;
+    quest.level = ScaledQuestLevel;
+    quest.minLevel = 3;
+    EXPECT_TRUE(IsReplayableQuest(quest, 60)) << "scales with the player";
+    quest.minLevel = 61;
+    EXPECT_FALSE(IsReplayableQuest(quest, 60)) << "scales, but opens above the Prestige level";
+    quest.minLevel = 3;
+    quest.zoneOrSort = -161;
+    EXPECT_FALSE(IsReplayableQuest(quest, 60)) << "scaled class quest";
 }
 
 TEST(CoAPrestige, RewardsParseAsItemCountPairs)
@@ -181,9 +217,10 @@ TEST(CoAPrestige, RewardsParseAsItemCountPairs)
 
 TEST(CoAPrestige, ExperienceBonusMultipliesAndSaturates)
 {
-    EXPECT_EQ(ApplyExperienceBonus(456, 150), 1140u);
-    EXPECT_EQ(ApplyExperienceBonus(146, 150), 365u);
-    EXPECT_EQ(ApplyExperienceBonus(100, 0), 100u);
+    EXPECT_EQ(ApplyExperienceBonus(100, 300), 300u);
+    EXPECT_EQ(ApplyExperienceBonus(456, 150), 684u);
+    EXPECT_EQ(ApplyExperienceBonus(146, 150), 219u);
+    EXPECT_EQ(ApplyExperienceBonus(100, 0), 0u);
     EXPECT_EQ(ApplyExperienceBonus(0, 150), 0u);
     EXPECT_EQ(ApplyExperienceBonus(std::numeric_limits<uint32_t>::max(), 150), std::numeric_limits<uint32_t>::max());
 }
@@ -227,4 +264,22 @@ TEST(CoAPrestige, ThePrestigeDailiesAreExemptFromTheQuestReset)
     EXPECT_FALSE(IsPrestigeDaily(0));
     EXPECT_FALSE(IsPrestigeDaily(1));
     EXPECT_FALSE(IsPrestigeDaily(900001));
+}
+
+TEST(CoAPrestige, RealmCapControlsActivationAndCompletionThreshold)
+{
+    for (uint32_t cap : { 60u, 70u, 80u })
+    {
+        uint32_t const level = ResolveRequiredLevel(cap);
+        EXPECT_EQ(level, cap);
+        ActivationFacts facts;
+        facts.requiredLevel = level;
+        facts.specialization = 1;
+        facts.level = cap - 1;
+        EXPECT_EQ(CheckActivation(facts), Refusal::BelowLevel);
+        facts.level = cap;
+        EXPECT_EQ(CheckActivation(facts), Refusal::None);
+        EXPECT_NE(SpecializationLockedMessage(level).find(std::to_string(cap)), std::string::npos);
+    }
+    EXPECT_EQ(ResolveRequiredLevel(1), 2u);
 }

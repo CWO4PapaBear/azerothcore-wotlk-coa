@@ -1,0 +1,202 @@
+{
+  "schema": 1,
+  "name": "Dire Maul East: Ironbark is freed only after Zevrim Thornhoof and Hydrospawn die, and only one Ironbark is visible",
+  "contract": "Before Zevrim Thornhoof (11490) and Hydrospawn (13280) are both dead, Old Ironbark (11491) is visible and Ironbark the Redeemed (14241) is hidden (#11379: Zevrim's death alone used to free him, so the east wing could be skipped). After Zevrim dies Old Ironbark stays; once Hydrospawn dies too, Old Ironbark despawns and Ironbark the Redeemed becomes visible, so a player never sees both. dire-maul-east-door-needs-ironbark-11379 covers the reverse kill order and the walk to the door; a reloaded instance is not covered.",
+  "timeout_ms": 120000,
+  "location": {
+    "map": 429,
+    "x": -70.0,
+    "y": -276.0,
+    "z": -57.7,
+    "o": 0.0,
+    "ignore_access": true
+  },
+  "players": [
+    {
+      "id": "hero",
+      "race": 1,
+      "class": 1,
+      "level": 60,
+      "melee_hit_rating": 10000,
+      "expertise_rating": 10000
+    }
+  ],
+  "creatures": [
+    {
+      "id": "zevrim",
+      "owner": "hero",
+      "entry": 11490,
+      "level": 60,
+      "health": 2000,
+      "distance": 3,
+      "reaction": 2
+    },
+    {
+      "id": "old",
+      "owner": "hero",
+      "entry": 11491,
+      "level": 60,
+      "distance": 8
+    },
+    {
+      "id": "redeemed",
+      "owner": "hero",
+      "entry": 14241,
+      "level": 60,
+      "distance": 14
+    }
+  ],
+  "steps": [
+    {
+      "action": "set_health",
+      "actor": "hero",
+      "value": 100000,
+      "maximum": 100000
+    },
+    {
+      "action": "wait",
+      "ms": 4000
+    },
+    {
+      "action": "assert",
+      "label": "CONTROL: Old Ironbark is there before Zevrim Thornhoof dies",
+      "actor": "hero",
+      "metric": "nearby_creature_count",
+      "entry": 11491,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "label": "CONTROL: Ironbark the Redeemed is spawned before Zevrim Thornhoof dies",
+      "actor": "hero",
+      "metric": "nearby_creature_count",
+      "entry": 14241,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "label": "Old Ironbark is visible before Zevrim Thornhoof dies",
+      "actor": "hero",
+      "metric": "can_detect",
+      "target": "old",
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "label": "Ironbark the Redeemed is hidden before Zevrim Thornhoof dies",
+      "actor": "hero",
+      "metric": "can_detect",
+      "target": "redeemed",
+      "equals": 0
+    },
+    {
+      "action": "attack",
+      "actor": "hero",
+      "target": "zevrim"
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "attack",
+      "actor": "hero",
+      "target": "zevrim"
+    },
+    {
+      "action": "assert",
+      "label": "CONTROL: Zevrim Thornhoof fights the hero",
+      "actor": "zevrim",
+      "metric": "combat",
+      "equals": 1,
+      "within_ms": 10000
+    },
+    {
+      "action": "set_health",
+      "actor": "zevrim",
+      "value": 1
+    },
+    {
+      "action": "assert",
+      "label": "CONTROL: Zevrim Thornhoof dies",
+      "actor": "zevrim",
+      "metric": "alive",
+      "equals": 0,
+      "within_ms": 30000
+    },
+    {
+      "action": "wait",
+      "ms": 8000
+    },
+    {
+      "action": "assert",
+      "label": "Old Ironbark stays while Hydrospawn lives",
+      "actor": "hero",
+      "metric": "nearby_creature_count",
+      "entry": 11491,
+      "equals": 1
+    },
+    {
+      "action": "assert",
+      "label": "Ironbark the Redeemed stays hidden while Hydrospawn lives",
+      "actor": "hero",
+      "metric": "can_detect",
+      "target": "redeemed",
+      "equals": 0
+    },
+    {
+      "action": "summon",
+      "actor": "hero",
+      "as": "hydrospawn",
+      "entry": 13280,
+      "distance": 3
+    },
+    {
+      "action": "attack",
+      "actor": "hero",
+      "target": "hydrospawn"
+    },
+    {
+      "action": "assert",
+      "label": "CONTROL: Hydrospawn fights the hero",
+      "actor": "hydrospawn",
+      "metric": "combat",
+      "equals": 1,
+      "within_ms": 10000
+    },
+    {
+      "action": "set_health",
+      "actor": "hydrospawn",
+      "value": 1
+    },
+    {
+      "action": "assert",
+      "label": "CONTROL: Hydrospawn dies",
+      "actor": "hydrospawn",
+      "metric": "alive",
+      "equals": 0,
+      "within_ms": 30000
+    },
+    {
+      "action": "wait",
+      "ms": 8000
+    },
+    {
+      "action": "assert",
+      "label": "Old Ironbark despawns after Zevrim Thornhoof and Hydrospawn die",
+      "actor": "hero",
+      "metric": "nearby_creature_count",
+      "entry": 11491,
+      "equals": 0,
+      "within_ms": 10000
+    },
+    {
+      "action": "assert",
+      "label": "Ironbark the Redeemed is visible after Zevrim Thornhoof and Hydrospawn die",
+      "actor": "hero",
+      "metric": "can_detect",
+      "target": "redeemed",
+      "equals": 1
+    }
+  ]
+}

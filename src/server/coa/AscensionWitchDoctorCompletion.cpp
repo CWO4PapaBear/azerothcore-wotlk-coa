@@ -141,6 +141,8 @@ void GainSpirit(Player* player, uint8 count)
     for (uint8 i = 0; i < count; ++i)
     {
         Cast(player, player, Spirit);
+        if (player->HasAura(TrueSpirit))
+            Cast(player, player, TrueSpiritReady);
         if (player->HasAura(SpiritDevotee))
             Cast(player, player, SpiritMana);
     }
@@ -215,6 +217,28 @@ void ApplyContracts(SpellInfo* info)
         info->Effects[index].Amplitude = amplitude;
         info->Effects[index].TriggerSpell = 0;
     };
+    auto addStatPercent = [info](uint8 index, Stats stat)
+    {
+        SpellEffectInfo const& source = info->Effects[EFFECT_0];
+        SpellEffectInfo& added = info->Effects[index];
+        added.Effect = SPELL_EFFECT_APPLY_AURA;
+        added.ApplyAuraName = SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE;
+        added.BasePoints = source.BasePoints;
+        added.DieSides = source.DieSides;
+        added.MiscValue = stat;
+        added.TargetA = source.TargetA;
+        added.TargetB = SpellImplicitTargetInfo();
+    };
+    if ((id == JujuInjection || id == JujuInjectionTwo) && !info->Effects[EFFECT_2].Effect &&
+        info->Effects[EFFECT_0].IsAura(SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE) &&
+        info->Effects[EFFECT_0].MiscValue == STAT_AGILITY &&
+        info->Effects[EFFECT_1].IsAura(SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE) &&
+        info->Effects[EFFECT_1].MiscValue == STAT_INTELLECT)
+        addStatPercent(EFFECT_2, STAT_SPIRIT);
+    if (id == SpiritWardenBuff && !info->Effects[EFFECT_1].Effect &&
+        info->Effects[EFFECT_0].IsAura(SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE) &&
+        info->Effects[EFFECT_0].MiscValue == STAT_SPIRIT)
+        addStatPercent(EFFECT_1, STAT_AGILITY);
     if (id == Shadowhunter)
         dummy(EFFECT_1);
     if (id == PuppeteersGrasp)
@@ -279,7 +303,13 @@ void ApplyContracts(SpellInfo* info)
     if (IsJuju(info))
         info->Effects[EFFECT_1].Effect = 0;
     if (id == PuppetHit)
-        info->Effects[EFFECT_1].Effect = 0;
+    {
+        info->Effects[EFFECT_0].Effect = SPELL_EFFECT_SCHOOL_DAMAGE;
+        info->DmgClass = SPELL_DAMAGE_CLASS_MAGIC;
+        info->AttributesEx3 |= SPELL_ATTR3_NOT_A_PROC;
+        info->AttributesCu |= SPELL_ATTR0_CU_DIRECT_DAMAGE;
+        info->AttributesCu &= ~SPELL_ATTR0_CU_BINARY_SPELL;
+    }
     if (Family(info, 0, 8))
     {
         periodic(EFFECT_0, info->Effects[EFFECT_0].Amplitude);
@@ -385,6 +415,8 @@ void ApplyContracts(SpellInfo* info)
         info->Effects[EFFECT_1].SpellClassMask = flag96(0, 0, 1073741824);
     if (id == SenjinWisdom)
         info->Effects[EFFECT_0].SpellClassMask = flag96(0, 0, 1073741824);
+    if (id == VoljinBlessing)
+        dummy(EFFECT_0);
     if (id == RageBrewBuff)
         info->Effects[EFFECT_1].BasePoints = 14;
     if (id == Voice)
@@ -438,7 +470,14 @@ void ApplyContracts(SpellInfo* info)
     if (id == HexfireWrath)
         info->Effects[EFFECT_2].Effect = 0;
     if (id == BigVoodoo)
-        info->Effects[EFFECT_1].Effect = info->Effects[EFFECT_2].Effect = 0;
+        info->Effects[EFFECT_1].TargetB = SpellImplicitTargetInfo(TARGET_DEST_DYNOBJ_ALLY);
+    if (id == BigVoodooField)
+    {
+        info->AttributesEx3 &= ~SPELL_ATTR3_ONLY_ON_PLAYER;
+        for (SpellEffectInfo& effect : info->Effects)
+            if (effect.Effect == SPELL_EFFECT_APPLY_AREA_AURA_OWNER)
+                effect.Effect = SPELL_EFFECT_APPLY_AREA_AURA_PET;
+    }
     if (id == VoodooCauldron)
         info->Effects[EFFECT_2].Effect = 0;
     if (id == WarGolem)
@@ -452,7 +491,7 @@ void ApplyContracts(SpellInfo* info)
         absorb.TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
     }
     for (uint32 child : {WardHeal, SpiritManaTick, Cleanse, SereneField, DarkField, JungleFieldSpell, SwiftField,
-                         CauldronBuff, BigVoodooField, VoodooProtectionSpell})
+                         CauldronBuff})
         if (id == child)
             for (SpellEffectInfo& effect : info->Effects)
                 if (effect.IsEffect())
@@ -484,8 +523,6 @@ void ApplyContracts(SpellInfo* info)
         info->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_HASTE_SPELLS;
         info->Effects[EFFECT_0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ALLY);
     }
-    if (id == VoodooProtectionSpell)
-        info->Effects[EFFECT_0].BasePoints = -21;
     if (id == JungleThistle)
     {
         info->Effects[EFFECT_0].Effect = SPELL_EFFECT_TRIGGER_SPELL;

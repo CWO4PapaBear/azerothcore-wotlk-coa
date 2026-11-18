@@ -287,7 +287,7 @@ class pyromancer_spells : public AllSpellScript
                 if (tender)
                     for (Unit* ally : Allies(player, target, 10, sSpellMgr->GetSpellInfo(704274)->MaxAffectedTargets))
                         Copy(player, ally, 704274, CalculatePct(healing, Amount(tender->GetId())));
-                if (player->HasAura(806747) && target->ToCreature() && AnyPet(target))
+                if (player->GetOwnedAura(806747, player->GetGUID()) && target->ToCreature() && AnyPet(target))
                 {
                     SpellInfo const* fuel = sSpellMgr->GetSpellInfo(806749);
                     for (Unit* ally :
@@ -453,10 +453,27 @@ class spell_ascension_pyromancer_ability : public SpellScript
         OnEffectHitTarget += SpellEffectFn(spell_ascension_pyromancer_ability::Effect, EFFECT_ALL, SPELL_EFFECT_ANY);
     }
 };
+
+class spell_ascension_pyromancer_pillar_of_flame : public SpellScript
+{
+    PrepareSpellScript(spell_ascension_pyromancer_pillar_of_flame);
+
+    void FilterPrimaryTarget(std::list<WorldObject*>& targets)
+    {
+        if (Unit* victim = GetExplTargetUnit())
+            targets.remove(victim);
+    }
+
+    void Register() override
+    {
+        OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_ascension_pyromancer_pillar_of_flame::FilterPrimaryTarget, EFFECT_1, TARGET_UNIT_DEST_AREA_ENEMY);
+    }
+};
 }
 void AddSC_AscensionPyromancerAbilities()
 {
     new pyromancer_spells();
     RegisterSpellScript(spell_ascension_pyromancer_resource);
     RegisterSpellScript(spell_ascension_pyromancer_ability);
+    RegisterSpellScript(spell_ascension_pyromancer_pillar_of_flame);
 }

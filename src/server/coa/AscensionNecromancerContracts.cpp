@@ -10,6 +10,7 @@
 #include "SpellAuras.h"
 #include "SpellMgr.h"
 #include <algorithm>
+#include <array>
 
 namespace AscensionNecromancer
 {
@@ -19,6 +20,23 @@ enum RangeIndex : uint32
 {
     SPELL_RANGE_THIRTY_YARDS = 4
 };
+constexpr std::array<uint32, 8> FLESH_TO_WORMS_RANKS = {500338, 501855, 501856, 501857,
+                                                       501858, 501859, 501860, 501861};
+void GrantFleshToWormsPeriodicCrit(Unit* target, Aura* aura)
+{
+    if (std::find(FLESH_TO_WORMS_RANKS.begin(), FLESH_TO_WORMS_RANKS.end(), aura->GetId()) ==
+        FLESH_TO_WORMS_RANKS.end())
+        return;
+    Unit* caster = aura->GetCaster();
+    AuraEffect* effect = aura->GetEffect(EFFECT_0);
+    if (!caster || !effect || effect->GetAuraType() != SPELL_AURA_PERIODIC_DAMAGE)
+        return;
+    SpellInfo const* info = aura->GetSpellInfo();
+    float chance = caster->SpellDoneCritChance(nullptr, info, info->GetSchoolMask(), BASE_ATTACK, true);
+    if (chance > 0.0f)
+        chance = target->SpellTakenCritChance(caster, info, info->GetSchoolMask(), chance, BASE_ATTACK, true);
+    effect->SetCritChance(std::max(0.0f, chance));
+}
 }
 
 void ApplyContracts(SpellInfo* info)
@@ -29,6 +47,22 @@ void ApplyContracts(SpellInfo* info)
     {
         info->Effects[0].ApplyAuraName = info->Effects[1].ApplyAuraName = SPELL_AURA_DUMMY;
         return;
+    }
+    for (auto const& coefficient : NecromancerCoefficients)
+        if (coefficient.id == info->Id)
+            info->Effects[coefficient.effect].BonusMultiplier = 0.0f;
+    if (info->Id == 504845)
+        info->AuraInterruptFlags |= AURA_INTERRUPT_FLAG_TAKE_DAMAGE;
+    if (info->Id == 570042)
+    {
+        info->Effects[EFFECT_2].Effect = SPELL_EFFECT_WEAPON_PERCENT_DAMAGE;
+        info->Effects[EFFECT_2].BasePoints = 199;
+    }
+    if (info->Id == 803767)
+    {
+        info->Effects[0].Effect = SPELL_EFFECT_DUMMY;
+        for (uint8 i = 1; i < MAX_SPELL_EFFECTS; ++i)
+            info->Effects[i].Effect = 0;
     }
     if (info->SpellFamilyName != 29)
         return;
@@ -45,8 +79,14 @@ void ApplyContracts(SpellInfo* info)
         info->Effects[index].Amplitude = interval;
         info->Effects[index].TriggerSpell = 0;
     };
+    auto nativeSummonProc = [id](SpellEffectInfo const& effect)
+    {
+        return effect.Effect == SPELL_EFFECT_ASCENSION_APPLY_AURA_TO_SUMMONS &&
+               ((id == 503740 && effect.TriggerSpell == 707014) ||
+                (id == 531128 && effect.TriggerSpell == 531131));
+    };
     for (SpellEffectInfo& effect : info->Effects)
-        if (effect.ApplyAuraName == 42 || effect.ApplyAuraName == 354)
+        if ((effect.ApplyAuraName == 42 || effect.ApplyAuraName == 354) && !nativeSummonProc(effect))
         {
             effect.ApplyAuraName = SPELL_AURA_DUMMY;
             effect.TriggerSpell = 0;
@@ -101,6 +141,13 @@ void ApplyContracts(SpellInfo* info)
                 effect.Effect = 0;
     if (id == 804360)
         dummy(0);
+    for (uint32 harvestPlague : {500968, 501890, 501891, 501892, 583255, 583256})
+        if (id == harvestPlague)
+        {
+            info->Effects[0].ApplyAuraName = SPELL_AURA_PERIODIC_DAMAGE;
+            if (!info->Effects[0].TargetA.GetTarget())
+                info->Effects[0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ENEMY);
+        }
     if (id == 573223)
     {
         dummy(0);
@@ -140,6 +187,8 @@ void ApplyContracts(SpellInfo* info)
         info->Effects[1].Effect = 0;
     if (id == 503738 || id == 570136)
         dummy(1);
+    if (id == 531130)
+        info->SpellFamilyFlags[0] |= 8;
     if (id == 300236)
         info->Effects[0].SpellClassMask[1] = 268435456;
     if (id == 302923 || id == 300234 || id == 301325 || id == 704163)
@@ -177,6 +226,8 @@ void ApplyContracts(SpellInfo* info)
     }
     if (id == 500991)
         info->RangeEntry = sSpellRangeStore.LookupEntry(SPELL_RANGE_THIRTY_YARDS);
+    if (id == 504868 || id == 504907)
+        info->AttributesEx3 |= SPELL_ATTR3_ALWAYS_HIT;
     if (id == 300580)
         for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
             if (info->Effects[i].IsEffect())
@@ -191,7 +242,11 @@ void ApplyContracts(SpellInfo* info)
     if (id == 500981)
         info->Effects[2].Effect = 0;
     if (id == 804371)
+    {
         info->Effects[0].MiscValue = 444914;
+        info->Effects[1].ApplyAuraName = SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE;
+        info->Attributes |= SPELL_ATTR0_NO_IMMUNITIES;
+    }
     if (id == 505224)
     {
         info->Effects[0].ApplyAuraName = SPELL_AURA_SCHOOL_ABSORB;
@@ -202,10 +257,18 @@ void ApplyContracts(SpellInfo* info)
     }
     if (id == 705746)
         info->Effects[0].ApplyAuraName = SPELL_AURA_SCHOOL_HEAL_ABSORB;
-    if (id == 805049 || id == 807811 || id == 807813)
-        info->RecoveryTime = info->CategoryRecoveryTime = 180000;
+    if (id == 808017)
+    {
+        info->Effects[2].ApplyAuraName = SPELL_AURA_SPELL_MAGNET;
+        info->ProcFlags = info->ProcCharges = 0;
+    }
     if (id == 803773)
         info->CategoryRecoveryTime = 60000;
+    if (id == 805027 || (id >= 807938 && id <= 807941))
+    {
+        info->CategoryEntry = nullptr;
+        info->CategoryRecoveryTime = 0;
+    }
     if (id == 807796)
         periodic(1, 5000);
     if (id == 808016)
@@ -251,7 +314,7 @@ void ApplyContracts(SpellInfo* info)
         for (uint8 index = 0; index < MAX_SPELL_EFFECTS; ++index)
             if (info->Effects[index].ApplyAuraName)
                 dummy(index);
-    if (id == 803767 || id == 803773)
+    if (id == 803773)
     {
         info->Effects[0].Effect = SPELL_EFFECT_DUMMY;
         for (uint8 i = 1; i < MAX_SPELL_EFFECTS; ++i)
@@ -282,6 +345,7 @@ void ApplyContracts(SpellInfo* info)
         dummy(0);
         info->Effects[0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ANY);
         info->Effects[1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ANY);
+        info->DurationEntry = sSpellDurationStore.LookupEntry(18);
     }
     if (Family(info, 0, 16) && id >= 562210 && id <= 562213)
     {
@@ -297,6 +361,8 @@ void ApplyContracts(SpellInfo* info)
     }
     if (id == 500267)
         info->Effects[1].Effect = 0;
+    if (id == 707002)
+        info->Effects[0].TargetA = SpellImplicitTargetInfo(TARGET_DEST_TARGET_ENEMY);
     if (id == 500307)
         info->Effects[0].Effect = 0;
     if (id == 500365)
@@ -323,17 +389,39 @@ void ApplyContracts(SpellInfo* info)
         info->Effects[1].TargetB = SpellImplicitTargetInfo();
         info->TargetAuraSpell = 0;
     }
+    if (id == 801530)
+    {
+        info->AttributesEx &= ~SPELL_ATTR1_EXCLUDE_CASTER;
+        info->AttributesCu &= ~(SPELL_ATTR0_CU_NEGATIVE_EFF0 | SPELL_ATTR0_CU_NEGATIVE_EFF1);
+        info->Effects[0].ApplyAuraName = SPELL_AURA_DUMMY;
+        info->Effects[1].Effect = SPELL_EFFECT_ASCENSION_APPLY_AURA_TO_SUMMONS;
+        for (auto& effect : info->Effects)
+        {
+            effect.TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+            effect.TargetB = SpellImplicitTargetInfo();
+        }
+    }
     if (id == 801545)
         info->TargetAuraSpell = 0;
+    if (id == 803530)
+        info->DurationEntry = sSpellDurationStore.LookupEntry(27);
+    if (id == 531132)
+        info->AttributesEx4 |= SPELL_ATTR4_NO_CAST_LOG;
     if (id == 801514)
     {
         info->Effects[2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_MASTER);
         info->Effects[2].TargetB = SpellImplicitTargetInfo();
     }
-    for (auto const& coefficient : NecromancerCoefficients)
-        if (coefficient.id == id)
-            info->Effects[coefficient.effect].BonusMultiplier = 0.0f;
-    for (uint32 child : {573242, 801241, 707575, 561318, 561095, 570050, 505225, 681463})
+    if (id == 707575)
+        for (auto& effect : info->Effects)
+            effect.BonusMultiplier = 0.0f;
+    if (id == 570050)
+        info->Effects[0].RealPointsPerLevel = 0.0f;
+    if (id == 712434)
+        info->Effects[1].Effect = 0;
+    if (id == 300240)
+        info->Effects[2].Effect = 0;
+    for (uint32 child : {573242, 801241, 561318, 561095, 570050, 505225, 681463})
         if (id == child)
         {
             info->AttributesEx2 |= SPELL_ATTR2_CANT_CRIT;
@@ -357,7 +445,11 @@ float Factor(Player* player, Unit* target, SpellInfo const* info, bool periodic)
         return 1.0f;
     float factor = 1.0f;
     if ((info->SchoolMask & SPELL_SCHOOL_MASK_SHADOW) && target->HealthBelowPct(35))
-        factor *= player->HasAura(807925) ? 1.1f : player->HasAura(806149) ? 1.05f : 1.0f;
+        if (uint32 damnation = player->HasAura(807925) ? 807925 : player->HasAura(806149) ? 806149 : 0)
+        {
+            float const increase = Amount(damnation, 1) / 100.0f;
+            factor *= (1.0f + 2.0f * increase) / (1.0f + increase);
+        }
     if (player->HasAura(704163) && target->HealthBelowPct(20) && (Disease(info) || info->Id == 800343))
         factor *= 2.25f;
     if (Lichfrost(info) && Diseases(player, target) && player->HasAura(707627))
@@ -369,7 +461,12 @@ float Factor(Player* player, Unit* target, SpellInfo const* info, bool periodic)
     if (info->Id == 800343 && player->HasAura(570136))
         factor *= 1.0f + Diseases(player, target) * 0.04f;
     if (info->Id == 800343 && player->HasAura(704723))
-        factor *= 1.0f + player->GetAuraCount(706504) * 0.1f;
+        factor *= 1.0f + player->GetAuraCount(707133) * 0.1f;
+    if (info->Id == 707592)
+    {
+        float const frostCrit = player->GetFloatValue(PLAYER_SPELL_CRIT_PERCENTAGE1 + SPELL_SCHOOL_FROST);
+        factor *= 1.0f + std::max(0.0f, frostCrit) / 100.0f;
+    }
     if (periodic && Named(info, 500968))
         factor *= 2.0f - target->GetHealthPct() / 100.0f;
     if (info->Id == 533240 && player->HasAura(503738))
@@ -391,8 +488,13 @@ class necromancer_scaling : public UnitScript
         : UnitScript("necromancer_scaling", true,
                      {UNITHOOK_MODIFY_SPELL_EFFECT_BASE_VALUE, UNITHOOK_MODIFY_SPELL_DAMAGE_TAKEN,
                       UNITHOOK_MODIFY_PERIODIC_DAMAGE_AURAS_TICK, UNITHOOK_ON_BEFORE_ROLL_MELEE_OUTCOME_AGAINST,
-                      UNITHOOK_MODIFY_MELEE_DAMAGE})
+                      UNITHOOK_MODIFY_MELEE_DAMAGE, UNITHOOK_ON_AURA_APPLY})
     {
+    }
+    void OnAuraApply(Unit* unit, Aura* aura) override
+    {
+        if (unit && aura)
+            GrantFleshToWormsPeriodicCrit(unit, aura);
     }
     float Mark(Unit* target, Unit* attacker)
     {

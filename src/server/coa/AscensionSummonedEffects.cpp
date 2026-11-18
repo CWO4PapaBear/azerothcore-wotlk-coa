@@ -1,3 +1,4 @@
+#include "Area52MysticRealm.h"
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 
 #include "AscensionSummonedEffects.h"
@@ -9,6 +10,7 @@
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
 #include "Group.h"
+#include "Item.h"
 #include "MotionMaster.h"
 #include "PetDefines.h"
 #include "Player.h"
@@ -31,7 +33,8 @@ enum SummonedEffectEvents : uint32
 {
     EVENT_ACT = 1,
     EVENT_OWNER_CHECK = 2,
-    EVENT_PLACE = 3
+    EVENT_PLACE = 3,
+    EVENT_RETURN = 4
 };
 
 enum SummonedEffectPoints : uint32
@@ -46,7 +49,7 @@ constexpr uint32 PAYLOAD_GRACE_MS = 500;
 
 Summon const* RowOf(Unit const* unit)
 {
-    return unit ? Find(unit->GetUInt32Value(UNIT_CREATED_BY_SPELL), unit->GetEntry()) : nullptr;
+    return unit ? Find(unit->GetUInt32Value(UNIT_CREATED_BY_SPELL), unit->GetEntry(), !Area52MysticRealm::UsesFreePickEngine()) : nullptr;
 }
 
 Unit* OwnerOf(Unit* unit)
@@ -245,6 +248,10 @@ struct npc_ascension_summoned_effect : public ScriptedAI
             case Behaviour::Delay:
                 events.ScheduleEvent(EVENT_ACT, Milliseconds(row->Milliseconds));
                 break;
+            case Behaviour::Ravager:
+                Outlive(me, row->SummonSpell);
+                events.ScheduleEvent(EVENT_ACT, Milliseconds(row->Milliseconds));
+                break;
             case Behaviour::Mine:
                 events.ScheduleEvent(EVENT_ACT, Milliseconds(MINE_POLL_MS));
                 break;
@@ -323,8 +330,12 @@ struct npc_ascension_summoned_effect : public ScriptedAI
     {
         if (type != POINT_MOTION_TYPE || id != POINT_OUT || !row || row->Path != Motion::OutAndBack)
             return;
-        if (Unit* owner = Owner())
-            me->GetMotionMaster()->MovePoint(POINT_BACK, owner->GetPosition(), FORCED_MOVEMENT_RUN, velocity, false);
+        events.ScheduleEvent(EVENT_RETURN, 1ms);
+    }
+
+    void Return(Unit* owner)
+    {
+        me->GetMotionMaster()->MovePoint(POINT_BACK, owner->GetPosition(), FORCED_MOVEMENT_RUN, velocity, false);
     }
 
     void JustDied(Unit*) override
@@ -358,9 +369,28 @@ struct npc_ascension_summoned_effect : public ScriptedAI
             case Behaviour::Mine:
                 Mine(owner);
                 break;
+            case Behaviour::Ravager:
+                Ravager(owner);
+                events.ScheduleEvent(EVENT_ACT, Milliseconds(row->Milliseconds));
+                break;
             default:
                 break;
         }
+    }
+
+    void Ravager(Unit* owner)
+    {
+        Player* player = owner->ToPlayer();
+        if (!player)
+            return;
+        Item const* main = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
+        Item const* off = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND);
+        uint32 const payload = main && main->GetTemplate()->InventoryType == INVTYPE_2HWEAPON && !off ?
+            row->Payload : off && off->GetTemplate()->Class == ITEM_CLASS_WEAPON ? row->Extra : 0;
+        SpellInfo const* info = sSpellMgr->GetSpellInfo(row->SummonSpell);
+        if (payload && info)
+            for (Unit* enemy : EnemiesNear(me, owner, info->Effects[EFFECT_0].CalcRadius(owner)))
+                player->CastSpell(enemy, payload, true);
     }
 
     void Heal(Unit* owner)
@@ -488,6 +518,8 @@ struct npc_ascension_summoned_effect : public ScriptedAI
                     events.ScheduleEvent(EVENT_ACT, 100ms);
                 }
             }
+            else if (event == EVENT_RETURN)
+                Return(owner);
             else
                 Act(owner);
         }
@@ -599,7 +631,7 @@ class aura_ascension_ursols_vortex_range : public AuraScript
 
     void Check(AuraEffect const*)
     {
-        Summon const* row = FindByHelper(GetId(), Behaviour::Vortex);
+        Summon const* row = FindByHelper(GetId(), Behaviour::Vortex, !Area52MysticRealm::UsesFreePickEngine());
         Unit* owner = GetCaster();
         Unit* target = GetTarget();
         if (!row || !owner || target->HasAura(row->Payload))
@@ -624,7 +656,7 @@ class aura_ascension_alter_time : public AuraScript
 
     void Return(AuraEffect const*, AuraEffectHandleModes)
     {
-        Summon const* row = FindByHelper(GetId(), Behaviour::Return);
+        Summon const* row = FindByHelper(GetId(), Behaviour::Return, !Area52MysticRealm::UsesFreePickEngine());
         if (!row || GetTargetApplication()->GetRemoveMode() != AURA_REMOVE_BY_EXPIRE)
             return;
         Unit* target = GetTarget();
@@ -693,10 +725,15 @@ class spell_ascension_summoned_effect_summon : public SpellScript
 {
     PrepareSpellScript(spell_ascension_summoned_effect_summon);
 
+    void PreventRavagerArea(SpellEffIndex index)
+    {
+        PreventHitDefaultEffect(index);
+    }
+
     void Summon(SpellEffIndex index)
     {
         SpellEffectInfo const& effect = GetSpellInfo()->Effects[index];
-        AscensionSummonedEffects::Summon const* row = Find(GetSpellInfo()->Id, uint32(effect.MiscValue));
+        AscensionSummonedEffects::Summon const* row = Find(GetSpellInfo()->Id, uint32(effect.MiscValue), !Area52MysticRealm::UsesFreePickEngine());
         Unit* caster = GetCaster();
         WorldLocation const* destination = GetHitDest();
         if (!row || !caster || !destination)
@@ -706,13 +743,21 @@ class spell_ascension_summoned_effect_summon : public SpellScript
         int32 duration = GetSpellInfo()->GetDuration();
         if (Player* modOwner = caster->GetSpellModOwner())
             modOwner->ApplySpellMod(GetSpellInfo()->Id, SPELLMOD_DURATION, duration);
-        caster->GetMap()->SummonCreature(row->Creature, *destination,
+        Creature* summon = caster->GetMap()->SummonCreature(row->Creature, *destination,
             sSummonPropertiesStore.LookupEntry(uint32(effect.MiscValueB)), duration > 0 ? uint32(duration) : 0, caster,
             GetSpellInfo()->Id);
+        if (summon && row->Kind == Behaviour::Store && GetEffectValue() > 0)
+        {
+            summon->SetMaxHealth(uint32(GetEffectValue()));
+            summon->SetHealth(uint32(GetEffectValue()));
+        }
     }
 
     void Register() override
     {
+        if (m_scriptSpellId == 293180)
+            OnEffectHit += SpellEffectFn(spell_ascension_summoned_effect_summon::PreventRavagerArea,
+                EFFECT_ALL, SPELL_EFFECT_PERSISTENT_AREA_AURA);
         OnEffectHit += SpellEffectFn(spell_ascension_summoned_effect_summon::Summon, EFFECT_ALL, SPELL_EFFECT_SUMMON);
     }
 };

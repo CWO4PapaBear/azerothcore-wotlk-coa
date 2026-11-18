@@ -267,6 +267,7 @@ public:
     void CheckLootRefs(LootStore const& lootstore, uint32 Id, LootIdSet* ref_set) const;
     bool addConditionItem(Condition* cond);
     [[nodiscard]] bool isReference(uint32 id) const;
+    void CollectItems(std::vector<LootStoreItem const*>& out, uint8 depth = 0) const;
 
 private:
     LootStoreItemList Entries;                          // not grouped only
@@ -317,10 +318,13 @@ struct Loot
     [[nodiscard]] QuestItemMap const& GetPlayerFFAItems() const { return PlayerFFAItems; }
     [[nodiscard]] QuestItemMap const& GetPlayerNonQuestNonFFAConditionalItems() const { return PlayerNonQuestNonFFAConditionalItems; }
 
+    uint32 maxItemCount = MAX_NR_LOOT_ITEMS;
+    bool fixedMoneyLoot = false;
     std::vector<LootItem> items;
     std::vector<LootItem> quest_items;
     uint32 gold;
-    uint8 unlootedCount{0};
+    uint32 unlootedCount{0};
+    bool sharedQuestLoot{false};
     uint8 dungeonDifficulty{0};
     ObjectGuid roundRobinPlayer;        // GUID of the player having the Round-Robin ownership for the loot. If 0, round robin owner has released.
     ObjectGuid lootOwnerGUID;
@@ -356,6 +360,8 @@ struct Loot
         PlayerNonQuestNonFFAConditionalItems.clear();
 
         PlayersLooting.clear();
+        maxItemCount = MAX_NR_LOOT_ITEMS;
+        fixedMoneyLoot = false;
         items.clear();
         quest_items.clear();
         gold = 0;
@@ -363,7 +369,6 @@ struct Loot
         roundRobinPlayer.Clear();
         i_LootValidatorRefMgr.clearReferences();
         loot_type = LOOT_NONE;
-        dungeonDifficulty = 0;
     }
 
     [[nodiscard]] bool empty() const { return items.empty() && gold == 0; }
@@ -442,11 +447,8 @@ void LoadLootTemplates_Reference();
 
 void LoadLootTemplates_Player();
 
-void LoadDungeonLootVariants();
-
 inline void LoadLootTables()
 {
-    LoadDungeonLootVariants();
     LoadLootTemplates_Creature();
     LoadLootTemplates_Fishing();
     LoadLootTemplates_Gameobject();

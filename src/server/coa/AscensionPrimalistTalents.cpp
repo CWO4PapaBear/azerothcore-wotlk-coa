@@ -10,13 +10,16 @@
 #include "SpellScript.h"
 
 #include <algorithm>
+#include <limits>
 
 namespace
 {
 enum PrimalistAbilitySpells : uint32
 {
     SPELL_GEODE_BARRAGE_DAMAGE = 803138,
-    SPELL_GEODE_BARRAGE_RAGE = 802885
+    SPELL_GEODE_BARRAGE_RAGE = 802885,
+    SPELL_FOCUS_RANK_1 = 680936,
+    SPELL_FOCUS_RANK_2 = 681477
 };
 
 Player* Primalist(Unit* unit)
@@ -24,6 +27,32 @@ Player* Primalist(Unit* unit)
     Player* player = unit ? unit->ToPlayer() : nullptr;
     return player && player->getClass() == CLASS_WILDWALKER ? player : nullptr;
 }
+
+class primalist_focus_stats : public GlobalScript
+{
+public:
+    primalist_focus_stats() : GlobalScript("primalist_focus_stats", {GLOBALHOOK_ON_LOAD_SPELL_CUSTOM_ATTR}) { }
+
+    void OnLoadSpellCustomAttr(SpellInfo* info) override
+    {
+        if ((info->Id != SPELL_FOCUS_RANK_1 && info->Id != SPELL_FOCUS_RANK_2) || info->SpellFamilyName != 37 ||
+            info->Effects[EFFECT_2].Effect)
+            return;
+        SpellEffectInfo const& stamina = info->Effects[EFFECT_0];
+        SpellEffectInfo const& intellect = info->Effects[EFFECT_1];
+        if (!stamina.IsAura(SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE) || stamina.MiscValue != STAT_STAMINA ||
+            !intellect.IsAura(SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE) || intellect.MiscValue != STAT_INTELLECT)
+            return;
+        SpellEffectInfo& strength = info->Effects[EFFECT_2];
+        strength.Effect = SPELL_EFFECT_APPLY_AURA;
+        strength.ApplyAuraName = SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE;
+        strength.BasePoints = stamina.BasePoints;
+        strength.DieSides = stamina.DieSides;
+        strength.MiscValue = STAT_STRENGTH;
+        strength.TargetA = stamina.TargetA;
+        strength.TargetB = SpellImplicitTargetInfo();
+    }
+};
 
 class primalist_talent_events : public UnitScript
 {
@@ -213,12 +242,41 @@ class aura_ascension_primal_shred_critical : public AuraScript
             EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
     }
 };
+
+constexpr uint32 PrimalShredBleeds[] = {504669, 504670, 504671, 504672, 504673, 504674, 504675, 504676, 504684};
+constexpr float PrimalShredAttackPowerCoefficient = 0.05f;
+
+class primalist_primal_shred_bleed : public UnitScript
+{
+public:
+    primalist_primal_shred_bleed() : UnitScript("primalist_primal_shred_bleed",
+        true, {UNITHOOK_MODIFY_SPELL_EFFECT_BASE_VALUE}) { }
+
+    void ModifySpellEffectBaseValue(Unit const* caster, SpellInfo const* info, uint8 index,
+        float& value) override
+    {
+        if (!caster || !caster->IsPet() || index != EFFECT_0 ||
+            info->Effects[EFFECT_0].ApplyAuraName != SPELL_AURA_PERIODIC_DAMAGE ||
+            std::find(std::begin(PrimalShredBleeds), std::end(PrimalShredBleeds), info->Id) ==
+                std::end(PrimalShredBleeds))
+            return;
+        Player* owner = Primalist(static_cast<Pet const*>(caster)->GetOwner());
+        if (!owner)
+            return;
+
+        double amount = double(value) +
+            PrimalShredAttackPowerCoefficient * std::max(0.0f, owner->GetTotalAttackPowerValue(BASE_ATTACK));
+        value = float(std::clamp(amount, 0.0, double(std::numeric_limits<int32>::max()) - 128.0));
+    }
+};
 }
 
 void AddSC_AscensionPrimalistTalents()
 {
+    new primalist_focus_stats();
     new primalist_talent_events();
     new primalist_talent_casts();
+    new primalist_primal_shred_bleed();
     RegisterSpellScript(aura_ascension_natural_efficiency);
     RegisterSpellScript(spell_ascension_throat_clamp);
     RegisterSpellScript(aura_ascension_primal_shred_critical);

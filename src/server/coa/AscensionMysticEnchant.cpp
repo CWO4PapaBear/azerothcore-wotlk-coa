@@ -1,3 +1,4 @@
+#include "Area52MysticRealm.h"
 #include "Area52FeaturedPets.h"
 #include "Area52DraftPet.h"
 #include "Area52DraftVanity.h"
@@ -2320,6 +2321,8 @@ class spell_area52_void_eruption : public SpellScript
 
 void AddSC_AscensionMysticEnchant()
 {
+    if (!Area52MysticRealm::UsesFreePickEngine())
+        return;
     new area52_defias_combat();
     RegisterSpellScript(spell_area52_defias_weapon);
     RegisterSpellScript(aura_area52_dark_arrow_mark);

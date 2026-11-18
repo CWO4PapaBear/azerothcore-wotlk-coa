@@ -30,7 +30,9 @@ class Player;
 
 class ObjectMgr;
 
-#define MAX_QUEST_LOG_SIZE 25
+// The 3.3.5a client and its update fields hold 25 quests; the server keeps further slots of its own
+#define NATIVE_QUEST_LOG_SIZE 25
+#define MAX_QUEST_LOG_SIZE 64
 
 #define QUEST_OBJECTIVES_COUNT 4
 #define QUEST_ITEM_OBJECTIVES_COUNT 6
@@ -217,7 +219,8 @@ public:
     void LoadQuestTemplateAddon(Field* fields);
 
     /// levelScaling is the caller's per-character answer, from LocalLevelScaling::QuestScalingEnabled;
-    /// it is only consulted while the realm-wide quest scaling is on.
+    /// it is only consulted while the realm-wide quest scaling is on, and only for a quest with a
+    /// QuestTemplateScaling curve, which then pays the experience of the level the curve plays it at.
     [[nodiscard]] uint32 XPValue(uint8 playerLevel = 0, bool levelScaling = true) const;
 
     [[nodiscard]] bool HasFlag(uint32 flag) const { return (Flags & flag) != 0; }
@@ -269,7 +272,7 @@ public:
     [[nodiscard]] std::string const& GetAreaDescription() const { return AreaDescription; }
     [[nodiscard]] std::string const& GetCompletedText() const { return CompletedText; }
     /// levelScaling is the caller's per-character answer, from LocalLevelScaling::QuestScalingEnabled:
-    /// a scaled quest's money follows the same effective level its experience does.
+    /// a quest on its curve pays its money tier's ratio between that level and its own, never less.
     [[nodiscard]] int32  GetRewOrReqMoney(uint8 playerLevel = 0, bool levelScaling = true) const;
     [[nodiscard]] uint32 GetRewHonorAddition() const { return RewardHonor; }
     [[nodiscard]] float GetRewHonorMultiplier() const { return RewardKillHonor; }
