@@ -150,7 +150,6 @@ enum WorldDatabaseStatements : uint32
 
     WORLD_SEL_COA_DUNGEON_LOOT_VARIANT,
 
-
     MAX_WORLDDATABASE_STATEMENTS
 };
 

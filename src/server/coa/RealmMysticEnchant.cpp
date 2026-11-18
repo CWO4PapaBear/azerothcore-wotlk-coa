@@ -1,6 +1,5 @@
-#include "Area52MysticRealm.h"
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
-
+#include "Area52MysticRealm.h"
 #include "AscensionCoAConfig.h"
 #include "AscensionCompatOpcodes.h"
 #include "AscensionFreepick.h"

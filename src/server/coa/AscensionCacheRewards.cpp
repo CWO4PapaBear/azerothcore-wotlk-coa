@@ -206,7 +206,7 @@ SetRelevance EvaluateSet(Player* player, uint32 setId)
         if (metadata == CacheBonuses.end() || !info)
             return {};
         unsigned const mode = metadata->second.mode;
-        if (mode == 3) // Cosmetic disguise is not a combat reward benefit.
+        if (mode == 3)
             continue;
         if (mode == 0)
         {
@@ -348,8 +348,6 @@ void UndoOne(Player* player, Item* item, uint32 count)
 }
 }
 
-// Called only by the world-thread cache service. Reject pending native/database
-// disagreement rather than treating an uncertain attachment or auction as unowned.
 bool ReadExternalOwnedItems(Player* player, std::unordered_set<uint32>& items)
 {
     items.clear();

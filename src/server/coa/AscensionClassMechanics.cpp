@@ -1,6 +1,5 @@
-#include "Area52MysticRealm.h"
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
-
+#include "Area52MysticRealm.h"
 #include "AscensionClassMechanics.h"
 #include "AscensionBarbarian.h"
 #include "AscensionClassMechanics12To17.h"

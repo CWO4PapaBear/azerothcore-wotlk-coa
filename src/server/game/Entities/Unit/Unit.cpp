@@ -1215,7 +1215,6 @@ void Player::CancelDamageAutoShot(std::string const& sequence)
     }
 }
 
-
 uint32 Unit::DealDamage(Unit* attacker, Unit* victim, uint32 damage, CleanDamage const* cleanDamage,
                         DamageEffectType damagetype, SpellSchoolMask damageSchoolMask,
                         SpellInfo const* spellProto, bool durabilityLoss, bool /*allowGM*/,
@@ -7912,7 +7911,6 @@ static void TriggerArea52MentalQuickness(Unit* actor, SpellInfo const* spell, ui
     actor->RemoveAurasDueToSpell(melee ? 840822 : 830822, actor->GetGUID());
     actor->CastSpell(actor, melee ? 830822 : 840822, true);
 }
-
 
 void Unit::ProcSkillsAndAuras(Unit* actor, Unit* victim, uint32 procAttacker, uint32 procVictim, uint32 procExtra, uint32 amount, WeaponAttackType attType, SpellInfo const* procSpellInfo, SpellInfo const* procAura, int8 procAuraEffectIndex, Spell const* procSpell, DamageInfo* damageInfo, HealInfo* healInfo, uint32 procPhase)
 {

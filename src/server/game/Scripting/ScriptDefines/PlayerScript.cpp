@@ -1198,4 +1198,3 @@ PlayerScript::PlayerScript(char const* name, std::vector<uint16> enabledHooks)
 }
 
 template class AC_GAME_API ScriptRegistry<PlayerScript>;
-

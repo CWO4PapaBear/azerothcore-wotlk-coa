@@ -24,6 +24,14 @@ The owner is testing the combined Defias Development package. This PR does not a
 
 The Shaman action lock after a rejected cache remains unresolved. Promote exact reviewed artifacts and migrations after Development acceptance, preserving Cloud player state and certifications; see AGENTS.md.
 
-## PR merge holds
+## Final offline review — November 18
 
-The source review restored twelve missing upstream checkers and 549 missing upstream scenario assets byte-for-byte, and added explicit verification of the existing Area 52 conditional registration paths. The two source-validation failures were reconciled on November 18: nine selected source checks and the preservation harness pass. Noctis keeps every assertion; the legacy real-level lift regression remains byte-for-byte preserved and explicitly blocked outside runnable discovery, per owner decision. A separate upstream-style per-player scenario validates but is not gameplay-tested. See `review-holds.json`; this PR remains draft pending acceptance and review. SQL lint passes; existing C++ blank-line warnings remain. No gameplay conformance run was authorized or performed.
+The remaining review blockers are repaired. Six missing upstream tool/test files are restored byte-for-byte. Native fixtures now honor reaction, stationary and spell-hit options with upstream defaults. C++ lint and source policy pass; literal strings no longer cause false double-semicolon reports. Historical SQL is preserved through exact Git-blob validation rather than rewritten for lint.
+
+The final native rebuild linked both worldserver and unit_tests. Native units report 6,364 passed, zero failed, 5,486 inapplicable parameter cases skipped and one existing ASan-only negative case disabled. All 64 source checks and 14 selected offline harnesses pass. The two affected harnesses and all source checks passed again after the final checker diagnostic correction. See `review-holds.json` for artifact identity and limits. Compiler warnings remain; this is not a warning-free build claim.
+
+This supersedes the earlier missing-test, fixture and lint blockers. The original `source-inputs.json` and `verification.json` remain historical evidence; the new runtime build also includes the restored fixture options and reviewed style-only changes. No SQL bytes changed, so matching prior database replay evidence remains applicable.
+
+The legacy real-level lift regression remains byte-for-byte preserved and explicitly blocked by owner choice. The upstream-style per-player scenario is validated but was not gameplay-run. No new gameplay or server startup was performed for this review.
+
+The repaired candidate qualifies for source integration into our fork after published commit and remote-check verification. The owner authorized pushing the reviewed repairs to PR #113; merge remains explicitly held. Development acceptance, Cloud promotion, launcher releases and Discord announcements remain separate.

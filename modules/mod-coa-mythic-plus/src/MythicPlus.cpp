@@ -820,7 +820,6 @@ namespace
             weekly.coins + amount, cap);
     }
 
-
     // Item pools the caches and spoils draw from: the Mythic+ levels of the vanilla dungeon items (level 60 armor and
     // weapons whose description is @Mythic N@ and whose name and slot match a Mythic dungeon item, as the upgrade
     // chains pair them), and the Heroic and Mythic versions of the vanilla dungeon items. Other @Mythic N@ items are
@@ -1209,7 +1208,6 @@ namespace
         run.countdownMs = COUNTDOWN_MS;
         Ascension::BattleResurrection::StartMythicPlusRun(map);
         ScaleForces(map->GetId(), uint32(map->GetDifficulty()), run);
-
 
         for (auto const& [spawnId, creature] : map->GetCreatureBySpawnIdStore())
         {
@@ -1788,7 +1786,7 @@ private:
     // Damage done BY the dungeon's creatures during a run.
     static float Factor(Unit* attacker, bool physical)
     {
-        if (!attacker || attacker->IsControlledByPlayer() || attacker->GetTypeId() != TYPEID_UNIT)
+        if (!attacker || attacker->IsControlledByPlayer() || !attacker->IsCreature())
             return 1.0f;
         Map* map = attacker->GetMap();
         if (!map || !map->IsDungeon())

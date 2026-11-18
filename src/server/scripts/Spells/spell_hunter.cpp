@@ -1503,7 +1503,6 @@ class spell_hun_thrill_of_the_hunt : public AuraScript
                 player, true, nullptr, effect);
     }
 
-
     void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
     {
         PreventDefaultAction();
@@ -1604,7 +1603,6 @@ class spell_hun_hunting_party : public AuraScript
                         return true;
         return false;
     }
-
 
     void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
     {

@@ -6839,7 +6839,7 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
         uint32 const root = m_spellInfo->GetFirstRankSpell()->Id;
         if ((root == 5570 && caster->HasAura(48517)) || (root == 8921 && caster->HasAura(48518)))
         {
-            AddPct(damage, target->GetTypeId() == TYPEID_PLAYER ? 10 : 50);
+            AddPct(damage, target->IsPlayer() ? 10 : 50);
             float done = caster->SpellDoneCritChance(target, m_spellInfo, m_spellInfo->GetSchoolMask(), BASE_ATTACK, true);
             tickCritChance = target->SpellTakenCritChance(caster, m_spellInfo, m_spellInfo->GetSchoolMask(), done, BASE_ATTACK, true);
         }

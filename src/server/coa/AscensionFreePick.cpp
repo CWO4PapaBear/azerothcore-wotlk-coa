@@ -323,7 +323,6 @@ static bool SynchronizeCarefulAim(Player* player)
     return changed;
 }
 
-
 bool SynchronizeTalentRanks(Player* player)
 {
     if (!Applies(player) || !player->IsInWorld())

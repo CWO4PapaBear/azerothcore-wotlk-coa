@@ -5,6 +5,10 @@ import sys
 import re
 import glob
 import subprocess
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
+from inherited_sql import preserved_paths
 
 base_dir = os.getcwd()
 
@@ -470,17 +474,23 @@ def main() -> None:
     selection = parser.add_mutually_exclusive_group()
     selection.add_argument("--files", nargs="+", metavar="PATH", help="Check only the supplied SQL files.")
     selection.add_argument("--base", metavar="REF", help="Check SQL changes against this locally available ref.")
+    parser.add_argument("--preserve-imported", action="store_true", help="Verify pinned immutable SQL; lint only non-inherited inputs.")
     args = parser.parse_args()
     try:
+        preserved = preserved_paths(base_dir) if args.preserve_imported else set()
+        if preserved:
+            print(f"Verified {len(preserved)} immutable inherited SQL files; their historical lint findings remain recorded.")
         if args.files:
             for path in args.files:
                 if not os.path.isfile(path) or not path.lower().endswith(".sql"):
                     parser.error(f"Expected an existing SQL file: {path}")
-            parsing_file(args.files, args.files)
+            selected = [path for path in args.files if Path(path).resolve().relative_to(Path(base_dir)).as_posix() not in preserved]
+            parsing_file(selected, selected)
         else:
             changed_files = get_changed_files(args.base)
             files = changed_files if args.base else collect_files_from_directories(src_directory)
-            parsing_file(files, changed_files)
+            parsing_file([path for path in files if Path(path).resolve().relative_to(Path(base_dir)).as_posix() not in preserved],
+                         [path for path in changed_files if Path(path).resolve().relative_to(Path(base_dir)).as_posix() not in preserved])
     except (OSError, ValueError, subprocess.CalledProcessError) as error:
         parser.error(str(error))
 

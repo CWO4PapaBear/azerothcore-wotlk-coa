@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU
+ * AGPL v3 license:
+ * https://github.com/azerothcore/azerothcore-wotlk/blob/master/LICENSE-AGPL3
+ */
 #include "Area52MysticRealm.h"
 #include "Area52FeaturedMilestoneCollection.h"
 #include "Area52VanityPurchase.h"
@@ -10,12 +15,6 @@ namespace AscensionTaming { char const* SelectWardrobeBeast(Player*, unsigned, u
 #include "Area52FeaturedPets.h"
 #include "AscensionRemovedSpellActionBars.h"
 #include "Area52StarterEquipment.h"
-/*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU
- * AGPL v3 license:
- * https://github.com/azerothcore/azerothcore-wotlk/blob/master/LICENSE-AGPL3
- */
-
 #include "AccountMgr.h"
 #include "AscensionAetherialReliquary.h"
 #include "AscensionAccountProgress.h"
@@ -7791,12 +7790,16 @@ static bool LoadsCollectionsForBot(Player *player) {
       if (IsWithheldVanityItem(itemId))
         continue;
 
-      if (IsUnsummonableCompanion(itemId)) {
+      if (IsUnsummonableCompanion(itemId))
+
+      {
         ++unsummonable;
         continue;
       }
 
-      if (state->OwnedVanityItems.insert(itemId).second) {
+      if (state->OwnedVanityItems.insert(itemId).second)
+
+      {
         CharacterDatabasePreparedStatement *stmt =
             CharacterDatabase.GetPreparedStatement(CHAR_INS_ACCOUNT_VANITY_COLLECTION);
         stmt->SetData(0, state->AccountId);
@@ -7850,7 +7853,9 @@ static bool LoadsCollectionsForBot(Player *player) {
       if (!_vanityItems.contains(itemId))
         continue;
 
-      if (state->OwnedVanityItems.insert(itemId).second) {
+      if (state->OwnedVanityItems.insert(itemId).second)
+
+      {
         CharacterDatabasePreparedStatement *stmt =
             CharacterDatabase.GetPreparedStatement(CHAR_INS_ACCOUNT_VANITY_COLLECTION);
         stmt->SetData(0, state->AccountId);
@@ -9045,8 +9050,6 @@ private:
         CollectItem(player, *state, itemId, true, true);
         LOG_INFO("coa", "{} bought vanity item {} for {} Bazaar Tokens", player->GetName(), itemId, cost);
     }
-
-    
 
     void BuyConsumableVanityItem(Player* player, uint32 itemId, uint32 cost)
     {

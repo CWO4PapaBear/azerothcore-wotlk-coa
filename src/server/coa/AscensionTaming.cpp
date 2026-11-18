@@ -449,8 +449,7 @@ char const* SelectWardrobeBeast(Player* player, uint32 entry, uint32 summon, uin
             loaded = true;
         }
     }
-    // This rare Wardrobe action needs the ASYNC statement connection and a definite
-    // commit result before acknowledging the appearance or allowing another selection.
+
     if (loaded && CharacterDatabase.AsyncCommitTransaction(tx).m_future.get())
     {
         if (previous)
@@ -466,8 +465,6 @@ char const* SelectWardrobeBeast(Player* player, uint32 entry, uint32 summon, uin
         restore(previous->PetNumber);
     return "APPLY_APPEARANCES_UNKNOWN";
 }
-
-
 
 class spell_ascension_family_call : public SpellScript
 {

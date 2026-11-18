@@ -1550,7 +1550,6 @@ class spell_area52_blood_horror : public AuraScript
     }
 };
 
-
 void AddSC_priest_spell_scripts()
 {
     RegisterSpellScript(spell_area52_blood_horror);

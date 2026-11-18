@@ -1,0 +1,39 @@
+#include <cassert>
+#include <map>
+#include <optional>
+#include <stdexcept>
+#include <string>
+using uint32 = unsigned;
+enum ReactStates { REACT_PASSIVE, REACT_DEFENSIVE, REACT_AGGRESSIVE };
+constexpr unsigned UNIT_FLAG_DISABLE_MOVE = 1;
+void Require(bool ok, char const*) { if (!ok) throw std::runtime_error("reaction"); }
+struct Definition {
+    std::map<std::string, double> values;
+    template<class T> T get(char const* key, T fallback) const {
+        auto i=values.find(key); return i==values.end()?fallback:T(i->second);
+    }
+    template<class T> std::optional<T> get_optional(char const* key) const {
+        auto i=values.find(key); return i==values.end()?std::nullopt:std::optional<T>(T(i->second));
+    }
+};
+struct Creature {
+    unsigned reaction=99, flags=0, stopped=0, idle=0;
+    float m_modSpellHitChance=7;
+    void SetReactState(ReactStates v) { reaction=v; }
+    void SetUnitFlag(unsigned v) { flags|=v; }
+    void StopMoving() { ++stopped; }
+    Creature* GetMotionMaster() { return this; }
+    void MoveIdle() { ++idle; }
+};
+void Apply(Definition const& definition, Creature* creature) {
+@NATIVE@
+}
+int main() {
+    Creature c; Apply({}, &c); assert(c.reaction==0 && !c.flags && !c.stopped && !c.idle && c.m_modSpellHitChance==7);
+    for (unsigned i=0; i<=2; ++i) {
+        Creature v; Apply({{{"reaction", i}, {"stationary", 1}, {"spell_hit_bonus", 65.5}}}, &v);
+        assert(v.reaction==i && v.flags==1 && v.stopped==1 && v.idle==1 && v.m_modSpellHitChance==65.5);
+    }
+    bool rejected=false; try { Apply({{{"reaction", 3}}}, &c); } catch (std::runtime_error const&) { rejected=true; }
+    assert(rejected);
+}

@@ -3,6 +3,10 @@ import io
 import os
 import sys
 import re
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
+from check_registrations import code_only
 
 # Get the src directory of the project
 src_directory = os.path.join(os.getcwd(), 'src')
@@ -272,6 +276,8 @@ def misc_codestyle_check(file: io, file_path: str) -> None:
     ifelse_curlyregex = r"^[^#define].*\s+(if|else)(\s*\(.*\))?\s*{[^}]*$|}\s*else(\s*{[^}]*$)"
     # used to catch double semicolons ";;" ignores "(;;)"
     double_semiregex = r"(?<!\()\s*;;(?!\))"
+    code_lines = code_only(file.read()).splitlines()
+    file.seek(0)
     # used to catch tabs
     tab_regex = r"\t"
 
@@ -285,7 +291,7 @@ def misc_codestyle_check(file: io, file_path: str) -> None:
             print(
                 f"Curly brackets are not allowed to be leading or trailing if/else statements. Place it on a new line: {file_path} at line {line_number}")
             check_failed = True
-        if re.search(double_semiregex, line):
+        if re.search(double_semiregex, code_lines[line_number - 1]):
             print(
                 f"Double semicolon (;;) found in {file_path} at line {line_number}")
             check_failed = True

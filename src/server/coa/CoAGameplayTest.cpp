@@ -3385,7 +3385,17 @@ private:
                 creature->CombatStop(true, true);
                 if (CreatureAI* ai = creature->AI(); ai && ai->IsEngaged())
                     ai->EnterEvadeMode();
-                creature->SetReactState(REACT_PASSIVE);
+                uint32 const reaction = definition.get<uint32>("reaction", REACT_PASSIVE);
+                Require(reaction <= REACT_AGGRESSIVE, "Fixture reaction outside valid range");
+                creature->SetReactState(ReactStates(reaction));
+                if (definition.get<bool>("stationary", false))
+                {
+                    creature->SetUnitFlag(UNIT_FLAG_DISABLE_MOVE);
+                    creature->StopMoving();
+                    creature->GetMotionMaster()->MoveIdle();
+                }
+                if (auto bonus = definition.get_optional<float>("spell_hit_bonus"))
+                    creature->m_modSpellHitChance = *bonus;
             }
         }
         _targetsCreated = true;

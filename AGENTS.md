@@ -1,3 +1,9 @@
+## PR #113 historical migration preservation
+
+The owner authorized reconciliation of the merged Area 52 source and its policy/lint failures on November 18. Preserve imported SQL byte-for-byte: `docs/coa/baselines/area52-20261118/inherited-sql.json` pins the reviewed import to commit `c34210b657d71081a11cffef815a219a72acdc31`. The boundary checker permits only those exact Git blobs outside pending updates. New SQL and changed bytes receive no exception. This is not authority to execute historical migrations.
+
+For the historical catch-up diff, run SQL lint with `--preserve-imported`: verify every pinned input and lint all non-inherited selected files. Retain the original historical lint report; do not describe inherited SQL as lint-clean or rewrite deployed checksums for formatting. Any new data repair belongs in pending updates with separate verification.
+
 ## GitHub provenance and Development-to-Cloud promotion — November 18, 2026
 
 Use the existing CWO4PapaBear/azerothcore-wotlk-coa fork for the merged Area 52 server; do not create a separate server repository. Keep upstream ancestry and Area 52 fixes together on a scoped development/integration branch and prepare a reviewed PR to main. Record the source commit, pinned playerbots revision/patch, ordered migrations, verification evidence and artifact hashes for each Development activation. Source PR preparation is separate from deployment and does not announce a tester release. Preserve unrelated pending work and private recovery archives.

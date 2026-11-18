@@ -27,7 +27,6 @@ namespace
     constexpr float GREENSKIN_ANCHOR_Y = -791.458f;
     constexpr float GREENSKIN_SEARCH_RANGE = 120.0f;
 
-
     // Exact persistent spawn from the in-game DB GUID tooltip.
     constexpr ObjectGuid::LowType VANCLEEF_SPAWN_ID = 79336;
     constexpr float VANCLEEF_X = -87.369f;
@@ -53,7 +52,6 @@ namespace
             (segment.SegmentId == SEGMENT_SNEED_NORMAL ||
              segment.SegmentId == SEGMENT_SNEED_ENDGAME);
     }
-
 
     bool IsGreenskinStage(ManastormRun const& run)
     {
@@ -149,7 +147,6 @@ namespace
                 NPC_EDWIN_VANCLEEF);
         }
     };
-
 
     bool IsVanCleefStage(ManastormRun const& run)
     {

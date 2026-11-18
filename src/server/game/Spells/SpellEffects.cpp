@@ -7482,7 +7482,6 @@ void Spell::SummonGuardian(uint32 i, uint32 entry, SummonPropertiesEntry const* 
             }
         }
 
-
         ExecuteLogEffectSummonObject(i, summon);
     }
 }
