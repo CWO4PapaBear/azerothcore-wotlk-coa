@@ -101,8 +101,7 @@ void CompleteRead(Request request, QueryResult rows)
     };
     Item* cache = player->GetItemByGuid(request.cache);
     if (!Applies(player) || !Ready || !cache || cache->IsInTrade()
-        || !RewardCap(player, request.options)
-        || (request.options.prestige && player->GetLevel() < RewardCap(player, request.options)))
+        || !RewardCap(player, request.options) || player->GetLevel() < RewardCap(player, request.options))
     {
         stop("The cache is not available to open now. It has not been consumed.");
         return;
@@ -117,7 +116,11 @@ void CompleteRead(Request request, QueryResult rows)
     if (!request.options.prestige && state && state->offered
         && (state->phase == Area52CacheAttempt::Phase::Choosing || state->phase == Area52CacheAttempt::Phase::Ready))
     {
-        if (!StillEligible(player, *state, request.options))
+        auto const* item = sObjectMgr->GetItemTemplate(state->offered);
+        float const average = Area52CacheItemLevel::Equipped(player);
+        if (!item || item->RequiredLevel != RewardCap(player, request.options)
+            || item->ItemLevel < average || item->ItemLevel > average + 6.0f
+            || !CallboardDropMaps.contains(state->offered))
         {
             if (request.answer)
             {

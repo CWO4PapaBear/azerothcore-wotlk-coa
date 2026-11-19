@@ -19,9 +19,9 @@ bool HasOpenCallboardDrop(uint32 item)
     return false;
 }
 
-uint32 RewardCap(Player const*, Options)
+uint32 RewardCap(Player const* player, Options options)
 {
-    return sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL);
+    return options.prestige ? sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL) : CallboardRealmTier::ForPlayer(player);
 }
 using Candidate = Area52CacheSelection::Candidate;
 using Category = Area52CacheSelection::Category;
@@ -76,10 +76,7 @@ bool Candidates(Player* player, Options options, std::vector<Candidate>& result)
                 || item->InventoryType == INVTYPE_TRINKET) ? Category::Accessory : Category::Armor;
         candidate.contentUnlocked = AscensionCacheRewards::TierOpen(item->ItemSet, cap)
             && sources.contains(id);
-        ItemTemplate rewardRequirements = *item;
-        if (!options.prestige)
-            rewardRequirements.RequiredLevel = 0;
-        candidate.usable = player->CanUseItem(&rewardRequirements) == EQUIP_ERR_OK;
+        candidate.usable = player->CanUseItem(item) == EQUIP_ERR_OK;
         auto [set, inserted] = sets.try_emplace(item->ItemSet);
         if (inserted) set->second = AscensionCacheRewards::EvaluateSet(player, item->ItemSet);
         if (!set->second.ready) return false;
@@ -149,16 +146,12 @@ std::optional<Area52CacheAttempt::State> SelectAttempt(Player* player, Item* cac
     auto state = previous.value_or(Area52CacheAttempt::State{});
     if (!options.prestige)
     {
-        float const average = Area52CacheSelection::CallboardAverage(candidates,
-            Area52CacheItemLevel::Equipped(player), RewardCap(player, options));
+        float const average = Area52CacheItemLevel::Equipped(player);
         for (auto& candidate : candidates)
             if (candidate.itemLevel < average || candidate.itemLevel > average + 6.0f)
                 candidate.contentUnlocked = false;
     }
-    float const effectiveAverage = options.prestige ? Area52CacheItemLevel::Equipped(player)
-        : Area52CacheSelection::CallboardAverage(candidates, Area52CacheItemLevel::Equipped(player),
-            RewardCap(player, options));
-    auto selection = Area52CacheSelection::Select(candidates, uint32(effectiveAverage),
+    auto selection = Area52CacheSelection::Select(candidates, uint32(Area52CacheItemLevel::Equipped(player)),
         options.allowance, state.declined, RewardCap(player, options), true);
     bool compensation = options.prestige && selection.outcome == Area52CacheSelection::Outcome::AllOwned;
     if (selection.choices.empty() && !compensation)
@@ -212,8 +205,7 @@ bool StillEligible(Player* player, Area52CacheAttempt::State const& state, Optio
             if (candidate.item == state.offered)
             {
                 float const equipped = Area52CacheItemLevel::Equipped(player);
-                float const average = options.prestige ? float(uint32(equipped))
-                    : Area52CacheSelection::CallboardAverage(candidates, equipped, RewardCap(player, options));
+                float const average = options.prestige ? float(uint32(equipped)) : equipped;
                 eligible = candidate.contentUnlocked && candidate.usable && candidate.bonusesQualified && !candidate.owned
                     && candidate.itemLevel >= average && candidate.itemLevel <= average + options.allowance;
             }
