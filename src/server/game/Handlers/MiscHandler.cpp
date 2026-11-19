@@ -46,6 +46,7 @@
 #include "OutdoorPvP.h"
 #include "Pet.h"
 #include "../../coa/AscensionFreePick.h"
+#include "../../coa/Area52CallboardCategoryPolicy.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "SocialMgr.h"
@@ -1476,6 +1477,14 @@ void WorldSession::HandleSetDungeonDifficultyOpcode(WorldPackets::Instance::SetD
 
     if (packet.Mode >= MAX_DUNGEON_DIFFICULTY)
         return;
+
+    if (packet.Mode == 2 && AscensionFreePick::Applies(_player)
+        && !Area52CallboardCategory::MythicAvailable(sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL)))
+    {
+        ChatHandler(this).SendSysMessage("Mythic dungeons: Coming Soon");
+        _player->SendDungeonDifficulty(_player->GetGroup() != nullptr);
+        return;
+    }
 
     if (Difficulty(packet.Mode) == _player->GetDungeonDifficulty())
         return;

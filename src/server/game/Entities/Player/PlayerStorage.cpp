@@ -7400,6 +7400,52 @@ void Player::AdditionalSavingAddMask(uint8 mask)
 }
 
 // fast save function for item/money cheating preventing - save only inventory and money state
+bool Player::AppendInventoryAndGoldSnapshot(CharacterDatabaseTransaction trans)
+{
+    if (!trans)
+        return false;
+    for (Item* item : m_itemUpdateQueue)
+    {
+        if (!item || item->GetState() == ITEM_REMOVED)
+            continue;
+        if (item->GetOwnerGUID() != GetGUID() || item->IsInTrade()
+            || GetItemByPos(item->GetBagSlot(), item->GetSlot()) != item)
+            return false;
+    }
+    for (Item* item : m_itemUpdateQueue)
+    {
+        if (!item || item->GetState() == ITEM_UNCHANGED)
+            continue;
+        item->DeleteFromInventoryDB(trans);
+    }
+    for (Item* item : m_itemUpdateQueue)
+    {
+        if (!item || item->GetState() == ITEM_UNCHANGED)
+            continue;
+        if (item->GetState() != ITEM_REMOVED)
+        {
+            if (item->GetBagSlot() == INVENTORY_SLOT_BAG_0
+                && item->GetSlot() >= BUYBACK_SLOT_START && item->GetSlot() < BUYBACK_SLOT_END)
+            {
+                auto* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ITEM_INSTANCE);
+                stmt->SetData(0, item->GetGUID().GetCounter());
+                trans->Append(stmt);
+                continue;
+            }
+            Bag* container = item->GetContainer();
+            auto* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_INVENTORY_ITEM);
+            stmt->SetData(0, GetGUID().GetRawValue());
+            stmt->SetData(1, container ? container->GetGUID().GetCounter() : 0);
+            stmt->SetData(2, item->GetSlot());
+            stmt->SetData(3, item->GetGUID().GetCounter());
+            trans->Append(stmt);
+        }
+        item->AppendSaveSnapshot(trans);
+    }
+    SaveGoldToDB(trans);
+    return true;
+}
+
 void Player::SaveInventoryAndGoldToDB(CharacterDatabaseTransaction trans)
 {
     _SaveInventory(trans);

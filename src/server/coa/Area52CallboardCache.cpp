@@ -260,9 +260,10 @@ bool OpenCallboardCache(Player* player, Item* item)
     bool const namedCache = std::any_of(CallboardTiers.begin(), CallboardTiers.end(), [&](auto const& tier)
         { return std::find(tier.begin(), tier.end(), cacheItemId) != tier.end(); });
     if (cacheItemId == CallboardGeneric || cacheItemId == CallboardGenericOld || cacheItemId == CallboardGenericVoucher
-        || cacheItemId == CallboardBonus || namedCache || GetPool(cacheItemId))
+        || cacheItemId == CallboardBonus || namedCache || (cacheItemId >= 1999600 && cacheItemId <= 1999621) || GetPool(cacheItemId))
     {
         Area52CacheRuntime::Options options;
+        options.cacheEntry = cacheItemId;
         options.allowance = 6;
         options.goldMin = g_goldMin;
         options.goldMax = g_goldMax;
@@ -374,7 +375,8 @@ void SendCacheConfig(Player* player)
 {
     unsigned const tierLevel = CallboardRealmTier::ForPlayer(player);
     std::vector<CacheTier> tiers;
-    if (tierLevel) tiers.push_back({0, 0, CallboardGenericVoucher});
+    if (tierLevel)
+        if (uint32 item = Area52CacheRuntime::CallboardRewardItem(player)) tiers.push_back({0, 0, item});
     WorldPacket config(SMSG_CALLBOARD_CACHE_CONFIG, (1 + 6 * tiers.size()) * sizeof(uint32));
     config << uint32(tiers.size());
     uint32 recordId = 0;
@@ -423,7 +425,7 @@ void AwardQuestPoints(Player* player, uint32 questId)
     SetPoints(player, points);
 
     TrackReachedItemLevel(player);
-    uint32 const cacheItemId = CallboardGenericVoucher;
+    uint32 const cacheItemId = Area52CacheRuntime::CallboardRewardItem(player);
     if (!cacheItemId || !sObjectMgr->GetItemTemplate(cacheItemId))
         return;
 

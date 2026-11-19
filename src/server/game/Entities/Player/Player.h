@@ -1603,6 +1603,7 @@ public:
     void SaveToDB(bool create, bool logout);
     void SaveToDB(CharacterDatabaseTransaction trans, bool create, bool logout);
     void SaveInventoryAndGoldToDB(CharacterDatabaseTransaction trans);                    // fast save function for item/money cheating preventing
+    bool AppendInventoryAndGoldSnapshot(CharacterDatabaseTransaction trans);
     void SaveGoldToDB(CharacterDatabaseTransaction trans);
     void _SaveSkills(CharacterDatabaseTransaction trans);
 

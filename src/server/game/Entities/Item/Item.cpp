@@ -336,6 +336,17 @@ void Item::UpdateDuration(Player* owner, uint32 diff)
 
 void Item::SaveToDB(CharacterDatabaseTransaction trans)
 {
+    SaveToDB(trans, false);
+}
+
+void Item::AppendSaveSnapshot(CharacterDatabaseTransaction trans)
+{
+    ASSERT(trans);
+    SaveToDB(trans, true);
+}
+
+void Item::SaveToDB(CharacterDatabaseTransaction trans, bool preserveState)
+{
     bool isInTransaction = static_cast<bool>(trans);
     if (!isInTransaction)
         trans = CharacterDatabase.BeginTransaction();
@@ -404,6 +415,9 @@ void Item::SaveToDB(CharacterDatabaseTransaction trans)
                 if (!isInTransaction)
                     CharacterDatabase.CommitTransaction(trans);
 
+                if (preserveState)
+                    return;
+
                 delete this;
                 return;
             }
@@ -411,7 +425,8 @@ void Item::SaveToDB(CharacterDatabaseTransaction trans)
             break;
     }
 
-    SetState(ITEM_UNCHANGED);
+    if (!preserveState)
+        SetState(ITEM_UNCHANGED);
 
     if (!isInTransaction)
         CharacterDatabase.CommitTransaction(trans);
