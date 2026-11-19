@@ -530,6 +530,7 @@ bool DeliverReserved(Player* player, Area52CacheAttempt::State& attempt, Item* c
             prepared.emplace_back(Item::CreateItem(reward.itemId, count, player, true, reward.randomPropertyId));
             if (!prepared.back())
                 return false;
+            prepared.back()->RemoveFromUpdateQueueOf(player);
             remaining -= count;
         }
     }
@@ -595,6 +596,12 @@ bool DeliverReserved(Player* player, Area52CacheAttempt::State& attempt, Item* c
     if (ConfirmCommit(delivered, committing.request, committing.revision) != Result::Changed)
         return false;
     auto transaction = CharacterDatabase.BeginTransaction();
+    if (!player->AppendInventoryAndGoldSnapshot(transaction))
+    {
+        ChatHandler(player->GetSession()).SendSysMessage(
+            "Your inventory is changing. The cache and selected rewards were kept; try again shortly.");
+        return false;
+    }
     if (!AppendStoredMutation(transaction, attempt, committing))
         return false;
     auto guard = [&]()
@@ -622,6 +629,7 @@ bool DeliverReserved(Player* player, Area52CacheAttempt::State& attempt, Item* c
         addition.item.reset(Item::CreateItem(reward.itemId, addition.count, player, true, reward.randomPropertyId));
         if (!addition.item)
             return false;
+        addition.item->RemoveFromUpdateQueueOf(player);
         if (addition.item->GetTemplate()->Bonding == BIND_WHEN_PICKED_UP
             || addition.item->GetTemplate()->Bonding == BIND_QUEST_ITEM)
             addition.item->SetBinding(true);

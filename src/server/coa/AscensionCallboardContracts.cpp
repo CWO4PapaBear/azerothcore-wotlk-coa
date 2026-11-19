@@ -1,4 +1,5 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
+#include "Area52CallboardCategoryPolicy.h"
 #include "Area52MysticRealm.h"
 #include "AscensionCallboardContractsPolicy.h"
 #include "CallboardRealmTier.h"
@@ -249,6 +250,7 @@ bool ContractAvailable(Player const* player, std::string const& type)
     auto const cap = CallboardRealmTier::ForPlayer(player);
     if (!CallboardRealmTier::Available(type, cap)) return false;
     int const difficulty = RequiredDungeonDifficulty(type);
+    if (difficulty == 2 && !Area52CallboardCategory::MythicAvailable(cap)) return false;
     if (difficulty < 0) return true;
     for (uint32 index = 0; index < sMapStore.GetNumRows(); ++index)
     {
@@ -334,7 +336,9 @@ void SendView(Player* player)
         Category category{ std::string(key), std::string(name), {} };
         for (ContractType const& contract : contracts->types)
         {
-            if (contract.contentType != key || !CallboardRealmTier::Available(contract.type, CallboardRealmTier::ForPlayer(player)))
+            if (contract.contentType != key || !CallboardRealmTier::Available(contract.type, CallboardRealmTier::ForPlayer(player))
+                || (RequiredDungeonDifficulty(contract.type) == 2
+                    && !Area52CallboardCategory::MythicAvailable(CallboardRealmTier::ForPlayer(player))))
                 continue;
 
             SubCategory sub;
@@ -833,6 +837,10 @@ bool CallboardHunts::CanOffer(Player const* player, unsigned quest)
 bool CallboardRealmTier::CanUse(Player const* player, Quest const* quest)
 {
     if (!quest) return false;
+    uint32 const realmCap = sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL);
+    if (!Area52CallboardCategory::MythicAvailable(realmCap)
+        && (quest->GetQuestId() == 81246 || quest->GetQuestId() == 81249 || quest->GetQuestId() == 9080011))
+        return false;
     auto const tier = ForPlayer(player);
     if (quest->GetQuestId() >= 14204 && quest->GetQuestId() <= 14252 && quest->GetZoneOrSort() > 0) return tier == 60;
     auto const sort = quest->GetZoneOrSort();
@@ -840,7 +848,8 @@ bool CallboardRealmTier::CanUse(Player const* player, Quest const* quest)
     auto const catalog = CurrentCatalogue();
     if (!tier || !catalog->ready) return false;
     auto const* contract = catalog->ForQuest(quest->GetQuestId());
-    return !contract || Available(contract->type, tier);
+    return !contract || (Available(contract->type, tier)
+        && (RequiredDungeonDifficulty(contract->type) != 2 || Area52CallboardCategory::MythicAvailable(realmCap)));
 }
 
 namespace AscensionCallboardContracts
