@@ -97,6 +97,21 @@ inline constexpr std::array<SpellGrant, 1> RetiredSpellGrants = {{
     {979740, 984925}
 }};
 
+inline SpellGrant const* PistolRankGrant(std::uint32_t spell)
+{
+    for (auto const& grant : SpellGrants)
+        if (grant.Enchant == 997047 && grant.Spell == spell &&
+            (spell == 997048 || (spell >= 998100 && spell <= 998110)))
+            return &grant;
+    return nullptr;
+}
+
+template<class HasSpell>
+bool ExactGrantPrerequisiteMet(SpellGrant const& grant, HasSpell const& hasSpell)
+{
+    return hasSpell(grant.Requires);
+}
+
 inline bool GrantRankDue(bool firstRank, bool known, std::uint32_t spellLevel, std::uint32_t level)
 {
     return firstRank || (spellLevel ? spellLevel <= level : known);

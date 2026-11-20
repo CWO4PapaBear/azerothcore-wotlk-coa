@@ -355,7 +355,8 @@ void Synchronize(Player* player)
     {
         bool const enabled = GrantsActive(player, grant.Enchant) &&
             ((grant.Enchant != 997115 && grant.Enchant != 997047) || state->Applied.contains(grant.Enchant)) &&
-            ((grant.Enchant != 977831 && grant.Enchant != 982330 && grant.Enchant != 997047) || player->HasSpell(grant.Requires)) &&
+            ((grant.Enchant != 977831 && grant.Enchant != 982330 && grant.Enchant != 997047) ||
+                ExactGrantPrerequisiteMet(grant, [player](uint32 required) { return player->HasSpell(required); })) &&
             (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
             (grant.Enchant != 81248 || player->HasActiveSpell(33831)) && GrantRequirementMet(player, grant.Requires);
         std::set<std::uint32_t> visited;
@@ -2452,7 +2453,8 @@ void RestoreArea52MysticSpellsForLogin(Player* player, PreparedQueryResult resul
             auto const& entry = Data.BySpell.at(grant.Enchant);
             if (InvestmentMet(player, entry, false) && InvestmentMet(player, entry, true) &&
                 (grant.Enchant != 978724 || player->HasSpell(2565)) &&
-                ((grant.Enchant != 977831 && grant.Enchant != 982330 && grant.Enchant != 997047) || player->HasSpell(grant.Requires)) &&
+                ((grant.Enchant != 977831 && grant.Enchant != 982330 && grant.Enchant != 997047) ||
+                ExactGrantPrerequisiteMet(grant, [player](uint32 required) { return player->HasSpell(required); })) &&
             (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
                 (grant.Enchant != 81248 || player->HasActiveSpell(33831)) &&
                 GrantRequirementMet(player, grant.Requires))
