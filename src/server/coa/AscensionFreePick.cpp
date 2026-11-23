@@ -702,9 +702,17 @@ std::vector<RankUpgrade> RankUpgrades(Player const* player)
             previous = rank, rank = sSpellMgr->GetNextSpellInChain(rank))
             if (auto const* info = sSpellMgr->GetSpellInfo(rank); info && offered.insert(rank).second)
             {
-                SpellEntry const* client = sSpellStore.LookupEntry(rank);
+                auto const* pistol = AscensionMysticEnchant::PistolRankGrant(rank);
+                if (pistol && !AscensionMysticEnchant::ExactGrantPrerequisiteMet(*pistol,
+                    [player](uint32 required) { return player->HasSpell(required); }))
+                    continue;
+                uint32 const levelSpell = pistol ? pistol->Requires : rank;
+                SpellEntry const* client = sSpellStore.LookupEntry(levelSpell);
+                SpellInfo const* levelInfo = sSpellMgr->GetSpellInfo(levelSpell);
+                if (!client && !levelInfo)
+                    continue;
                 uint32 const level = client ? std::max(client->BaseLevel, client->SpellLevel) :
-                    std::max(info->BaseLevel, info->SpellLevel);
+                    std::max(levelInfo->BaseLevel, levelInfo->SpellLevel);
                 upgrades.push_back({rank, previous, level});
             }
     }
