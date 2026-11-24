@@ -17,7 +17,8 @@ def main():
  native=(ROOT/'src/server/coa/AscensionFreePick.cpp').read_text()
  player=(ROOT/'src/server/game/Entities/Player/Player.cpp').read_text()
  functions='\n'.join(function(native,name) for name in ('bool IsTalentRank(', 'bool CanLearnSpell(', 'bool SynchronizeTalentRanks('))
- restore=function(player,'void Player::learnSpell(')
+ assert '_learnSpell(spellId, temporary, learnFromSkill, announce)' in function(player,'void Player::learnSpell(')
+ restore=function(player,'void Player::_learnSpell(')
  a=restore.index('    if (uint32 nextSpell');b=restore.index('    // xinef: if we learn new spell',a)
  restore=restore[a:b]
  removal=player[player.index('    if (itr->second->specMask == 0 && (AscensionFreePick::'):]
@@ -47,7 +48,7 @@ struct Player {
  std::set<unsigned> approved,auras; std::vector<unsigned> order;
  ~Player(){for(auto [id,state]:m_spells)delete state;}
  bool HasSpell(unsigned id) const {auto it=m_spells.find(id);return it!=m_spells.end()&&it->second->State!=PLAYERSPELL_REMOVED&&it->second->specMask;}
- bool HasAura(unsigned id) const {return auras.contains(id);}
+ bool HasAura(unsigned id,unsigned=0) const {return auras.contains(id);}
  unsigned GetLevel() const {return 80;}
  bool IsInWorld() const {return true;}
  unsigned GetGUID() const {return 1;}
@@ -58,6 +59,7 @@ struct Player {
  void learnSpell(unsigned,bool=false);
 };
 namespace AscensionFreePick {
+bool SynchronizeCarefulAim(Player*) { return false; }
 std::set<unsigned> TalentSpells,ClassSpells;
 std::vector<unsigned> SpecializationSpells;
 struct Group {unsigned Parent;std::vector<unsigned> Children;};

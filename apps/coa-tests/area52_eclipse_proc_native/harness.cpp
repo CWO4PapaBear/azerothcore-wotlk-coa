@@ -1,0 +1,28 @@
+#include <algorithm>
+#include <array>
+#include <cassert>
+#include <cstdint>
+#include <map>
+#include <vector>
+using uint32=uint32_t;using int32=int32_t;using uint64=uint64_t;using int64=int64_t;
+struct flag96{std::array<uint32,3> v;flag96(uint32 a=0,uint32 b=0,uint32 c=0):v{a,b,c}{}bool any()const{return v[0]||v[1]||v[2];}bool overlaps(flag96 b)const{return (v[0]&b.v[0])||(v[1]&b.v[1])||(v[2]&b.v[2]);}};
+constexpr uint32 PROC_FLAG_DONE_MELEE_AUTO_ATTACK=4,BASE_ATTACK=0,SPELLFAMILY_PALADIN=10,SPELL_SCHOOL_MASK_MAGIC=126,SPELL_DIRECT_DAMAGE=1,DIRECT_DAMAGE=0,PROC_ATTR_REQ_EXP_OR_HONOR=1,PROC_ATTR_REQ_MANA_COST=2,PROC_FLAG_KILLED=1,PROC_FLAG_KILL=2,PROC_FLAG_DEATH=1u<<20,SPELL_PROC_FLAG_MASK=65536,PERIODIC_PROC_FLAG_MASK=262144,REQ_SPELL_PHASE_PROC_FLAG_MASK=65536,TAKEN_HIT_PROC_FLAG_MASK=131072,DONE_HIT_PROC_FLAG_MASK=65536,PROC_SPELL_PHASE_CAST=1,PROC_HIT_NORMAL=1,PROC_HIT_CRITICAL=2,PROC_HIT_ABSORB=1024;
+struct SpellInfo{uint32 Id=0,family=7,ManaCost=1,ManaCostPercentage=0;flag96 mask;bool IsAffected(uint32 fam,flag96 flags)const{return (!fam||fam==family)&&(!flags.any()||flags.overlaps(mask));}};
+struct Player{bool area=true;std::map<uint32,std::vector<uint32>> origins;std::map<uint32,uint32> cooldown;int changes=0,resets=0;Player* ToPlayer(){return this;}Player const* ToPlayer()const{return this;}bool isHonorOrXPTarget(Player*){return true;}bool IsValidAttackTarget(Player*){return true;}float GetExactDist(Player*){return 30;}std::vector<uint32> GetSpellInteractionOrigins(uint32 id)const{auto i=origins.find(id);return i==origins.end()?std::vector<uint32>{}:i->second;}bool MatchesSpellInteraction(uint32 a,uint32 b)const{return a==b;}uint32 GetSpellCooldownDelay(uint32 id){return cooldown[id];}void ModifySpellCooldown(uint32 id,int32 delta){cooldown[id]+=delta;++changes;}};
+using Unit=Player;
+namespace AscensionFreePick{bool Enabled(){return true;}bool Applies(Player const*p){return p&&p->area;}}
+namespace AscensionMysticEnchant{bool DefiasPistolProcEligible(Player const*,uint32){return false;}}
+struct DamageInfo{uint32 GetDamage()const{return 100;}uint32 GetAttackType()const{return 0;}uint32 GetSchoolMask()const{return 8;}uint32 GetDamageType()const{return 1;}};
+struct SpellProcEntry{uint32 ProcFlags=65536,AttributesMask=0,SchoolMask=0,SpellFamilyName=7;flag96 SpellFamilyMask;uint32 SpellTypeMask=1,SpellPhaseMask=1,HitMask=0;};
+struct ProcEventInfo{Player* actor;SpellInfo* spell;uint32 type=65536,school=64,spelltype=1,phase=1,hit=1;DamageInfo damage;Player* GetActor(){return actor;}Player* GetActionTarget(){return actor;}DamageInfo const* GetDamageInfo(){return &damage;}SpellInfo const* GetSpellInfo(){return spell;}uint32 GetTypeMask(){return type;}uint32 GetSchoolMask(){return school;}uint32 GetSpellTypeMask(){return spelltype;}uint32 GetSpellPhaseMask(){return phase;}uint32 GetHitMask(){return hit;}};
+struct SpellMgr{std::map<uint32,SpellInfo> spells;std::map<uint32,uint32> next;SpellProcEntry const* GetSpellProcEntry(uint32)const{return nullptr;}SpellInfo const* GetSpellInfo(uint32 id)const{auto i=spells.find(id);return i==spells.end()?nullptr:&i->second;}uint32 GetFirstSpellInChain(uint32 id){return id==2||id==3?1:id;}uint32 GetNextSpellInChain(uint32 id){return next[id];}bool CanSpellTriggerProcOnEvent(SpellProcEntry const&,ProcEventInfo&)const;};
+SpellMgr mgr;SpellMgr* sSpellMgr=&mgr;
+void ResetAscensionCooldown(Player*p,uint32 id,bool){p->cooldown[id]=0;++p->resets;}
+@PROC@
+@RANK@
+@CHAIN@
+int main(){Player p;SpellInfo starsurge{78674,7,1,0,{0,0,524288}},starfire{2912,7,1,0,{4,0,0}},wrath{5176,7,1,0,{1,0,0}},moonfire{8921,7,1,0,{2,0,0}};ProcEventInfo event{&p,&starsurge};SpellProcEntry star;star.SpellFamilyMask=flag96(0,0,524288);assert(mgr.CanSpellTriggerProcOnEvent(star,event));event.phase=2;assert(!mgr.CanSpellTriggerProcOnEvent(star,event));event.phase=4;assert(!mgr.CanSpellTriggerProcOnEvent(star,event));event.phase=1;event.spell=&starfire;assert(!mgr.CanSpellTriggerProcOnEvent(star,event));event.spell=&starsurge;event.type=262144;assert(!mgr.CanSpellTriggerProcOnEvent(star,event));event.type=65536;event.spelltype=2;assert(!mgr.CanSpellTriggerProcOnEvent(star,event));event.spelltype=1;
+SpellProcEntry earth;earth.SpellFamilyMask=flag96(5,0,524288);earth.SpellPhaseMask=2;event.phase=2;for(auto s:{&starsurge,&starfire,&wrath}){event.spell=s;for(uint32 hit:{1u,2u,1024u}){event.hit=hit;assert(mgr.CanSpellTriggerProcOnEvent(earth,event));}}event.hit=4;assert(!mgr.CanSpellTriggerProcOnEvent(earth,event));event.hit=1;event.spell=&moonfire;assert(!mgr.CanSpellTriggerProcOnEvent(earth,event));SpellInfo replacement{900001,3,1,0,{0,0,0}};mgr.spells[78674]=starsurge;p.origins[900001]={78674};event.spell=&replacement;assert(mgr.CanSpellTriggerProcOnEvent(earth,event));p.origins.clear();assert(!mgr.CanSpellTriggerProcOnEvent(earth,event));
+SpellProcEntry reach;reach.SpellFamilyName=0;reach.SpellPhaseMask=2;reach.SchoolMask=8;event.spell=&wrath;event.school=8;assert(mgr.CanSpellTriggerProcOnEvent(reach,event));event.school=64;assert(!mgr.CanSpellTriggerProcOnEvent(reach,event));SpellProcEntry vengeance=reach;vengeance.SchoolMask=72;vengeance.HitMask=2;event.hit=1;assert(!mgr.CanSpellTriggerProcOnEvent(vengeance,event));event.hit=2;assert(mgr.CanSpellTriggerProcOnEvent(vengeance,event));
+mgr.next={{1,2},{2,3},{3,0}};p.cooldown={{1,0},{2,15000},{3,9000}};ModifyAscensionCooldown(&p,1,-3000,false);assert(p.cooldown[1]==0&&p.cooldown[2]==12000&&p.cooldown[3]==6000&&p.changes==2);ModifyAscensionCooldown(&p,1,-6000,false);assert(p.cooldown[2]==6000&&p.cooldown[3]==0);ModifyAscensionCooldown(&p,1,-7000,false);assert(p.cooldown[2]==0);ModifyAscensionCooldown(nullptr,1,-3000,false);
+}

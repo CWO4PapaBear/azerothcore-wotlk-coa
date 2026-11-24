@@ -3786,6 +3786,12 @@ SpellCastResult Spell::prepare(SpellCastTargets const* targets, AuraEffect const
                 exceptSpellId = m_spellInfo->Id;
             }
 
+            if (m_spellInfo->IsSelfCast())
+                for (SpellEffectInfo const& effect : m_spellInfo->Effects)
+                    if (effect.IsAura(SPELL_AURA_MOD_SHAPESHIFT))
+                        for (AuraEffect const* aura : m_caster->GetAuraEffectsByType(SPELL_AURA_MOD_SHAPESHIFT))
+                            aura->DiscardSuspendedWarriorStanceForForm(m_caster, effect.MiscValue);
+
             m_caster->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_CAST, exceptSpellId, m_spellInfo->Id == 75, m_spellInfo);
             m_caster->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_SPELL_ATTACK, exceptSpellId, m_spellInfo->Id == 75, m_spellInfo);
         }
@@ -4865,6 +4871,7 @@ void Spell::SendCastResult(Player* caster, SpellInfo const* spellInfo, uint8 cas
 
 void Spell::SendCastResult(SpellCastResult result)
 {
+
     if (result == SPELL_CAST_OK)
         return;
 
@@ -7581,6 +7588,8 @@ SpellCastResult Spell::CheckPower()
 
 SpellCastResult Spell::CheckItems(uint32* param1, uint32* param2)
 {
+    static_assert(MAX_ITEM_SPELLS == 5);
+    static_assert(MAX_ITEM_PROTO_SPELLS == 5);
     Player* player = m_caster->ToPlayer();
     if (!player)
     {

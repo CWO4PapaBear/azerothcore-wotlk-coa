@@ -508,6 +508,10 @@ class spell_ascension_family_call : public SpellScript
             constexpr uint32 TheradrimShardling = 11783;
             if (*archetype == Cryotherapist)
                 starter.Starter = TheradrimShardling;
+            constexpr uint32 WhiteWalker = 133;
+            constexpr uint32 IceElemental = 149398;
+            if (*archetype == WhiteWalker)
+                starter.Starter = IceElemental;
         }
         if ((starter.Kind == KIND_BEAST && !AscensionFreePick::Applies(player)) ||
             !starter.Starter || !sObjectMgr->GetCreatureTemplate(starter.Starter))

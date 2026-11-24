@@ -1582,30 +1582,61 @@ void AuraEffect::CleanupTriggeredSpells(Unit* target)
     target->RemoveAurasDueToSpell(tSpellId, GetCasterGUID());
 }
 
-static ShapeshiftForm RemainingWarriorStanceAfterStealth(Unit* target, AuraEffect const* leaving)
+void AuraEffect::SuspendWarriorStanceForStealth(Unit* target) const
 {
-    if (leaving->GetMiscValue() != FORM_STEALTH || !AscensionFreePick::Applies(target->ToPlayer()))
-        return FORM_NONE;
+    Player* player = target->ToPlayer();
+    if (GetMiscValue() != FORM_STEALTH || !AscensionFreePick::Applies(player) ||
+        GetCasterGUID() != target->GetGUID())
+        return;
 
-    ShapeshiftForm stance = FORM_NONE;
     for (AuraEffect const* effect : target->GetAuraEffectsByType(SPELL_AURA_MOD_SHAPESHIFT))
     {
-        if (effect == leaving)
+        if (effect == this || effect->GetCasterGUID() != target->GetGUID())
             continue;
-        if (stance != FORM_NONE || effect->GetCasterGUID() != target->GetGUID())
-            return FORM_NONE;
         switch (effect->GetMiscValue())
         {
             case FORM_BATTLESTANCE:
             case FORM_DEFENSIVESTANCE:
             case FORM_BERSERKERSTANCE:
-                stance = ShapeshiftForm(effect->GetMiscValue());
-                break;
+                if (player->HasActiveSpell(effect->GetId()))
+                {
+                    m_suspendedWarriorStance = effect->GetId();
+                    target->RemoveAurasDueToSpell(m_suspendedWarriorStance, target->GetGUID());
+                }
+                return;
             default:
-                return FORM_NONE;
+                break;
         }
     }
-    return stance;
+}
+
+void AuraEffect::DiscardSuspendedWarriorStanceForForm(Unit* target, uint32 form) const
+{
+    if (GetMiscValue() == FORM_STEALTH && GetCasterGUID() == target->GetGUID() &&
+        AscensionFreePick::Applies(target->ToPlayer()) && form != FORM_NONE && form != FORM_STEALTH)
+        m_suspendedWarriorStance = 0;
+}
+
+void AuraEffect::RestoreWarriorStanceAfterStealth(Unit* target) const
+{
+    uint32 const spell = m_suspendedWarriorStance;
+    m_suspendedWarriorStance = 0;
+    Player* player = target->ToPlayer();
+    if (!spell || !AscensionFreePick::Applies(player) || !target->IsAlive() ||
+        player->GetSession()->PlayerLogout() || !player->HasActiveSpell(spell))
+        return;
+
+    for (AuraEffect const* effect : target->GetAuraEffectsByType(SPELL_AURA_MOD_SHAPESHIFT))
+    {
+        if (effect == this)
+            continue;
+        if (effect->GetMiscValue() == FORM_STEALTH && effect->GetCasterGUID() == target->GetGUID() &&
+            !effect->m_suspendedWarriorStance)
+            effect->m_suspendedWarriorStance = spell;
+        return;
+    }
+
+    target->CastSpell(target, spell, true);
 }
 
 void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
@@ -1821,6 +1852,11 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
                     if (AuraEffect const* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2851, 0))
                     {
                         int32 bp = aurEff->GetAmount();
+                        if (AscensionFreePick::Applies(target->ToPlayer()))
+                            for (AuraEffect const* effect : target->GetAuraEffectsByType(SPELL_AURA_DUMMY))
+                                if (effect->GetSpellInfo()->SpellFamilyName == SPELLFAMILY_GENERIC &&
+                                    effect->GetSpellInfo()->SpellIconID == 2851)
+                                    bp = std::max(bp, effect->GetAmount());
                         target->CastCustomSpell(target, 48420, &bp, nullptr, nullptr, true);
                     }
                     break;
@@ -1830,6 +1866,11 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
                     if (AuraEffect const* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2851, 0))
                     {
                         int32 bp = aurEff->GetAmount();
+                        if (AscensionFreePick::Applies(target->ToPlayer()))
+                            for (AuraEffect const* effect : target->GetAuraEffectsByType(SPELL_AURA_DUMMY))
+                                if (effect->GetSpellInfo()->SpellFamilyName == SPELLFAMILY_GENERIC &&
+                                    effect->GetSpellInfo()->SpellIconID == 2851)
+                                    bp = std::max(bp, effect->GetAmount());
                         target->CastCustomSpell(target, 48418, &bp, nullptr, nullptr, true);
                     }
                     // Survival of the Fittest
@@ -1844,6 +1885,11 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
                     if (AuraEffect const* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2851, 0))
                     {
                         int32 bp = aurEff->GetAmount();
+                        if (AscensionFreePick::Applies(target->ToPlayer()))
+                            for (AuraEffect const* effect : target->GetAuraEffectsByType(SPELL_AURA_DUMMY))
+                                if (effect->GetSpellInfo()->SpellFamilyName == SPELLFAMILY_GENERIC &&
+                                    effect->GetSpellInfo()->SpellIconID == 2851)
+                                    bp = std::max(bp, effect->GetAmount());
                         target->CastCustomSpell(target, 48421, &bp, nullptr, nullptr, true);
                     }
                     // Always cast Moonkin Aura
@@ -1854,6 +1900,11 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
                     if (AuraEffect const* aurEff = target->GetDummyAuraEffect(SPELLFAMILY_GENERIC, 2851, 0))
                     {
                         int32 bp = aurEff->GetAmount();
+                        if (AscensionFreePick::Applies(target->ToPlayer()))
+                            for (AuraEffect const* effect : target->GetAuraEffectsByType(SPELL_AURA_DUMMY))
+                                if (effect->GetSpellInfo()->SpellFamilyName == SPELLFAMILY_GENERIC &&
+                                    effect->GetSpellInfo()->SpellIconID == 2851)
+                                    bp = std::max(bp, effect->GetAmount());
                         target->CastCustomSpell(target, 48422, &bp, nullptr, nullptr, true);
                     }
                     break;
@@ -1892,15 +1943,12 @@ void AuraEffect::HandleShapeshiftBoosts(Unit* target, bool apply) const
         // Use the new aura to see on what stance the target will be
         uint64 newStance = newAura && newAura->GetMiscValue() > 0 && newAura->GetMiscValue() <= 64 ? uint64(1) << (newAura->GetMiscValue() - 1) : 0;
 
-        ShapeshiftForm const remaining = RemainingWarriorStanceAfterStealth(target, this);
-        bool const retainingStance = remaining != FORM_NONE && remaining == target->GetShapeshiftForm();
-
         Unit::AuraApplicationMap& tAuras = target->GetAppliedAuras();
         for (Unit::AuraApplicationMap::iterator itr = tAuras.begin(); itr != tAuras.end();)
         {
             // If the stances are not compatible with the spell, remove it
             // Xinef: Remove all passive auras, they will be added if needed
-            if (itr->second->GetBase()->IsRemovedOnShapeLost(target) && (!(itr->second->GetBase()->GetSpellInfo()->Stances & newStance) || (!retainingStance && itr->second->GetBase()->IsPassive())))
+            if (itr->second->GetBase()->IsRemovedOnShapeLost(target) && (!(itr->second->GetBase()->GetSpellInfo()->Stances & newStance) || itr->second->GetBase()->IsPassive()))
                 target->RemoveAura(itr);
             else
                 ++itr;
@@ -2372,6 +2420,9 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
                 break;
         }
 
+        if (mode & AURA_EFFECT_HANDLE_REAL)
+            SuspendWarriorStanceForStealth(target);
+
         // remove other shapeshift before applying a new one
         // xinef: rogue shouldnt be wrapped by this check (shadow dance vs stealth)
         if (GetSpellInfo()->SpellFamilyName != SPELLFAMILY_ROGUE)
@@ -2472,13 +2523,6 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
                 // Remove movement impairing effects also when shifting out
                 target->RemoveAurasByShapeShift();
             }
-        }
-
-        else if (target->GetShapeshiftForm() == FORM_STEALTH)
-        {
-            ShapeshiftForm const stance = RemainingWarriorStanceAfterStealth(target, this);
-            if (stance != FORM_NONE)
-                target->SetShapeshiftForm(stance);
         }
 
         if (modelid > 0)
@@ -2604,6 +2648,9 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
                 target->ToPlayer()->removeSpell(shapeInfo->stanceSpell[i], SPEC_MASK_ALL, true);
         }
     }
+
+    if (!apply && (mode & AURA_EFFECT_HANDLE_REAL))
+        RestoreWarriorStanceAfterStealth(target);
 }
 
 void AuraEffect::HandleAuraTransform(AuraApplication const* aurApp, uint8 mode, bool apply) const
@@ -5594,6 +5641,34 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
 
     Unit* target = aurApp->GetTarget();
 
+    if (GetSpellInfo()->SpellFamilyName == SPELLFAMILY_GENERIC && GetSpellInfo()->SpellIconID == 2851 &&
+        AscensionFreePick::Applies(target->ToPlayer()))
+    {
+        uint32 helper = 0;
+        switch (target->GetShapeshiftForm())
+        {
+            case FORM_BEAR: case FORM_DIREBEAR: helper = 48418; break;
+            case FORM_CAT: helper = 48420; break;
+            case FORM_MOONKIN: helper = 48421; break;
+            case FORM_TREE: helper = 48422; break;
+            default: break;
+        }
+        int32 amount = apply ? GetAmount() : 0;
+        for (AuraEffect const* effect : target->GetAuraEffectsByType(SPELL_AURA_DUMMY))
+            if (effect != this && effect->GetSpellInfo()->SpellFamilyName == SPELLFAMILY_GENERIC &&
+                effect->GetSpellInfo()->SpellIconID == 2851)
+                amount = std::max(amount, effect->GetAmount());
+        for (uint32 candidate : { 48418u, 48420u, 48421u, 48422u })
+            if (candidate != helper || amount <= 0)
+                target->RemoveAurasDueToSpell(candidate, target->GetGUID());
+        if (helper && amount > 0)
+        {
+            AuraEffect const* current = target->GetAuraEffect(helper, EFFECT_0, target->GetGUID());
+            if (!current || current->GetAmount() != amount)
+                target->CastCustomSpell(target, helper, &amount, nullptr, nullptr, true);
+        }
+    }
+
     if ((GetId() == 84866 || GetId() == 84867) && target->IsPlayer() && AscensionFreePick::Applies(target->ToPlayer()))
     {
         target->ToPlayer()->UpdateSpellDamageAndHealingBonus();
@@ -6837,7 +6912,8 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
     if (caster && AscensionFreePick::Applies(caster->ToPlayer()) && caster->HasAura(977782))
     {
         uint32 const root = m_spellInfo->GetFirstRankSpell()->Id;
-        if ((root == 5570 && caster->HasAura(48517)) || (root == 8921 && caster->HasAura(48518)))
+        if ((root == 5570 && caster->HasAura(48517)) ||
+            (caster->ToPlayer()->MatchesSpellInteraction(m_spellInfo->Id, 8921) && caster->HasAura(48518)))
         {
             AddPct(damage, target->IsPlayer() ? 10 : 50);
             float done = caster->SpellDoneCritChance(target, m_spellInfo, m_spellInfo->GetSchoolMask(), BASE_ATTACK, true);

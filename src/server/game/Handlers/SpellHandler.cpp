@@ -384,6 +384,7 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
         return;
 
     recvPacket >> castCount >> spellId >> castFlags;
+
     TriggerCastFlags triggerFlag = TRIGGERED_NONE;
 
     uint32 oldSpellId = spellId;

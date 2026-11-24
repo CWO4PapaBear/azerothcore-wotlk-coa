@@ -73,7 +73,9 @@ struct ObjectMgr {
 } objects;
 auto* sObjectMgr=&objects;
 namespace AscensionMysticEnchant {
-struct Grant { uint32 Enchant,Spell; };
+struct Grant { uint32 Enchant,Spell,Requires=0; };
+Grant const* PistolRankGrant(uint32) { return nullptr; }
+template<class F> bool ExactGrantPrerequisiteMet(Grant const&,F const&) { return false; }
 std::vector<Grant> SpellGrants={{900,300}};
 bool GrantsActive(Player const* p,uint32 e) { return p->enchants.contains(e); }
 void SetGrantedSpell(Player* p,uint32,uint32 s,bool) { p->spells.insert(s); }

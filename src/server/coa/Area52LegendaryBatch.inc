@@ -303,8 +303,55 @@ public:
             sConfigMgr->GetOption<std::string>("CoA.RealmType", "live") != "live" ||
             (sConfigMgr->GetOption<uint32>("CoA.GameModeMask", 0) & ~uint32(0x400)))
             return;
+        if (info->Id == 983846)
+        {
+            info->Effects[EFFECT_0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+            info->AttributesCu &= ~SPELL_ATTR0_CU_NEGATIVE_EFF0;
+        }
+        if (info->Id == 760198)
+            info->ProcCharges = 1;
         if (info->Id == 983908)
             info->Effects[EFFECT_0].MiscValue = SPELL_SCHOOL_MASK_ALL;
+        if (info->Id == 28176 || info->Id == 28189 || info->Id == 47892 || info->Id == 47893)
+        {
+            auto& proc = info->Effects[EFFECT_1];
+            proc.Effect = SPELL_EFFECT_APPLY_AURA;
+            proc.ApplyAuraName = SPELL_AURA_PROC_TRIGGER_SPELL;
+            proc.TriggerSpell = 828176;
+            proc.Amplitude = 0;
+            proc.BasePoints = 0;
+            proc.SpellClassMask = flag96(0, 0, 0);
+            proc.TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+            proc.TargetB = SpellImplicitTargetInfo(0);
+            info->ProcFlags = PROC_FLAG_DONE_SPELL_MELEE_DMG_CLASS | PROC_FLAG_DONE_SPELL_RANGED_DMG_CLASS |
+                PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_NEG | PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG;
+            info->ProcChance = 10;
+            info->ProcCharges = 0;
+        }
+        if (info->Id == 828176)
+        {
+            auto& heal = info->Effects[EFFECT_0];
+            heal.Effect = SPELL_EFFECT_ASCENSION_RESTORE_BASE_HEALTH_PCT;
+            heal.ApplyAuraName = SPELL_AURA_NONE;
+            heal.BasePoints = 2;
+            heal.Amplitude = 0;
+            heal.TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+            heal.TargetB = SpellImplicitTargetInfo(0);
+            info->AttributesEx2 |= SPELL_ATTR2_CANT_CRIT;
+        }
+        if (info->Id == 48511)
+        {
+            info->Effects[EFFECT_2].Effect = SPELL_EFFECT_APPLY_AURA;
+            info->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_PROC_TRIGGER_SPELL;
+            info->Effects[EFFECT_2].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+            info->Effects[EFFECT_2].TargetB = SpellImplicitTargetInfo(0);
+            info->Effects[EFFECT_2].TriggerSpell = 301118;
+        }
+        if (info->Id == 57658 || info->Id == 57660 || info->Id == 57662 || info->Id == 57663)
+        {
+            info->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AREA_AURA_RAID;
+            info->Effects[EFFECT_1].Effect = SPELL_EFFECT_APPLY_AREA_AURA_RAID;
+        }
         if (info->Id == 81123 || info->Id == 982220)
             info->StackAmount = 10;
         if (info->Id == 81479)

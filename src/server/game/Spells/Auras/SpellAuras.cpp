@@ -25,6 +25,7 @@
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Opcodes.h"
+#include "Pet.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "Spell.h"
@@ -2396,6 +2397,25 @@ uint8 Aura::GetProcEffectMask(AuraApplication* aurApp, ProcEventInfo& eventInfo,
 
 float Aura::CalcProcChance(SpellProcEntry const& procEntry, ProcEventInfo& eventInfo) const
 {
+    if (GetId() == 28176 || GetId() == 28189 || GetId() == 47892 || GetId() == 47893)
+        if (Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr; AscensionFreePick::Applies(player))
+        {
+            DamageInfo const* damage = eventInfo.GetDamageInfo();
+            if (eventInfo.GetActor() != player || !eventInfo.GetSpellInfo() || !damage ||
+                !damage->GetDamage() || damage->GetDamageType() != SPELL_DIRECT_DAMAGE)
+                return 0.0f;
+            float chance = 10.0f;
+            if (Pet* pet = player->GetPet(); pet && pet->IsAlive() && pet->IsInWorld() &&
+                pet->GetCreatureType() == CREATURE_TYPE_DEMON)
+                chance += 5.0f;
+            for (uint32 rank = 3; rank; --rank)
+                if (player->HasAura(30142 + rank))
+                {
+                    chance += 2.0f * rank;
+                    break;
+                }
+            return chance;
+        }
     float chance = procEntry.Chance;
     // calculate chances depending on unit with caster's data
     // so talents modifying chances and judgements will have properly calculated proc chance

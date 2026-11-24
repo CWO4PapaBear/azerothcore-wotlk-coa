@@ -75,6 +75,7 @@ extern pEffect SpellEffects[TOTAL_SPELL_EFFECTS];
 #include "Area52DragonWarrior.inc"
 #include "Area52LegendaryBatchRules.h"
 #include "Area52LegendaryBatch.inc"
+#include "Area52Arcanist.inc"
 #include "Area52Felfire.inc"
 #include "Area52CorruptedBear.inc"
 #include "Area52CastMovement.inc"
@@ -345,6 +346,7 @@ void Synchronize(Player* player)
             state->Applied.insert(spell);
         }
     }
+    Area52Arcanist::Synchronize(player);
     if (Applies(player) && !state->Applied.contains(982743))
         player->RemoveAurasDueToSpell(982745, player->GetGUID());
     if (Applies(player) && !state->Applied.contains(997115))
@@ -970,6 +972,12 @@ void LoadConnections()
             Connected.emplace(spell, std::max<std::uint32_t>(1, info->StackAmount));
             continue;
         }
+        if (spell == Area52Arcanist::Enchant)
+        {
+            if (Area52Arcanist::Connected())
+                Connected.emplace(spell, 1);
+            continue;
+        }
         if (Area52LegendaryBatch::Managed(spell))
         {
             if (HasArea52LegendaryBatchHandlers(spell))
@@ -1178,7 +1186,7 @@ public:
         PLAYERHOOK_ON_FORGOT_SPELL}) { }
     void OnPlayerLearnSpell(Player* player, uint32 spell) override
     {
-        if (spell == 33831 || spell == 6117 || IsRangedEnchantPrerequisite(spell) ||
+        if (spell == Area52Arcanist::Meteor || spell == 33831 || spell == 6117 || IsRangedEnchantPrerequisite(spell) ||
             (sSpellMgr->GetFirstSpellInChain(spell) == 14914 || sSpellMgr->GetFirstSpellInChain(spell) == 8921))
             Synchronize(player);
         if (Applies(player) && std::find(AscensionFreePick::SpecializationSpells.begin(),
@@ -1187,7 +1195,7 @@ public:
     }
     void OnPlayerForgotSpell(Player* player, uint32 spell) override
     {
-        if (spell == 33831 || spell == 6117 || IsRangedEnchantPrerequisite(spell) ||
+        if (spell == Area52Arcanist::Meteor || spell == 33831 || spell == 6117 || IsRangedEnchantPrerequisite(spell) ||
             (sSpellMgr->GetFirstSpellInChain(spell) == 14914 || sSpellMgr->GetFirstSpellInChain(spell) == 8921))
             Synchronize(player);
     }
@@ -2108,7 +2116,6 @@ namespace
 bool DefiasWeaponReady(Player* player)
 {
     if (!player || !AscensionFreePick::Applies(player) || !player->HasAura(997047) ||
-        player->GetShapeshiftForm() != FORM_NONE ||
         player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
         return false;
     Item const* main = player->GetWeaponForAttack(BASE_ATTACK, true);
@@ -2379,6 +2386,12 @@ void AddSC_AscensionMysticEnchant()
     RegisterSpellScript(spell_area52_overloaded_mind);
     RegisterSpellScript(spell_area52_froststorm_echo);
     RegisterSpellScript(spell_area52_legendary_batch);
+    RegisterSpellScript(aura_area52_arcanist_equipment);
+    RegisterSpellScript(aura_area52_arcanist_potential);
+    RegisterSpellScript(aura_area52_arcanist_resonance);
+    RegisterSpellScript(spell_area52_arcanist_meteor);
+    new area52_arcanist_casts();
+    new area52_arcanist_metadata();
     RegisterSpellScript(spell_area52_slinger_consumption);
     RegisterSpellScript(spell_area52_bone_chill_vulnerability);
     new area52_legendary_batch_metadata();

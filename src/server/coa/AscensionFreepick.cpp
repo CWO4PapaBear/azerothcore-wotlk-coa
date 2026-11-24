@@ -1,6 +1,7 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 
 #include "AscensionFreepick.h"
+#include "Area52MysticRealm.h"
 #include "AscensionFreepickRules.h"
 #include "AscensionCoATalentState.h"
 #include "AscensionWildcard.h"
@@ -254,7 +255,7 @@ bool RealmIsClassless()
 
 bool RealmOffersMysticAltars()
 {
-    return MysticAltars;
+    return Area52MysticRealm::UsesFreePickEngine() || MysticAltars;
 }
 
 bool IsFreepickHero(Player const* player)

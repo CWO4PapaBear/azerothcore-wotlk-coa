@@ -1,3 +1,4 @@
+#include "../../../coa/Area52ArcanistRules.h"
 #include "../../../coa/Area52FeignDeath.h"
 #include "../../../coa/Area52TemporaryPhysicalDamage.h"
 /*
@@ -10699,13 +10700,19 @@ float Unit::GetAscensionPvpTuningDamageMultiplier(Unit const* victim, uint32 sch
     if (!victim || !victim->IsCharmedOwnedByPlayerOrPlayer())
         return 1.0f;
 
-    return GetTotalAuraMultiplier(SPELL_AURA_ASCENSION_MOD_PVP_DAMAGE_DONE_PCT,
+    float multiplier = GetTotalAuraMultiplier(SPELL_AURA_ASCENSION_MOD_PVP_DAMAGE_DONE_PCT,
         [this, schoolMask](AuraEffect const* effect)
         {
             bool const hunger = effect->GetId() == Area52HopliteRemaining::HungerBuff &&
                 AscensionFreePick::Applies(ToPlayer());
             return (effect->GetId() == 275097 || hunger || (effect->GetId() == 986116 && AscensionFreePick::Applies(ToPlayer())) || IsAscensionPvpTuningAura(effect->GetId())) && (effect->GetMiscValue() & schoolMask);
         });
+    if (AscensionFreePick::Applies(ToPlayer()))
+        for (uint32 id : Area52Arcanist::Resonances)
+            if (AuraEffect const* effect = GetAuraEffect(id, EFFECT_0))
+                if (effect->GetMiscValue() & schoolMask)
+                    multiplier *= Area52Arcanist::PvpCompensation(float(effect->GetAmount()));
+    return multiplier;
 }
 
 float Unit::GetHealthBasedDamageTakenMultiplier() const
@@ -10748,7 +10755,8 @@ uint32 Unit::SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, ui
                 IsAscensionTuningDamageTakenSource(effect, caster, this);
         });
     if (Player* player = caster ? caster->ToPlayer() : nullptr;
-        AscensionFreePick::Applies(player) && player->HasAura(957849) &&
+        AscensionFreePick::Applies(player) &&
+        (player->HasAura(957849) || player->HasAura(57849) || player->HasAura(57850) || player->HasAura(57851)) &&
         (spellProto->GetSchoolMask() & (SPELL_SCHOOL_MASK_NATURE | SPELL_SCHOOL_MASK_ARCANE)))
     {
         auto const school = spellProto->GetSchoolMask();
@@ -10761,8 +10769,16 @@ uint32 Unit::SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, ui
                    ((school & SPELL_SCHOOL_MASK_ARCANE) && player->MatchesSpellInteraction(effect->GetId(), 8921));
         });
         if (eligible)
+        {
             if (AuraEffect const* bonus = player->GetAuraEffect(957849, EFFECT_0))
                 AddPct(TakenTotalMod, bonus->GetAmount());
+            for (uint32 rank = 57851; rank >= 57849; --rank)
+                if (AuraEffect const* bonus = player->GetAuraEffect(rank, EFFECT_0))
+                {
+                    AddPct(TakenTotalMod, bonus->GetAmount());
+                    break;
+                }
+        }
     }
     if (Player* player = caster ? caster->ToPlayer() : nullptr;
         AscensionFreePick::Applies(player) && player->HasAura(965282) &&
@@ -11341,6 +11357,26 @@ float Unit::SpellTakenCritChance(Unit const* caster, SpellInfo const* spellProto
         caster->GetAscensionConditionalCombatModifier(this, spellProto, ASCENSION_CONDITIONAL_GUARANTEED_CRIT) > 0)
         crit_chance = std::max(crit_chance, 100.0f);
 
+    if (!spellProto->IsPositive() && (schoolMask & SPELL_SCHOOL_MASK_MAGIC) &&
+        spellProto->DmgClass == SPELL_DAMAGE_CLASS_MAGIC)
+    {
+        auto const& dots = GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
+        bool const celestialBane = std::any_of(dots.begin(), dots.end(), [](AuraEffect const* effect)
+        {
+            Unit* owner = effect->GetCaster();
+            Player* player = owner ? owner->ToPlayer() : nullptr;
+            return AscensionFreePick::Applies(player) && player->HasAura(57851) &&
+                player->MatchesSpellInteraction(effect->GetId(), 5570);
+        });
+        if (celestialBane)
+        {
+            int32 const existing = GetMaxPositiveAuraModifierByMiscMask(
+                SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_CHANCE, schoolMask) +
+                std::max(0, GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE));
+            crit_chance += std::max(0, 5 - existing);
+        }
+    }
+
     // xinef: can be negative!
     return crit_chance;
 }
@@ -11364,18 +11400,26 @@ uint32 Unit::SpellCriticalDamageBonus(Unit const* caster, SpellInfo const* spell
 
     if (caster)
     {
-        // Shadow Power specifies a final spell critical multiplier; the ordinary
-        // aura percentages instead scale the entire baseline critical hit.
-        uint32 shadowPowerPercent = 0;
+        // These talents specify a final spell critical multiplier; ordinary aura
+        // percentages instead scale the entire baseline critical hit.
+        uint32 talentCriticalPercent = 0;
         if (AscensionFreePick::Applies(caster->ToPlayer()) &&
             spellProto->DmgClass != SPELL_DAMAGE_CLASS_MELEE && spellProto->DmgClass != SPELL_DAMAGE_CLASS_RANGED &&
             (spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_MAGIC))
+        {
             for (uint32 rank = 33225; rank >= 33221; --rank)
                 if (caster->HasAura(rank))
                 {
-                    shadowPowerPercent = 180 + 5 * (rank - 33221);
+                    talentCriticalPercent = 180 + 5 * (rank - 33221);
                     break;
                 }
+            for (uint32 rank = 16913; rank >= 16909; --rank)
+                if (caster->HasAura(rank))
+                {
+                    talentCriticalPercent = std::max(talentCriticalPercent, 180 + 5 * (rank - 16909));
+                    break;
+                }
+        }
 
         auto eligible = [caster, spellProto](AuraEffect const* effect)
         {
@@ -11391,7 +11435,7 @@ uint32 Unit::SpellCriticalDamageBonus(Unit const* caster, SpellInfo const* spell
         };
         crit_mod += caster->GetTotalAuraModifier(SPELL_AURA_MOD_CRIT_DAMAGE_BONUS, [&](AuraEffect const* effect)
         {
-            return eligible(effect) && (!shadowPowerPercent || !similarTalent(effect));
+            return eligible(effect) && (!talentCriticalPercent || !similarTalent(effect));
         });
 
         if (victim)
@@ -11404,11 +11448,11 @@ uint32 Unit::SpellCriticalDamageBonus(Unit const* caster, SpellInfo const* spell
         if (crit_bonus != 0 && crit_mod != 0.0f)
             AddPct(crit_bonus, crit_mod);
 
-        if (shadowPowerPercent)
+        if (talentCriticalPercent)
         {
             int32 const similarPercent = caster->GetTotalAuraModifier(SPELL_AURA_MOD_CRIT_DAMAGE_BONUS,
                 [&](AuraEffect const* effect) { return eligible(effect) && similarTalent(effect); });
-            int32 const talentCritical = int32(uint64(damage) * shadowPowerPercent / 100);
+            int32 const talentCritical = int32(uint64(damage) * talentCriticalPercent / 100);
             crit_bonus += std::max(talentCritical - baseCritical, CalculatePct(baseCritical, similarPercent));
         }
 
