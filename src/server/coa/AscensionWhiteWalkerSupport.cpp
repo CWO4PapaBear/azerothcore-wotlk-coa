@@ -1,5 +1,6 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 #include "AscensionWhiteWalkerSupportRules.h"
+#include "AscensionFreePick.h"
 #include "Config.h"
 #include "Creature.h"
 #include "AllItemScript.h"
@@ -65,23 +66,47 @@ void ApplyWhiteWalkerDamageCharges(SpellInfo* info)
     proc.TargetB = SpellImplicitTargetInfo();
 }
 
+void RefreshTwoHandRequirement(Player* player)
+{
+    if (!Area52Enabled)
+        return;
+    constexpr uint32 marker = 997611;
+    if (player->IsTwoHandUsed())
+    {
+        if (!player->HasActiveSpell(marker))
+        {
+            std::set<uint32> const allowed = {marker};
+            AscensionFreePick::SpellLearningScope scope(player, allowed);
+            player->learnSpell(marker, true);
+        }
+    }
+    else if (player->HasSpell(marker))
+        player->removeSpell(marker, SPEC_MASK_ALL, false);
+}
+
 void RefreshWhiteWalker(Player* player)
 {
     using namespace AscensionWhiteWalkerSupport;
     bool const active = Area52Enabled && player->HasAura(WhiteWalker) && player->IsTwoHandUsed();
     auto& granted = WhiteWalkerGranted[player->GetGUID().GetCounter()];
     std::unordered_set<uint32> desired;
+    auto learn = [&](uint32 spell)
+    {
+        if (player->HasActiveSpell(spell))
+            return;
+        std::set<uint32> const allowed = {spell};
+        AscensionFreePick::SpellLearningScope scope(player, allowed);
+        player->learnSpell(spell, true);
+        if (player->HasActiveSpell(spell))
+            granted.insert(spell);
+    };
     auto replace = [&](uint32 root, uint32 replacement)
     {
         bool const eligible = active && player->HasActiveSpell(root);
         if (eligible)
         {
             desired.insert(replacement);
-            if (!player->HasActiveSpell(replacement))
-            {
-                player->learnSpell(replacement, true);
-                granted.insert(replacement);
-            }
+            learn(replacement);
         }
         player->SetTemporarySpellReplacement(root, eligible ? replacement : 0);
     };
@@ -94,11 +119,7 @@ void RefreshWhiteWalker(Player* player)
     if (active && sliceKnown && player->HasActiveSpell(44545))
     {
         desired.insert(FrozenBlade);
-        if (!player->HasActiveSpell(FrozenBlade))
-        {
-            player->learnSpell(FrozenBlade, true);
-            granted.insert(FrozenBlade);
-        }
+        learn(FrozenBlade);
     }
     uint32 iceSpear = 0;
     for (auto rank = IceSpearRanks.rbegin(); rank != IceSpearRanks.rend(); ++rank)
@@ -116,11 +137,7 @@ void RefreshWhiteWalker(Player* player)
     if (active && iceLanceKnown && iceSpear)
     {
         desired.insert(iceSpear);
-        if (!player->HasActiveSpell(iceSpear))
-        {
-            player->learnSpell(iceSpear, true);
-            granted.insert(iceSpear);
-        }
+        learn(iceSpear);
     }
     for (uint32 rank : IceLanceRanks)
         player->SetTemporarySpellReplacement(rank,
@@ -192,6 +209,7 @@ public:
     void OnPlayerLogin(Player* player) override
     {
         RefreshWhiteWalkerMountItem(player);
+        RefreshTwoHandRequirement(player);
         RefreshWhiteWalker(player);
         RefreshAbsoluteZero(player);
         RefreshIcyTalons(player);
@@ -228,6 +246,7 @@ public:
 
     void OnPlayerUpdate(Player* player, uint32) override
     {
+        RefreshTwoHandRequirement(player);
         RefreshWhiteWalker(player);
         RefreshAbsoluteZero(player);
         RefreshIcyTalons(player);

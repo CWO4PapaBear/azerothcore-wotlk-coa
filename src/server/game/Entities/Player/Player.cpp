@@ -10551,7 +10551,8 @@ bool Player::IsAffectedBySpellmod(SpellInfo const* spellInfo, SpellModifier* mod
 
     if (AscensionFreePick::Applies(this))
     {
-        if (mod->spellId == 17322 || mod->spellId == 17323 || mod->spellId == 817323)
+        if (mod->spellId == 17322 || mod->spellId == 17323 || mod->spellId == 817323 ||
+            mod->spellId == 16819 || mod->spellId == 16820 || mod->spellId == 816819)
         {
             if (mod->op != SPELLMOD_RANGE || !spellInfo->RangeEntry || spellInfo->RangeEntry->RangeMax[0] <= 0 ||
                 (!spellInfo->IsChanneled() && !spellInfo->CalcCastTime()))
@@ -10589,6 +10590,9 @@ bool Player::IsAffectedBySpellmod(SpellInfo const* spellInfo, SpellModifier* mod
     if (AscensionFreePick::IsDarkRangerMoltenCore(mod->spellId, spellInfo->Id) &&
         AscensionFreePick::Applies(this) && HasAura(997115))
         return mod->op == SPELLMOD_DAMAGE || mod->op == SPELLMOD_CRITICAL_CHANCE;
+
+    if (mod->spellId == 760198 && mod->op == SPELLMOD_CASTING_TIME && AscensionFreePick::Applies(this))
+        return MatchesSpellInteraction(spellInfo->Id, 2912) || MatchesSpellInteraction(spellInfo->Id, 30451);
 
     if (spellInfo->IsAffectedBySpellMod(mod))
         return true;
@@ -10677,6 +10681,7 @@ void Player::ApplyTargetedSpellModTrackingDamage(uint32 spellId, SpellModOp op, 
                 switch (mod->spellId)
                 {
                     case 17322: case 17323: case 817323:
+                    case 16819: case 16820: case 816819:
                         shadowReach = std::max(shadowReach, flatValue);
                         flatValue = 0;
                         break;
@@ -10853,33 +10858,39 @@ void Player::AddSpellMod(SpellModifier* mod, bool apply)
     SpellInfo const* modSpell = sSpellMgr->GetSpellInfo(mod->spellId);
     uint32 const spellFamily = modSpell ? modSpell->SpellFamilyName : 0;
 
-    int i = 0;
-    flag96 _mask = 0;
-    uint32 const clientSpellModCount = GetClientSpellModCount();
-    for (int eff = 0; eff < 96 && uint32(mod->op) < clientSpellModCount; ++eff)
+    auto clientMask = [&](SpellModifier const* candidate, uint32 family)
     {
-        if (eff != 0 && eff % 32 == 0)
-            _mask[i++] = 0;
+        SpellInfo const* candidateInfo = sSpellMgr->GetSpellInfo(candidate->spellId);
+        if (!useAscensionSpellModifierLayout || (candidateInfo && candidateInfo->SpellFamilyName == family))
+            return candidate->mask;
+        if (AscensionFreePick::Applies(this) && candidate->spellId == 760198 &&
+            candidate->op == SPELLMOD_CASTING_TIME && family == SPELLFAMILY_DRUID)
+            return flag96(4, 0, 0);
+        return flag96(0, 0, 0);
+    };
 
-        _mask[i] = uint32(1) << (eff - (32 * i));
-        if (mod->mask & _mask)
+    std::vector<uint32> families{spellFamily};
+    if (useAscensionSpellModifierLayout && AscensionFreePick::Applies(this) &&
+        mod->spellId == 760198 && mod->op == SPELLMOD_CASTING_TIME && spellFamily != SPELLFAMILY_DRUID)
+        families.push_back(SPELLFAMILY_DRUID);
+
+    uint32 const clientSpellModCount = GetClientSpellModCount();
+    for (uint32 family : families)
+    {
+        flag96 const mask = clientMask(mod, family);
+        for (uint32 eff = 0; eff < 96 && uint32(mod->op) < clientSpellModCount; ++eff)
         {
-            int32 val = 0;
-            for (SpellModContainer::iterator itr = m_spellMods[mod->op].begin(); itr != m_spellMods[mod->op].end(); ++itr)
-            {
-                if ((*itr)->type == mod->type && (*itr)->mask & _mask)
-                {
-                    if (useAscensionSpellModifierLayout)
-                    {
-                        SpellInfo const* itrSpell = sSpellMgr->GetSpellInfo((*itr)->spellId);
-                        if (!itrSpell || itrSpell->SpellFamilyName != spellFamily)
-                            continue;
-                    }
-                    val += (*itr)->value;
-                }
-            }
-            val += apply ? mod->value : -(mod->value);
-            SendSpellModifier(Opcode, eff, mod->op, val, spellFamily);
+            flag96 bit(0, 0, 0);
+            bit[eff / 32] = uint32(1) << (eff % 32);
+            if (!(mask & bit))
+                continue;
+
+            int32 value = 0;
+            for (SpellModifier const* existing : m_spellMods[mod->op])
+                if (existing->type == mod->type && (clientMask(existing, family) & bit))
+                    value += existing->value;
+            value += apply ? mod->value : -mod->value;
+            SendSpellModifier(Opcode, eff, mod->op, value, family);
         }
     }
 
@@ -14471,10 +14482,11 @@ std::vector<uint32> Player::GetSpellInteractionOrigins(uint32 spellId) const
     std::vector<uint32> pending{spellId};
     for (size_t index = 0; index < pending.size(); ++index)
     {
-        // Shadow Waste Bolt is learned alongside its matching Shadow Bolt rank.
-        if (HasAura(982330))
+        // These spells are learned alongside their corresponding original ranks.
+        if (HasAura(982330) || HasAura(977831))
             for (auto const& grant : AscensionMysticEnchant::SpellGrants)
-                if (grant.Enchant == 982330 && grant.Spell == pending[index] && HasSpell(grant.Requires) &&
+                if ((grant.Enchant == 982330 || grant.Enchant == 977831) && HasAura(grant.Enchant) &&
+                    grant.Spell == pending[index] && HasSpell(grant.Requires) &&
                     std::find(pending.begin(), pending.end(), grant.Requires) == pending.end())
                 {
                     pending.push_back(grant.Requires);

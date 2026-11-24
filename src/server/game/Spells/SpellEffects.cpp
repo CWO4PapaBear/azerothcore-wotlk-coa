@@ -1049,7 +1049,8 @@ void Spell::EffectAscensionRestoreBaseHealthPct(SpellEffIndex effIndex)
         return;
 
     uint32 heal = CalculatePct(unitTarget->GetCreateHealth(), damage);
-    heal = m_originalCaster->SpellHealingBonusDone(unitTarget, m_spellInfo, heal, HEAL, effIndex);
+    if (m_spellInfo->Id != 828176 || !AscensionFreePick::Applies(m_originalCaster->ToPlayer()))
+        heal = m_originalCaster->SpellHealingBonusDone(unitTarget, m_spellInfo, heal, HEAL, effIndex);
     m_damageBeforeTakenMods -= heal;
     heal = unitTarget->SpellHealingBonusTaken(m_originalCaster, m_spellInfo, heal, HEAL);
     m_damage -= heal;

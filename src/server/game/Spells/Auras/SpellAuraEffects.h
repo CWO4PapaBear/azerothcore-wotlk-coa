@@ -132,7 +132,13 @@ public:
         m_isAuraEnabled = enabled;
     }
 
+    void DiscardSuspendedWarriorStanceForForm(Unit* target, uint32 form) const;
+
 private:
+    mutable uint32 m_suspendedWarriorStance = 0;
+    void SuspendWarriorStanceForStealth(Unit* target) const;
+    void RestoreWarriorStanceAfterStealth(Unit* target) const;
+
     Aura* const m_base;
 
     SpellInfo const* const m_spellInfo;

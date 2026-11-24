@@ -127,14 +127,15 @@ class aura_area52_new_moon : public AuraScript
         if (!AscensionFreePick::Applies(caster) || !target || event.GetActor() != caster ||
             !info || !damage || !damage->GetDamage() || info->Id == 983848)
             return;
-        bool const moonfire = info->GetFirstRankSpell()->Id == 8921;
+        bool const moonfire = caster->MatchesSpellInteraction(info->Id, 8921);
         if (event.GetTypeMask() & PROC_FLAG_DONE_PERIODIC)
         {
             if (moonfire)
                 caster->CastSpell(caster, 760198, true);
             return;
         }
-        if (moonfire)
+        auto* cast = event.GetProcSpell();
+        if (moonfire && (!cast || target == cast->m_targets.GetUnitTarget()))
         {
             Aura* waxing = caster->GetAura(983846, caster->GetGUID());
             if (waxing && waxing->GetStackAmount() >= 5)
@@ -143,19 +144,25 @@ class aura_area52_new_moon : public AuraScript
                 caster->CastCustomSpell(983848, SPELLVALUE_MAX_TARGETS, 6, target, true);
             }
         }
-        auto* cast = event.GetProcSpell();
         if (!cast || cast->GetCastTime() <= 0)
             return;
-        if (Aura* dot = target->GetAuraOfRankedSpell(8921, caster->GetGUID()))
+        bool extended = false;
+        for (AuraEffect const* effect : target->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE))
         {
+            if (effect->GetCasterGUID() != caster->GetGUID() ||
+                !caster->MatchesSpellInteraction(effect->GetId(), 8921))
+                continue;
+            Aura* dot = effect->GetBase();
             int32 duration = dot->GetDuration();
             if (duration > 0 && duration <= INT32_MAX - 3000)
             {
                 dot->SetMaxDuration(std::max(dot->GetMaxDuration(), duration + 3000));
                 dot->SetDuration(duration + 3000);
-                caster->CastSpell(caster, 983846, true);
+                extended = true;
             }
         }
+        if (extended)
+            caster->CastSpell(caster, 983846, true);
     }
 
     void Register() override { OnProc += AuraProcFn(aura_area52_new_moon::Proc); }
@@ -293,8 +300,6 @@ class spell_area52_total_eclipse_hit : public SpellScript
         AfterHit += SpellHitFn(spell_area52_total_eclipse_hit::Hit);
     }
 };
-
-
 
 class aura_ascension_revitalize : public AuraScript
 {
