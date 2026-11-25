@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "mode": "stage",
+  "state_directory": "/state",
+  "signal_path": "/signals/area52-featured-catalog.signal",
+  "database": {
+    "defaults_file": "/config/mysql.cnf",
+    "characters": "acore_characters",
+    "world": "acore_world"
+  },
+  "renderer": {
+    "details": {
+      "path": "/inputs/details",
+      "sha256": "REPLACE_WITH_APPROVED_SHA256"
+    },
+    "items": {
+      "path": "/inputs/items",
+      "sha256": "REPLACE_WITH_APPROVED_SHA256"
+    },
+    "incarnations": {
+      "path": "/inputs/incarnations",
+      "sha256": "REPLACE_WITH_APPROVED_SHA256"
+    },
+    "glue": {
+      "path": "/inputs/glue",
+      "sha256": "REPLACE_WITH_APPROVED_SHA256"
+    },
+    "local_glue": {
+      "path": "/inputs/local_glue",
+      "sha256": "REPLACE_WITH_APPROVED_SHA256"
+    },
+    "archive": {
+      "path": "/inputs/patch-E.MPQ",
+      "sha256": "REPLACE_WITH_APPROVED_SHA256"
+    },
+    "rewards": {
+      "sets": {
+        "path": "/inputs/rewards-sets",
+        "sha256": "REPLACE_WITH_APPROVED_SHA256"
+      },
+      "vanity": {
+        "path": "/inputs/rewards-vanity",
+        "sha256": "REPLACE_WITH_APPROVED_SHA256"
+      },
+      "appearances": {
+        "path": "/inputs/rewards-appearances",
+        "sha256": "REPLACE_WITH_APPROVED_SHA256"
+      },
+      "mounts": {
+        "path": "/inputs/rewards-mounts",
+        "sha256": "REPLACE_WITH_APPROVED_SHA256"
+      },
+      "defaults": {
+        "path": "/inputs/rewards-defaults",
+        "sha256": "REPLACE_WITH_APPROVED_SHA256"
+      }
+    },
+    "vanity_prices": true,
+    "summary_catalogs": {
+      "archive": {
+        "path": "/inputs/patch-M.MPQ",
+        "sha256": "REPLACE_WITH_APPROVED_SHA256"
+      },
+      "base": {
+        "path": "/inputs/summary-base",
+        "sha256": "REPLACE_WITH_APPROVED_SHA256"
+      },
+      "realm": {
+        "path": "/inputs/summary-realm",
+        "sha256": "REPLACE_WITH_APPROVED_SHA256"
+      }
+    }
+  },
+  "release": {
+    "repository": "OWNER/CLIENT-REPOSITORY",
+    "manifest": {
+      "path": "/inputs/manifest.json",
+      "sha256": "REPLACE_WITH_APPROVED_SHA256"
+    },
+    "pointer": {
+      "path": "/inputs/channel.json",
+      "sha256": "REPLACE_WITH_APPROVED_SHA256"
+    },
+    "archive_sha256": "REPLACE_WITH_APPROVED_SHA256",
+    "base_archive_sha256": "REPLACE_WITH_APPROVED_SHA256"
+  },
+  "github": {
+    "repository": "OWNER/CLIENT-REPOSITORY",
+    "base_branch": "main",
+    "channel_path": "channels/area52.json"
+  }
+}

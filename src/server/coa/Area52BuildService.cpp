@@ -307,7 +307,8 @@ bool ValidatePreviewEffects(FeaturedPreviewEffects const& effects);
 
 char const* Validate(Entry const& entry)
 {
-    if (!ValidCreationSummary(entry.Description, entry.Category == FeaturedDraftCategory ? DraftArchetype(entry) : 0))
+    if (!ValidCreationSummary(entry.Description, entry.Category == FeaturedDraftCategory ? DraftArchetype(entry) : 0,
+        [](unsigned spell) { return sSpellMgr->GetSpellInfo(spell) != nullptr; }))
         return "PUBLISH_BUILD_INVALID_CREATION_SUMMARY";
     FeaturedPreviewEffects incarnations{};
     if (!ReadFeaturedIncarnations(entry.Description, incarnations)
