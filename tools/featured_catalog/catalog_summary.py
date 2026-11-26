@@ -1,4 +1,3 @@
-"""Render the enUS spell summary while retaining all other native catalog fields."""
 import re
 import struct
 
