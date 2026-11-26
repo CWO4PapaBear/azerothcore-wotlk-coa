@@ -1,3 +1,4 @@
+#include "Area52CreationPreview.h"
 /*
  * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU
  * AGPL v3 license:
@@ -6280,6 +6281,7 @@ static bool LoadsCollectionsForBot(Player *player) {
     _appearances.clear();
     _itemAppearances.clear();
     _itemSetItems.clear();
+    _botArchetypeArmor.clear();
     _vanityItems.clear();
     _allAppearanceIds.clear();
     _allVanityItemIds.clear();
@@ -6410,6 +6412,21 @@ static bool LoadsCollectionsForBot(Player *player) {
           items.push_back(itemId);
       }
     }
+
+    ClientDBC archetypeDetails;
+    if (archetypeDetails.Load(GetClientDBCPath("CharacterCreationArchetypeDetails.dbc"), 28))
+        for (uint32 row = 0; row < archetypeDetails.GetRecordCount(); ++row)
+        {
+            auto record = archetypeDetails.GetRecord(row);
+            uint32 const archetype = record.GetUInt32(1);
+            uint32 const race = record.GetUInt32(2);
+            uint32 const gender = record.GetUInt32(3);
+            if (!archetype || archetype > 65535 || race > 255 || gender > 1)
+                continue;
+            auto& armor = _botArchetypeArmor[(archetype << 16) | (race << 8) | gender];
+            for (std::size_t slot = 0; slot < armor.size(); ++slot)
+                armor[slot] = record.GetUInt32(16 + slot);
+        }
 
     ClientDBC vanity;
     bool vanityLoaded =
@@ -7148,6 +7165,26 @@ static bool LoadsCollectionsForBot(Player *player) {
             ? (*assignment)[1].value : sets[roles->front().value - 1];
         if (!ExpandItemSetAppearance(desired, set, AscensionFreePick::Applies(player)))
             return false;
+        auto const setInfo = _appearances.find(set);
+        if (setInfo != _appearances.end() && setInfo->second.SourceItem > 90000 &&
+            setInfo->second.SourceItem < 100000)
+        {
+            uint32 const key = ((setInfo->second.SourceItem - 90000) << 16) | (uint32(player->getRace()) << 8);
+            auto const current = _botArchetypeArmor.find(key | uint32(player->getGender()));
+            auto const alternate = _botArchetypeArmor.find(key | (uint32(player->getGender()) ^ 1));
+            if (current != _botArchetypeArmor.end() && alternate != _botArchetypeArmor.end())
+            {
+                constexpr std::array<uint32, 9> categories{1, 2, 4, 8, 11, 7, 9, 3, 10};
+                for (std::size_t slot = 0; slot < categories.size(); ++slot)
+                {
+                    auto const other = _itemAppearances.find(alternate->second[slot]);
+                    auto const own = _itemAppearances.find(current->second[slot]);
+                    if (other != _itemAppearances.end() && own != _itemAppearances.end() &&
+                        desired[categories[slot]] == other->second && _appearances.contains(own->second))
+                        desired[categories[slot]] = own->second;
+                }
+            }
+        }
         desired[55] = set;
         auto state = GetState(player);
         if (!state)
@@ -9572,6 +9609,7 @@ private:
   std::unordered_map<uint32, AppearanceInfo> _appearances;
   std::unordered_map<uint32, uint32> _itemAppearances;
   std::unordered_map<uint32, std::vector<uint32>> _itemSetItems;
+  std::unordered_map<uint32, std::array<uint32, 9>> _botArchetypeArmor;
   std::unordered_map<uint32, VanityInfo> _vanityItems;
   std::vector<uint32> _allAppearanceIds;
   std::vector<uint32> _allVanityItemIds;
@@ -10018,6 +10056,7 @@ public:
     {
       SendAscensionCoAConfig(session);
       SendAscensionCharacterListInfo(session);
+      SendArea52CreationPreview(session);
       AscensionCollectionService& service = AscensionCollectionService::Instance();
       service.SendRealmInfo(session);
       service.SendSecureAddonList(session);

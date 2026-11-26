@@ -1937,8 +1937,26 @@ class spell_hun_area52_expose_weakness : public AuraScript
     }
 };
 
+class spell_hun_area52_deterrence : public AuraScript
+{
+    PrepareAuraScript(spell_hun_area52_deterrence);
+
+    void HandleApply(AuraEffect const*, AuraEffectHandleModes)
+    {
+        Unit* target = GetTarget();
+        if (target && AscensionFreePick::Applies(target->ToPlayer()))
+            target->RemoveAurasWithMechanic(1ULL << MECHANIC_STUN, AURA_REMOVE_BY_ENEMY_SPELL);
+    }
+
+    void Register() override
+    {
+        AfterEffectApply += AuraEffectApplyFn(spell_hun_area52_deterrence::HandleApply, EFFECT_1, SPELL_AURA_DEFLECT_SPELLS, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
 void AddSC_hunter_spell_scripts()
 {
+    RegisterSpellScript(spell_hun_area52_deterrence);
     RegisterSpellScript(spell_hun_check_pet_los);
     RegisterSpellScript(spell_hun_cower);
     RegisterSpellScript(spell_hun_wyvern_sting);

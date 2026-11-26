@@ -1,3 +1,4 @@
+#include "../../coa/Area52WindScaling.h"
 #include "../../coa/Area52MysticRealm.h"
 #include "../../coa/AscensionMysticEnchantCatalog.h"
  /*
@@ -1653,6 +1654,20 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                 }
         }
 
+        if (effIndex == EFFECT_0 && AscensionFreePick::Applies(m_caster->ToPlayer()))
+        {
+            if (Area52Wind::OffhandStrike(m_spellInfo->Id) &&
+                !m_caster->ToPlayer()->GetWeaponForAttack(OFF_ATTACK, true))
+                return;
+            if (m_spellInfo->Id == 878939)
+            {
+                AuraEffect const* tornado = m_caster->GetAuraEffect(978939, EFFECT_0, m_caster->GetGUID());
+                damage = tornado ? Area52Wind::TornadoBaseTick(damage, tornado->GetTickNumber()) : 0;
+                if (!tornado)
+                    return;
+            }
+        }
+
         if (m_originalCaster /*&& damage > 0 Xinef: this can be increased from 0*/ && apply_direct_bonus)
         {
             // Xinef: protection
@@ -1660,6 +1675,10 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                 damage = 0;
 
             damage = m_originalCaster->SpellDamageBonusDone(unitTarget, m_spellInfo, (uint32)damage, SPELL_DIRECT_DAMAGE, effIndex, 0.0f, 1, trackAgility ? &agilityDamage : nullptr);
+            if (Player* player = m_originalCaster->ToPlayer(); AscensionFreePick::Applies(player) &&
+                (player->MatchesSpellInteraction(m_spellInfo->Id, 403) ||
+                    player->MatchesSpellInteraction(m_spellInfo->Id, 421)))
+                m_damageBeforeTakenMods += damage;
             damage = unitTarget->SpellDamageBonusTaken(m_originalCaster, m_spellInfo, (uint32)damage, SPELL_DIRECT_DAMAGE, 1, trackAgility ? &agilityDamage : nullptr);
         }
 
@@ -4666,6 +4685,17 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
             }
         case SPELLFAMILY_ROGUE:
             {
+                bool const area52KillingSpree = (m_spellInfo->Id == 57841 || m_spellInfo->Id == 57842) &&
+                    AscensionFreePick::Applies(m_caster->ToPlayer());
+                if (area52KillingSpree)
+                {
+                    Player* player = m_caster->ToPlayer();
+                    if (Item* weapon = player->GetWeaponForAttack(m_attackType, true))
+                        if (weapon->GetTemplate()->SubClass == ITEM_SUBCLASS_WEAPON_DAGGER)
+                            AddPct(totalDamagePercentMod, 50.0f);
+                    if (player->HasSpell(46917))
+                        AddPct(totalDamagePercentMod, -25.0f);
+                }
                 // Fan of Knives, Hemorrhage, Ghostly Strike
                 if ((m_spellInfo->SpellFamilyFlags[1] & 0x40000)
                         || (m_spellInfo->SpellFamilyFlags[0] & 0x6000000))

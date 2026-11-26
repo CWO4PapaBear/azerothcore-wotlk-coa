@@ -1,3 +1,4 @@
+#include "Area52CreationPreview.h"
 #include "Area52FeaturedCatalogEvents.h"
 #include "AsyncCallbackProcessor.h"
 #include "Log.h"
@@ -310,6 +311,12 @@ char const* Validate(Entry const& entry)
     if (!ValidCreationSummary(entry.Description, entry.Category == FeaturedDraftCategory ? DraftArchetype(entry) : 0,
         [](unsigned spell) { return sSpellMgr->GetSpellInfo(spell) != nullptr; }))
         return "PUBLISH_BUILD_INVALID_CREATION_SUMMARY";
+    CreationSelection creation;
+    if (!ReadCreationSelection(entry.Description, creation)
+        || (entry.Category != FeaturedDraftCategory
+            && (entry.Description.find("###AREA52_FEATURED_STANCE") != std::string::npos
+                || entry.Description.find("###AREA52_FEATURED_WEAPONS") != std::string::npos)))
+        return "PUBLISH_BUILD_INVALID_FEATURED_PREVIEW";
     FeaturedPreviewEffects incarnations{};
     if (!ReadFeaturedIncarnations(entry.Description, incarnations)
         || (entry.Category != FeaturedDraftCategory

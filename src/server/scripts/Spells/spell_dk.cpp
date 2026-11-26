@@ -687,12 +687,22 @@ class spell_dk_dancing_rune_weapon : public AuraScript
             return false;
 
         // Can't cast raise dead/ally, death grip, dark command, death pact, death and decay, anti-magic shell
-        if (spellInfo->SpellFamilyFlags.HasFlag(0x20A1220, 0x10000000, 0x0))
+        if ((!AscensionFreePick::Applies(eventInfo.GetActor()->ToPlayer()) || spellInfo->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT) &&
+            spellInfo->SpellFamilyFlags.HasFlag(0x20A1220, 0x10000000, 0x0))
             return false;
 
         // AoE can be cast only once
-        if (spellInfo->IsTargetingArea() && eventInfo.GetActor() != eventInfo.GetActionTarget())
-            return false;
+        if (spellInfo->IsTargetingArea())
+        {
+            if (AscensionFreePick::Applies(eventInfo.GetActor()->ToPlayer()))
+            {
+                Spell const* cast = eventInfo.GetProcSpell();
+                if (!cast || cast->GetScriptValue(49028))
+                    return false;
+            }
+            else if (eventInfo.GetActor() != eventInfo.GetActionTarget())
+                return false;
+        }
 
         // No spells with summoning
         if (spellInfo->HasEffect(SPELL_EFFECT_SUMMON))
@@ -721,15 +731,25 @@ class spell_dk_dancing_rune_weapon : public AuraScript
 
         if (!dancingRuneWeapon)
             return;
+        if (AscensionFreePick::Applies(player->ToPlayer()) && eventInfo.GetSpellInfo() &&
+            eventInfo.GetSpellInfo()->IsTargetingArea())
+        {
+            Spell const* cast = eventInfo.GetProcSpell();
+            if (!cast || cast->GetScriptValue(49028))
+                return;
+            const_cast<Spell*>(cast)->SetScriptValue(49028, 1);
+        }
+
 
         dancingRuneWeapon->SetOrientation(dancingRuneWeapon->GetAngle(target));
         if (SpellInfo const* procSpell = eventInfo.GetSpellInfo())
         {
-            // xinef: ugly hack
+            bool const area52 = AscensionFreePick::Applies(player->ToPlayer());
+            float const previousReach = GetUnitOwner()->GetFloatValue(UNIT_FIELD_COMBATREACH);
             if (!procSpell->IsAffectingArea())
                 GetUnitOwner()->SetFloatValue(UNIT_FIELD_COMBATREACH, 10.0f);
             dancingRuneWeapon->CastSpell(target, procSpell->Id, true, nullptr, aurEff, dancingRuneWeapon->GetGUID());
-            GetUnitOwner()->SetFloatValue(UNIT_FIELD_COMBATREACH, 0.01f);
+            GetUnitOwner()->SetFloatValue(UNIT_FIELD_COMBATREACH, area52 ? previousReach : 0.01f);
         }
         else if (eventInfo.GetDamageInfo())
         {

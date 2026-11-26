@@ -22,7 +22,9 @@
 #include "SpellAuraEffects.h"
 #include "SpellMgr.h"
 #include "SpellScript.h"
+#include "ObjectMgr.h"
 #include "SpellScriptLoader.h"
+#include "ScriptMgr.h"
 #include "../../coa/AscensionFreePick.h"
 /*
  * Scripts for spells with SPELLFAMILY_DRUID and SPELLFAMILY_GENERIC spells used by druid players.
@@ -1139,12 +1141,35 @@ class spell_dru_typhoon : public SpellScript
     void HandleKnockBack(SpellEffIndex effIndex)
     {
         // Glyph of Typhoon
-        if (GetCaster()->HasAuraOrTwin(SPELL_DRUID_GLYPH_OF_TYPHOON))
+        if (GetCaster()->HasAuraOrTwin(SPELL_DRUID_GLYPH_OF_TYPHOON) || IsControlledTyphoon())
             PreventHitDefaultEffect(effIndex);
+    }
+
+    bool IsControlledTyphoon()
+    {
+        Unit* caster = GetCaster();
+        return caster && AscensionFreePick::Applies(caster->ToPlayer()) && caster->HasAura(977725);
+    }
+
+    void HandleAfterCast()
+    {
+        if (!IsControlledTyphoon())
+            return;
+        Unit* caster = GetCaster();
+        SpellInfo const* recoil = sSpellMgr->GetSpellInfo(977726);
+        if (!recoil)
+            return;
+        float x, y;
+        caster->GetNearPoint2D(x, y, 1.0f, caster->GetOrientation());
+        SpellCastTargets targets;
+        targets.SetUnitTarget(caster);
+        targets.SetDst(x, y, caster->GetPositionZ(), caster->GetOrientation());
+        caster->CastSpell(targets, recoil, nullptr, TRIGGERED_FULL_MASK);
     }
 
     void Register() override
     {
+        AfterCast += SpellCastFn(spell_dru_typhoon::HandleAfterCast);
         OnEffectHitTarget += SpellEffectFn(spell_dru_typhoon::HandleKnockBack, EFFECT_0, SPELL_EFFECT_KNOCK_BACK);
     }
 };
@@ -2105,8 +2130,26 @@ class spell_dru_wild_growth_aura : public AuraScript
     float _baseReduction = 2.f;
 };
 
+bool HasArea52ControlledTyphoonHandlers()
+{
+    uint32 const script = sObjectMgr->GetScriptId("spell_dru_typhoon");
+    if (!script || !ScriptRegistry<SpellScriptLoader>::GetScriptById(script))
+        return false;
+    for (uint32 rank : {61391u, 61390u, 61388u, 61387u, 53227u})
+    {
+        auto [begin, end] = sObjectMgr->GetSpellScriptsBounds(rank);
+        if (!sSpellMgr->GetSpellInfo(rank) ||
+            !std::any_of(begin, end, [script](auto const& row) { return row.second == script; }))
+            return false;
+    }
+    return true;
+}
+
+void RegisterArea52ControlledTyphoonReadiness(bool (*)());
+
 void AddSC_druid_spell_scripts()
 {
+    RegisterArea52ControlledTyphoonReadiness(HasArea52ControlledTyphoonHandlers);
     RegisterSpellScript(spell_dru_bear_form_passive);
     RegisterSpellScript(spell_dru_t10_balance_4p_bonus);
     RegisterSpellScript(spell_dru_nurturing_instinct);

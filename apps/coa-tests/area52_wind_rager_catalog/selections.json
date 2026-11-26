@@ -1,0 +1,1430 @@
+[
+  {
+    "Spell": 17364,
+    "Level": 1,
+    "Roles": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 100,
+    "Level": 1,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 403,
+    "Level": 1,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 35395,
+    "Level": 1,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 13715,
+    "Level": 10,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 1752,
+    "Level": 10,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 13848,
+    "Level": 11,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 2983,
+    "Level": 12,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 13849,
+    "Level": 12,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 13851,
+    "Level": 13,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 13852,
+    "Level": 14,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 1680,
+    "Level": 14,
+    "Roles": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 12320,
+    "Level": 15,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 57994,
+    "Level": 16,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 12852,
+    "Level": 16,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 12853,
+    "Level": 17,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 2050,
+    "Level": 18,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 12855,
+    "Level": 18,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 12856,
+    "Level": 19,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 16493,
+    "Level": 20,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 954711,
+    "Level": 20,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 20217,
+    "Level": 20,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 16494,
+    "Level": 21,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 1459,
+    "Level": 22,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 16266,
+    "Level": 22,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 16256,
+    "Level": 25,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 16281,
+    "Level": 25,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 16282,
+    "Level": 25,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 29079,
+    "Level": 26,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 29080,
+    "Level": 27,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 92156,
+    "Level": 30,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 13161,
+    "Level": 30,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 954704,
+    "Level": 30,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 2458,
+    "Level": 30,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 8232,
+    "Level": 30,
+    "Roles": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 92158,
+    "Level": 30,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 51528,
+    "Level": 30,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 818045,
+    "Level": 30,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 51529,
+    "Level": 30,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 51530,
+    "Level": 30,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 16909,
+    "Level": 31,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 92160,
+    "Level": 32,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 8512,
+    "Level": 32,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 16910,
+    "Level": 32,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 14165,
+    "Level": 33,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 5504,
+    "Level": 33,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 14166,
+    "Level": 34,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 1706,
+    "Level": 34,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 29082,
+    "Level": 35,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 92161,
+    "Level": 36,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 5675,
+    "Level": 36,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 29084,
+    "Level": 36,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 29086,
+    "Level": 37,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 30812,
+    "Level": 38,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 30813,
+    "Level": 39,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 29721,
+    "Level": 40,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 16914,
+    "Level": 40,
+    "Roles": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 954831,
+    "Level": 40,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 29776,
+    "Level": 41,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 2098,
+    "Level": 42,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 30814,
+    "Level": 42,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 830815,
+    "Level": 43,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 830816,
+    "Level": 44,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 48488,
+    "Level": 45,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 48514,
+    "Level": 46,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 848514,
+    "Level": 47,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 954708,
+    "Level": 48,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 5171,
+    "Level": 48,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 51664,
+    "Level": 48,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 51665,
+    "Level": 49,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 51698,
+    "Level": 50,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 50516,
+    "Level": 50,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 29801,
+    "Level": 50,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 66844,
+    "Level": 50,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 51700,
+    "Level": 51,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 51701,
+    "Level": 52,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 51667,
+    "Level": 53,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 16911,
+    "Level": 54,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 56927,
+    "Level": 55,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 56929,
+    "Level": 56,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 56930,
+    "Level": 57,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 16912,
+    "Level": 58,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 16913,
+    "Level": 59,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 30816,
+    "Level": 60,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 46924,
+    "Level": 60,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 46917,
+    "Level": 60,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 51690,
+    "Level": 60,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 19263,
+    "Level": 60,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 30818,
+    "Level": 61,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 1860,
+    "Level": 61,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 30819,
+    "Level": 62,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 46865,
+    "Level": 63,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 556,
+    "Level": 63,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 46866,
+    "Level": 64,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 30664,
+    "Level": 65,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 30665,
+    "Level": 66,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 30666,
+    "Level": 67,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 62097,
+    "Level": 68,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 62098,
+    "Level": 69,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 62099,
+    "Level": 70,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 33786,
+    "Level": 70,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 33943,
+    "Level": 70,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 17116,
+    "Level": 70,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 49226,
+    "Level": 71,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 50137,
+    "Level": 72,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 50138,
+    "Level": 73,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 49028,
+    "Level": 73,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 53137,
+    "Level": 74,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 49184,
+    "Level": 75,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 53138,
+    "Level": 75,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 30675,
+    "Level": 76,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 30678,
+    "Level": 77,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 954520,
+    "Level": 77,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 30679,
+    "Level": 78,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 92163,
+    "Level": 79,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 8075,
+    "Level": 79,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 16035,
+    "Level": 79,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 16105,
+    "Level": 80,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  },
+  {
+    "Spell": 587,
+    "Level": 80,
+    "Roles": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Flags": 0,
+    "Comment": ""
+  }
+]

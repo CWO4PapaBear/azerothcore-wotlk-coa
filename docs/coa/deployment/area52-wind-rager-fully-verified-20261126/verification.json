@@ -1,0 +1,926 @@
+{
+  "package": "area52-wind-rager-fully-verified-20261126",
+  "server_binary_sha256": "0b95df4b391c7d1649765625681f6be044c6e103df3c9e41f76bd6c60da7d751",
+  "source": [
+    {
+      "path": "apps/coa-tests/area52_bot_party_fallback/run.py",
+      "deployed_sha256": "965ae631a0562921d229798750d92d179642d49ab41f7fecc7fc610a6eb5f3f2",
+      "source_sha256": "965ae631a0562921d229798750d92d179642d49ab41f7fecc7fc610a6eb5f3f2",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_bot_vanity/run.py",
+      "deployed_sha256": "727b142f61c8de142b2aea9a0641968428d6c4a9d32090bdd3cfbf42c654bfed",
+      "source_sha256": "727b142f61c8de142b2aea9a0641968428d6c4a9d32090bdd3cfbf42c654bfed",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_creation_preview/integration_test.py",
+      "deployed_sha256": "3fbc2e2ba9ac079d90883df43330bd59a76023a193a633fb282b17d4dca63ba1",
+      "source_sha256": "3fbc2e2ba9ac079d90883df43330bd59a76023a193a633fb282b17d4dca63ba1",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_creation_preview/native_test.cpp",
+      "deployed_sha256": "767eadf568bf4e761ac065e4fee9ce7b6870b93a6a85356163c207dcfa8383e6",
+      "source_sha256": "767eadf568bf4e761ac065e4fee9ce7b6870b93a6a85356163c207dcfa8383e6",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_creation_preview/run.py",
+      "deployed_sha256": "c6123149cacf982fe57bdc30a77d3f8bf37159e6bc7de332c752ecc6d7e80bab",
+      "source_sha256": "c6123149cacf982fe57bdc30a77d3f8bf37159e6bc7de332c752ecc6d7e80bab",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_defias_bot/defias_fixture.cpp.in",
+      "deployed_sha256": "66ecafa69090932927c4be2d6b22a4b491b70aebc9b105ace83c4b64b456a9f6",
+      "source_sha256": "66ecafa69090932927c4be2d6b22a4b491b70aebc9b105ace83c4b64b456a9f6",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_defias_bot/run.py",
+      "deployed_sha256": "4267976782efe3a6d7245ab9f8cc19d6b120239c9179dc55f43e26ec4d8c4e40",
+      "source_sha256": "4267976782efe3a6d7245ab9f8cc19d6b120239c9179dc55f43e26ec4d8c4e40",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_ability_login/database-rank-chains.json",
+      "deployed_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_ability_login/run.py",
+      "deployed_sha256": "e04d4e3a8e4b662a5273da2607438d354b91976475e40d94eaa12395e8e404ef",
+      "source_sha256": "e04d4e3a8e4b662a5273da2607438d354b91976475e40d94eaa12395e8e404ef",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_bundle_sql/run.py",
+      "deployed_sha256": "86a5ca6f1f5642d021ffd3484ef93bd9c74c53921a3207fca206c7577c4299f6",
+      "source_sha256": "86a5ca6f1f5642d021ffd3484ef93bd9c74c53921a3207fca206c7577c4299f6",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_charge_cycle/harness.cpp",
+      "deployed_sha256": "445cf7c545f14c8785a371d5bfaeffb6e5241c25876e42d1c83d3859c9d84ed5",
+      "source_sha256": "445cf7c545f14c8785a371d5bfaeffb6e5241c25876e42d1c83d3859c9d84ed5",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_charge_cycle/run.py",
+      "deployed_sha256": "77204716cc7cdfee5c41c250ab327bb5abc49d822007b8f364d92f513b579cb1",
+      "source_sha256": "77204716cc7cdfee5c41c250ab327bb5abc49d822007b8f364d92f513b579cb1",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_client/run.py",
+      "deployed_sha256": "673667ca0b3bd1fff48b5882656f68c451b62bf10b49fe418be0ce9779259365",
+      "source_sha256": "673667ca0b3bd1fff48b5882656f68c451b62bf10b49fe418be0ce9779259365",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_connection_startup/harness.cpp",
+      "deployed_sha256": "e5f426bb65306031c1a4b12113f0bcdfa7fbbbc2a46fb74eae0d244d2b83e0d7",
+      "source_sha256": "e5f426bb65306031c1a4b12113f0bcdfa7fbbbc2a46fb74eae0d244d2b83e0d7",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_connection_startup/run.py",
+      "deployed_sha256": "b2756d224c0edfa4ff6e96910fd6c6d4453e86b1ba1d10268b2469f24f6ee9b2",
+      "source_sha256": "b2756d224c0edfa4ff6e96910fd6c6d4453e86b1ba1d10268b2469f24f6ee9b2",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_defensive_cooldown/harness.cpp",
+      "deployed_sha256": "b8b723b0655606d4a9f7cf2f5d59e66cd4887ba54da0c03dd08c3644dd77ad81",
+      "source_sha256": "b8b723b0655606d4a9f7cf2f5d59e66cd4887ba54da0c03dd08c3644dd77ad81",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_defensive_cooldown/run.py",
+      "deployed_sha256": "03284549132f96367fabbcf9ed79a6ae81e0debaccc14e3537cd466fc927dcde",
+      "source_sha256": "03284549132f96367fabbcf9ed79a6ae81e0debaccc14e3537cd466fc927dcde",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_desolate_extension/harness.cpp",
+      "deployed_sha256": "3604a368b4a4c776967c2538a10ed168a73111b27a951624746f697c26832685",
+      "source_sha256": "3604a368b4a4c776967c2538a10ed168a73111b27a951624746f697c26832685",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_desolate_extension/run.py",
+      "deployed_sha256": "352e3fa7f012c8b1b44c9c4a8f664b9f8c8384ec88951ee44b39c7c3c7f63863",
+      "source_sha256": "352e3fa7f012c8b1b44c9c4a8f664b9f8c8384ec88951ee44b39c7c3c7f63863",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_desolate_startup/harness.cpp",
+      "deployed_sha256": "cffecb3ff12f2bc3d717d199a8ff38712f34db2116355dadfbb04f9b57fed893",
+      "source_sha256": "cffecb3ff12f2bc3d717d199a8ff38712f34db2116355dadfbb04f9b57fed893",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_desolate_startup/run.py",
+      "deployed_sha256": "e4715e9db533a2a42e52dd35eb22fbbda68a486f561000b2bd36d4cbf0bb8d52",
+      "source_sha256": "e4715e9db533a2a42e52dd35eb22fbbda68a486f561000b2bd36d4cbf0bb8d52",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_deterrence/harness.cpp",
+      "deployed_sha256": "2a6f90d81086e762719743508aaaaf12bc0df784f5be6ae50048b4b67fa5545a",
+      "source_sha256": "2a6f90d81086e762719743508aaaaf12bc0df784f5be6ae50048b4b67fa5545a",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_deterrence/run.py",
+      "deployed_sha256": "b63d528d99a78732eb1fbdfce1e845b5a2ee51711e606c26341d62273a3ba591",
+      "source_sha256": "b63d528d99a78732eb1fbdfce1e845b5a2ee51711e606c26341d62273a3ba591",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_deterrence_hits/harness.cpp",
+      "deployed_sha256": "1bfc9250da05c6f30cb74dd9145f45afe5a1c4b4f1bc43b028b7bc3117c92c90",
+      "source_sha256": "1bfc9250da05c6f30cb74dd9145f45afe5a1c4b4f1bc43b028b7bc3117c92c90",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_deterrence_hits/run.py",
+      "deployed_sha256": "632b4cdd708a13d75b799d868f814d1665ff4dba8101c540c9a114760e22913d",
+      "source_sha256": "632b4cdd708a13d75b799d868f814d1665ff4dba8101c540c9a114760e22913d",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_dual_durability/harness.cpp",
+      "deployed_sha256": "8f19bba95fa4dcd3399dc3df4c73e9e162546216729ef0aa741e6d95190b3b57",
+      "source_sha256": "8f19bba95fa4dcd3399dc3df4c73e9e162546216729ef0aa741e6d95190b3b57",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_dual_durability/run.py",
+      "deployed_sha256": "329d4881695687ca19124daef12bfab9a09925dff7a2648792ac901a48603714",
+      "source_sha256": "329d4881695687ca19124daef12bfab9a09925dff7a2648792ac901a48603714",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_dual_stats/harness.cpp",
+      "deployed_sha256": "c3107283015e86576199665ecce78df4a3dfd9f789bc92268a360cc32c94b16c",
+      "source_sha256": "c3107283015e86576199665ecce78df4a3dfd9f789bc92268a360cc32c94b16c",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_dual_stats/run.py",
+      "deployed_sha256": "508b0e8c1494d3419327350673097f817418b6787ed4a0eeb68472e98953da94",
+      "source_sha256": "508b0e8c1494d3419327350673097f817418b6787ed4a0eeb68472e98953da94",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_dual_wield/harness.cpp",
+      "deployed_sha256": "dfbf26e9165d1b40e9b184be6e92620db6e6fc028762ce36aa00a902c1afa93d",
+      "source_sha256": "dfbf26e9165d1b40e9b184be6e92620db6e6fc028762ce36aa00a902c1afa93d",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_dual_wield/run.py",
+      "deployed_sha256": "9f49ec9674d1bee303e7ff755ec52851e13c5fb3a9f02fa1efd529600d63b539",
+      "source_sha256": "9f49ec9674d1bee303e7ff755ec52851e13c5fb3a9f02fa1efd529600d63b539",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_final_modifiers/harness.cpp",
+      "deployed_sha256": "2e9677e88ad6fea7c0fef09c2b9f4aa3fd929693cfcc66a28540e850ec5ca5e9",
+      "source_sha256": "2e9677e88ad6fea7c0fef09c2b9f4aa3fd929693cfcc66a28540e850ec5ca5e9",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_final_modifiers/run.py",
+      "deployed_sha256": "1f63fa87138dd0a3eb393456df703bac1c9aefc7c7de6953b3ccc3ad9488c2b3",
+      "source_sha256": "1f63fa87138dd0a3eb393456df703bac1c9aefc7c7de6953b3ccc3ad9488c2b3",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_flurry/harness.cpp",
+      "deployed_sha256": "27b4f23a52674f8c6c45f960b33db10e91002889ad4d8eb89c337ef1a2762a03",
+      "source_sha256": "27b4f23a52674f8c6c45f960b33db10e91002889ad4d8eb89c337ef1a2762a03",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_flurry/run.py",
+      "deployed_sha256": "7d4d3d2730d4b3484be8c5edac9120927b22efd02ac75793cefe8c06889bdeeb",
+      "source_sha256": "7d4d3d2730d4b3484be8c5edac9120927b22efd02ac75793cefe8c06889bdeeb",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_flurry_cycle/harness.cpp",
+      "deployed_sha256": "7e15444e94c690cd7c4521832ea5f67deeebad3272e24db971e7b9a88010c507",
+      "source_sha256": "7e15444e94c690cd7c4521832ea5f67deeebad3272e24db971e7b9a88010c507",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_flurry_cycle/run.py",
+      "deployed_sha256": "2c5c3c1ad71d22397bab0f95addc799364ff6b1564fb2779d74736e9cf637c38",
+      "source_sha256": "2c5c3c1ad71d22397bab0f95addc799364ff6b1564fb2779d74736e9cf637c38",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_haste/harness.cpp",
+      "deployed_sha256": "d6840940afbe245ebceeaa01739a68ea2c0bbab74f86c7a6c7cced89fafb8cf8",
+      "source_sha256": "d6840940afbe245ebceeaa01739a68ea2c0bbab74f86c7a6c7cced89fafb8cf8",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_haste/run.py",
+      "deployed_sha256": "28e5a6b73dcd315dbc43512cee59cacd680e5ce1889a645a95c1cfd9c8a361a7",
+      "source_sha256": "28e5a6b73dcd315dbc43512cee59cacd680e5ce1889a645a95c1cfd9c8a361a7",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_linked_cleanup/harness.cpp",
+      "deployed_sha256": "c7489d3d4ad7db793a88b5e10b8bd453844cfb5d1fe9b828c44e59e7d9323cc7",
+      "source_sha256": "c7489d3d4ad7db793a88b5e10b8bd453844cfb5d1fe9b828c44e59e7d9323cc7",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_linked_cleanup/run.py",
+      "deployed_sha256": "666754365622edfffb69d717cfc8d45ee8f82361a2e7a30b38c0b9aec8a9945c",
+      "source_sha256": "666754365622edfffb69d717cfc8d45ee8f82361a2e7a30b38c0b9aec8a9945c",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_modifier_lifecycle/lifecycle.cpp.in",
+      "deployed_sha256": "f82d40b1818c71d7e6b5291f5eefa334654edb17c6084951693a618d080782b3",
+      "source_sha256": "f82d40b1818c71d7e6b5291f5eefa334654edb17c6084951693a618d080782b3",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_modifier_lifecycle/run.py",
+      "deployed_sha256": "b996eecd1ff72f8b11043d35be685b547e286569c175f58c7a2b4e76445e8464",
+      "source_sha256": "b996eecd1ff72f8b11043d35be685b547e286569c175f58c7a2b4e76445e8464",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_modifiers/harness.cpp",
+      "deployed_sha256": "2e9677e88ad6fea7c0fef09c2b9f4aa3fd929693cfcc66a28540e850ec5ca5e9",
+      "source_sha256": "2e9677e88ad6fea7c0fef09c2b9f4aa3fd929693cfcc66a28540e850ec5ca5e9",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_modifiers/run.py",
+      "deployed_sha256": "d019f8215fcbaea0be0896c82d0db014752e0affa33bd1b5638e92189c0d1100",
+      "source_sha256": "d019f8215fcbaea0be0896c82d0db014752e0affa33bd1b5638e92189c0d1100",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_overload/harness.cpp",
+      "deployed_sha256": "6eb8e85f33bebd51c8e158e7beebe67a817df9896680f9d4e43a3848f4c98faa",
+      "source_sha256": "6eb8e85f33bebd51c8e158e7beebe67a817df9896680f9d4e43a3848f4c98faa",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_overload/run.py",
+      "deployed_sha256": "2bef583938916a7ce8b3539939d9636d4bea2eb829d1e7ecd4a351888b5e42b2",
+      "source_sha256": "2bef583938916a7ce8b3539939d9636d4bea2eb829d1e7ecd4a351888b5e42b2",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_overload_capture/harness.cpp",
+      "deployed_sha256": "422c960b0dc1030f940e2168d365950bf9c97488cfd85033ca1cb2784df09cc2",
+      "source_sha256": "422c960b0dc1030f940e2168d365950bf9c97488cfd85033ca1cb2784df09cc2",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_overload_capture/run.py",
+      "deployed_sha256": "bef2a3d284861fb6f968a737f5be162c512d91883aff914b206c69aaa9f43646",
+      "source_sha256": "bef2a3d284861fb6f968a737f5be162c512d91883aff914b206c69aaa9f43646",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_overload_dispatch/harness.cpp",
+      "deployed_sha256": "0fd56ea962846c879def844372615a8484188e6b320af46b985fefcd4e972ebe",
+      "source_sha256": "0fd56ea962846c879def844372615a8484188e6b320af46b985fefcd4e972ebe",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_overload_dispatch/run.py",
+      "deployed_sha256": "886d8c2947e0177d4139e052111e4a5b39df2ec6b3c10120fbb753312bba2662",
+      "source_sha256": "886d8c2947e0177d4139e052111e4a5b39df2ec6b3c10120fbb753312bba2662",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_proc_admission/harness.cpp",
+      "deployed_sha256": "8a80fa3e68b11005b653605c2fb073e71583271d44f6835facf51a21c5afb260",
+      "source_sha256": "8a80fa3e68b11005b653605c2fb073e71583271d44f6835facf51a21c5afb260",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_proc_admission/run.py",
+      "deployed_sha256": "d81c5ed0e0813b651962b12270ec4ac067d2b7e8c03e2ee95bfac8eeb396233b",
+      "source_sha256": "d81c5ed0e0813b651962b12270ec4ac067d2b7e8c03e2ee95bfac8eeb396233b",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_rager_catalog/harness.cpp",
+      "deployed_sha256": "02b3a7d9c5aa37ce014a091cacbdda8c803af81ecedd8168a50d3844b6ded7a8",
+      "source_sha256": "02b3a7d9c5aa37ce014a091cacbdda8c803af81ecedd8168a50d3844b6ded7a8",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_rager_catalog/run.py",
+      "deployed_sha256": "6c4a348e2a64f3099de641cd1b33037052a6b2d860f1fca781fbbf46b72f5147",
+      "source_sha256": "6c4a348e2a64f3099de641cd1b33037052a6b2d860f1fca781fbbf46b72f5147",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_rager_catalog/selections.json",
+      "deployed_sha256": "7ccff4b7f19643a0261eed733838c25a155679e674af89e40bb0f0877d3dc6c8",
+      "source_sha256": "7ccff4b7f19643a0261eed733838c25a155679e674af89e40bb0f0877d3dc6c8",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_rager_cycle/harness.cpp",
+      "deployed_sha256": "ae2c8b18a5684de170bac66282e495566cdee2964cbdb8797b20cedc52300578",
+      "source_sha256": "ae2c8b18a5684de170bac66282e495566cdee2964cbdb8797b20cedc52300578",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_rager_cycle/run.py",
+      "deployed_sha256": "00864622d58e7fa6e51784ba0106c22677d06946869fbe5f54dcff772c326917",
+      "source_sha256": "00864622d58e7fa6e51784ba0106c22677d06946869fbe5f54dcff772c326917",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_rank_grants/harness.cpp",
+      "deployed_sha256": "53d37ffef3b1be93e6866b148eb071db12acdef4f4181c27483e7ca7c59c725a",
+      "source_sha256": "53d37ffef3b1be93e6866b148eb071db12acdef4f4181c27483e7ca7c59c725a",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_rank_grants/run.py",
+      "deployed_sha256": "1671a15b4a776258b7dbf544dab49a3fa77b392e15d5eb21340ed3b59d4f3222",
+      "source_sha256": "1671a15b4a776258b7dbf544dab49a3fa77b392e15d5eb21340ed3b59d4f3222",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_remaining_lifecycle/lifecycle.cpp.in",
+      "deployed_sha256": "932d3765f93bdfa0a8c2b60a2355eeddb13066cda5de8544e76aed98e39ec847",
+      "source_sha256": "932d3765f93bdfa0a8c2b60a2355eeddb13066cda5de8544e76aed98e39ec847",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_remaining_lifecycle/run.py",
+      "deployed_sha256": "57e3ca20a0661644826bea4d226b299964f89c78d746314d25a57614ff9778f8",
+      "source_sha256": "57e3ca20a0661644826bea4d226b299964f89c78d746314d25a57614ff9778f8",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_rune_damage/harness.cpp",
+      "deployed_sha256": "d37295e03a6738592d6a4690c5cbfed2afa1f2d46b5b2415762ddbbb69ce054e",
+      "source_sha256": "d37295e03a6738592d6a4690c5cbfed2afa1f2d46b5b2415762ddbbb69ce054e",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_rune_damage/run.py",
+      "deployed_sha256": "1bbaf62f9d75c967ea85296623b6af9f831506fdf12977301c20caddc112c324",
+      "source_sha256": "1bbaf62f9d75c967ea85296623b6af9f831506fdf12977301c20caddc112c324",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_rune_proc/harness.cpp",
+      "deployed_sha256": "d22c1347483e4f4c35240edb437a3546e149fe4548048c63decffe5acb6f0e07",
+      "source_sha256": "d22c1347483e4f4c35240edb437a3546e149fe4548048c63decffe5acb6f0e07",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_rune_proc/run.py",
+      "deployed_sha256": "5ad9b8597ba8a6c5fadf5d0016533b2ea7815f1909685e6811f8fc5d393216e3",
+      "source_sha256": "5ad9b8597ba8a6c5fadf5d0016533b2ea7815f1909685e6811f8fc5d393216e3",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_rune_reach/harness.cpp",
+      "deployed_sha256": "9d5c0b2490951f314aa9dfd5c915d4fb503db578b1028026dadcfb91f1ad9f04",
+      "source_sha256": "9d5c0b2490951f314aa9dfd5c915d4fb503db578b1028026dadcfb91f1ad9f04",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_rune_reach/run.py",
+      "deployed_sha256": "e96c901cf3084727497ec277b0d905588c99e82c0214196971c08fb5b3e15ea1",
+      "source_sha256": "e96c901cf3084727497ec277b0d905588c99e82c0214196971c08fb5b3e15ea1",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_scaling/harness.cpp",
+      "deployed_sha256": "da077c21ac58979f88e9f485d0c8d8a92db8ee92a20a446b14018f09e436de27",
+      "source_sha256": "da077c21ac58979f88e9f485d0c8d8a92db8ee92a20a446b14018f09e436de27",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_scaling/run.py",
+      "deployed_sha256": "1683a3128bce79dc29069092e4a611b30611580c098cd23138dcc3d5ce2168b3",
+      "source_sha256": "1683a3128bce79dc29069092e4a611b30611580c098cd23138dcc3d5ce2168b3",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_spree/harness.cpp",
+      "deployed_sha256": "4b0c6bc98ec6a5dc68609a02b9964d9312f7dbf17f8fea21aedfbae50e2dd472",
+      "source_sha256": "4b0c6bc98ec6a5dc68609a02b9964d9312f7dbf17f8fea21aedfbae50e2dd472",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_spree/run.py",
+      "deployed_sha256": "2634b11601497addbcfbbd0a587282c5bce06854ce7f988e4f7cd1761bd817b6",
+      "source_sha256": "2634b11601497addbcfbbd0a587282c5bce06854ce7f988e4f7cd1761bd817b6",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_spree_cycle/harness.cpp",
+      "deployed_sha256": "000586f06fa4ac72d412e93bff3ff03aa735579090186c43dba17a8c3e990348",
+      "source_sha256": "000586f06fa4ac72d412e93bff3ff03aa735579090186c43dba17a8c3e990348",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_spree_cycle/run.py",
+      "deployed_sha256": "e4c5436e7e642ddfc1af80316b2ad6d6adaa311684d82a15571aa072e6d79370",
+      "source_sha256": "e4c5436e7e642ddfc1af80316b2ad6d6adaa311684d82a15571aa072e6d79370",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_spree_procs/harness.cpp",
+      "deployed_sha256": "5f82fa014aaae54cc8cbcd15af1d72380614442cb7bfdbfb5198f76526a5b392",
+      "source_sha256": "5f82fa014aaae54cc8cbcd15af1d72380614442cb7bfdbfb5198f76526a5b392",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_spree_procs/run.py",
+      "deployed_sha256": "90af46be0d7f450786a8548f07b97bd6c756d8ff659d5f1fc1e1f6aef6cc942d",
+      "source_sha256": "90af46be0d7f450786a8548f07b97bd6c756d8ff659d5f1fc1e1f6aef6cc942d",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_sql/rollback.json",
+      "deployed_sha256": "c177f78a6533f64df57d8537cc51c4bf7aa8036a0ca27e239888b78ccae71c28",
+      "source_sha256": "c177f78a6533f64df57d8537cc51c4bf7aa8036a0ca27e239888b78ccae71c28",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_sql/run.py",
+      "deployed_sha256": "63b674593cd84651a51c81ce4b54706fb62283ce6cbb7ff167b69a979afd13d1",
+      "source_sha256": "63b674593cd84651a51c81ce4b54706fb62283ce6cbb7ff167b69a979afd13d1",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_sql/schema.json",
+      "deployed_sha256": "53aaac709f70c55b262b1bae4c5ed2a7a86607d165d464c57247e59b7ea778b2",
+      "source_sha256": "53aaac709f70c55b262b1bae4c5ed2a7a86607d165d464c57247e59b7ea778b2",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_talent_cleanup/run.py",
+      "deployed_sha256": "eb075f9a32b714daae7bd5dec0abd868c614eef0d796e1818b1c6e8998ad73df",
+      "source_sha256": "eb075f9a32b714daae7bd5dec0abd868c614eef0d796e1818b1c6e8998ad73df",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_typhoon/harness.cpp",
+      "deployed_sha256": "724beb671b5a576f2f5c010c420f23d4456ca564a3aa03afeda5aefb9e8659c5",
+      "source_sha256": "724beb671b5a576f2f5c010c420f23d4456ca564a3aa03afeda5aefb9e8659c5",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_typhoon/run.py",
+      "deployed_sha256": "69806bc8dd594a06b3a719b17411d3059fe3ea629dcc4eebd17e18ba2a436f75",
+      "source_sha256": "69806bc8dd594a06b3a719b17411d3059fe3ea629dcc4eebd17e18ba2a436f75",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_typhoon_lifecycle/lifecycle.cpp.in",
+      "deployed_sha256": "81655bc92c425b1f6c7803b4dd6c82fdb779a7682c6b479048390b149ac15b77",
+      "source_sha256": "81655bc92c425b1f6c7803b4dd6c82fdb779a7682c6b479048390b149ac15b77",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_typhoon_lifecycle/run.py",
+      "deployed_sha256": "b996eecd1ff72f8b11043d35be685b547e286569c175f58c7a2b4e76445e8464",
+      "source_sha256": "b996eecd1ff72f8b11043d35be685b547e286569c175f58c7a2b4e76445e8464",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_typhoon_motion/harness.cpp",
+      "deployed_sha256": "aa73ae7a96c81634790fe692084bf8d43a2f643a4d9951be8dc67dd8770a969a",
+      "source_sha256": "aa73ae7a96c81634790fe692084bf8d43a2f643a4d9951be8dc67dd8770a969a",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_typhoon_motion/run.py",
+      "deployed_sha256": "5dbe2dc65222a610a9715ee12be9a73080a893df1aca98244a4000d5bf47d1c3",
+      "source_sha256": "5dbe2dc65222a610a9715ee12be9a73080a893df1aca98244a4000d5bf47d1c3",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_typhoon_startup/harness.cpp",
+      "deployed_sha256": "92eb05b4070f60b3bd500a1cd9c9bf7ec564d4fd3413f50c19225b53a03e70de",
+      "source_sha256": "92eb05b4070f60b3bd500a1cd9c9bf7ec564d4fd3413f50c19225b53a03e70de",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_typhoon_startup/run.py",
+      "deployed_sha256": "cfee6a4a42ae0f376bd63663bd53142fd566c2ac05663a27c7bdbdad2d24bd6f",
+      "source_sha256": "cfee6a4a42ae0f376bd63663bd53142fd566c2ac05663a27c7bdbdad2d24bd6f",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_unrelenting/harness.cpp",
+      "deployed_sha256": "9354aac2fbc67321d2230f6f6165562c2a187d71d747c5d078b6ef6b18261f6b",
+      "source_sha256": "9354aac2fbc67321d2230f6f6165562c2a187d71d747c5d078b6ef6b18261f6b",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_unrelenting/run.py",
+      "deployed_sha256": "28c0f8896e91271ef9f70f069b36a1c4b4d471d3e3c600b8b30666fb38fc5538",
+      "source_sha256": "28c0f8896e91271ef9f70f069b36a1c4b4d471d3e3c600b8b30666fb38fc5538",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_vulnerability/harness.cpp",
+      "deployed_sha256": "798a0c72f706b2222b4562abf7b1ad1e1b1e09509dd1dfa04843e879d4942995",
+      "source_sha256": "798a0c72f706b2222b4562abf7b1ad1e1b1e09509dd1dfa04843e879d4942995",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_vulnerability/run.py",
+      "deployed_sha256": "85dcc62baac6784e548c08c9dd2ac3247893d5e8298a08bf941cffa1564a9fe9",
+      "source_sha256": "85dcc62baac6784e548c08c9dd2ac3247893d5e8298a08bf941cffa1564a9fe9",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_zephyr/harness.cpp",
+      "deployed_sha256": "1989d33bb57bc1a58f63539fb9f4c556d6305c4f553eb27bb42ac01798dddbd4",
+      "source_sha256": "1989d33bb57bc1a58f63539fb9f4c556d6305c4f553eb27bb42ac01798dddbd4",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_zephyr/run.py",
+      "deployed_sha256": "97554dd35c6cd73e2ac9649fde596ec0ad5a759837183c2d9dda9194efb7d453",
+      "source_sha256": "97554dd35c6cd73e2ac9649fde596ec0ad5a759837183c2d9dda9194efb7d453",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_zephyr_chance/harness.cpp",
+      "deployed_sha256": "2e9677e88ad6fea7c0fef09c2b9f4aa3fd929693cfcc66a28540e850ec5ca5e9",
+      "source_sha256": "2e9677e88ad6fea7c0fef09c2b9f4aa3fd929693cfcc66a28540e850ec5ca5e9",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_zephyr_chance/run.py",
+      "deployed_sha256": "406dd7857bb971ca2b3204e24e368f514d4ce65d66dc11445dde9eb5be161132",
+      "source_sha256": "406dd7857bb971ca2b3204e24e368f514d4ce65d66dc11445dde9eb5be161132",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_zephyr_lifecycle/lifecycle.cpp.in",
+      "deployed_sha256": "f116b93e6801f67a0f7cd659c5b43c339db3c9283ba7c86e15af416d4aa95ed2",
+      "source_sha256": "f116b93e6801f67a0f7cd659c5b43c339db3c9283ba7c86e15af416d4aa95ed2",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/area52_wind_zephyr_lifecycle/run.py",
+      "deployed_sha256": "b996eecd1ff72f8b11043d35be685b547e286569c175f58c7a2b4e76445e8464",
+      "source_sha256": "b996eecd1ff72f8b11043d35be685b547e286569c175f58c7a2b4e76445e8464",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/portable_featured_catalog/new_starts.py",
+      "deployed_sha256": "84e6610d6d3b4c02582c5b6bce1d2d3577908d8364db6a52ac85a4304d853b8c",
+      "source_sha256": "84e6610d6d3b4c02582c5b6bce1d2d3577908d8364db6a52ac85a4304d853b8c",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "apps/coa-tests/portable_featured_catalog/run.py",
+      "deployed_sha256": "aece31268f85eb420deee52c03865e38b0be33190c4528bbedebf6061fccdb00",
+      "source_sha256": "aece31268f85eb420deee52c03865e38b0be33190c4528bbedebf6061fccdb00",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "data/sql/updates/pending_db_world/2026_11_25_03_area52_wind_rager_deterrence.sql",
+      "deployed_sha256": "7d2725adba74568fb35d9e82dae35bdb166d0c4639b87d230943c02e1ba77dea",
+      "source_sha256": "7d2725adba74568fb35d9e82dae35bdb166d0c4639b87d230943c02e1ba77dea",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "data/sql/updates/pending_db_world/2026_11_25_04_area52_wind_rager_procs.sql",
+      "deployed_sha256": "36d35b22cf01841b26acb6ab5e83f0497c88a3e7056799255cd1a60c93b06c9c",
+      "source_sha256": "36d35b22cf01841b26acb6ab5e83f0497c88a3e7056799255cd1a60c93b06c9c",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/Area52BuildService.cpp",
+      "deployed_sha256": "d193d4fc36f9fd9857634e387dffbf2837cff33d96b5f17abecb2d8c11c02c9f",
+      "source_sha256": "d193d4fc36f9fd9857634e387dffbf2837cff33d96b5f17abecb2d8c11c02c9f",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/Area52CreationPreview.cpp",
+      "deployed_sha256": "5ac57056fef74057629007a2757106c7c31aaf0e3b14fa4357890db84cefdac6",
+      "source_sha256": "5ac57056fef74057629007a2757106c7c31aaf0e3b14fa4357890db84cefdac6",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/Area52CreationPreview.h",
+      "deployed_sha256": "55c1d8b598174b817f00545c51264f867538b5e0ae96b5444a58ae222de4e809",
+      "source_sha256": "55c1d8b598174b817f00545c51264f867538b5e0ae96b5444a58ae222de4e809",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/Area52CreationPreviewDefaults.h",
+      "deployed_sha256": "e3ac786fb842fa1a5e67a3ee48726897c0f41244542b43d27ec4e64f8754229e",
+      "source_sha256": "e3ac786fb842fa1a5e67a3ee48726897c0f41244542b43d27ec4e64f8754229e",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/Area52CreationPreviewIncarnations.h",
+      "deployed_sha256": "01f77f7b54f625d0f64453815c44a9b5e5825a69eb6ddf916c0866ee4fb7bc3c",
+      "source_sha256": "01f77f7b54f625d0f64453815c44a9b5e5825a69eb6ddf916c0866ee4fb7bc3c",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/Area52CreationSummary.h",
+      "deployed_sha256": "3dac24574af6cc12b9feb94341589cd0ef04ea9d5d969f89a88eea254e198293",
+      "source_sha256": "c4694ad296e4a2329911f0f9bb48e8318b1b46d76815397bbeb88d01e0508f87",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/Area52DefensiveCooldowns.h",
+      "deployed_sha256": "87a7c783b976da5e3f29b3d3e0789c59330172e9a261ad00578d0dd494d4e896",
+      "source_sha256": "87a7c783b976da5e3f29b3d3e0789c59330172e9a261ad00578d0dd494d4e896",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/Area52Desolate.inc",
+      "deployed_sha256": "0d1148f907d8e5390f0a885335bcc1ba63ab31a362b1e81585283278134c72b1",
+      "source_sha256": "0d1148f907d8e5390f0a885335bcc1ba63ab31a362b1e81585283278134c72b1",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/Area52Unrelenting.inc",
+      "deployed_sha256": "b97a19a65fda330c4b772abf34d28974564882d44d07b1dd1fb6b91b069065e0",
+      "source_sha256": "b97a19a65fda330c4b772abf34d28974564882d44d07b1dd1fb6b91b069065e0",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/Area52WindEquipment.h",
+      "deployed_sha256": "1bf400031dadfb577d46e53ac479b0b1c9740764ff53bb229e028c43d3505950",
+      "source_sha256": "1bf400031dadfb577d46e53ac479b0b1c9740764ff53bb229e028c43d3505950",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/Area52WindRager.inc",
+      "deployed_sha256": "d0ec034805f055cba842ef677bb58c298bef75cbab4199171674c132ac785364",
+      "source_sha256": "d0ec034805f055cba842ef677bb58c298bef75cbab4199171674c132ac785364",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/Area52WindScaling.h",
+      "deployed_sha256": "7c297108898478936277db135a3890f6f4560c8628a5c785b84d0b335baa34b4",
+      "source_sha256": "7c297108898478936277db135a3890f6f4560c8628a5c785b84d0b335baa34b4",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/Area52WindTalents.inc",
+      "deployed_sha256": "bb3f9725ae082e1760c0cc0aa7d233513e64355bcb7ab7f65331b4905a872b00",
+      "source_sha256": "bb3f9725ae082e1760c0cc0aa7d233513e64355bcb7ab7f65331b4905a872b00",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/Area52Zephyr.inc",
+      "deployed_sha256": "4570fbc5b3878fa216221ad26c9bd8104b32353525c318f0e6510c3a8b951209",
+      "source_sha256": "4570fbc5b3878fa216221ad26c9bd8104b32353525c318f0e6510c3a8b951209",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/AscensionCompat.cpp",
+      "deployed_sha256": "9c2cc74ad0c044a8f8a28c4a240260f2572f37cc163c0b15c420592385e48518",
+      "source_sha256": "9c2cc74ad0c044a8f8a28c4a240260f2572f37cc163c0b15c420592385e48518",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/AscensionFreePick.cpp",
+      "deployed_sha256": "051ca93e55f49a60a57cfb7eb8d0a8e664f4b282ca42ff8a07252cde0c8b4bab",
+      "source_sha256": "051ca93e55f49a60a57cfb7eb8d0a8e664f4b282ca42ff8a07252cde0c8b4bab",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/AscensionHeroShaman.cpp",
+      "deployed_sha256": "09e02159cd5ad0f74664238f7e1b82cb5c901b56daf3df7f8c2d929902450f92",
+      "source_sha256": "09e02159cd5ad0f74664238f7e1b82cb5c901b56daf3df7f8c2d929902450f92",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/AscensionMysticEnchant.cpp",
+      "deployed_sha256": "1fbe5e68f65d993e3b04123badb83ccac50df417850a8d8a98651f9ae3c638e1",
+      "source_sha256": "1fbe5e68f65d993e3b04123badb83ccac50df417850a8d8a98651f9ae3c638e1",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/AscensionMysticSpellGrants.h",
+      "deployed_sha256": "27416a13356ccdee44b12c557d26f74b74031947cee3d5ee3fa15e77b7b485d7",
+      "source_sha256": "27416a13356ccdee44b12c557d26f74b74031947cee3d5ee3fa15e77b7b485d7",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/coa/AscensionWhiteWalkerSupport.cpp",
+      "deployed_sha256": "ad0bb0dfe2a158d1cd142c1fe49da49d0a84732885886546d29c46a75b8ee473",
+      "source_sha256": "8b01c07852a82efe585fd9411571dd88acac604463d0df145978070ddd18014b",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/game/Entities/Player/Player.cpp",
+      "deployed_sha256": "2a5c42f8e1fde7fc6f48dc1be0f6d82912892e1476c11e44db7c1cb6113f3e98",
+      "source_sha256": "2a5c42f8e1fde7fc6f48dc1be0f6d82912892e1476c11e44db7c1cb6113f3e98",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/game/Entities/Unit/Unit.cpp",
+      "deployed_sha256": "eb01ef6334bd37845798596e2111aa9eb6219b5b417b649d979b6e58f61970e9",
+      "source_sha256": "eb01ef6334bd37845798596e2111aa9eb6219b5b417b649d979b6e58f61970e9",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/game/Spells/Auras/SpellAuras.cpp",
+      "deployed_sha256": "31eeebab70be5467c66be14fe8b10beda71d2da2a87059f8d134a5c85db80b26",
+      "source_sha256": "31eeebab70be5467c66be14fe8b10beda71d2da2a87059f8d134a5c85db80b26",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/game/Spells/Spell.cpp",
+      "deployed_sha256": "f7470328a889bd5e30287fcb3a03853876c356cce62d17567fec36edf23d27a9",
+      "source_sha256": "f7470328a889bd5e30287fcb3a03853876c356cce62d17567fec36edf23d27a9",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/game/Spells/SpellEffects.cpp",
+      "deployed_sha256": "3151bbf0082c2be9a4d710a626612e4a9f9e7201a7d49ef7f6655ae344b6ab62",
+      "source_sha256": "3151bbf0082c2be9a4d710a626612e4a9f9e7201a7d49ef7f6655ae344b6ab62",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/scripts/Spells/spell_dk.cpp",
+      "deployed_sha256": "0d8ae723a9629d2af6374a9631adeced88e10325ae58ffed46b9597a8e3643ea",
+      "source_sha256": "0d8ae723a9629d2af6374a9631adeced88e10325ae58ffed46b9597a8e3643ea",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/scripts/Spells/spell_druid.cpp",
+      "deployed_sha256": "08665eb8adf655a93828cfe042d513004cc7da804942efeb6c74eefe065e8254",
+      "source_sha256": "08665eb8adf655a93828cfe042d513004cc7da804942efeb6c74eefe065e8254",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/scripts/Spells/spell_hunter.cpp",
+      "deployed_sha256": "954a346b2e4dc810ffe3eda2d9962a7784f237527e5fb1df3fdd42607b76938a",
+      "source_sha256": "954a346b2e4dc810ffe3eda2d9962a7784f237527e5fb1df3fdd42607b76938a",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "src/server/scripts/Spells/spell_shaman.cpp",
+      "deployed_sha256": "f7fa081ac18de795df615059288892d0ae5223fd24cbc691a5a0907daf4b4718",
+      "source_sha256": "f7fa081ac18de795df615059288892d0ae5223fd24cbc691a5a0907daf4b4718",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/Dockerfile",
+      "deployed_sha256": "116ebc03c8799ab6258b65d9fed4f4562705b16ad3932227a86ae10279340a13",
+      "source_sha256": "116ebc03c8799ab6258b65d9fed4f4562705b16ad3932227a86ae10279340a13",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/README.md",
+      "deployed_sha256": "7ad61902e2f777208277071632fd7bc451ccd6f5c878324ac4821a841786f5ea",
+      "source_sha256": "7ad61902e2f777208277071632fd7bc451ccd6f5c878324ac4821a841786f5ea",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/catalog_archive.py",
+      "deployed_sha256": "65a06f77e9a28537a2d6029e8a502bb93c9430ffb137ab4e5069f2c6c27dc59e",
+      "source_sha256": "65a06f77e9a28537a2d6029e8a502bb93c9430ffb137ab4e5069f2c6c27dc59e",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/catalog_rewards.py",
+      "deployed_sha256": "11a407547b72c1096139548d6b6db2aa47215a877f0e67c836d0054387267cb9",
+      "source_sha256": "11a407547b72c1096139548d6b6db2aa47215a877f0e67c836d0054387267cb9",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/catalog_summary.py",
+      "deployed_sha256": "384f18d4730b1a9cf04c4e8d6603d996691458e0e0c5bdebf02134a9ff99a637",
+      "source_sha256": "db7c7a9bb36800e152e72ea8491c24f8a4d5566a001dae0cb2bd74685d6aeb8f",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/catalog_worker.py",
+      "deployed_sha256": "6f67ea5bce15c881f4261e4e66096fd23084282139abeefd6302cacd666b145a",
+      "source_sha256": "6f67ea5bce15c881f4261e4e66096fd23084282139abeefd6302cacd666b145a",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/common.py",
+      "deployed_sha256": "a1f161dbbf65397a4c72475eac66e7a4b94d870a0f3995223686ca2e74365e2d",
+      "source_sha256": "a1f161dbbf65397a4c72475eac66e7a4b94d870a0f3995223686ca2e74365e2d",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/compose.yaml",
+      "deployed_sha256": "965380ce6ab99d436e8354ad10ebe35549b75215bca0ac77112f5cab72fefddb",
+      "source_sha256": "965380ce6ab99d436e8354ad10ebe35549b75215bca0ac77112f5cab72fefddb",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/config.example.json",
+      "deployed_sha256": "ac70add93508f807bc5732dceb14ed34ffe53b9b05e9309d7c07f02e739cb9ae",
+      "source_sha256": "ac70add93508f807bc5732dceb14ed34ffe53b9b05e9309d7c07f02e739cb9ae",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/database.py",
+      "deployed_sha256": "9014119c6e44d8e5eb0e921ada6855d02ef1b32bd71bd6bc5d0f6dfb9e99b4e1",
+      "source_sha256": "9014119c6e44d8e5eb0e921ada6855d02ef1b32bd71bd6bc5d0f6dfb9e99b4e1",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/events.py",
+      "deployed_sha256": "d20d93c3631536bdf1fd98ea90f03a87264e41740b95079768841944d0b3f63e",
+      "source_sha256": "d20d93c3631536bdf1fd98ea90f03a87264e41740b95079768841944d0b3f63e",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/github.py",
+      "deployed_sha256": "1d5af3df26e13c98f98e77d915ce9d70ae15e0513cff21102ce84ff109fc4e80",
+      "source_sha256": "1d5af3df26e13c98f98e77d915ce9d70ae15e0513cff21102ce84ff109fc4e80",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/lib/__init__.py",
+      "deployed_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "source_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/lib/clientfs.py",
+      "deployed_sha256": "ccf6ae50f5fcd776531ead2004f557b8f0f9b36d0b4b5443003b61ce337c3994",
+      "source_sha256": "ccf6ae50f5fcd776531ead2004f557b8f0f9b36d0b4b5443003b61ce337c3994",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/lib/mpq.py",
+      "deployed_sha256": "e4745ec161c53c2a3ab3ee2da53fafe1dc2bf4617bb729d545acf2dc61fd50b8",
+      "source_sha256": "e4745ec161c53c2a3ab3ee2da53fafe1dc2bf4617bb729d545acf2dc61fd50b8",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/lib/pkware.py",
+      "deployed_sha256": "895b3bdc77f3d96f5a2eb787a67ec997f3924d0126fc0576e17488ef2ce1ffc1",
+      "source_sha256": "895b3bdc77f3d96f5a2eb787a67ec997f3924d0126fc0576e17488ef2ce1ffc1",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/library.py",
+      "deployed_sha256": "854de2839d9af67da17eba8c1a6f5d5cfcf8841c8b6633b35830187e66401f4a",
+      "source_sha256": "854de2839d9af67da17eba8c1a6f5d5cfcf8841c8b6633b35830187e66401f4a",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/native_wire.py",
+      "deployed_sha256": "44fe6f6a1e63d7b224e98f46ef2e44b07f834b831dbb2cc81888d2d630ede5ea",
+      "source_sha256": "44fe6f6a1e63d7b224e98f46ef2e44b07f834b831dbb2cc81888d2d630ede5ea",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/notification_access.py",
+      "deployed_sha256": "d1b652eb6afdc8e9809838f41d4569c4aaa0f402c547a9a8071bb7dead4b6588",
+      "source_sha256": "c2fa1b0ac609783d2e62d655933e44e8058945ab9462a92f2863d0b46b1ef1d4",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/release.py",
+      "deployed_sha256": "c8c4f8c30e0ea7bf8d5f814d07089400a80c97541341e19872cf0404f7e02da2",
+      "source_sha256": "c8c4f8c30e0ea7bf8d5f814d07089400a80c97541341e19872cf0404f7e02da2",
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "path": "tools/featured_catalog/worker.py",
+      "deployed_sha256": "d7eb35d6ca6253b263caf4e4a83bd4ec0a831bf05ba89f785d29757b9df6a54a",
+      "source_sha256": "d7eb35d6ca6253b263caf4e4a83bd4ec0a831bf05ba89f785d29757b9df6a54a",
+      "normalization": "CRLF to LF only"
+    }
+  ],
+  "ordered_migrations": [
+    "data/sql/updates/pending_db_world/2026_11_25_03_area52_wind_rager_deterrence.sql",
+    "data/sql/updates/pending_db_world/2026_11_25_04_area52_wind_rager_procs.sql"
+  ],
+  "native_build_unit": "passed",
+  "focused_harnesses": 49,
+  "sql_apply_reapply_rollback": "passed",
+  "publication": "prepared, not yet delivered"
+}

@@ -1,0 +1,19 @@
+{
+  "base": {
+    "repository": "https://github.com/Zyth45/mod-playerbots",
+    "commit": "dee80f00f06205a9dcfa2b1d04357cdd469efbba",
+    "patched_tree": "ea205e1c465fa33f1f59ed66343e405f882b47e2",
+    "files": 1715,
+    "patch_sha256": "fe3cd0a37ff71c3f472126186cf6d48f02b93f83c8ed245f570718dadd385e0c"
+  },
+  "overlay_before": {
+    "src/Ai/Coa/Area52PilotProfiles.h": "e21ad82bd68b72b192e5ad0a2b1eb2a3ba9c0f05cc1ca32afc1b93697fec3c6b",
+    "src/Ai/Coa/CoaGenericContext.cpp": "12991436d80edb3c8f8724bd1202ef06d2aa558dba939a54cb324fbb7bb13b6e",
+    "src/Ai/Coa/CoaGenericContext.h": "b16f670d9213b992fe8867b2b2b39f07016c39c9e9baf3250c5684578fb4654b"
+  },
+  "overlay_after": {
+    "src/Ai/Coa/Area52PilotProfiles.h": "8899047a8609087eab806993b91f1aa7a0e3b30e6dd796f2ef99191195848acc",
+    "src/Ai/Coa/CoaGenericContext.cpp": "ce733e7c6dcb01d04614899c845d3aa6670a64eb92f751efb21be9648960ead8",
+    "src/Ai/Coa/CoaGenericContext.h": "2ac908c735bce8c053d93fbf899414af342adca9cd7de56bcb6ff7efabd02412"
+  }
+}
