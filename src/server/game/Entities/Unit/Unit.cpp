@@ -1,3 +1,4 @@
+#include "../../../coa/Area52WindScaling.h"
 #include "../../../coa/Area52ArcanistRules.h"
 #include "../../../coa/Area52FeignDeath.h"
 #include "../../../coa/Area52TemporaryPhysicalDamage.h"
@@ -10366,7 +10367,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
         else if (GetEntry() == 27893)
         {
             if (Unit* owner = GetOwner())
-                return owner->SpellDamageBonusDone(victim, spellProto, pdamage, damagetype, TotalMod, stack) / 2;
+                return owner->SpellDamageBonusDone(victim, spellProto, pdamage, damagetype, effIndex, TotalMod, stack) / 2;
         }
     }
 
@@ -10518,6 +10519,10 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
         damagetype != DOT && AscensionFreePick::Applies(ToPlayer()) && victim->IsPlayer() ? 0.5f : 1.0f;
     float coeff = spellProto->Effects[effIndex].BonusMultiplier;
     SpellBonusEntry const* bonus = sSpellMgr->GetSpellBonusData(spellProto->Id);
+    SpellBonusEntry windBonus{};
+    if (damagetype != DOT && effIndex == EFFECT_0 && AscensionFreePick::Applies(ToPlayer()) &&
+        Area52Wind::Coefficients(spellProto->Id, windBonus.direct_damage, windBonus.ap_bonus))
+        bonus = &windBonus;
     SpellBonusEntry grapeBonus{};
     if (grapeAreaDamage)
     {
@@ -14128,6 +14133,9 @@ Unit* Creature::SelectVictim()
 
 float Unit::ApplyEffectModifiers(SpellInfo const* spellProto, uint8 effect_index, float value) const
 {
+    if (AscensionFreePick::Applies(ToPlayer()) && (spellProto->Id == 45284 || spellProto->Id == 45297))
+        return value;
+
     if (Player* modOwner = GetSpellModOwner())
     {
         modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_ALL_EFFECTS, value);

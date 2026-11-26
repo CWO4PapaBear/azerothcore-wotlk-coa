@@ -1,0 +1,73 @@
+#include <cassert>
+#include <ctime>
+#include <string>
+#include <vector>
+#include <set>
+#include <map>
+#include <cmath>
+using uint8=unsigned char;using uint32=unsigned;using ObjectGuid=unsigned;using Event=int;using GuidVector=std::vector<int>;
+enum {SPELL_AURA_MOD_STEALTH,INVENTORY_SLOT_BAG_0,EQUIPMENT_SLOT_RANGED,EQUIPMENT_SLOT_MAINHAND,TEMP_ENCHANTMENT_SLOT,DISPEL_POISON,DISPEL_DISEASE,DISPEL_MAGIC,SPELL_EFFECT_CREATE_ITEM};
+struct Effect {int Effect=0;unsigned ItemType=0;};
+struct SpellInfo {std::vector<Effect> Effects;};
+struct Manager {SpellInfo gcd,refresh;SpellInfo* GetSpellInfo(unsigned id){return id==1752?&gcd:id==42955?&refresh:nullptr;}} manager;auto sSpellMgr=&manager;
+struct Item{unsigned enchant=0;unsigned GetEnchantmentId(int){return enchant;}};
+struct Unit {
+ unsigned guid=1;bool alive=true;float hp=100,x=0,y=0,z=0;Unit* victim=nullptr;std::set<std::string> auras;std::set<int> debuffs;
+ bool IsAlive(){return alive;}Unit* GetVictim(){return victim;}float GetHealthPct(){return hp;}unsigned GetGUID(){return guid;}
+ float GetPositionX(){return x;}float GetPositionY(){return y;}float GetPositionZ(){return z;}
+ float GetDistance(float a,float b,float c){return std::sqrt((x-a)*(x-a)+(y-b)*(y-b)+(z-c)*(z-c));}
+ float GetDistance(Unit* u){return GetDistance(u->x,u->y,u->z);}
+};
+struct GCD {bool active=false;bool HasGlobalCooldown(SpellInfo const*){return active;}};
+struct Player:Unit {
+ GCD gcd;bool combat=true,stealth=false,los=true;float facing=0;Item ranged,melee;std::vector<Unit*> attackers;std::set<unsigned> items;
+ bool IsInCombat(){return combat;}bool HasAuraType(int){return stealth;}auto& getAttackers(){return attackers;}auto& GetGlobalCooldownMgr(){return gcd;}
+ bool IsWithinLOS(float,float,float){return los;}void SetFacingTo(float angle){facing=angle;}
+ Item* GetItemByPos(int,int slot){return slot==EQUIPMENT_SLOT_RANGED?&ranged:&melee;}
+ bool HasItemCount(unsigned item,int,bool){return items.contains(item);}
+};
+struct AI {
+ std::set<std::string> spells;std::vector<std::string> casts;std::string last;Unit* recipient=nullptr;Item* weapon=nullptr;
+ bool CanCastSpell(std::string const& n,Unit*,Item* =nullptr){return spells.contains(n);}
+ bool CastSpell(std::string const& n,Unit* u,Item* item=nullptr){last=n;casts.push_back(n);recipient=u;weapon=item;return true;}
+ bool CanCastSpell(unsigned id,float,float,float){return id!=0;}bool CastSpell(unsigned,float,float,float){last="Volley";casts.push_back(last);return true;}
+ bool HasAura(std::string const& n,Unit* u){return u&&u->auras.contains(n);}
+ bool HasAuraToDispel(Unit* u,int kind){return u->debuffs.contains(kind);}
+ Unit* GetUnit(int){return nullptr;}bool DoSpecificAction(std::string const& n){last=n;casts.push_back(n);return true;}
+ unsigned Spell(std::string const& n){return spells.contains(n)?n=="Conjure Refreshment"?42955:1:0;}
+};
+time_t start=100;time_t value(time_t*){return start;}GuidVector value(GuidVector*){return {};}
+#define AI_VALUE(type,key) value(static_cast<type*>(nullptr))
+#define AI_VALUE2(type,key,name) botAI->Spell(name)
+bool safeFlee=true;
+struct FleeManager {FleeManager(Player*,float,float,bool){}bool CalculateDestination(float*x,float*y,float*z){*x=-20;*y=0;*z=0;return safeFlee;}};
+Unit* assist=nullptr;std::vector<Player*> party;
+Unit* CoaAssistTarget(Player*){return assist;}std::vector<Player*> CoaGroupInReach(Player*){return party;}
+struct CoaDefiasAction {Player*bot;AI*botAI;std::string qualifier;unsigned escapeStep=0,opener=0,nextShot=0;time_t encounter=0;ObjectGuid openingTarget=0;bool openedStealthed=false,eating=false;bool Execute(Event);};
+@@METHOD@@
+int main(){
+ Player bot,ally;AI ai;Unit enemy;enemy.guid=7;enemy.x=5;assist=&enemy;party={&bot,&ally};CoaDefiasAction a{&bot,&ai,""};
+ auto run=[&](const char*q){a.qualifier=q;ai.last.clear();return a.Execute(0);};
+ ai.spells={"Pistol Shot","Grape Shot","Mongoose Bite","Bloodrage"};
+ assert(!run("maintenance"));
+ for(auto name:{"Pistol Shot","Grape Shot","Mongoose Bite","Bloodrage"})assert(run("combat")&&ai.last==name);
+ ai.spells.insert("Battle Stance");assert(run("maintenance")&&ai.last=="Battle Stance");
+ bot.auras.insert("Battle Stance");assert(!run("maintenance"));bot.stealth=true;bot.auras.clear();assert(!run("maintenance"));
+ ai.spells={"Shadowstep","Shadow Dance","Premeditation","Cheap Shot","Pistol Shot"};++start;
+ assert(run("combat")&&ai.last=="Shadowstep");assert(run("combat")&&ai.last=="Premeditation"&&ai.recipient==&enemy);
+ assert(run("combat")&&ai.last=="Cheap Shot");assert(run("combat")&&ai.last=="Pistol Shot");
+ bot.stealth=false;++start;assert(run("combat")&&ai.last=="Shadowstep");assert(run("combat")&&ai.last=="Shadow Dance");
+ ai.spells={"Kill Shot"};enemy.hp=20;assert(!run("execute"));enemy.hp=19;assert(run("execute"));
+ bot.attackers={&enemy};enemy.victim=&bot;ai.spells={"Fade","Blind","Dispersion","Psychic Horror","Blink","Sprint"};
+ bot.gcd.active=true;assert(!run("escape")&&a.escapeStep==0);bot.gcd.active=false;
+ for(auto name:{"Fade","Blind","Dispersion","Psychic Horror","Blink"})assert(run("escape")&&ai.last==name);
+ assert(std::abs(bot.facing)>3);assert(run("escape")&&ai.casts[ai.casts.size()-2]=="Sprint"&&ai.last=="flee");
+ enemy.victim=&ally;assert(!run("escape")&&a.escapeStep==0);enemy.victim=&bot;
+ a.escapeStep=4;safeFlee=false;ai.spells={"Blink"};run("escape");assert(ai.last!="Blink");safeFlee=true;
+ bot.combat=false;ai.spells={"Cleanse"};ally.debuffs.insert(DISPEL_MAGIC);assert(run("noncombat")&&ai.last=="Cleanse"&&ai.recipient==&ally);ally.debuffs.clear();
+ ai.spells.clear();bot.hp=74;assert(run("noncombat")&&ai.last=="eat");bot.hp=95;assert(run("noncombat")&&ai.last=="eat");bot.hp=100;assert(!run("noncombat"));
+ ai.spells={"Instant Poison"};assert(run("noncombat")&&ai.weapon==&bot.ranged);bot.ranged.enchant=1;assert(run("noncombat")&&ai.weapon==&bot.melee);bot.melee.enchant=1;assert(!run("noncombat"));
+ ai.spells={"Power Word: Fortitude","Prayer of Fortitude"};assert(run("noncombat")&&ai.last=="Prayer of Fortitude");bot.auras.insert("Prayer of Fortitude");assert(run("noncombat")&&ai.recipient==&ally);ally.auras.insert("Power Word: Fortitude");assert(!run("noncombat"));
+ ai.spells={"Conjure Refreshment","Stealth"};manager.refresh.Effects={{SPELL_EFFECT_CREATE_ITEM,123}};assert(run("noncombat")&&ai.last=="Conjure Refreshment");bot.items.insert(123);assert(run("noncombat")&&ai.last=="Stealth");
+ ai.spells={"Grape Shot"};assert(run("area")&&ai.last=="Grape Shot");ai.spells={"Volley"};assert(run("area")&&ai.last=="Volley");assist=nullptr;assert(!run("combat"));
+}

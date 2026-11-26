@@ -86,7 +86,8 @@ inline bool SummaryNumber(std::string_view text, unsigned& value)
     auto [end,error]=std::from_chars(text.data(),text.data()+text.size(),value);
     return error==std::errc{} && end==text.data()+text.size();
 }
-inline bool ValidCreationSummary(std::string_view description,unsigned archetype)
+template<class SpellExists>
+inline bool ValidCreationSummary(std::string_view description,unsigned archetype, SpellExists spellExists)
 {
     if (description.find(SummaryMarker)==description.npos) return true;
     auto data=SummaryLine(description);
@@ -95,7 +96,9 @@ inline bool ValidCreationSummary(std::string_view description,unsigned archetype
     auto source=std::find_if(std::begin(SummaryArchetypes),std::end(SummaryArchetypes),
         [archetype](auto const& s){return s.id==archetype;});
     if (source==std::end(SummaryArchetypes)) return false;
-    auto remaining=source->spells;
+    std::array<unsigned,5> selected{};
+    size_t count=0;
+    auto expected=std::count_if(source->spells.begin(),source->spells.end(),[](unsigned id){return id!=0;});
     for (;;)
     {
         auto end=data.find(';');
@@ -104,9 +107,9 @@ inline bool ValidCreationSummary(std::string_view description,unsigned archetype
         unsigned spell=0,level=0;
         if (a==row.npos || b==row.npos || !SummaryNumber(row.substr(0,a),spell) ||
             !SummaryNumber(row.substr(a+1,b-a-1),level) || level>80) return false;
-        auto slot=std::find(remaining.begin(),remaining.end(),spell);
-        if (slot==remaining.end()) return false;
-        *slot=0;
+        if (count>=selected.size() || std::find(selected.begin(),selected.end(),spell)!=selected.end()) return false;
+        if (std::find(source->spells.begin(),source->spells.end(),spell)==source->spells.end() && !spellExists(spell)) return false;
+        selected[count++]=spell;
         auto bytes=row.substr(b+1);
         if (bytes.size()>2048 || bytes.size()%2) return false;
         std::string text;
@@ -123,6 +126,10 @@ inline bool ValidCreationSummary(std::string_view description,unsigned archetype
         if (end==data.npos) break;
         data.remove_prefix(end+1);
     }
-    return std::all_of(remaining.begin(),remaining.end(),[](unsigned id){return !id;});
+    return count==static_cast<size_t>(expected);
+}
+inline bool ValidCreationSummary(std::string_view description,unsigned archetype)
+{
+    return ValidCreationSummary(description,archetype,[](unsigned){return false;});
 }
 }

@@ -1,0 +1,23 @@
+services:
+  featured-catalog:
+    profiles: [featured-catalog]
+    build: .
+    restart: unless-stopped
+    read_only: true
+    user: "${CATALOG_UID:-1000}:${CATALOG_GID:-1000}"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp]
+    environment:
+      GH_TOKEN: ${CATALOG_GITHUB_TOKEN:-}
+      GH_CONFIG_DIR: /tmp/gh
+    volumes:
+      - ${CATALOG_CONFIG_DIRECTORY}:/config:ro
+      - ${CATALOG_INPUT_DIRECTORY}:/inputs:ro
+      - ${CATALOG_STATE_DIRECTORY}:/state
+      - ${WORLDSERVER_LOG_DIRECTORY}:/signals:ro
+    networks: [realm]
+networks:
+  realm:
+    external: true
+    name: ${REALM_NETWORK}

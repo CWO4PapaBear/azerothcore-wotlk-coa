@@ -1,0 +1,41 @@
+SET SESSION sql_mode='STRICT_ALL_TABLES,NO_ENGINE_SUBSTITUTION';
+CREATE TEMPORARY TABLE bot_update_guard(ok INT NOT NULL);
+
+INSERT INTO bot_update_guard SELECT IF(COUNT(*)=0,1,NULL) FROM acore_playerbots.playerbots_legendary_class WHERE spec='defias-gunslinger' OR legendary=997047;
+INSERT INTO bot_update_guard SELECT IF(COUNT(*)=0,1,NULL) FROM acore_playerbots.playerbots_custom_strategy WHERE name IN ('defias-gunslinger','defias-gunslinger-nc');
+INSERT INTO bot_update_guard SELECT IF(COUNT(*)=0,1,NULL) FROM acore_playerbots.playerbots_legendary_weight WHERE spec='defias-gunslinger';
+INSERT INTO bot_update_guard SELECT IF(COUNT(*)=0,1,NULL) FROM acore_playerbots.playerbots_legendary_pick WHERE spec='defias-gunslinger';
+INSERT INTO bot_update_guard SELECT IF(COUNT(*)=0,1,NULL) FROM acore_playerbots.playerbots_legendary_enchant WHERE spec='defias-gunslinger';
+INSERT INTO acore_playerbots.playerbots_legendary_class(spec,name,legendary,role,position,primary_stat,combat,noncombat,chance,armor,shield,weapons,pet) VALUES (CONVERT(UNHEX('6465666961732d67756e736c696e676572') USING utf8mb4),CONVERT(UNHEX('4465666961732047756e736c696e676572') USING utf8mb4),997047,CONVERT(UNHEX('647073') USING utf8mb4),CONVERT(UNHEX('636c6f7365') USING utf8mb4),1,CONVERT(UNHEX('637573746f6d3a3a6465666961732d67756e736c696e676572') USING utf8mb4),CONVERT(UNHEX('637573746f6d3a3a6465666961732d67756e736c696e6765722d6e63') USING utf8mb4),0,CONVERT(UNHEX('6d61696c') USING utf8mb4),0,CONVERT(UNHEX('6d6163652c67756e') USING utf8mb4),0);
+INSERT INTO acore_playerbots.playerbots_legendary_weight(spec,stat,weight) VALUES ('defias-gunslinger','agility',2),('defias-gunslinger','attack_power',1);
+INSERT INTO acore_playerbots.playerbots_custom_strategy(name,idx,owner,action_line) VALUES (CONVERT(UNHEX('6465666961732d67756e736c696e676572') USING utf8mb4),1,0,CONVERT(UNHEX('74696d65723e636f61206465666961733a3a657363617065213939') USING utf8mb4)),(CONVERT(UNHEX('6465666961732d67756e736c696e676572') USING utf8mb4),2,0,CONVERT(UNHEX('74696d65723e636f61206465666961733a3a65786563757465213938') USING utf8mb4)),(CONVERT(UNHEX('6465666961732d67756e736c696e676572') USING utf8mb4),3,0,CONVERT(UNHEX('74696d65723e636f61206465666961733a3a6d61696e74656e616e6365213937') USING utf8mb4)),(CONVERT(UNHEX('6465666961732d67756e736c696e676572') USING utf8mb4),4,0,CONVERT(UNHEX('6d656469756d20616f653e636f61206465666961733a3a61726561213935') USING utf8mb4)),(CONVERT(UNHEX('6465666961732d67756e736c696e676572') USING utf8mb4),5,0,CONVERT(UNHEX('74696d65723e636f61206465666961733a3a636f6d626174213934') USING utf8mb4)),(CONVERT(UNHEX('6465666961732d67756e736c696e6765722d6e63') USING utf8mb4),1,0,CONVERT(UNHEX('74696d65723e636f61206465666961733a3a6e6f6e636f6d626174213935') USING utf8mb4));
+
+
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`)
+SELECT 19263, 'spell_hun_area52_deterrence'
+WHERE NOT EXISTS (SELECT 1 FROM `spell_script_names` WHERE `spell_id` = 19263 AND `ScriptName` = 'spell_hun_area52_deterrence');
+
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`)
+SELECT 978232, 'aura_area52_wind_rager'
+WHERE NOT EXISTS (
+    SELECT 1 FROM `spell_script_names`
+    WHERE `spell_id` = 978232 AND `ScriptName` = 'aura_area52_wind_rager'
+);
+
+INSERT INTO `spell_group` (`id`, `spell_id`)
+SELECT 1101, 412004
+WHERE NOT EXISTS (SELECT 1 FROM `spell_group` WHERE `id` = 1101 AND `spell_id` = 412004);
+
+DELETE FROM `spell_proc` WHERE `SpellId` = 978232;
+INSERT INTO `spell_proc`
+(`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`,
+ `ProcFlags`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`,
+ `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`)
+VALUES (978232, 1, 0, 0, 0, 0, 0, 1, 2, 0, 0, 6, 0, 10, 6000, 0);
+
+DELETE FROM `spell_proc` WHERE `SpellId` = 997084;
+INSERT INTO `spell_proc`
+(`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`,
+ `ProcFlags`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`,
+ `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`)
+VALUES (997084, 0, 11, 1, 0, 0, 65536, 1, 1, 0, 8, 0, 0, 100, 0, 1);

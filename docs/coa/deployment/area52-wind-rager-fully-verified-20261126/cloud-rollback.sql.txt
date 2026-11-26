@@ -1,0 +1,24 @@
+SET SESSION sql_mode='STRICT_ALL_TABLES,NO_ENGINE_SUBSTITUTION';
+CREATE TEMPORARY TABLE bot_update_guard(ok INT NOT NULL);
+
+INSERT INTO bot_update_guard SELECT IF(COUNT(*)=6,1,NULL) FROM acore_playerbots.playerbots_custom_strategy WHERE owner=0 AND name IN ('defias-gunslinger','defias-gunslinger-nc');
+INSERT INTO bot_update_guard SELECT IF(COUNT(*)=1,1,NULL) FROM acore_playerbots.playerbots_custom_strategy WHERE name=CONVERT(UNHEX('6465666961732d67756e736c696e676572') USING utf8mb4) AND idx=1 AND owner=0 AND HEX(action_line)=HEX(CONVERT(UNHEX('74696d65723e636f61206465666961733a3a657363617065213939') USING utf8mb4));
+INSERT INTO bot_update_guard SELECT IF(COUNT(*)=1,1,NULL) FROM acore_playerbots.playerbots_custom_strategy WHERE name=CONVERT(UNHEX('6465666961732d67756e736c696e676572') USING utf8mb4) AND idx=2 AND owner=0 AND HEX(action_line)=HEX(CONVERT(UNHEX('74696d65723e636f61206465666961733a3a65786563757465213938') USING utf8mb4));
+INSERT INTO bot_update_guard SELECT IF(COUNT(*)=1,1,NULL) FROM acore_playerbots.playerbots_custom_strategy WHERE name=CONVERT(UNHEX('6465666961732d67756e736c696e676572') USING utf8mb4) AND idx=3 AND owner=0 AND HEX(action_line)=HEX(CONVERT(UNHEX('74696d65723e636f61206465666961733a3a6d61696e74656e616e6365213937') USING utf8mb4));
+INSERT INTO bot_update_guard SELECT IF(COUNT(*)=1,1,NULL) FROM acore_playerbots.playerbots_custom_strategy WHERE name=CONVERT(UNHEX('6465666961732d67756e736c696e676572') USING utf8mb4) AND idx=4 AND owner=0 AND HEX(action_line)=HEX(CONVERT(UNHEX('6d656469756d20616f653e636f61206465666961733a3a61726561213935') USING utf8mb4));
+INSERT INTO bot_update_guard SELECT IF(COUNT(*)=1,1,NULL) FROM acore_playerbots.playerbots_custom_strategy WHERE name=CONVERT(UNHEX('6465666961732d67756e736c696e676572') USING utf8mb4) AND idx=5 AND owner=0 AND HEX(action_line)=HEX(CONVERT(UNHEX('74696d65723e636f61206465666961733a3a636f6d626174213934') USING utf8mb4));
+INSERT INTO bot_update_guard SELECT IF(COUNT(*)=1,1,NULL) FROM acore_playerbots.playerbots_custom_strategy WHERE name=CONVERT(UNHEX('6465666961732d67756e736c696e6765722d6e63') USING utf8mb4) AND idx=1 AND owner=0 AND HEX(action_line)=HEX(CONVERT(UNHEX('74696d65723e636f61206465666961733a3a6e6f6e636f6d626174213935') USING utf8mb4));
+INSERT INTO bot_update_guard SELECT IF(COUNT(*)=1,1,NULL) FROM acore_playerbots.playerbots_legendary_class WHERE `spec` <=> CONVERT(UNHEX('6465666961732d67756e736c696e676572') USING utf8mb4) AND `name` <=> CONVERT(UNHEX('4465666961732047756e736c696e676572') USING utf8mb4) AND `legendary` <=> 997047 AND `role` <=> CONVERT(UNHEX('647073') USING utf8mb4) AND `position` <=> CONVERT(UNHEX('636c6f7365') USING utf8mb4) AND `primary_stat` <=> 1 AND `combat` <=> CONVERT(UNHEX('637573746f6d3a3a6465666961732d67756e736c696e676572') USING utf8mb4) AND `noncombat` <=> CONVERT(UNHEX('637573746f6d3a3a6465666961732d67756e736c696e6765722d6e63') USING utf8mb4) AND `chance` <=> 0 AND `armor` <=> CONVERT(UNHEX('6d61696c') USING utf8mb4) AND `shield` <=> 0 AND `weapons` <=> CONVERT(UNHEX('6d6163652c67756e') USING utf8mb4) AND `pet` <=> 0;
+DELETE FROM acore_playerbots.playerbots_custom_strategy WHERE owner=0 AND name IN ('defias-gunslinger','defias-gunslinger-nc');
+DELETE FROM acore_playerbots.playerbots_legendary_weight WHERE spec='defias-gunslinger';
+DELETE FROM acore_playerbots.playerbots_legendary_class WHERE spec='defias-gunslinger';
+
+
+DELETE FROM `spell_script_names` WHERE `spell_id` = 978232 AND `ScriptName` = 'aura_area52_wind_rager';
+DELETE FROM `spell_script_names` WHERE `spell_id` = 19263 AND `ScriptName` = 'spell_hun_area52_deterrence';
+DELETE FROM `spell_group` WHERE `id` = 1101 AND `spell_id` = 412004;
+DELETE FROM `spell_proc` WHERE `SpellId` = 978232 AND `SchoolMask` = 1 AND `SpellFamilyName` = 0
+AND `SpellFamilyMask0` = 0 AND `SpellFamilyMask1` = 0 AND `SpellFamilyMask2` = 0 AND `ProcFlags` = 0
+AND `SpellTypeMask` = 1 AND `SpellPhaseMask` = 2 AND `HitMask` = 0 AND `AttributesMask` = 0
+AND `DisableEffectsMask` = 6 AND `ProcsPerMinute` = 0 AND `Chance` = 10 AND `Cooldown` = 6000 AND `Charges` = 0;
+DELETE FROM `spell_proc` WHERE `SpellId` = 997084 AND `SpellFamilyName` = 11 AND `SpellFamilyMask0` = 1 AND `ProcFlags` = 65536 AND `SpellPhaseMask` = 1 AND `AttributesMask` = 8 AND `Chance` = 100 AND `Charges` = 1;

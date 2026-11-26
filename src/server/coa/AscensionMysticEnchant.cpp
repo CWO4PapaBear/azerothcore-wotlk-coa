@@ -47,6 +47,7 @@
 using namespace Acore::ChatCommands;
 
 bool HasArea52EpicEquipmentHandlers(uint32 spell);
+bool HasArea52WindHandlers(uint32 spell);
 bool HasArea52WhiteWalkerHandlers(uint32 spell);
 bool HasArea52HopliteHandlers(uint32 spell);
 
@@ -347,6 +348,13 @@ void Synchronize(Player* player)
         }
     }
     Area52Arcanist::Synchronize(player);
+    if (Applies(player) && !state->Applied.contains(978232))
+        for (uint32 helper : {978938u, 978939u, 983986u, 983974u})
+            player->RemoveAurasDueToSpell(helper, player->GetGUID());
+    if (Applies(player) && (!state->Applied.contains(997082) || state->Applied.contains(978231)))
+        player->RemoveAurasDueToSpell(997084, player->GetGUID());
+    if (Applies(player) && !state->Applied.contains(979769))
+        player->RemoveAurasDueToSpell(414003, player->GetGUID());
     if (Applies(player) && !state->Applied.contains(982743))
         player->RemoveAurasDueToSpell(982745, player->GetGUID());
     if (Applies(player) && !state->Applied.contains(997115))
@@ -357,13 +365,15 @@ void Synchronize(Player* player)
     {
         bool const enabled = GrantsActive(player, grant.Enchant) &&
             ((grant.Enchant != 997115 && grant.Enchant != 997047) || state->Applied.contains(grant.Enchant)) &&
-            ((grant.Enchant != 977831 && grant.Enchant != 982330 && grant.Enchant != 997047) ||
+            ((grant.Enchant != 977831 && grant.Enchant != 982330 && grant.Enchant != 997047 &&
+                grant.Enchant != 978232 && grant.Enchant != 997082) ||
                 ExactGrantPrerequisiteMet(grant, [player](uint32 required) { return player->HasSpell(required); })) &&
             (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
             (grant.Enchant != 81248 || player->HasActiveSpell(33831)) && GrantRequirementMet(player, grant.Requires);
         std::set<std::uint32_t> visited;
         for (auto rank = grant.Spell; rank && visited.insert(rank).second;
-            rank = (grant.Enchant == 977831 || grant.Enchant == 997220 || grant.Enchant == 982330 || grant.Enchant == 997047) ? 0 : sSpellMgr->GetNextSpellInChain(rank))
+            rank = (grant.Enchant == 977831 || grant.Enchant == 997220 || grant.Enchant == 982330 || grant.Enchant == 997047 ||
+                grant.Enchant == 978232 || grant.Enchant == 997082) ? 0 : sSpellMgr->GetNextSpellInChain(rank))
         {
             SpellInfo const* info = sSpellMgr->GetSpellInfo(rank);
             bool const rankDue = (grant.Enchant == 982743 || (grant.Enchant == 979740 && grant.Spell == 826679)) ?
@@ -935,6 +945,12 @@ void LoadConnections()
         if (spell == 986125)
         {
             if (HasShieldFinesseHandlers())
+                Connected.emplace(spell, 1);
+            continue;
+        }
+        if (spell == 979769 || spell == 977725 || spell == 978232 || spell == 997082)
+        {
+            if (HasArea52WindHandlers(spell))
                 Connected.emplace(spell, 1);
             continue;
         }
@@ -2466,7 +2482,8 @@ void RestoreArea52MysticSpellsForLogin(Player* player, PreparedQueryResult resul
             auto const& entry = Data.BySpell.at(grant.Enchant);
             if (InvestmentMet(player, entry, false) && InvestmentMet(player, entry, true) &&
                 (grant.Enchant != 978724 || player->HasSpell(2565)) &&
-                ((grant.Enchant != 977831 && grant.Enchant != 982330 && grant.Enchant != 997047) ||
+                ((grant.Enchant != 977831 && grant.Enchant != 982330 && grant.Enchant != 997047 &&
+                grant.Enchant != 978232 && grant.Enchant != 997082) ||
                 ExactGrantPrerequisiteMet(grant, [player](uint32 required) { return player->HasSpell(required); })) &&
             (grant.Enchant != 997220 || player->HasActiveSpell(grant.Requires)) &&
                 (grant.Enchant != 81248 || player->HasActiveSpell(33831)) &&

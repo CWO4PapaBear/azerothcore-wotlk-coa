@@ -360,6 +360,14 @@ bool SynchronizeTalentRanks(Player* player)
             player->RemoveAurasDueToSpell(helper, player->GetGUID());
             changed = true;
         }
+    for (auto const& [parent, helper] : {std::pair<uint32, uint32>{16256, 16257},
+        {16281, 16277}, {16282, 16278}, {30816, 965970}, {30818, 966150}, {30819, 966151},
+        {30664, 412000}, {30665, 412001}, {30666, 412002}})
+        if (!player->HasAura(parent) && player->HasAura(helper, player->GetGUID()))
+        {
+            player->RemoveAurasDueToSpell(helper, player->GetGUID());
+            changed = true;
+        }
     changed |= SynchronizeCarefulAim(player);
     if (!player->HasAura(830816) || !(player->HasAura(84864) || player->HasAura(84865)))
         for (uint32 buff : {830822u, 840822u})
@@ -703,6 +711,13 @@ std::vector<RankUpgrade> RankUpgrades(Player const* player)
             if (auto const* info = sSpellMgr->GetSpellInfo(rank); info && offered.insert(rank).second)
             {
                 auto const* pistol = AscensionMysticEnchant::PistolRankGrant(rank);
+                if (!pistol)
+                    for (auto const& grant : AscensionMysticEnchant::SpellGrants)
+                        if ((grant.Enchant == 978232 || grant.Enchant == 997082) && grant.Spell == rank)
+                        {
+                            pistol = &grant;
+                            break;
+                        }
                 if (pistol && !AscensionMysticEnchant::ExactGrantPrerequisiteMet(*pistol,
                     [player](uint32 required) { return player->HasSpell(required); }))
                     continue;

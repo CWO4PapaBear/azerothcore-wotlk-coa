@@ -1,0 +1,1006 @@
+/*
+ * CoA: generic, parameterised triggers and actions.
+ *
+ * The problem: mod-playerbots registers actions such as "mortal strike" in
+ * C++ - one class per spell, nine classes hard-wired. For Conquest of Azeroth
+ * with its 21 additional classes and ~70 specs that does not scale, all the
+ * more because the content itself is still moving.
+ *
+ * The solution: NamedObjectFactory::create() splits every name at "::" and
+ * passes the trailing part to the object it creates, as long as that object
+ * derives from Qualified. A handful of generic building blocks is then enough,
+ * and the whole combat behaviour becomes DATA - rows in
+ * playerbots_custom_strategy that can be changed without recompiling.
+ *
+ * What that expresses:
+ *   spell ready::Rune Strike   > cast::Rune Strike         (keep it on cooldown)
+ *   debuff missing::Rend       > cast debuff::Rend         (keep a debuff up)
+ *   has aura::Eclipse (Lunar)  > cast::Starfire            (use a buff window)
+ *   aura stacks::Fury,6        > cast::Consuming Strike    (spend at full stacks)
+ *   coa resource::Static,75    > cast::Arm of Thorim       (from three quarters of the resource)
+ *   coa summon missing         > cast::Tentacle of C'Thun  (only while no summon of our own stands)
+ *   coa summon missing::Sentry Turret > cast::Build: Sentry Turret  (only while that one is down)
+ *
+ * And for a healer, with the base triggers that rank the group by damage
+ * taken:
+ *
+ *   party member critical health > cast heal party::Flash Heal
+ *   medium group heal setting    > cast heal aoe::Prayer of Healing
+ *   party member dead            > cast rez::Resurrection
+ *
+ * The spell name is resolved at runtime through SpellIdValue against the bot's
+ * spellbook, so no spell id tables and no rank bookkeeping are needed.
+ *
+ * Deliberately NOT changed: the existing class contexts. These building blocks
+ * are added to the shared context and are therefore open to every bot.
+ */
+#ifndef PLAYERBOTS_COAGENERICCONTEXT_H
+#define PLAYERBOTS_COAGENERICCONTEXT_H
+
+#include "Timer.h"
+#include "GenericSpellActions.h"
+#include "CureTriggers.h"
+#include "GenericTriggers.h"
+#include "NamedObjectContext.h"
+
+// ---------------------------------------------------------------------------
+// Actions - the qualifier is the spell name
+// ---------------------------------------------------------------------------
+
+#define COA_QUALIFIED_CAST(ClassName, Base, Label)                              \
+    class ClassName : public Base, public Qualified                             \
+    {                                                                           \
+    public:                                                                     \
+        ClassName(PlayerbotAI* botAI) : Base(botAI, "") {}                      \
+        void Qualify(std::string const qual) override                           \
+        {                                                                       \
+            Qualified::Qualify(qual);                                           \
+            spell = qual;                                                       \
+        }                                                                       \
+        std::string const getName() override { return Label "::" + qualifier; } \
+    };
+
+/* "cast::<spell>" - as the original, but a cleave or cone centred on the bot is not cast from beyond its reach,
+ * and no spell the bot lacks the power for (the probe ignores power, so the line ran and failed every tick). */
+class CoaCastAction : public CastSpellAction, public Qualified
+{
+public:
+    CoaCastAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "") {}
+    void Qualify(std::string const qual) override
+    {
+        Qualified::Qualify(qual);
+        spell = qual;
+    }
+    std::string const getName() override { return "cast::" + qualifier; }
+    bool isUseful() override;
+};
+
+/* "cast melee::<spell>" - as the original, not without the power for it. */
+class CoaCastMeleeAction : public CastMeleeSpellAction, public Qualified
+{
+public:
+    CoaCastMeleeAction(PlayerbotAI* botAI) : CastMeleeSpellAction(botAI, "") {}
+    void Qualify(std::string const qual) override
+    {
+        Qualified::Qualify(qual);
+        spell = qual;
+    }
+    std::string const getName() override { return "cast melee::" + qualifier; }
+    bool isUseful() override;
+};
+/* "cast buff::<spell>" - as the original, a passive aura of the same name not taken for the buff (CoaWornBuff). */
+class CoaCastBuffAction : public CastBuffSpellAction, public Qualified
+{
+public:
+    CoaCastBuffAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "") {}
+    void Qualify(std::string const qual) override
+    {
+        Qualified::Qualify(qual);
+        spell = qual;
+    }
+    std::string const getName() override { return "cast buff::" + qualifier; }
+    bool isUseful() override;
+    // a buff makes no threat: the threat hold held Light's Hope, which takes threat away, 530 times in two runs
+    ActionThreatType getThreatType() override { return ActionThreatType::None; }
+};
+/* "cast debuff::<spell>" - as the original. With AiPlayerbot.CoaShortLivedDebuffs, the target only has
+ * to live as long as the spell needs (CoaDebuffNeedLifeTime), not the fixed 8 s of the original. */
+class CoaCastDebuffAction : public CastDebuffSpellAction, public Qualified
+{
+public:
+    CoaCastDebuffAction(PlayerbotAI* botAI) : CastDebuffSpellAction(botAI, "") {}
+    void Qualify(std::string const qual) override
+    {
+        Qualified::Qualify(qual);
+        spell = qual;
+    }
+    std::string const getName() override { return "cast debuff::" + qualifier; }
+    bool isUseful() override;
+};
+// Resurrection: aims at the dead party member, not at the current target.
+// Together with the base trigger "party member dead" that is enough.
+COA_QUALIFIED_CAST(CoaCastRezAction, ResurrectPartyMemberAction, "cast rez")
+
+// Healing needs its own handling: the constructor takes further parameters.
+//
+// This one heals the CASTER. It is what a damage dealer uses to keep itself
+// standing; a healer needs the three below, which act on the group.
+class CoaCastHealAction : public CastHealingSpellAction, public Qualified
+{
+public:
+    CoaCastHealAction(PlayerbotAI* botAI) : CastHealingSpellAction(botAI, "") {}
+    void Qualify(std::string const qual) override
+    {
+        Qualified::Qualify(qual);
+        spell = qual;
+    }
+    std::string const getName() override { return "cast heal::" + qualifier; }
+};
+
+/* Healing the group, the way the nine base classes already do it.
+ *
+ * The difference to `cast heal` is the target, not the spell:
+ * HealPartyMemberAction asks the value "party member to heal", which ranks the
+ * group by how badly it is hurt and by range. Paired with the base triggers
+ * `party member critical health`, `party member low health` and
+ * `party member medium health`, that is the same structure HealPriestStrategy
+ * uses - only as data rather than as C++ per spell.
+ *
+ * PartyMemberActionNameSupport builds its name in the constructor, when the
+ * qualifier is not known yet, so getName() is overridden here instead. The
+ * target value reads `spell` at call time and therefore works unchanged.
+ */
+class CoaHealPartyAction : public HealPartyMemberAction, public Qualified
+{
+public:
+    CoaHealPartyAction(PlayerbotAI* botAI) : HealPartyMemberAction(botAI, "") {}
+    void Qualify(std::string const qual) override
+    {
+        Qualified::Qualify(qual);
+        spell = qual;
+    }
+    std::string const getName() override { return "cast heal party::" + qualifier; }
+};
+
+/* A heal placed on the ground, cast on the tank so that it lands where the fight is.
+ *
+ * Radiance heals 96 every three seconds inside eight yards. Its rotation line had it as
+ * `cast buff::Radiance`, which a bot casts on ITSELF: the circle appeared under the healer,
+ * sixteen yards behind everyone, and healed nobody - 3415 mana for 342 points of healing
+ * (23/09). Cast on the tank, it covers the tank and the melee around it.
+ */
+class CoaGroundHealAction : public BuffOnMainTankAction, public Qualified
+{
+public:
+    CoaGroundHealAction(PlayerbotAI* botAI) : BuffOnMainTankAction(botAI, "") {}
+    void Qualify(std::string const qual) override
+    {
+        Qualified::Qualify(qual);
+        spell = qual;
+    }
+    std::string const getName() override { return "cast heal tank::" + qualifier; }
+    Unit* GetTarget() override;
+};
+
+// Group heal. Same target value, but isUseful() additionally asks whether
+// enough of the group is hurt for an area heal to be worth its mana.
+class CoaAoeHealAction : public CastAoeHealSpellAction, public Qualified
+{
+public:
+    CoaAoeHealAction(PlayerbotAI* botAI) : CastAoeHealSpellAction(botAI, "") {}
+    void Qualify(std::string const qual) override
+    {
+        Qualified::Qualify(qual);
+        spell = qual;
+    }
+    std::string const getName() override { return "cast heal aoe::" + qualifier; }
+};
+
+// A buff or a shield on a group member. Targets the first member who does not
+// carry the aura yet, so a rule fires once per member instead of once per tick.
+class CoaBuffPartyAction : public BuffOnPartyAction, public Qualified
+{
+public:
+    CoaBuffPartyAction(PlayerbotAI* botAI) : BuffOnPartyAction(botAI, "") {}
+    void Qualify(std::string const qual) override
+    {
+        Qualified::Qualify(qual);
+        spell = qual;
+    }
+    std::string const getName() override { return "cast buff party::" + qualifier; }
+    bool isUseful() override;
+};
+
+/* Removing a harmful effect from a group member.
+ *
+ * Both the trigger and the action ask the value "party member to dispel",
+ * qualified with a DISPEL TYPE - magic, curse, disease, poison. The nine base
+ * classes hand that number in from C++, one class per cure spell.
+ *
+ * We do not want the number in the strategy line: whoever writes
+ * `cure party::Continuum Restoration` should not have to look up that magic
+ * is 1. The type is in the spell itself - the effect SPELL_EFFECT_DISPEL
+ * carries it as its MiscValue - so it is resolved from the spell name on
+ * first use and remembered.
+ *
+ * A spell that dispels nothing yields 0, and both the trigger and the action
+ * then stay quiet.
+ */
+uint32 CoaDispelTypeOf(PlayerbotAI* botAI, std::string const& spellName);
+
+class CoaCurePartyAction : public CurePartyMemberAction, public Qualified
+{
+public:
+    CoaCurePartyAction(PlayerbotAI* botAI) : CurePartyMemberAction(botAI, "", 0) {}
+    void Qualify(std::string const qual) override
+    {
+        Qualified::Qualify(qual);
+        spell = qual;
+        dispelType = 0;
+    }
+    Value<Unit*>* GetTargetValue() override
+    {
+        if (!dispelType)
+            dispelType = CoaDispelTypeOf(botAI, spell);
+
+        return CurePartyMemberAction::GetTargetValue();
+    }
+    std::string const getName() override { return "cast cure party::" + qualifier; }
+};
+
+// ---------------------------------------------------------------------------
+// Triggers - the qualifier is the spell name (for "aura stacks" the stack
+// count follows after a comma)
+// ---------------------------------------------------------------------------
+
+/* These three mirror HasAura/HasNoAura/HasAuraStack. The originals keep the
+ * spell name in the const field AiNamedObject::name, which cannot be qualified
+ * afterwards - hence our own implementations with identical logic (see
+ * GenericTriggers.cpp). */
+class CoaWalkerTrigger : public Trigger, public Qualified
+{
+public:
+    explicit CoaWalkerTrigger(PlayerbotAI* ai) : Trigger(ai, "coa walker") {}
+    bool IsActive() override;
+};
+
+class CoaHasAuraTrigger : public Trigger, public Qualified
+{
+public:
+    CoaHasAuraTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa has aura") {}
+    std::string const GetTargetName() override { return "self target"; }
+    std::string const getName() override { return "has aura::" + qualifier; }
+    bool IsActive() override;
+};
+
+class CoaTargetHasAuraTrigger : public Trigger, public Qualified
+{
+public:
+    CoaTargetHasAuraTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa target has aura") {}
+    std::string const GetTargetName() override { return "current target"; }
+    std::string const getName() override { return "target has aura::" + qualifier; }
+    bool IsActive() override;
+};
+
+class CoaHasNoAuraTrigger : public Trigger, public Qualified
+{
+public:
+    CoaHasNoAuraTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa no aura") {}
+    std::string const GetTargetName() override { return "self target"; }
+    std::string const getName() override { return "no aura::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* "aoe has aura::<aura>" - "medium aoe" (3 enemies within 8 yards of the target) while the bot itself has the
+ * aura: a rotation line has a single trigger, so a pack spender kept for a state (Cultist Godblade: Entropic Slam
+ * only during Total Madness, when it costs nothing) needs both in one. */
+class CoaAoeHasAuraTrigger : public MediumAoeTrigger, public Qualified
+{
+public:
+    CoaAoeHasAuraTrigger(PlayerbotAI* botAI) : MediumAoeTrigger(botAI) {}
+    std::string const getName() override { return "aoe has aura::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* "aura stacks::<spell>,<count>" - carries the builder/spender pattern that
+ * several CoA specs use (Felsworn Fury up to 6, for instance). It assumes the
+ * resource is implemented as a stacking aura. */
+class CoaAuraStacksTrigger : public Trigger, public Qualified
+{
+public:
+    CoaAuraStacksTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa aura stacks") {}
+    std::string const GetTargetName() override { return "self target"; }
+    std::string const getName() override { return "aura stacks::" + qualifier; }
+    bool IsActive() override;
+
+private:
+    std::string SpellPart() const;
+    int StackPart() const;
+};
+
+/* "coa resource::<name>,<percent>" - resource level as a share of its maximum.
+ *
+ * WHY NOT "aura stacks": that compares absolute stacks. The maxima of the CoA
+ * resources are far apart - Static 100, Brood Mark 5, Reaped Soul 3,
+ * Earthshaping 15. A rule like "Arm of Thorim only from three quarters" would
+ * otherwise have to be written differently for every class, and not at all for
+ * resources without a fixed maximum in the table.
+ *
+ * Only mod-ascension-compat knows those maxima, and its public API does not
+ * expose them, so this trigger currently reaches the CORE powers alone: mana,
+ * rage, energy, runic power, focus, happiness. A name it does not know leaves
+ * the trigger off - a misspelled line therefore makes the bot quiet, not wild.
+ *
+ * Example:
+ *   coa resource::Static,75 > cast::Arm of Thorim
+ */
+class CoaResourceTrigger : public Trigger, public Qualified
+{
+public:
+    CoaResourceTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa resource") {}
+    std::string const getName() override { return "coa resource::" + qualifier; }
+    bool IsActive() override;
+
+private:
+    std::string NamePart() const;
+    int PercentPart() const;
+};
+
+/* "coa summon missing" - true while the bot has no living summon of its own
+ * nearby.
+ *
+ * WHAT FOR: summons with a cap. Tentacle of C'Thun says in its spell text "You
+ * may only have 1 Old God Tentacle active at a time", so a second cast is
+ * wasted. With "can cast" the bot casts it at every opportunity; observed in
+ * game on 14 Sep 2026.
+ *
+ * WHY TWO ROUTES: guardians and minions hang off the bot directly and appear in
+ * m_Controlled. Time-limited summons such as the tentacles do not necessarily
+ * end up there - they are created through SummonProperties with the player as
+ * their summoner. So the surroundings are searched as well, for creatures the
+ * bot owns.
+ *
+ * "coa summon missing::<creature>" looks only at the bot's own creatures of that name, or of that
+ * entry when the qualifier is a number. Without it, ANY creature of the bot counts: a Tinker's
+ * Mechsuit or drone kept "coa summon missing > cast::Build: Sentry Turret" off, and Mechanics bots
+ * put their turret down in 2 fights out of 6 (02/10).
+ */
+class CoaSummonMissingTrigger : public Trigger, public Qualified
+{
+public:
+    CoaSummonMissingTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa summon missing") {}
+    void Qualify(std::string const qual) override;
+    std::string const getName() override
+    {
+        return qualifier.empty() ? "coa summon missing" : "coa summon missing::" + qualifier;
+    }
+    bool IsActive() override;
+
+private:
+    bool Counts(Unit* unit) const;
+
+    uint32 entry = 0;
+    std::wstring nameKey;
+};
+
+/* "cure party::<spell>" - a group member carries something this spell removes.
+ * See CoaDispelTypeOf above for where the dispel type comes from. */
+class CoaCurePartyTrigger : public PartyMemberNeedCureTrigger, public Qualified
+{
+public:
+    CoaCurePartyTrigger(PlayerbotAI* botAI) : PartyMemberNeedCureTrigger(botAI, "", 0) {}
+    void Qualify(std::string const qual) override
+    {
+        Qualified::Qualify(qual);
+        spell = qual;
+        dispelType = 0;
+    }
+    Value<Unit*>* GetTargetValue() override
+    {
+        if (!dispelType)
+            dispelType = CoaDispelTypeOf(botAI, spell);
+
+        return PartyMemberNeedCureTrigger::GetTargetValue();
+    }
+    bool IsActive() override
+    {
+        return CoaDispelTypeOf(botAI, spell) && PartyMemberNeedCureTrigger::IsActive();
+    }
+    std::string const getName() override { return "cure party::" + qualifier; }
+};
+
+/* Cooldown ready - the "keep it on cooldown" pattern. The original reads
+ * AiNamedObject::name, hence our own implementation here. */
+class CoaSpellReadyTrigger : public Trigger, public Qualified
+{
+public:
+    CoaSpellReadyTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa spell ready") {}
+    std::string const getName() override { return "spell ready::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* "coa all::<trigger>&<trigger>[&...]" - every named trigger is active. A rotation line has a single trigger;
+ * this joins existing ones instead of one more class per pair. The parts may be qualified themselves:
+ * "coa all::coa channeling::Invocation&coa aggro lost". */
+class CoaAllTrigger : public Trigger, public Qualified
+{
+public:
+    CoaAllTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa all") {}
+    std::string const getName() override { return "coa all::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* "coa steady aggro" - enemies are fighting and every one of them is on the bot. "has aggro" looks at the
+ * current target only, which says nothing about the rest of a pack. A Mystic Knight channels Invocation for
+ * mana only while the whole pack stays on it (the owner's rule, 27/10). */
+class CoaSteadyAggroTrigger : public Trigger
+{
+public:
+    CoaSteadyAggroTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa steady aggro") {}
+    bool IsActive() override;
+};
+
+/* "coa aggro lost" - an enemy that is fighting is on someone other than the bot. */
+class CoaAggroLostTrigger : public Trigger
+{
+public:
+    CoaAggroLostTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa aggro lost") {}
+    bool IsActive() override;
+};
+
+/* "coa party low mana::<members>,<percent>" - at least <members> living group members within 35 yards, the bot
+ * included, are below <percent> mana. For a group mana cooldown: Brilliance Aura goes out when 2 are below 30%
+ * (the owner's rule, 26/10). */
+class CoaPartyLowManaTrigger : public Trigger, public Qualified
+{
+public:
+    CoaPartyLowManaTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa party low mana") {}
+    std::string const getName() override { return "coa party low mana::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* "coa none::<trigger>&<trigger>[&...]" - none of the named triggers is active. A Naturalist deals damage only
+ * while the group is healthy: "coa none::coa party hurt::2,75&coa party hurt::1,50". */
+class CoaNoneTrigger : public Trigger, public Qualified
+{
+public:
+    CoaNoneTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa none") {}
+    std::string const getName() override { return "coa none::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* "coa party hurt::<members>,<percent>" - at least <members> living group members within 40 yards, the bot
+ * included, are below <percent> health. */
+class CoaPartyHurtTrigger : public Trigger, public Qualified
+{
+public:
+    CoaPartyHurtTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa party hurt") {}
+    std::string const getName() override { return "coa party hurt::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* "coa party aura count::<aura>,<members>" - at least <members> group members within 40 yards carry the bot's own
+ * <aura>. Bloom only pays once Seed of Life sits on several allies. */
+class CoaPartyAuraCountTrigger : public Trigger, public Qualified
+{
+public:
+    CoaPartyAuraCountTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa party aura count") {}
+    std::string const getName() override { return "coa party aura count::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* "coa party aura spread::<aura>,<members>" - fewer than <members> group members within 40 yards carry the bot's
+ * own <aura>, and one of them lacks it. With "coa spread" it keeps a heal over time on a share of the group:
+ * Rejuvenation on 7 or 8 members, the owner's rule for the Naturalist (27/10). */
+class CoaPartyAuraSpreadTrigger : public Trigger, public Qualified
+{
+public:
+    CoaPartyAuraSpreadTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa party aura spread") {}
+    std::string const getName() override { return "coa party aura spread::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* "coa tank aura below::<aura>,<stacks>" - the group's main tank, within 40 yards, carries fewer than <stacks> of
+ * the bot's own <aura>; 1 means it lacks it. */
+class CoaTankAuraBelowTrigger : public Trigger, public Qualified
+{
+public:
+    CoaTankAuraBelowTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa tank aura below") {}
+    std::string const getName() override { return "coa tank aura below::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* "coa tank health::<min>,<max>" - the group's main tank is between <min> and <max> percent health. */
+class CoaTankHealthTrigger : public Trigger, public Qualified
+{
+public:
+    CoaTankHealthTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa tank health") {}
+    std::string const getName() override { return "coa tank health::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* "target stacks below max::<aura>" - the current target carries fewer stacks of <aura>, from anyone, than the aura
+ * allows. Sunder Armor is built up to its 5 stacks with Devastate. */
+class CoaTargetStacksBelowMaxTrigger : public Trigger, public Qualified
+{
+public:
+    CoaTargetStacksBelowMaxTrigger(PlayerbotAI* botAI) : Trigger(botAI, "target stacks below max") {}
+    std::string const GetTargetName() override { return "current target"; }
+    std::string const getName() override { return "target stacks below max::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* "target aura expiring::<aura>,<seconds>" - <aura> on the current target, from anyone, runs out within <seconds>.
+ * A full stack of Sunder Armor is renewed before it falls off. */
+class CoaTargetAuraExpiringTrigger : public Trigger, public Qualified
+{
+public:
+    CoaTargetAuraExpiringTrigger(PlayerbotAI* botAI) : Trigger(botAI, "target aura expiring") {}
+    std::string const GetTargetName() override { return "current target"; }
+    std::string const getName() override { return "target aura expiring::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* "last cast not::<spell>" - the bot's last cast was something else. Two lines alternate with it: Devastate and
+ * Thrust take turns while Sunder Armor builds. */
+class CoaLastCastNotTrigger : public Trigger, public Qualified
+{
+public:
+    CoaLastCastNotTrigger(PlayerbotAI* botAI) : Trigger(botAI, "last cast not") {}
+    std::string const getName() override { return "last cast not::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* "coa no imbue" - the main hand weapon carries no temporary enchant (Windfury Weapon, Earthliving Weapon). */
+class CoaNoImbueTrigger : public Trigger
+{
+public:
+    CoaNoImbueTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa no imbue") {}
+    bool IsActive() override;
+};
+
+/* "coa enemy casting::<kick>[,alone|,<ms>]" - an enemy in reach of <kick> casts something it interrupts; the same
+ * qualifier as the "coa kick" it leads to. "alone": no other enemy stands within 10 yards of the caster (Spartan
+ * Kick knocks back, which scatters a pack). <ms>: the cast has run that long, so the group's other kicks came first;
+ * a Naturalist's Counterspell is the last one (the owner's rule, 27/10). */
+class CoaEnemyCastingTrigger : public Trigger, public Qualified
+{
+public:
+    CoaEnemyCastingTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa enemy casting") {}
+    std::string const getName() override { return "coa enemy casting::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* "coa legendary unready" - a Freepick Hero bot's Legendary class is not fully set up (CoaLegendaryClasses.h). */
+class CoaLegendaryUnreadyTrigger : public Trigger
+{
+public:
+    CoaLegendaryUnreadyTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa legendary unready", 5) {}
+    bool IsActive() override;
+};
+
+/* "coa channeling::<spell>" - the bot is channeling that spell, so "cancel channel" can break it off. */
+class CoaChannelingTrigger : public Trigger, public Qualified
+{
+public:
+    CoaChannelingTrigger(PlayerbotAI* botAI) : Trigger(botAI, "coa channeling") {}
+    std::string const getName() override { return "coa channeling::" + qualifier; }
+    bool IsActive() override;
+};
+
+/* These three derive from SpellTrigger, whose `spell` field is settable - here
+ * qualifying is enough and the logic stays that of the original. */
+#define COA_QUALIFIED_SPELL_TRIGGER(ClassName, Base, Label)                     \
+    class ClassName : public Base, public Qualified                             \
+    {                                                                           \
+    public:                                                                     \
+        ClassName(PlayerbotAI* botAI) : Base(botAI, "") {}                      \
+        void Qualify(std::string const qual) override                           \
+        {                                                                       \
+            Qualified::Qualify(qual);                                           \
+            spell = qual;                                                       \
+        }                                                                       \
+        std::string const getName() override { return Label "::" + qualifier; } \
+    };
+
+/* A rotation line that stays true while the bot acts on it gets nowhere: the aura never comes. It is
+ * set aside for a while, so the lines below it get their turn. A Chronomancer's "buff missing::
+ * Incarnation of Chaos" named a spell with no effect: at priority 87 it won every tick, and the bot
+ * never even took a target (test arena, 22/09). A buff that works lands well within 5 seconds. */
+struct CoaLineBackoff
+{
+    uint32 window = 5 * IN_MILLISECONDS;  // how long a line may stay true without result
+    uint32 activeSince = 0;
+    uint32 asideUntil = 0;
+
+    // cooling: the spell is on its cooldown. A buff shorter than its cooldown is missing all that time, which
+    // is no sign the line never lands (Unbridled Rage, Light's Hope waited 15-30 s per cycle once ready).
+    bool Allow(bool active, bool cooling = false)
+    {
+        uint32 const now = getMSTime();
+        if (asideUntil && getMSTimeDiff(now, asideUntil) > 0 && getMSTimeDiff(now, asideUntil) < 60 * IN_MILLISECONDS)
+            return false;  // still set aside
+        asideUntil = 0;
+        if (!active || cooling)
+        {
+            activeSince = 0;
+            return false;
+        }
+        if (!activeSince)
+            activeSince = now;
+        else if (getMSTimeDiff(activeSince, now) > window)
+        {
+            activeSince = 0;
+            asideUntil = now + 30 * IN_MILLISECONDS;
+            return false;
+        }
+        return true;
+    }
+};
+
+/* "can cast::<spell>" - the spell can be cast now. Unlike the original, not when the bot already
+ * carries the lasting aura it gives (an Ascension resistance aura was recast 23 times in one fight,
+ * 20% of base mana each), nor for a healer keeping its mana for heals. */
+class CoaCanCastTrigger : public SpellCanBeCastTrigger, public Qualified
+{
+public:
+    CoaCanCastTrigger(PlayerbotAI* botAI) : SpellCanBeCastTrigger(botAI, "") {}
+    void Qualify(std::string const qual) override
+    {
+        Qualified::Qualify(qual);
+        spell = qual;
+    }
+    std::string const getName() override { return "can cast::" + qualifier; }
+    bool IsActive() override;
+
+private:
+    bool CanCastNow();
+    // The last search for a summon of this spell still standing: a grid search, not every tick.
+    uint32 summonCheckedAt = 0;
+    bool summonStanding = false;
+    // A summon line still true 10 s on: the summon never came (see IsActive).
+    CoaLineBackoff summonBackoff{10 * IN_MILLISECONDS};
+};
+
+/* "buff missing::<spell>" - as the original, except for a form a healer's heals cannot be cast in. */
+class CoaBuffMissingTrigger : public BuffTrigger, public Qualified
+{
+public:
+    CoaBuffMissingTrigger(PlayerbotAI* botAI) : BuffTrigger(botAI, "") {}
+    void Qualify(std::string const qual) override
+    {
+        Qualified::Qualify(qual);
+        spell = qual;
+    }
+    std::string const getName() override { return "buff missing::" + qualifier; }
+    bool IsActive() override;
+
+private:
+    CoaLineBackoff backoff;
+};
+/* "debuff missing::<spell>" - as the original, except for a healer keeping its mana for heals
+ * (a Chronomancer healer put Unmake back 12 times in one fight and ran dry for 20 s), and, with
+ * AiPlayerbot.CoaShortLivedDebuffs, for the life the target must have left (CoaDebuffNeedLifeTime). */
+class CoaDebuffMissingTrigger : public DebuffTrigger, public Qualified
+{
+public:
+    CoaDebuffMissingTrigger(PlayerbotAI* botAI) : DebuffTrigger(botAI, "") {}
+    void Qualify(std::string const qual) override
+    {
+        Qualified::Qualify(qual);
+        spell = qual;
+    }
+    std::string const getName() override { return "debuff missing::" + qualifier; }
+    bool IsActive() override;
+
+private:
+    CoaLineBackoff backoff;
+};
+
+// ---------------------------------------------------------------------------
+// Registration
+// ---------------------------------------------------------------------------
+
+/* The plain melee swing.
+ *
+ * Every one of the nine class strategies schedules NextAction("melee",
+ * ACTION_DEFAULT) from its own getDefaultActions(). The generic `close`
+ * strategy does not - it only carries the movement triggers. A CoA spec has
+ * no class strategy, so a melee CoA bot never swings: between two abilities
+ * it simply stands there. Reported on 16 Sep 2026 for Venomancer/Stalking.
+ *
+ * Ranged specs get their equivalent from the rotation itself (Auto Shot,
+ * Shoot, Wand), because which of the three applies depends on the weapon.
+ */
+class CoaBasicAttackStrategy : public Strategy
+{
+public:
+    CoaBasicAttackStrategy(PlayerbotAI* botAI) : Strategy(botAI) {}
+
+    std::string const getName() override { return "coa basic attack"; }
+    std::vector<NextAction> getDefaultActions() override
+    {
+        return { NextAction("melee", ACTION_DEFAULT) };
+    }
+    void InitTriggers(std::vector<TriggerNode*>& /*triggers*/) override {}
+};
+
+/* "coa legendary" - out of combat, a Freepick Hero bot sets up its Legendary class until it is complete: given to
+ * every Hero bot, as a Hero without a class has no class strategy yet. */
+class CoaLegendaryStrategy : public Strategy
+{
+public:
+    CoaLegendaryStrategy(PlayerbotAI* botAI) : Strategy(botAI) {}
+
+    std::string const getName() override { return "coa legendary"; }
+    void InitTriggers(std::vector<TriggerNode*>& triggers) override
+    {
+        triggers.push_back(new TriggerNode("coa legendary unready", { NextAction("coa legendary setup", 40.0f) }));
+    }
+};
+
+class CoaGenericStrategyContext : public NamedObjectContext<Strategy>
+{
+public:
+    CoaGenericStrategyContext() : NamedObjectContext<Strategy>(false, true)
+    {
+        creators["coa basic attack"] = &CoaGenericStrategyContext::basic_attack;
+        creators["coa legendary"] = &CoaGenericStrategyContext::legendary;
+    }
+
+private:
+    static Strategy* basic_attack(PlayerbotAI* botAI) { return new CoaBasicAttackStrategy(botAI); }
+    static Strategy* legendary(PlayerbotAI* botAI) { return new CoaLegendaryStrategy(botAI); }
+};
+
+/* Actions for the Area 52 Legendary classes (docs/area52/classes/). The spell is the qualifier, resolved against
+ * the bot's spellbook like the casts above. */
+
+/* "cast on tank::<spell>" - on the group's main tank within 40 yards, also when it already carries the spell:
+ * Lifebloom stacks up to 3 on the tank. */
+class CoaCastOnTankAction : public Action, public Qualified
+{
+public:
+    CoaCastOnTankAction(PlayerbotAI* botAI) : Action(botAI, "cast on tank") {}
+    std::string const getName() override { return "cast on tank::" + qualifier; }
+    bool Execute(Event event) override;
+    bool isPossible() override;
+};
+
+/* "coa spread::<spell>[,others]" - on a group member within 40 yards without the bot's own aura of that name: a
+ * tank first, then a healer, then the most hurt. "others" leaves the bot out: a Hoplite keeps Blessing of Might on
+ * itself and gives the group Kings, and one caster's blessings replace each other on a target. */
+class CoaSpreadAction : public Action, public Qualified
+{
+public:
+    CoaSpreadAction(PlayerbotAI* botAI) : Action(botAI, "coa spread") {}
+    std::string const getName() override { return "coa spread::" + qualifier; }
+    bool Execute(Event event) override;
+    bool isPossible() override;
+};
+
+/* "cast on aura::<spell>,<aura>" - on the most hurt group member within 40 yards that carries the bot's own <aura>:
+ * Bloom starts on a Seed of Life. */
+class CoaCastOnAuraAction : public Action, public Qualified
+{
+public:
+    CoaCastOnAuraAction(PlayerbotAI* botAI) : Action(botAI, "cast on aura") {}
+    std::string const getName() override { return "cast on aura::" + qualifier; }
+    bool Execute(Event event) override;
+    bool isPossible() override;
+};
+
+/* "coa kick::<kick>[,alone|,<ms>]" - interrupts the cast "coa enemy casting" with the same qualifier found. */
+class CoaKickAction : public Action, public Qualified
+{
+public:
+    CoaKickAction(PlayerbotAI* botAI) : Action(botAI, "coa kick") {}
+    std::string const getName() override { return "coa kick::" + qualifier; }
+    bool Execute(Event event) override;
+    bool isPossible() override;
+};
+
+/* "cast imbue::<spell>" - a weapon imbue on the main hand. */
+class CoaCastImbueAction : public CastEnchantItemMainHandAction, public Qualified
+{
+public:
+    CoaCastImbueAction(PlayerbotAI* botAI) : CastEnchantItemMainHandAction(botAI, "") {}
+    void Qualify(std::string const qual) override
+    {
+        Qualified::Qualify(qual);
+        spell = qual;
+    }
+    std::string const getName() override { return "cast imbue::" + qualifier; }
+};
+
+/* "coa legendary setup" - sets up a Freepick Hero bot's Legendary class (CoaLegendaryClasses.h); with the trigger
+ * "coa legendary unready", out of combat, until its picks match its level and its Legendary is on. */
+class CoaLegendarySetupAction : public Action
+{
+public:
+    CoaLegendarySetupAction(PlayerbotAI* botAI) : Action(botAI, "coa legendary setup") {}
+    bool Execute(Event event) override;
+    bool isUseful() override;
+};
+
+/* "coa legendary pet" - the pet that comes with the bot's Legendary (CoaLegendaryPets.h): created the first time,
+ * afterwards called back, or revived when it died. */
+class CoaLegendaryPetAction : public Action
+{
+public:
+    CoaLegendaryPetAction(PlayerbotAI* botAI) : Action(botAI, "coa legendary pet") {}
+    bool Execute(Event event) override;
+    bool isUseful() override;
+};
+
+class CoaCryotherapistAction : public Action, public Qualified
+{
+public:
+    explicit CoaCryotherapistAction(PlayerbotAI* ai) : Action(ai,"coa cryotherapist") {}
+    std::string const getName() override { return "coa cryotherapist::" + qualifier; }
+    bool Execute(Event) override;
+private:
+    unsigned nextShot=0, escapeStep=0, nextArea=0;
+    uint32 nextCatchUp=0;
+};
+
+class CoaBulwarkAction : public Action, public Qualified
+{
+public:
+    explicit CoaBulwarkAction(PlayerbotAI* ai) : Action(ai,"coa bulwark") {}
+    std::string const getName() override { return "coa bulwark::" + qualifier; }
+    bool Execute(Event event) override;
+private:
+    ObjectGuid rescuedEnemy;
+    ObjectGuid rescuedAlly;
+    unsigned recoveryStep = 0;
+};
+
+class CoaDefiasAction : public Action, public Qualified
+{
+public:
+    explicit CoaDefiasAction(PlayerbotAI* ai) : Action(ai, "coa defias") {}
+    std::string const getName() override { return "coa defias::" + qualifier; }
+    bool Execute(Event) override;
+private:
+    unsigned escapeStep = 0, opener = 0, nextShot = 0;
+    time_t encounter = 0;
+    ObjectGuid openingTarget;
+    bool openedStealthed = false, eating = false;
+};
+
+class CoaMarksmanAction : public Action, public Qualified
+{
+public:
+    explicit CoaMarksmanAction(PlayerbotAI* ai) : Action(ai, "coa marksman") {}
+    std::string const getName() override { return "coa marksman::" + qualifier; }
+    bool Execute(Event event) override;
+private:
+    uint32 nextShot = 0;
+    uint32 escapeStep = 0;
+    uint32 burstStep = 0;
+    time_t encounter = 0;
+    bool usedOpener = false;
+};
+
+class CoaGenericActionContext : public NamedObjectContext<Action>
+{
+public:
+    CoaGenericActionContext()
+    {
+        creators["coa cryotherapist"] = [](PlayerbotAI* ai) -> Action* { return new CoaCryotherapistAction(ai); };
+        creators["coa bulwark"] = [](PlayerbotAI* ai) -> Action* { return new CoaBulwarkAction(ai); };
+        creators["coa defias"] = [](PlayerbotAI* ai) -> Action* { return new CoaDefiasAction(ai); };
+        creators["coa marksman"] = [](PlayerbotAI* ai) -> Action* { return new CoaMarksmanAction(ai); };
+        creators["cast"] = &CoaGenericActionContext::cast;
+        creators["cast melee"] = &CoaGenericActionContext::cast_melee;
+        creators["cast buff"] = &CoaGenericActionContext::cast_buff;
+        creators["cast debuff"] = &CoaGenericActionContext::cast_debuff;
+        creators["cast heal"] = &CoaGenericActionContext::cast_heal;
+        creators["cast heal party"] = &CoaGenericActionContext::cast_heal_party;
+        creators["cast heal aoe"] = &CoaGenericActionContext::cast_heal_aoe;
+        creators["cast buff party"] = &CoaGenericActionContext::cast_buff_party;
+        creators["cast heal tank"] = &CoaGenericActionContext::cast_heal_tank;
+        creators["cast cure party"] = &CoaGenericActionContext::cast_cure_party;
+        creators["cast rez"] = &CoaGenericActionContext::cast_rez;
+        creators["cast on tank"] = &CoaGenericActionContext::cast_on_tank;
+        creators["coa spread"] = &CoaGenericActionContext::coa_spread;
+        creators["cast on aura"] = &CoaGenericActionContext::cast_on_aura;
+        creators["coa kick"] = &CoaGenericActionContext::coa_kick;
+        creators["cast imbue"] = &CoaGenericActionContext::cast_imbue;
+        creators["coa legendary pet"] = &CoaGenericActionContext::coa_legendary_pet;
+        creators["coa legendary setup"] = &CoaGenericActionContext::coa_legendary_setup;
+    }
+
+private:
+    static Action* cast(PlayerbotAI* botAI) { return new CoaCastAction(botAI); }
+    static Action* cast_melee(PlayerbotAI* botAI) { return new CoaCastMeleeAction(botAI); }
+    static Action* cast_buff(PlayerbotAI* botAI) { return new CoaCastBuffAction(botAI); }
+    static Action* cast_debuff(PlayerbotAI* botAI) { return new CoaCastDebuffAction(botAI); }
+    static Action* cast_heal(PlayerbotAI* botAI) { return new CoaCastHealAction(botAI); }
+    static Action* cast_heal_party(PlayerbotAI* botAI) { return new CoaHealPartyAction(botAI); }
+    static Action* cast_heal_aoe(PlayerbotAI* botAI) { return new CoaAoeHealAction(botAI); }
+    static Action* cast_buff_party(PlayerbotAI* botAI) { return new CoaBuffPartyAction(botAI); }
+    static Action* cast_heal_tank(PlayerbotAI* botAI) { return new CoaGroundHealAction(botAI); }
+    static Action* cast_cure_party(PlayerbotAI* botAI) { return new CoaCurePartyAction(botAI); }
+    static Action* cast_rez(PlayerbotAI* botAI) { return new CoaCastRezAction(botAI); }
+    static Action* cast_on_tank(PlayerbotAI* botAI) { return new CoaCastOnTankAction(botAI); }
+    static Action* coa_spread(PlayerbotAI* botAI) { return new CoaSpreadAction(botAI); }
+    static Action* cast_on_aura(PlayerbotAI* botAI) { return new CoaCastOnAuraAction(botAI); }
+    static Action* coa_kick(PlayerbotAI* botAI) { return new CoaKickAction(botAI); }
+    static Action* cast_imbue(PlayerbotAI* botAI) { return new CoaCastImbueAction(botAI); }
+    static Action* coa_legendary_pet(PlayerbotAI* botAI) { return new CoaLegendaryPetAction(botAI); }
+    static Action* coa_legendary_setup(PlayerbotAI* botAI) { return new CoaLegendarySetupAction(botAI); }
+};
+
+class CoaGenericTriggerContext : public NamedObjectContext<Trigger>
+{
+public:
+    CoaGenericTriggerContext()
+    {
+        creators["coa walker"] = [](PlayerbotAI* ai) -> Trigger* { return new CoaWalkerTrigger(ai); };
+        creators["has aura"] = &CoaGenericTriggerContext::has_aura;
+        creators["target has aura"] = &CoaGenericTriggerContext::target_has_aura;
+        creators["no aura"] = &CoaGenericTriggerContext::no_aura;
+        creators["aoe has aura"] = &CoaGenericTriggerContext::aoe_has_aura;
+        creators["aura stacks"] = &CoaGenericTriggerContext::aura_stacks;
+        creators["coa resource"] = &CoaGenericTriggerContext::coa_resource;
+        creators["coa summon missing"] = &CoaGenericTriggerContext::coa_summon_missing;
+        creators["cure party"] = &CoaGenericTriggerContext::cure_party;
+        creators["spell ready"] = &CoaGenericTriggerContext::spell_ready;
+        creators["can cast"] = &CoaGenericTriggerContext::can_cast;
+        creators["buff missing"] = &CoaGenericTriggerContext::buff_missing;
+        creators["debuff missing"] = &CoaGenericTriggerContext::debuff_missing;
+        creators["coa all"] = &CoaGenericTriggerContext::coa_all;
+        creators["coa steady aggro"] = &CoaGenericTriggerContext::coa_steady_aggro;
+        creators["coa aggro lost"] = &CoaGenericTriggerContext::coa_aggro_lost;
+        creators["coa channeling"] = &CoaGenericTriggerContext::coa_channeling;
+        creators["coa party low mana"] = &CoaGenericTriggerContext::coa_party_low_mana;
+        creators["coa none"] = &CoaGenericTriggerContext::coa_none;
+        creators["coa party hurt"] = &CoaGenericTriggerContext::coa_party_hurt;
+        creators["coa party aura count"] = &CoaGenericTriggerContext::coa_party_aura_count;
+        creators["coa party aura spread"] = &CoaGenericTriggerContext::coa_party_aura_spread;
+        creators["coa tank aura below"] = &CoaGenericTriggerContext::coa_tank_aura_below;
+        creators["coa tank health"] = &CoaGenericTriggerContext::coa_tank_health;
+        creators["target stacks below max"] = &CoaGenericTriggerContext::target_stacks_below_max;
+        creators["target aura expiring"] = &CoaGenericTriggerContext::target_aura_expiring;
+        creators["last cast not"] = &CoaGenericTriggerContext::last_cast_not;
+        creators["coa no imbue"] = &CoaGenericTriggerContext::coa_no_imbue;
+        creators["coa enemy casting"] = &CoaGenericTriggerContext::coa_enemy_casting;
+        creators["coa legendary unready"] = &CoaGenericTriggerContext::coa_legendary_unready;
+    }
+
+private:
+    static Trigger* has_aura(PlayerbotAI* botAI) { return new CoaHasAuraTrigger(botAI); }
+    static Trigger* target_has_aura(PlayerbotAI* botAI) { return new CoaTargetHasAuraTrigger(botAI); }
+    static Trigger* no_aura(PlayerbotAI* botAI) { return new CoaHasNoAuraTrigger(botAI); }
+    static Trigger* aoe_has_aura(PlayerbotAI* botAI) { return new CoaAoeHasAuraTrigger(botAI); }
+    static Trigger* aura_stacks(PlayerbotAI* botAI) { return new CoaAuraStacksTrigger(botAI); }
+    static Trigger* coa_resource(PlayerbotAI* botAI) { return new CoaResourceTrigger(botAI); }
+    static Trigger* coa_summon_missing(PlayerbotAI* botAI)
+    { return new CoaSummonMissingTrigger(botAI); }
+    static Trigger* cure_party(PlayerbotAI* botAI) { return new CoaCurePartyTrigger(botAI); }
+    static Trigger* spell_ready(PlayerbotAI* botAI) { return new CoaSpellReadyTrigger(botAI); }
+    static Trigger* can_cast(PlayerbotAI* botAI) { return new CoaCanCastTrigger(botAI); }
+    static Trigger* buff_missing(PlayerbotAI* botAI) { return new CoaBuffMissingTrigger(botAI); }
+    static Trigger* debuff_missing(PlayerbotAI* botAI) { return new CoaDebuffMissingTrigger(botAI); }
+    static Trigger* coa_all(PlayerbotAI* botAI) { return new CoaAllTrigger(botAI); }
+    static Trigger* coa_steady_aggro(PlayerbotAI* botAI) { return new CoaSteadyAggroTrigger(botAI); }
+    static Trigger* coa_aggro_lost(PlayerbotAI* botAI) { return new CoaAggroLostTrigger(botAI); }
+    static Trigger* coa_channeling(PlayerbotAI* botAI) { return new CoaChannelingTrigger(botAI); }
+    static Trigger* coa_party_low_mana(PlayerbotAI* botAI) { return new CoaPartyLowManaTrigger(botAI); }
+    static Trigger* coa_none(PlayerbotAI* botAI) { return new CoaNoneTrigger(botAI); }
+    static Trigger* coa_party_hurt(PlayerbotAI* botAI) { return new CoaPartyHurtTrigger(botAI); }
+    static Trigger* coa_party_aura_count(PlayerbotAI* botAI) { return new CoaPartyAuraCountTrigger(botAI); }
+    static Trigger* coa_party_aura_spread(PlayerbotAI* botAI) { return new CoaPartyAuraSpreadTrigger(botAI); }
+    static Trigger* coa_tank_aura_below(PlayerbotAI* botAI) { return new CoaTankAuraBelowTrigger(botAI); }
+    static Trigger* coa_tank_health(PlayerbotAI* botAI) { return new CoaTankHealthTrigger(botAI); }
+    static Trigger* target_stacks_below_max(PlayerbotAI* botAI) { return new CoaTargetStacksBelowMaxTrigger(botAI); }
+    static Trigger* target_aura_expiring(PlayerbotAI* botAI) { return new CoaTargetAuraExpiringTrigger(botAI); }
+    static Trigger* last_cast_not(PlayerbotAI* botAI) { return new CoaLastCastNotTrigger(botAI); }
+    static Trigger* coa_no_imbue(PlayerbotAI* botAI) { return new CoaNoImbueTrigger(botAI); }
+    static Trigger* coa_enemy_casting(PlayerbotAI* botAI) { return new CoaEnemyCastingTrigger(botAI); }
+    static Trigger* coa_legendary_unready(PlayerbotAI* botAI) { return new CoaLegendaryUnreadyTrigger(botAI); }
+};
+
+#endif

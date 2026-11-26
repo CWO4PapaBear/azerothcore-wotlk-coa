@@ -2305,6 +2305,17 @@ uint8 Aura::GetProcEffectMask(AuraApplication* aurApp, ProcEventInfo& eventInfo,
             procEntry = &artilleryProc;
         }
     }
+    SpellProcEntry area52OverloadProc;
+    if (eventSpell && (GetId() == 30675 || GetId() == 30678 || GetId() == 30679))
+        if (Player* actor = eventInfo.GetActor() ? eventInfo.GetActor()->ToPlayer() : nullptr;
+            AscensionFreePick::Applies(actor) && actor == GetCaster() &&
+            (actor->MatchesSpellInteraction(eventSpell->Id, 403) || actor->MatchesSpellInteraction(eventSpell->Id, 421)))
+        {
+            area52OverloadProc = *procEntry;
+            area52OverloadProc.SpellFamilyName = 0;
+            area52OverloadProc.SpellFamilyMask = flag96(0, 0, 0);
+            procEntry = &area52OverloadProc;
+        }
     if (!sSpellMgr->CanSpellTriggerProcOnEvent(*procEntry, eventInfo))
         return 0;
 
@@ -2445,6 +2456,11 @@ float Aura::CalcProcChance(SpellProcEntry const& procEntry, ProcEventInfo& event
         if (Player* modOwner = caster->GetSpellModOwner())
             modOwner->ApplySpellMod(GetId(), SPELLMOD_CHANCE_OF_SUCCESS, chance);
     }
+
+    if ((GetId() == 30675 || GetId() == 30678 || GetId() == 30679) &&
+        AscensionFreePick::Applies(GetCaster() ? GetCaster()->ToPlayer() : nullptr) &&
+        (eventInfo.GetHitMask() & PROC_EX_CRITICAL_HIT))
+        chance = std::min(100.0f, chance * 3.0f);
 
     constexpr uint32 ImprovedSteadyShotCapstone = 53224;
     if (GetId() == ImprovedSteadyShotCapstone)

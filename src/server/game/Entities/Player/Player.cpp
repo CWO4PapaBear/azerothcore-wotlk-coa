@@ -1,4 +1,6 @@
 #include "../../../coa/Area52LoneWolf.h"
+#include "../../../coa/Area52WindEquipment.h"
+#include "../../../coa/Area52DefensiveCooldowns.h"
 #include "../../../coa/Area52HolyContracts.h"
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
@@ -5256,6 +5258,8 @@ void Player::DurabilityPointsLoss(Item* item, int32 points)
         if (pNewDurability > 0 && pOldDurability == 0 && item->IsEquipped())
             _ApplyItemMods(item, item->GetSlot(), true);
 
+        if (item->IsEquipped() && (pOldDurability == 0 || pNewDurability == 0))
+            RefreshArea52DualWield(this);
         item->SetState(ITEM_CHANGED, this);
     }
 }
@@ -11935,6 +11939,14 @@ void Player::AddSpellAndCategoryCooldowns(SpellInfo const* spellInfo, uint32 ite
             catrec = 0;
     }
 
+    bool const area52SharedDefensive = !itemId && AscensionFreePick::Applies(this) &&
+        AscensionFreePick::SharesDefensiveCooldown(spellInfo->GetFirstRankSpell()->Id);
+    if (area52SharedDefensive)
+    {
+        cat = 1031;
+        catrec = std::max<int32>(catrec, 30000);
+    }
+
     time_t catrecTime;
     time_t recTime;
 
@@ -12029,6 +12041,9 @@ void Player::AddSpellAndCategoryCooldowns(SpellInfo const* spellInfo, uint32 ite
             return;
         }
 
+        if (area52SharedDefensive)
+            catrec = 30000;
+
         catrecTime = catrec ? catrec : 0;
         recTime    = rec ? rec : catrecTime;
     }
@@ -12067,12 +12082,15 @@ void Player::AddSpellAndCategoryCooldowns(SpellInfo const* spellInfo, uint32 ite
                 // consumables such as the ranger waterskins, see #6911).
                 bool const sharedPotionPool = itemId > 0 && cat == SPELL_CATEGORY_SHARED_POTION_COOLDOWN;
                 SpellInfo const* categorySpellInfo = sSpellMgr->GetSpellInfo(i_scset->second);
-                if (!categorySpellInfo || (!sharedPotionPool && categorySpellInfo->SpellFamilyName != spellInfo->SpellFamilyName))
+                bool const sharedArea52Defensive = area52SharedDefensive && categorySpellInfo &&
+                    AscensionFreePick::SharesDefensiveCooldown(categorySpellInfo->GetFirstRankSpell()->Id);
+                if (!categorySpellInfo || (!sharedPotionPool && !sharedArea52Defensive &&
+                    categorySpellInfo->SpellFamilyName != spellInfo->SpellFamilyName))
                 {
                     continue;
                 }
 
-                if (!itemId && !categorySpellInfo->CategoryRecoveryTime)
+                if (!itemId && !sharedArea52Defensive && !categorySpellInfo->CategoryRecoveryTime)
                     continue;
 
                 _AddSpellCooldown(i_scset->second, cat, itemId, catrecTime, !spellInfo->IsCooldownStartedOnEvent() && catrec && rec && catrec != rec);
@@ -14483,9 +14501,9 @@ std::vector<uint32> Player::GetSpellInteractionOrigins(uint32 spellId) const
     for (size_t index = 0; index < pending.size(); ++index)
     {
         // These spells are learned alongside their corresponding original ranks.
-        if (HasAura(982330) || HasAura(977831))
+        if (HasAura(982330) || HasAura(977831) || HasAura(978232))
             for (auto const& grant : AscensionMysticEnchant::SpellGrants)
-                if ((grant.Enchant == 982330 || grant.Enchant == 977831) && HasAura(grant.Enchant) &&
+                if ((grant.Enchant == 982330 || grant.Enchant == 977831 || grant.Enchant == 978232) && HasAura(grant.Enchant) &&
                     grant.Spell == pending[index] && HasSpell(grant.Requires) &&
                     std::find(pending.begin(), pending.end(), grant.Requires) == pending.end())
                 {

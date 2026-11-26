@@ -1,3 +1,5 @@
+#include "ScriptMgr.h"
+#include "ObjectMgr.h"
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
@@ -1293,6 +1295,12 @@ class spell_sha_flurry_proc : public AuraScript
         // Should not proc from Windfury Attack, Stormstrike and Lava Lash
         if (SpellInfo const* spellInfo = eventInfo.GetSpellInfo())
         {
+            Player* player = GetTarget()->ToPlayer();
+            if (AscensionFreePick::Applies(player) &&
+                (player->MatchesSpellInteraction(spellInfo->Id, SPELL_SHAMAN_STORMSTRIKE) ||
+                    player->MatchesSpellInteraction(spellInfo->Id, SPELL_SHAMAN_LAVA_LASH)))
+                return false;
+
             constexpr std::array<uint32, 2> spellIcons = {SPELL_SHAMAN_STORMSTRIKE, SPELL_SHAMAN_LAVA_LASH};
             const auto found = std::find(std::begin(spellIcons), std::end(spellIcons), spellInfo->Id);
 
@@ -1433,6 +1441,16 @@ class spell_sha_lightning_overload : public AuraScript
         if (!procSpell || !GetTarget()->IsPlayer() || !eventInfo.GetActionTarget())
             return false;
 
+        if (AscensionFreePick::Applies(GetTarget()->ToPlayer()))
+        {
+            Player* player = GetTarget()->ToPlayer();
+            DamageInfo const* damage = eventInfo.GetDamageInfo();
+            return eventInfo.GetActor() == player && damage && damage->GetDamage() &&
+                damage->GetDamageType() == SPELL_DIRECT_DAMAGE &&
+                (player->MatchesSpellInteraction(procSpell->Id, 403) ||
+                    player->MatchesSpellInteraction(procSpell->Id, 421));
+        }
+
         // Check for Lightning Bolt or Chain Lightning
         if ((procSpell->SpellFamilyFlags[0] & 0x3) == 0)
             return false;
@@ -1452,11 +1470,29 @@ class spell_sha_lightning_overload : public AuraScript
         if (!procSpell || !target)
             return;
 
-        uint32 spell = (procSpell->SpellFamilyFlags[0] & 0x2) ? SPELL_SHAMAN_LIGHTNING_OVERLOAD_CL : SPELL_SHAMAN_LIGHTNING_OVERLOAD_LB;
+        bool const chain = AscensionFreePick::Applies(GetTarget()->ToPlayer()) ?
+            GetTarget()->ToPlayer()->MatchesSpellInteraction(procSpell->Id, 421) :
+            (procSpell->SpellFamilyFlags[0] & 0x2) != 0;
+        uint32 spell = chain ? SPELL_SHAMAN_LIGHTNING_OVERLOAD_CL : SPELL_SHAMAN_LIGHTNING_OVERLOAD_LB;
 
         DamageInfo* damageInfo = eventInfo.GetDamageInfo();
         if (!damageInfo)
             return;
+
+        if (AscensionFreePick::Applies(GetTarget()->ToPlayer()))
+        {
+            Spell const* original = eventInfo.GetProcSpell();
+            if (!original)
+                return;
+            for (TargetInfo const& hit : *original->GetUniqueTargetInfo())
+                if (hit.targetGUID == target->GetGUID() && hit.damageBeforeTakenMods > 0)
+                {
+                    GetTarget()->CastCustomSpell(spell, SPELLVALUE_BASE_POINT0,
+                        hit.damageBeforeTakenMods / 2, target, true, nullptr, aurEff);
+                    return;
+                }
+            return;
+        }
 
         int32 damage = damageInfo->GetDamage();
         // Half damage for critical hits
@@ -2120,6 +2156,19 @@ class spell_sha_tidal_force_dummy : public AuraScript
 };
 
 // -8232 - Windfury Weapon (Passive)
+void ApplyArea52DesolateWindfury(Player*, Unit*);
+void RegisterArea52WindfuryReadiness(bool (*)());
+
+bool HasArea52WindfuryHandler()
+{
+    uint32 const script = sObjectMgr->GetScriptId("spell_sha_windfury_weapon");
+    if (!script || !ScriptRegistry<SpellScriptLoader>::GetScriptById(script))
+        return false;
+    auto const [first, last] = sObjectMgr->GetSpellScriptsBounds(33757);
+    return std::any_of(first, last, [script](auto const& entry) { return entry.second == script; });
+}
+
+
 class spell_sha_windfury_weapon : public AuraScript
 {
     PrepareAuraScript(spell_sha_windfury_weapon);
@@ -2176,8 +2225,16 @@ class spell_sha_windfury_weapon : public AuraScript
         int32 bonus = windfurySpellInfo ? windfurySpellInfo->Effects[EFFECT_1].CalcValue(player) : 0;
         bonus = int32(bonus * player->GetAttackTime(mainHand ? BASE_ATTACK : OFF_ATTACK) / 1000.f);
 
-        player->CastCustomSpell(spellId, SPELLVALUE_BASE_POINT0, bonus, target, true, item, aurEff);
-        player->CastCustomSpell(spellId, SPELLVALUE_BASE_POINT0, bonus, target, true, item, aurEff);
+        ApplyArea52DesolateWindfury(GetTarget()->ToPlayer(), eventInfo.GetActionTarget());
+        uint32 attacks = 2;
+        if (AscensionFreePick::Applies(player) && player->HasAura(979769))
+            if (Aura* wrath = player->GetAura(414003, player->GetGUID()); wrath && wrath->GetStackAmount() >= 10)
+            {
+                player->RemoveAurasDueToSpell(414003, player->GetGUID());
+                attacks = 4;
+            }
+        for (uint32 attack = 0; attack < attacks; ++attack)
+            player->CastCustomSpell(spellId, SPELLVALUE_BASE_POINT0, bonus, target, true, item, aurEff);
     }
 
     void Register() override
@@ -2189,6 +2246,7 @@ class spell_sha_windfury_weapon : public AuraScript
 
 void AddSC_shaman_spell_scripts()
 {
+    RegisterArea52WindfuryReadiness(HasArea52WindfuryHandler);
     RegisterSpellScript(spell_sha_totem_of_wrath);
     RegisterSpellScript(spell_sha_spirit_walk);
     RegisterSpellScript(spell_sha_t10_restoration_4p_bonus);
