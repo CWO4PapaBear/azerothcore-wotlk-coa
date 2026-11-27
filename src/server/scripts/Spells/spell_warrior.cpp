@@ -18,6 +18,7 @@
 #include "Player.h"
 #include "../../coa/AscensionFreePick.h"
 #include "../../coa/Area52HopliteSupportRules.h"
+#include "../../coa/Area52DragonReviewRules.h"
 #include "SpellAuraEffects.h"
 #include "SpellInfo.h"
 #include "SpellMgr.h"
@@ -544,6 +545,20 @@ class spell_warr_bloodthirst : public SpellScript
     {
         int32 damage = GetEffectValue();
         ApplyPct(damage, WarriorHitAttackPower(GetSpell(), GetCaster(), GetHitUnit()));
+
+        if (AscensionFreePick::Applies(GetCaster()->ToPlayer()))
+            if (Unit* target = GetHitUnit())
+            {
+                uint32 ownedBleeds = 0;
+                for (auto const& [id, application] : target->GetAppliedAuras())
+                {
+                    Aura const* aura = application->GetBase();
+                    if (aura->GetCasterGUID() == GetCaster()->GetGUID() &&
+                        (aura->GetSpellInfo()->GetAllEffectsMechanicMask() & (1ULL << MECHANIC_BLEED)))
+                        ++ownedBleeds;
+                }
+                damage = int32(damage * Area52DragonReview::BloodthirstBleedMultiplier(ownedBleeds));
+            }
 
         if (Unit* target = GetHitUnit())
         {

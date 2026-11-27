@@ -1,7 +1,11 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 
 #include "AscensionHeroWarrior.h"
+#include "AscensionFreePick.h"
+#include "Area52DragonReviewRules.h"
+#include "Config.h"
 #include "Player.h"
+#include "WorldSession.h"
 #include "ScriptMgr.h"
 #include "SpellAuraEffects.h"
 #include "SpellAuras.h"
@@ -11,6 +15,7 @@
 #include "Unit.h"
 
 #include <array>
+#include <algorithm>
 
 namespace
 {
@@ -223,6 +228,22 @@ class spell_hero_warrior_bloodsurge_bloodthirst : public SpellScript
 {
     PrepareSpellScript(spell_hero_warrior_bloodsurge_bloodthirst);
 
+    bool _bloodsurgeAtCast = false;
+
+    void Capture()
+    {
+        _bloodsurgeAtCast = GetCaster()->HasAura(Bloodsurge);
+    }
+
+    void RefreshBleed()
+    {
+        if (!AscensionFreePick::Applies(GetCaster()->ToPlayer()) || !_bloodsurgeAtCast || GetHitDamage() <= 0)
+            return;
+        if (Unit* target = GetHitUnit())
+            if (Aura* bleed = target->GetAura(954815, GetCaster()->GetGUID()))
+                bleed->RefreshDuration();
+    }
+
     void HandleAfterCast()
     {
         Player* player = GetCaster()->ToPlayer();
@@ -234,6 +255,8 @@ class spell_hero_warrior_bloodsurge_bloodthirst : public SpellScript
 
     void Register() override
     {
+        BeforeCast += SpellCastFn(spell_hero_warrior_bloodsurge_bloodthirst::Capture);
+        AfterHit += SpellHitFn(spell_hero_warrior_bloodsurge_bloodthirst::RefreshBleed);
         AfterCast += SpellCastFn(spell_hero_warrior_bloodsurge_bloodthirst::HandleAfterCast);
     }
 };
@@ -323,8 +346,184 @@ void ApplyAscensionHeroWarriorContracts(SpellInfo* spellInfo)
     }
 }
 
+class area52_dragon_review_metadata final : public GlobalScript
+{
+public:
+    area52_dragon_review_metadata() : GlobalScript("area52_dragon_review_metadata",
+        {GLOBALHOOK_ON_LOAD_SPELL_CUSTOM_ATTR}) { }
+
+    void OnLoadSpellCustomAttr(SpellInfo* info) override
+    {
+        if (!sConfigMgr->GetOption<bool>("CoA.Enable", true) ||
+            sConfigMgr->GetOption<std::string>("CoA.ClassModel", "coa") != "hero" ||
+            sConfigMgr->GetOption<std::string>("CoA.RealmType", "live") != "live" ||
+            (sConfigMgr->GetOption<uint32>("CoA.GameModeMask", 0) & ~uint32(0x400)))
+            return;
+        if (info->Id == 46867 || info->Id == 56611 || info->Id == 56612)
+            info->ProcFlags &= ~uint32(PROC_FLAG_DONE_MELEE_AUTO_ATTACK);
+        if (info->Id == 49189 || info->Id == 50149 || info->Id == 50150)
+        {
+            info->Attributes |= SPELL_ATTR0_PASSIVE;
+            info->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
+            info->Effects[EFFECT_0].ApplyAuraName = SPELL_AURA_DUMMY;
+            info->Effects[EFFECT_0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+            info->Effects[EFFECT_1].Effect = 0;
+        }
+        if (info->Id == 820503)
+            info->Effects[EFFECT_2].ApplyAuraName = SPELL_AURA_DUMMY;
+        if (info->Id == 20502)
+            info->Effects[EFFECT_0].Effect = SPELL_EFFECT_APPLY_AURA;
+        if (info->Id == 954806)
+            info->Effects[EFFECT_1].BasePoints = 99;
+        if (info->Id == 760096)
+        {
+            info->Effects[EFFECT_0].BasePoints = 760094;
+            info->Effects[EFFECT_0].DieSides = 0;
+        }
+    }
+};
+
+class aura_area52_burning_rush final : public AuraScript
+{
+    PrepareAuraScript(aura_area52_burning_rush);
+
+    bool Load() override { return AscensionFreePick::Applies(GetUnitOwner()->ToPlayer()); }
+
+    void Drain(AuraEffect const*)
+    {
+        PreventDefaultAction();
+        Unit* target = GetTarget();
+        Unit::DealDamage(target, target, Area52DragonReview::BurningRushDrain(target->GetMaxHealth()),
+            nullptr, NODAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+    }
+
+    void Register() override
+    {
+        OnEffectPeriodic += AuraEffectPeriodicFn(aura_area52_burning_rush::Drain, EFFECT_2,
+            SPELL_AURA_PERIODIC_DUMMY);
+    }
+};
+
+class spell_area52_grappling_followup final : public SpellScript
+{
+    PrepareSpellScript(spell_area52_grappling_followup);
+
+    bool Load() override { return AscensionFreePick::Applies(GetCaster()->ToPlayer()); }
+
+    SpellCastResult Check()
+    {
+        return GetCaster()->HasAura(760096) && GetCaster()->ToPlayer()->HasSpell(760056) ?
+            SPELL_CAST_OK : SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
+    }
+
+    void Consume() { GetCaster()->RemoveAurasDueToSpell(760096); }
+
+    void Register() override
+    {
+        OnCheckCast += SpellCheckCastFn(spell_area52_grappling_followup::Check);
+        AfterCast += SpellCastFn(spell_area52_grappling_followup::Consume);
+    }
+};
+
+void RefreshArea52TwoHandMastery(Player* player)
+{
+    if (!player || !AscensionFreePick::Applies(player) || !player->IsInWorld() ||
+        (player->GetSession() && player->GetSession()->PlayerLogout()))
+        return;
+    uint32 wanted = 0;
+    if (player->IsAlive() && !player->IsInFeralForm() && player->IsTwoHandUsed() &&
+        !player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
+        wanted = player->HasAura(829633) && AscensionFreePick::CanLearnSpell(player, 829633, false, false) ? 829634 :
+            player->HasAura(29623) && AscensionFreePick::CanLearnSpell(player, 29623, false, false) ? 829623 : 0;
+    for (uint32 helper : {829623u, 829634u})
+    {
+        if (helper != wanted)
+        {
+            if (!player->HasSpell(helper))
+                player->RemoveAurasDueToSpell(helper, player->GetGUID());
+        }
+        else if (!player->GetAura(helper, player->GetGUID()))
+            player->CastSpell(player, helper, true);
+    }
+}
+
+void RefreshArea52DragonTalentHelpers(Player* player)
+{
+    if (!player || !AscensionFreePick::Applies(player) || !player->IsInWorld() ||
+        (player->GetSession() && player->GetSession()->PlayerLogout()))
+        return;
+    struct Grant { uint32 Helper; std::array<uint32, 3> Parents; };
+    constexpr Grant grants[] = {
+        {57518, {46867, 0, 0}}, {57519, {56611, 0, 0}}, {57520, {56612, 0, 0}},
+        {29841, {29834, 0, 0}}, {29842, {29838, 0, 0}}, {829839, {829838, 0, 0}},
+        {46916, {46913, 46914, 46915}}, {52437, {29723, 29725, 29724}}, {820504, {820503, 0, 0}}
+    };
+    for (auto const& grant : grants)
+    {
+        Aura* aura = player->GetAura(grant.Helper, player->GetGUID());
+        if (!aura || player->HasSpell(grant.Helper))
+            continue;
+        bool authorized = false;
+        for (uint32 parent : grant.Parents)
+            authorized |= parent && AscensionFreePick::IsTalentRank(player, parent) &&
+                AscensionFreePick::CanLearnSpell(player, parent, false, false);
+        if (auto source = aura->GetTriggeredByAuraSpellInfo(); source &&
+            std::find(grant.Parents.begin(), grant.Parents.end(), source->Id) == grant.Parents.end())
+            authorized |= player->HasAura(source->Id);
+        if (!authorized)
+            player->RemoveAurasDueToSpell(grant.Helper, player->GetGUID());
+    }
+}
+
+void RefreshArea52Necropolis(Player* player)
+{
+    if (!player || !AscensionFreePick::Applies(player) || !player->IsInWorld() ||
+        (player->GetSession() && player->GetSession()->PlayerLogout()))
+        return;
+    constexpr std::array<uint32, 3> parents = {49189, 50149, 50150};
+    constexpr std::array<uint32, 3> helpers = {52284, 52285, 52286};
+    uint32 wanted = 0;
+    if (player->IsAlive())
+        for (std::size_t i = 0; i < parents.size(); ++i)
+            if (player->HasAura(parents[i]) &&
+                AscensionFreePick::CanLearnSpell(player, parents[i], false, false))
+                wanted = helpers[i];
+    for (uint32 helper : helpers)
+        if (helper == wanted)
+        {
+            if (!player->GetAura(helper, player->GetGUID()))
+                player->CastSpell(player, helper, true);
+        }
+        else if (!player->HasSpell(helper))
+            player->RemoveAurasDueToSpell(helper, player->GetGUID());
+}
+
+class area52_two_hand_mastery final : public PlayerScript
+{
+public:
+    area52_two_hand_mastery() : PlayerScript("area52_two_hand_mastery",
+        {PLAYERHOOK_ON_LOGIN, PLAYERHOOK_ON_UPDATE, PLAYERHOOK_ON_EQUIP, PLAYERHOOK_ON_UNEQUIP_ITEM}) { }
+    void OnPlayerLogin(Player* player) override
+    {
+        RefreshArea52TwoHandMastery(player);
+        RefreshArea52Necropolis(player);
+    }
+    void OnPlayerUpdate(Player* player, uint32) override
+    {
+        RefreshArea52TwoHandMastery(player);
+        RefreshArea52DragonTalentHelpers(player);
+        RefreshArea52Necropolis(player);
+    }
+    void OnPlayerEquip(Player* player, Item*, uint8, uint8, bool) override { RefreshArea52TwoHandMastery(player); }
+    void OnPlayerUnequip(Player* player, Item*) override { RefreshArea52TwoHandMastery(player); }
+};
+
 void AddSC_AscensionHeroWarrior()
 {
+    new area52_dragon_review_metadata();
+    new area52_two_hand_mastery();
+    RegisterSpellScript(aura_area52_burning_rush);
+    RegisterSpellScript(spell_area52_grappling_followup);
     RegisterSpellScript(aura_hero_warrior_enrage);
     RegisterSpellScript(aura_hero_warrior_dance_of_death);
     RegisterSpellScript(spell_hero_warrior_spend_rage_charge);

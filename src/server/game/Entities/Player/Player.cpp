@@ -10730,6 +10730,11 @@ void Player::ApplyTargetedSpellModTrackingDamage(uint32 spellId, SpellModOp op, 
             if (mod->op == SPELLMOD_DAMAGE || mod->op == SPELLMOD_DOT)
             {
                 int32 percent = mod->value;
+                if ((mod->spellId == 20502 || mod->spellId == 20503 || mod->spellId == 820503) &&
+                    mod->op == SPELLMOD_DAMAGE && victim && victim->HealthBelowPct(20) &&
+                    AscensionFreePick::Applies(this) &&
+                    (MatchesSpellInteraction(spellId, 5308) || MatchesSpellInteraction(spellId, 20647)))
+                    percent *= 2;
                 if (mod->spellId == 997050 && mod->op == SPELLMOD_DAMAGE && victim && victim->IsPlayer() &&
                     AscensionFreePick::Applies(this) && mod->ownerAura && MatchesSpellInteraction(spellId, 1495))
                     percent = 5 * mod->ownerAura->GetStackAmount();

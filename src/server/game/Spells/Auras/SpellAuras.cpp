@@ -1325,8 +1325,21 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
     if (apply)
     {
         if (sSpellMgr->GetSpellTwinSource(GetId()) == 60970 && target->IsPlayer())
-            for (uint32 intercept : sSpellMgr->GetSpellAndRelatives(20252))
-                target->ToPlayer()->RemoveSpellCooldown(intercept, true);
+        {
+            Player* player = target->ToPlayer();
+            bool const area52 = AscensionFreePick::Applies(player);
+            for (uint32 original : {20252u, 954876u})
+            {
+                if (!area52 && original != 20252)
+                    continue;
+                for (uint32 ability : sSpellMgr->GetSpellAndRelatives(original))
+                {
+                    player->RemoveSpellCooldown(ability, true);
+                    if (area52)
+                        player->RemoveSpellCooldown(player->GetTemporarySpellReplacement(ability), true);
+                }
+            }
+        }
 
         switch (GetSpellInfo()->SpellFamilyName)
         {
@@ -2242,6 +2255,32 @@ uint8 Aura::GetProcEffectMask(AuraApplication* aurApp, ProcEventInfo& eventInfo,
     // only auras with spell proc entry can trigger proc
     if (!procEntry)
         return 0;
+
+    if ((GetId() == 46913 || GetId() == 46914 || GetId() == 46915 ||
+        GetId() == 29723 || GetId() == 29725 || GetId() == 29724) &&
+        AscensionFreePick::Applies(aurApp->GetTarget()->ToPlayer()))
+    {
+        Player* player = aurApp->GetTarget()->ToPlayer();
+        DamageInfo const* damage = eventInfo.GetDamageInfo();
+        if (eventInfo.GetActor() != player || !damage || !damage->GetDamage() ||
+            damage->GetDamageType() == DOT)
+            return 0;
+        if (GetId() >= 46913 && GetId() <= 46915)
+        {
+            SpellInfo const* spell = eventInfo.GetSpellInfo();
+            if (!spell || !(player->MatchesSpellInteraction(spell->Id, 12294) ||
+                player->MatchesSpellInteraction(spell->Id, 5308) ||
+                player->MatchesSpellInteraction(spell->Id, 20647) ||
+                player->MatchesSpellInteraction(spell->Id, 1464) ||
+                player->MatchesSpellInteraction(spell->Id, 1680) ||
+                player->MatchesSpellInteraction(spell->Id, 954836) ||
+                player->MatchesSpellInteraction(spell->Id, 20252) ||
+                player->MatchesSpellInteraction(spell->Id, 20253) ||
+                (spell->Id == 954288 && player->HasActiveSpell(954256) &&
+                    player->MatchesSpellInteraction(954256, 20252))))
+                return 0;
+        }
+    }
 
     // Blessed Resilience: only an incoming critical hit on the Spirit-path owner.
     if ((GetId() == 33142 || GetId() == 33145 || GetId() == 33146) &&

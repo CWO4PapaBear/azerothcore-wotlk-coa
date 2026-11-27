@@ -147,6 +147,7 @@ constexpr Summon SUMMONS[] = {
     Ranked(954854, 840036, Behaviour::Freeze, 954857, 954855, 954856),
     Ranked(760053, 840058, Behaviour::Aura, 760054, 0),
     Timed(760056, 840057, Behaviour::PullOwner, 760057, 0),
+    Timed(760094, 840057, Behaviour::PullOwner, 760057, 0),
 
     Ranked(954504, 840034, Behaviour::Vortex, 954505, 954506),
     Ranked(86401, 80221, Behaviour::Return, 86401, 0),
