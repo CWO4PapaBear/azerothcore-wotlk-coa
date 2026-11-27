@@ -2973,10 +2973,16 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
             // damage result for other scripts, and do not infer damage from
             // later health deltas that can include triggered heals or damage.
             uint32 const healthBeforeDamage = unitTarget->GetHealth();
+            bool const area52ExecuteCapstone = unitTarget->HealthBelowPct(20) && caster->HasAura(820503) &&
+                AscensionFreePick::Applies(caster->ToPlayer()) &&
+                (caster->ToPlayer()->MatchesSpellInteraction(m_spellInfo->Id, 5308) ||
+                    caster->ToPlayer()->MatchesSpellInteraction(m_spellInfo->Id, 20647));
             std::optional<uint32> damageForHealthLeech;
             caster->DealSpellDamage(&damageInfo, true, this, &scriptDamageResult, &damageForHealthLeech);
             m_scriptHealthLeechDamage = damageForHealthLeech.value_or(
                 std::min(scriptDamageResult, healthBeforeDamage));
+            if (area52ExecuteCapstone && scriptDamageResult)
+                caster->CastSpell(caster, 820504, true, nullptr, caster->GetAuraEffect(820503, EFFECT_2));
 
             // do procs after damage, eg healing effects
             // no need to check if target is alive, done in procdamageandspell

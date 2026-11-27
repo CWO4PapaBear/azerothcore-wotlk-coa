@@ -23,6 +23,7 @@
 #include "../../../coa/Area52Worldforged.h"
 #include "../../../coa/AscensionMysticEnchantCatalog.h"
 #include "../../../coa/AscensionFreePick.h"
+#include "../../../coa/Area52DragonReviewRules.h"
 #include "../../../coa/Area52MarksmanRules.h"
 #include "../../../coa/Area52DependencyRules.h"
 #include "../../../coa/Area52FollowupProcRules.h"
@@ -5177,6 +5178,9 @@ bool Unit::CanCastSpellWhileMoving(SpellInfo const* info) const
 {
     if (!info)
         return false;
+    if (Area52DragonReview::BurningRushAllowsMovement(AscensionFreePick::Applies(ToPlayer()),
+            HasAura(954806), info->SchoolMask))
+        return true;
     // All movement gates must agree on the active Manastorm mixture.
     // Its aura 313 family differs from CoA class spells such as Elemental Burst.
     if (HasManastormMovementGrace())

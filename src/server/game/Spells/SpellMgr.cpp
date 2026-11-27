@@ -934,6 +934,33 @@ SpellGroupStackRule SpellMgr::GetSpellGroupStackRule(SpellGroup group) const
 
 SpellProcEntry const* SpellMgr::GetSpellProcEntry(uint32 spellId) const
 {
+    if ((spellId == 29723 || spellId == 29725 || spellId == 29724 ||
+        spellId == 46913 || spellId == 46914 || spellId == 46915) &&
+        AscensionFreePick::Enabled() && GetSpellInfo(spellId))
+    {
+        static std::array<SpellProcEntry, 6> const dragonTalents = []
+        {
+            std::array<SpellProcEntry, 6> ranks{};
+            for (unsigned i = 0; i < ranks.size(); ++i)
+            {
+                auto& proc = ranks[i];
+                proc.ProcFlags = i < 3 ? PROC_FLAG_DONE_MELEE_AUTO_ATTACK | PROC_FLAG_DONE_SPELL_MELEE_DMG_CLASS :
+                    PROC_FLAG_DONE_SPELL_MELEE_DMG_CLASS | PROC_FLAG_DONE_SPELL_RANGED_DMG_CLASS |
+                    PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG | PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_NEG;
+                proc.SpellTypeMask = PROC_SPELL_TYPE_DAMAGE;
+                proc.SpellPhaseMask = PROC_SPELL_PHASE_HIT;
+                proc.HitMask = PROC_HIT_NORMAL | PROC_HIT_CRITICAL;
+                proc.AttributesMask = PROC_ATTR_TRIGGERED_CAN_PROC;
+                proc.DisableEffectsMask = (1u << EFFECT_1) | (1u << EFFECT_2);
+                proc.Chance = i < 3 ? 4 * (i + 1) : (i == 5 ? 100 : 33 * (i - 2));
+                proc.Cooldown = Milliseconds(6000);
+            }
+            return ranks;
+        }();
+        unsigned const index = spellId == 29723 ? 0 : spellId == 29725 ? 1 : spellId == 29724 ? 2 :
+            3 + spellId - 46913;
+        return &dragonTalents[index];
+    }
     if (spellId >= 53290 && spellId <= 53292 && AscensionFreePick::Enabled() && GetSpellInfo(spellId))
     {
         static std::array<SpellProcEntry, 3> const huntingParty = []

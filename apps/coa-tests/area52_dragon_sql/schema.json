@@ -1,0 +1,3 @@
+{
+  "sql": "CREATE TABLE `spell_script_names` (\n  `spell_id` int NOT NULL,\n  `ScriptName` char(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,\n  UNIQUE KEY `spell_id` (`spell_id`,`ScriptName`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;"
+}

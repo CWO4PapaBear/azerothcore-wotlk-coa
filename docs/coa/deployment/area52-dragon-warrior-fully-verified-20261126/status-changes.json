@@ -1,0 +1,80 @@
+[
+  {
+    "kind": "advancement",
+    "id": 804,
+    "before": "Needs Investigation",
+    "after": "VERIFIED"
+  },
+  {
+    "kind": "advancement",
+    "id": 1107,
+    "before": "Needs Investigation",
+    "after": "VERIFIED"
+  },
+  {
+    "kind": "advancement",
+    "id": 1184,
+    "before": "Structurally Connected, Unverified",
+    "after": "VERIFIED"
+  },
+  {
+    "kind": "advancement",
+    "id": 1231,
+    "before": "Needs Investigation",
+    "after": "VERIFIED"
+  },
+  {
+    "kind": "advancement",
+    "id": 1601,
+    "before": "Needs Investigation",
+    "after": "VERIFIED"
+  },
+  {
+    "kind": "advancement",
+    "id": 1609,
+    "before": "Needs Investigation",
+    "after": "VERIFIED"
+  },
+  {
+    "kind": "advancement",
+    "id": 1633,
+    "before": "Needs Investigation",
+    "after": "VERIFIED"
+  },
+  {
+    "kind": "advancement",
+    "id": 2957,
+    "before": "Needs Investigation",
+    "after": "VERIFIED"
+  },
+  {
+    "kind": "advancement",
+    "id": 3128,
+    "before": "Structurally Connected, Unverified",
+    "after": "VERIFIED"
+  },
+  {
+    "kind": "advancement",
+    "id": 762,
+    "before": "Needs Investigation",
+    "after": "VERIFIED"
+  },
+  {
+    "kind": "advancement",
+    "id": 802,
+    "before": "Needs Investigation",
+    "after": "VERIFIED"
+  },
+  {
+    "kind": "advancement",
+    "id": 803,
+    "before": "Structurally Connected, Unverified",
+    "after": "VERIFIED"
+  },
+  {
+    "kind": "advancement",
+    "id": 968,
+    "before": "Structurally Connected, Unverified",
+    "after": "VERIFIED"
+  }
+]

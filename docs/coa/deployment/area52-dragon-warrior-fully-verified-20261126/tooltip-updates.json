@@ -1,0 +1,12 @@
+{
+  "spells": {
+    "829623": {
+      "expected_description": "You generate $s1% more rage from damage dealt and deal 10% more Physical damage. \n\nThis effect is only active while wielding a single Two-Handed Weapon. (Does not work with Titan's Grip.)",
+      "description": "You generate $s1% more rage from damage dealt and deal $s2% more Physical melee damage. Your Colossus Smash lasts $/1000;s3 sec longer.\n\nThis effect is only active while wielding a single Two-Handed Weapon. (Does not work with Titan's Grip.)"
+    },
+    "829634": {
+      "expected_description": "You generate $s1% more rage from damage dealt and deal 10% more Physical damage. \n\nThis effect is only active while wielding a single Two-Handed Weapon. (Does not work with Titan's Grip.)",
+      "description": "You generate $s1% more rage from damage dealt and deal $s2% more Physical melee damage. Your Colossus Smash lasts $/1000;s3 sec longer.\n\nThis effect is only active while wielding a single Two-Handed Weapon. (Does not work with Titan's Grip.)"
+    }
+  }
+}
