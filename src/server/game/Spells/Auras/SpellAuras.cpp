@@ -20,6 +20,8 @@
 #include "CellImpl.h"
 #include "Common.h"
 #include "GameTime.h"
+#include "Item.h"
+#include "../../../coa/AscensionMysticEnchantCatalog.h"
 #include "GridNotifiers.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
@@ -1325,8 +1327,21 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
     if (apply)
     {
         if (sSpellMgr->GetSpellTwinSource(GetId()) == 60970 && target->IsPlayer())
-            for (uint32 intercept : sSpellMgr->GetSpellAndRelatives(20252))
-                target->ToPlayer()->RemoveSpellCooldown(intercept, true);
+        {
+            Player* player = target->ToPlayer();
+            bool const area52 = AscensionFreePick::Applies(player);
+            for (uint32 original : {20252u, 954876u})
+            {
+                if (!area52 && original != 20252)
+                    continue;
+                for (uint32 ability : sSpellMgr->GetSpellAndRelatives(original))
+                {
+                    player->RemoveSpellCooldown(ability, true);
+                    if (area52)
+                        player->RemoveSpellCooldown(player->GetTemporarySpellReplacement(ability), true);
+                }
+            }
+        }
 
         switch (GetSpellInfo()->SpellFamilyName)
         {
@@ -2243,12 +2258,62 @@ uint8 Aura::GetProcEffectMask(AuraApplication* aurApp, ProcEventInfo& eventInfo,
     if (!procEntry)
         return 0;
 
+    if ((GetId() == 46913 || GetId() == 46914 || GetId() == 46915 ||
+        GetId() == 29723 || GetId() == 29725 || GetId() == 29724) &&
+        AscensionFreePick::Applies(aurApp->GetTarget()->ToPlayer()))
+    {
+        Player* player = aurApp->GetTarget()->ToPlayer();
+        DamageInfo const* damage = eventInfo.GetDamageInfo();
+        if (eventInfo.GetActor() != player || !damage || !damage->GetDamage() ||
+            damage->GetDamageType() == DOT)
+            return 0;
+        if (GetId() >= 46913 && GetId() <= 46915)
+        {
+            SpellInfo const* spell = eventInfo.GetSpellInfo();
+            if (!spell || !(player->MatchesSpellInteraction(spell->Id, 12294) ||
+                player->MatchesSpellInteraction(spell->Id, 5308) ||
+                player->MatchesSpellInteraction(spell->Id, 20647) ||
+                player->MatchesSpellInteraction(spell->Id, 1464) ||
+                player->MatchesSpellInteraction(spell->Id, 1680) ||
+                player->MatchesSpellInteraction(spell->Id, 954836) ||
+                player->MatchesSpellInteraction(spell->Id, 20252) ||
+                player->MatchesSpellInteraction(spell->Id, 20253) ||
+                (spell->Id == 954288 && player->HasActiveSpell(954256) &&
+                    player->MatchesSpellInteraction(954256, 20252))))
+                return 0;
+        }
+    }
+
     // Blessed Resilience: only an incoming critical hit on the Spirit-path owner.
     if ((GetId() == 33142 || GetId() == 33145 || GetId() == 33146) &&
         AscensionFreePick::Applies(aurApp->GetTarget()->ToPlayer()))
         if (!aurApp->GetTarget()->HasAura(84867) || eventInfo.GetActionTarget() != aurApp->GetTarget() ||
             !(eventInfo.GetHitMask() & PROC_HIT_CRITICAL))
             return 0;
+
+    SpellProcEntry consecratedSealProc;
+    if (GetId() == 20375)
+    {
+        Player* player = aurApp->GetTarget()->ToPlayer();
+        SpellInfo const* source = eventInfo.GetSpellInfo();
+        Spell const* cast = eventInfo.GetProcSpell();
+        DamageInfo const* damage = eventInfo.GetDamageInfo();
+        if (AscensionFreePick::Applies(player) && eventInfo.GetActor() == player && source && source->Id == 977827 &&
+            cast && cast->m_CastItem && cast->GetTriggeredByAuraSpellInfo() &&
+            cast->GetTriggeredByAuraSpellInfo()->Id == 977848 && damage && damage->GetDamage() &&
+            damage->GetDamageType() != DOT && player->HasAura(977848, player->GetGUID()) &&
+            AscensionMysticEnchant::GrantsActive(player, 965295) &&
+            cast->m_CastItem->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT) == 45 &&
+            (player->GetWeaponForAttack(BASE_ATTACK, true) == cast->m_CastItem ||
+             player->GetWeaponForAttack(OFF_ATTACK, true) == cast->m_CastItem))
+        {
+            consecratedSealProc = *procEntry;
+            consecratedSealProc.SpellFamilyMask = flag96();
+            consecratedSealProc.ProcFlags = PROC_FLAG_DONE_SPELL_MELEE_DMG_CLASS;
+            consecratedSealProc.AttributesMask |= PROC_ATTR_TRIGGERED_CAN_PROC;
+            procEntry = &consecratedSealProc;
+        }
+    }
 
     // check spell triggering us
     if (Spell const* spell = eventInfo.GetProcSpell())
@@ -2316,6 +2381,23 @@ uint8 Aura::GetProcEffectMask(AuraApplication* aurApp, ProcEventInfo& eventInfo,
             area52OverloadProc.SpellFamilyMask = flag96(0, 0, 0);
             procEntry = &area52OverloadProc;
         }
+    SpellProcEntry area52UnsealedProc;
+    if (eventSpell && GetSpellInfo()->GetSpellSpecific() == SPELL_SPECIFIC_SEAL)
+        if (Player* actor = eventInfo.GetActor() ? eventInfo.GetActor()->ToPlayer() : nullptr;
+            AscensionFreePick::Applies(actor) && actor == GetCaster() && actor == aurApp->GetTarget() &&
+            actor->HasAura(25958) && actor->HasAura(825958, actor->GetGUID()) &&
+            (actor->MatchesSpellInteraction(eventSpell->Id, 585) ||
+                actor->MatchesSpellInteraction(eventSpell->Id, 14914)))
+            if (DamageInfo const* damage = eventInfo.GetDamageInfo(); damage && damage->GetDamage() &&
+                damage->GetDamageType() == SPELL_DIRECT_DAMAGE && eventInfo.GetActionTarget() != actor &&
+                eventInfo.GetProcSpell() && !eventInfo.GetProcSpell()->IsTriggered())
+            {
+                area52UnsealedProc = *procEntry;
+                area52UnsealedProc.SpellFamilyName = 0;
+                area52UnsealedProc.SpellFamilyMask = flag96(0, 0, 0);
+                area52UnsealedProc.ProcFlags |= PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG;
+                procEntry = &area52UnsealedProc;
+            }
     if (!sSpellMgr->CanSpellTriggerProcOnEvent(*procEntry, eventInfo))
         return 0;
 

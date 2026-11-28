@@ -261,8 +261,14 @@ struct npc_ascension_summoned_effect : public ScriptedAI
                 me->CastSpell(me, row->Helper, true);
                 break;
             case Behaviour::PullOwner:
-                me->CastSpell(owner, row->Payload, true);
+            {
+                SpellCastTargets targets;
+                targets.SetUnitTarget(owner);
+                targets.SetDst(*me);
+                if (SpellInfo const* pull = sSpellMgr->GetSpellInfo(row->Payload))
+                    me->CastSpell(targets, pull, nullptr, TRIGGERED_FULL_MASK);
                 break;
+            }
             case Behaviour::Heal:
                 charges = LIGHTWELL_CHARGES;
                 events.ScheduleEvent(EVENT_ACT, Milliseconds(row->Milliseconds));

@@ -1,0 +1,59 @@
+#include <cassert>
+#include <array>
+#include <cstdint>
+#include <map>
+#include <set>
+#include <fstream>
+#include "AscensionMysticEnchantCatalog.h"
+using namespace AscensionMysticEnchant;
+using uint32=uint32_t;
+struct Aura { unsigned stack=1;void SetStackAmount(uint8_t n){stack=n;} };
+unsigned currentEnchant=929721;
+struct State {bool Loaded=false,DraftResolved=true;std::set<uint32> Applied;std::set<uint32> Known{currentEnchant,913715},DraftEntitlement;};
+constexpr int StateKey=1;
+struct Storage {State state;template<class T>T* Get(int){return &state;}};
+struct Player {Storage CustomData;bool world=false,alive=true,realm=true,owned=true,draft=false;unsigned adds=0,removes=0;Slots slots{};std::map<uint32,Aura> auras;
+ bool IsInWorld(){return world;}bool IsAlive(){return alive;}unsigned GetLevel(){return 80;}unsigned GetGUID(){return 1;}
+ struct Setting{unsigned value;};Setting GetPlayerSetting(char const*,int n){return {unsigned(draft&&n==4)};}
+ void UpdatePlayerSetting(int,unsigned,unsigned){}void SaveToDB(bool,bool){}
+ Aura* GetAura(uint32 id,unsigned){auto i=auras.find(id);return i==auras.end()?nullptr:&i->second;}
+ Aura* AddAura(uint32 id,Player*){++adds;return &auras[id];}
+ void RemoveAurasDueToSpell(uint32 id,unsigned){++removes;auras.erase(id);}
+};
+Catalog Data;
+std::map<uint32,uint32> Connected{{currentEnchant,3},{913715,1}};
+bool Applies(Player* p){return p->realm;}int Setting(Player*){return 1;}void SendSlots(Player*){}
+Slots ReadSlots(Player* p){return p->slots;}
+bool InvestmentMet(Player*,Entry const&,bool){return true;}
+namespace Area52Arcanist {void Synchronize(Player*){}}
+@@VALIDATE@@
+@@SYNC@@
+void test(){
+ unsigned cap=std::map<unsigned,unsigned>{{84537,1},{84579,1},{913715,1},{920224,3},{920264,3},{931866,1},{932043,3},{965295,1},{965395,3},{977900,1},{986280,1}}.at(currentEnchant);
+ Data={};Connected={{currentEnchant,cap}};
+ assert(LoadCatalog(Data,"/data/dbc/MysticEnchant.dbc"));
+ for(bool loadFirst:{false,true}){
+  Player p;p.slots[0]=currentEnchant;auto&state=p.CustomData.state;
+  if(loadFirst)state.Loaded=true;else p.world=true;
+  Synchronize(&p);assert(p.adds==0);
+  p.world=true;state.Loaded=true;Synchronize(&p);
+  assert(p.auras.contains(currentEnchant));assert(p.auras.at(currentEnchant).stack==1);
+  auto adds=p.adds;Synchronize(&p);assert(p.adds==adds);
+   for(unsigned count=1;count<=cap;++count){p.slots={};for(unsigned i=0;i<count;++i)p.slots[i]=currentEnchant;Synchronize(&p);assert(p.auras.at(currentEnchant).stack==count);}
+   for(unsigned count=cap;count>0;--count){p.slots={};for(unsigned i=0;i<count;++i)p.slots[i]=currentEnchant;Synchronize(&p);assert(p.auras.at(currentEnchant).stack==count);}
+   p.slots={};for(unsigned i=0;i<=cap;++i)p.slots[i]=currentEnchant;Synchronize(&p);assert(p.auras.empty());
+   p.slots={};p.slots[0]=currentEnchant;Synchronize(&p);assert(p.auras.at(currentEnchant).stack==1);
+  p.auras.clear();Synchronize(&p);assert(p.auras.contains(currentEnchant));
+  p.slots={};Synchronize(&p);assert(p.auras.empty());
+  p.slots[0]=currentEnchant;state.Known.clear();state.DraftEntitlement={currentEnchant};
+  p.draft=true;state.DraftResolved=false;Synchronize(&p);assert(p.auras.empty());
+  state.DraftResolved=true;Synchronize(&p);assert(p.auras.contains(currentEnchant));
+  state.DraftEntitlement.clear();Synchronize(&p);assert(p.auras.empty());
+  state.Known={currentEnchant};Connected.clear();Synchronize(&p);assert(p.auras.empty());
+  Connected={{currentEnchant,cap}};Synchronize(&p);assert(p.auras.contains(currentEnchant));
+  p.realm=false;Synchronize(&p);assert(!p.auras.contains(currentEnchant));
+  p.realm=true;p.alive=false;Synchronize(&p);assert(!p.auras.contains(currentEnchant));
+  p.alive=true;Synchronize(&p);assert(p.auras.contains(currentEnchant));
+ }
+}
+int main(){for(unsigned id:{84537u,84579u,913715u,920224u,920264u,931866u,932043u,965295u,965395u,977900u,986280u}){currentEnchant=id;test();}}

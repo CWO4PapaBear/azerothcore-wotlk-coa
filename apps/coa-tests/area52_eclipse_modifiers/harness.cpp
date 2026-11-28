@@ -7,7 +7,7 @@ enum{SPELLMOD_FLAT=107,SPELLMOD_PCT=108,SPELLMOD_CRITICAL_CHANCE=7,SPELLMOD_THRE
 struct Aura{bool IsUsingCharges(){return false;}int GetStackAmount(){return 1;}};
 struct SpellModifier{int type,value,spellId,op;Aura*ownerAura=nullptr;};
 namespace AscensionFreePick{bool Applies(void*){return true;}}
-struct Unit{bool IsPlayer(){return false;}};
+struct Unit{bool IsPlayer(){return false;}bool HealthBelowPct(int){return false;}};
 bool AuraAlsoModifiesCastingTime(Aura*){return false;}
 float CalculatePct(float base,float n){return base*n/100;}
 bool close(float a,float b){return std::abs(a-b)<.0002;}

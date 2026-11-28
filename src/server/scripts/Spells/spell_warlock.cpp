@@ -541,10 +541,17 @@ class spell_warl_banish : public SpellScript
             return;
         }
 
+        Unit* caster = GetCaster();
+        if (!caster)
+            return;
+
         if (Unit* target = GetHitUnit())
         {
-            // Casting Banish on a banished target will remove applied aura
-            if (Aura* banishAura = target->GetAura(GetSpellInfo()->Id, GetCaster()->GetGUID()))
+            // Area 52 permits a lower learned rank to cancel the caster's higher-rank Banish.
+            Aura* banishAura = AscensionFreePick::Applies(caster->ToPlayer())
+                ? target->GetAuraOfRankedSpell(710, caster->GetGUID())
+                : target->GetAura(GetSpellInfo()->Id, caster->GetGUID());
+            if (banishAura)
             {
                 banishAura->Remove();
             }

@@ -17,6 +17,7 @@
 
 #include "GameTime.h"
 #include "../../coa/AscensionFreePick.h"
+#include "../../coa/AscensionMysticEnchantCatalog.h"
 #include "Group.h"
 #include "Player.h"
 #include "SpellAuraEffects.h"
@@ -215,7 +216,12 @@ class spell_pal_seal_of_command_aura : public AuraScript
         Unit* target = eventInfo.GetActionTarget();
         if (target->IsAlive())
         {
-            eventInfo.GetActor()->CastCustomSpell(aurEff->GetSpellInfo()->Effects[EFFECT_0].TriggerSpell, SPELLVALUE_MAX_TARGETS, targets, target, false, nullptr, aurEff);
+            uint32 payload = aurEff->GetSpellInfo()->Effects[EFFECT_0].TriggerSpell;
+            Player* player = eventInfo.GetActor()->ToPlayer();
+            if (AscensionFreePick::Applies(player) && player->HasAura(965295) &&
+                AscensionMysticEnchant::GrantsActive(player, 965295))
+                payload = 278746;
+            eventInfo.GetActor()->CastCustomSpell(payload, SPELLVALUE_MAX_TARGETS, targets, target, false, nullptr, aurEff);
         }
     }
 

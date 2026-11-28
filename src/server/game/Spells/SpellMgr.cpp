@@ -23,6 +23,7 @@
 #include "BattlegroundIC.h"
 #include "Chat.h"
 #include "ClientDBC.h"
+#include "Config.h"
 #include "DBCStores.h"
 #include "InstanceScript.h"
 #include "ObjectMgr.h"
@@ -345,6 +346,9 @@ int32 GetDiminishingReturnsLimitDuration(DiminishingGroup group, SpellInfo const
 {
     if (!IsDiminishingReturnsGroupDurationLimited(group))
         return 0;
+    if (AscensionFreePick::Enabled() && (spellproto->Id == 710 || spellproto->Id == 18647))
+        return 8 * IN_MILLISECONDS;
+
     if (AscensionFreePick::Enabled() && spellproto->Id == 954507)
         return 6 * IN_MILLISECONDS;
 
@@ -934,6 +938,71 @@ SpellGroupStackRule SpellMgr::GetSpellGroupStackRule(SpellGroup group) const
 
 SpellProcEntry const* SpellMgr::GetSpellProcEntry(uint32 spellId) const
 {
+    if ((spellId == 9452 || spellId == 26016 || spellId == 209452) && AscensionFreePick::Enabled())
+    {
+        static std::array<SpellProcEntry, 3> const vindication = []
+        {
+            std::array<SpellProcEntry, 3> ranks{};
+            for (unsigned i = 0; i < ranks.size(); ++i)
+            {
+                auto& proc = ranks[i];
+                proc.ProcFlags = PROC_FLAG_DONE_SPELL_MELEE_DMG_CLASS | PROC_FLAG_DONE_SPELL_RANGED_DMG_CLASS |
+                    PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG | PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_NEG;
+                proc.SpellTypeMask = PROC_SPELL_TYPE_DAMAGE;
+                proc.SpellPhaseMask = PROC_SPELL_PHASE_HIT;
+                proc.HitMask = PROC_HIT_NORMAL | PROC_HIT_CRITICAL;
+                proc.AttributesMask = PROC_ATTR_TRIGGERED_CAN_PROC;
+                proc.DisableEffectsMask = (1u << EFFECT_1) | (1u << EFFECT_2);
+                proc.Chance = i == 2 ? 65 : 17 * (i + 1);
+            }
+            return ranks;
+        }();
+        return &vindication[spellId == 9452 ? 0 : spellId == 26016 ? 1 : 2];
+    }
+
+    if ((spellId == 64127 || spellId == 64129) && AscensionFreePick::Enabled())
+    {
+        static SpellProcEntry const bodyAndSoul = []
+        {
+            SpellProcEntry proc{};
+            proc.SpellFamilyName = SPELLFAMILY_PRIEST;
+            proc.SpellFamilyMask = flag96(1, 1, 0x00800000);
+            proc.ProcFlags = PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_POS | PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_POS;
+            proc.SpellTypeMask = PROC_SPELL_TYPE_HEAL | PROC_SPELL_TYPE_NO_DMG_HEAL;
+            proc.SpellPhaseMask = PROC_SPELL_PHASE_HIT;
+            proc.Chance = 100;
+            return proc;
+        }();
+        return &bodyAndSoul;
+    }
+
+    if ((spellId == 29723 || spellId == 29725 || spellId == 29724 ||
+        spellId == 46913 || spellId == 46914 || spellId == 46915) &&
+        AscensionFreePick::Enabled() && GetSpellInfo(spellId))
+    {
+        static std::array<SpellProcEntry, 6> const dragonTalents = []
+        {
+            std::array<SpellProcEntry, 6> ranks{};
+            for (unsigned i = 0; i < ranks.size(); ++i)
+            {
+                auto& proc = ranks[i];
+                proc.ProcFlags = i < 3 ? PROC_FLAG_DONE_MELEE_AUTO_ATTACK | PROC_FLAG_DONE_SPELL_MELEE_DMG_CLASS :
+                    PROC_FLAG_DONE_SPELL_MELEE_DMG_CLASS | PROC_FLAG_DONE_SPELL_RANGED_DMG_CLASS |
+                    PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG | PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_NEG;
+                proc.SpellTypeMask = PROC_SPELL_TYPE_DAMAGE;
+                proc.SpellPhaseMask = PROC_SPELL_PHASE_HIT;
+                proc.HitMask = PROC_HIT_NORMAL | PROC_HIT_CRITICAL;
+                proc.AttributesMask = PROC_ATTR_TRIGGERED_CAN_PROC;
+                proc.DisableEffectsMask = (1u << EFFECT_1) | (1u << EFFECT_2);
+                proc.Chance = i < 3 ? 4 * (i + 1) : (i == 5 ? 100 : 33 * (i - 2));
+                proc.Cooldown = Milliseconds(6000);
+            }
+            return ranks;
+        }();
+        unsigned const index = spellId == 29723 ? 0 : spellId == 29725 ? 1 : spellId == 29724 ? 2 :
+            3 + spellId - 46913;
+        return &dragonTalents[index];
+    }
     if (spellId >= 53290 && spellId <= 53292 && AscensionFreePick::Enabled() && GetSpellInfo(spellId))
     {
         static std::array<SpellProcEntry, 3> const huntingParty = []
@@ -4254,6 +4323,15 @@ void SpellMgr::LoadSpellInfoCustomAttributes()
         }
 
         sScriptMgr->OnLoadSpellCustomAttr(spellInfo);
+
+        if (spellInfo->Id == 20424 && sConfigMgr->GetOption<bool>("CoA.Enable", true) &&
+            sConfigMgr->GetOption<std::string>("CoA.ClassModel", "coa") == "hero" &&
+            sConfigMgr->GetOption<std::string>("CoA.RealmType", "live") == "live" &&
+            !(sConfigMgr->GetOption<uint32>("CoA.GameModeMask", 0) & ~uint32(0x400)))
+        {
+            spellInfo->Effects[EFFECT_0].BasePoints = 17;
+            spellInfo->Effects[EFFECT_0].DieSides = 1;
+        }
 
         if (spellInfo->Id == 978701)
             spellInfo->_spellSpecific = spellInfo->LoadSpellSpecific();

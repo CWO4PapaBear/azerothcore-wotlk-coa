@@ -1,6 +1,8 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 
 #include "AscensionHeroPriest.h"
+#include "Area52CrusaderAbilityRules.h"
+#include "Area52MysticRealm.h"
 #include "ScriptMgr.h"
 #include "SpellInfo.h"
 #include "SpellScript.h"
@@ -112,8 +114,24 @@ class aura_hero_priest_void_eruption_buff : public AuraScript
     }
 };
 
+void ApplyArea52CrusaderAbilityContracts(SpellInfo* spellInfo, bool area52)
+{
+    if (!area52)
+        return;
+    if (spellInfo->Id == 642)
+        spellInfo->Effects[EFFECT_0].MiscValue = SPELL_SCHOOL_MASK_ALL;
+    if (Area52CrusaderAbility::IsHaloRecipient(spellInfo->Id))
+    {
+        spellInfo->Effects[EFFECT_1].ApplyAuraName = SPELL_AURA_MOD_HEALING_RECEIVED;
+        spellInfo->Effects[EFFECT_1].BasePoints = 7;
+    }
+    if (Area52CrusaderAbility::IsHaloMissile(spellInfo->Id))
+        spellInfo->Effects[EFFECT_0].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_CASTER_AREA_RAID);
+}
+
 void ApplyAscensionHeroPriestContracts(SpellInfo* spellInfo)
 {
+    ApplyArea52CrusaderAbilityContracts(spellInfo, Area52MysticRealm::UsesFreePickEngine());
     if (spellInfo->Id == 53005 || spellInfo->Id == 53006 || spellInfo->Id == 53007)
         spellInfo->AttributesEx2 |= SPELL_ATTR2_ALLOW_WHILE_NOT_SHAPESHIFTED;
     else if (spellInfo->Id == 48156)
@@ -124,8 +142,11 @@ void ApplyAscensionHeroPriestContracts(SpellInfo* spellInfo)
     }
 }
 
+#include "Area52CrusaderBlinding.inc"
+
 void AddSC_AscensionHeroPriest()
 {
+    RegisterSpellScript(spell_area52_crusader_blinding_light);
     RegisterSpellScript(aura_hero_priest_reach_capstone);
     RegisterSpellScript(spell_hero_priest_halo_frozen_light);
     RegisterSpellScript(aura_hero_priest_void_touched_mind);

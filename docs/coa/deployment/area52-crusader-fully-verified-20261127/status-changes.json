@@ -1,0 +1,740 @@
+[
+  {
+    "kind": "advancement",
+    "id": 10001,
+    "name": "Holy Strike",
+    "ranks": [
+      35512
+    ]
+  },
+  {
+    "kind": "mystic",
+    "id": 84537,
+    "name": "Strength in Faith",
+    "ranks": [
+      84537
+    ]
+  },
+  {
+    "kind": "mystic",
+    "id": 84579,
+    "name": "Faithful Flex",
+    "ranks": [
+      84579
+    ]
+  },
+  {
+    "kind": "mystic",
+    "id": 913715,
+    "name": "Dual Wield Specialization",
+    "ranks": [
+      913715
+    ]
+  },
+  {
+    "kind": "mystic",
+    "id": 920224,
+    "name": "Seals of the Pure",
+    "ranks": [
+      920224
+    ]
+  },
+  {
+    "kind": "mystic",
+    "id": 920264,
+    "name": "Divine Strength",
+    "ranks": [
+      920264
+    ]
+  },
+  {
+    "kind": "mystic",
+    "id": 931866,
+    "name": "Crusade",
+    "ranks": [
+      931866
+    ]
+  },
+  {
+    "kind": "mystic",
+    "id": 932043,
+    "name": "Sanctity of Battle",
+    "ranks": [
+      932043
+    ]
+  },
+  {
+    "kind": "mystic",
+    "id": 965295,
+    "name": "Consecrated Strikes",
+    "ranks": [
+      965295
+    ]
+  },
+  {
+    "kind": "mystic",
+    "id": 965395,
+    "name": "Vanquishing Storm",
+    "ranks": [
+      965395
+    ]
+  },
+  {
+    "kind": "mystic",
+    "id": 977900,
+    "name": "Ward of Light",
+    "ranks": [
+      977900
+    ]
+  },
+  {
+    "kind": "mystic",
+    "id": 986280,
+    "name": "Exorcist's Slash",
+    "ranks": [
+      986280
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1324,
+    "name": "Judgement Mastery",
+    "ranks": [
+      92169
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2955,
+    "name": "Judgement of Light",
+    "ranks": [
+      20271
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3020,
+    "name": "Judgement of Wisdom",
+    "ranks": [
+      53408
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3594,
+    "name": "Crusader Strike",
+    "ranks": [
+      35395
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1085,
+    "name": "Divine Strength",
+    "ranks": [
+      20262,
+      20263,
+      20264
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2656,
+    "name": "Power Word: Shield",
+    "ranks": [
+      17
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2661,
+    "name": "Heroic Strike",
+    "ranks": [
+      78
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 754,
+    "name": "Seals of the Pure",
+    "ranks": [
+      20224,
+      20225,
+      20330
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2691,
+    "name": "Divine Protection",
+    "ranks": [
+      498
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 995,
+    "name": "Twin Disciplines",
+    "ranks": [
+      47586,
+      47587,
+      47588,
+      52802,
+      52803
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3735,
+    "name": "Divine Storm",
+    "ranks": [
+      53385
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 775,
+    "name": "Improved Judgements",
+    "ranks": [
+      25956,
+      25957,
+      25958
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 777,
+    "name": "Vindication",
+    "ranks": [
+      9452,
+      26016,
+      209452
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2738,
+    "name": "Exorcism",
+    "ranks": [
+      879
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2940,
+    "name": "Flash of Light",
+    "ranks": [
+      19750
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1366,
+    "name": "Seal Mastery",
+    "ranks": [
+      954707
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3410,
+    "name": "Seal of Command",
+    "ranks": [
+      20375
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 755,
+    "name": "Heart of the Crusader",
+    "ranks": [
+      20335,
+      20336,
+      20337
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3043,
+    "name": "Portal Mastery",
+    "ranks": [
+      818045
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 884,
+    "name": "Sanctity of Battle",
+    "ranks": [
+      32043,
+      35396,
+      35397
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 882,
+    "name": "Judgements of the Wise",
+    "ranks": [
+      31876,
+      31877,
+      31878
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1632,
+    "name": "Angelic Feather",
+    "ranks": [
+      760053
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3019,
+    "name": "Judgement of Justice",
+    "ranks": [
+      53407
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1083,
+    "name": "The Art of War",
+    "ranks": [
+      53486,
+      53488,
+      853486
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1369,
+    "name": "Blessing Mastery",
+    "ranks": [
+      954711
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2938,
+    "name": "Blessing of Wisdom",
+    "ranks": [
+      19742
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2710,
+    "name": "Divine Shield",
+    "ranks": [
+      642
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2773,
+    "name": "Levitate",
+    "ranks": [
+      1706
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 730,
+    "name": "Vengeance",
+    "ranks": [
+      20049,
+      20056,
+      20057
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1621,
+    "name": "Rebuke",
+    "ranks": [
+      955070
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 733,
+    "name": "Two-Handed Weapon Specialization",
+    "ranks": [
+      20111,
+      20112,
+      20113
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1608,
+    "name": "Execution Sentence",
+    "ranks": [
+      954817
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1095,
+    "name": "Judgements of the Pure",
+    "ranks": [
+      53671,
+      53673,
+      54151
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1190,
+    "name": "Blinding Light",
+    "ranks": [
+      954500
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2736,
+    "name": "Hammer of Justice",
+    "ranks": [
+      853
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 964,
+    "name": "Strength of Arms",
+    "ranks": [
+      46865,
+      46866
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2952,
+    "name": "Blessing of Kings",
+    "ranks": [
+      20217
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1132,
+    "name": "Body and Soul",
+    "ranks": [
+      64127,
+      64129
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1637,
+    "name": "Light of Dawn",
+    "ranks": [
+      760106
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 883,
+    "name": "Fanaticism",
+    "ranks": [
+      31879,
+      31880,
+      31881
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 102,
+    "name": "Purify",
+    "ranks": [
+      1152
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1080,
+    "name": "Swift Retribution",
+    "ranks": [
+      53379,
+      53484,
+      53648
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3453,
+    "name": "Rampage",
+    "ranks": [
+      29801
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2885,
+    "name": "Redemption",
+    "ranks": [
+      7328
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1807,
+    "name": "Power of Light",
+    "ranks": [
+      853510,
+      853511,
+      853512
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2723,
+    "name": "Banish",
+    "ranks": [
+      710
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1081,
+    "name": "Righteous Vengeance",
+    "ranks": [
+      53380,
+      53381,
+      53382
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3042,
+    "name": "Tracking Mastery",
+    "ranks": [
+      801494
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3367,
+    "name": "Trueshot Aura",
+    "ranks": [
+      19506
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 486,
+    "name": "Dual Wield Specialization",
+    "ranks": [
+      13715,
+      13848,
+      13849,
+      13851,
+      13852
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3622,
+    "name": "Titan's Grip",
+    "ranks": [
+      46917
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1312,
+    "name": "Mage Armor Mastery",
+    "ranks": [
+      92155
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2979,
+    "name": "Molten Armor",
+    "ranks": [
+      30482
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2937,
+    "name": "Blessing of Might",
+    "ranks": [
+      19740
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1314,
+    "name": "Paladin Aura Mastery",
+    "ranks": [
+      92157
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2984,
+    "name": "Crusader Aura",
+    "ranks": [
+      32223
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 772,
+    "name": "Holy Power",
+    "ranks": [
+      5923,
+      5924,
+      5925
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3395,
+    "name": "Blessing of Sanctuary",
+    "ranks": [
+      20911
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2762,
+    "name": "Arcane Intellect",
+    "ranks": [
+      1459
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 450,
+    "name": "Two-Handed Weapon Specialization",
+    "ranks": [
+      12163,
+      12711,
+      12712
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2701,
+    "name": "Conjure Food",
+    "ranks": [
+      587
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2983,
+    "name": "Avenging Wrath",
+    "ranks": [
+      31884
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2968,
+    "name": "Consecration",
+    "ranks": [
+      26573
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2884,
+    "name": "Retribution Aura",
+    "ranks": [
+      7294
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 825,
+    "name": "Mental Quickness",
+    "ranks": [
+      30812,
+      30813,
+      30814,
+      830815,
+      830816
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 3647,
+    "name": "Penance",
+    "ranks": [
+      47540
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 1602,
+    "name": "Halo",
+    "ranks": [
+      954803
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2927,
+    "name": "Divine Spirit",
+    "ranks": [
+      14752
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 879,
+    "name": "Crusade",
+    "ranks": [
+      31866,
+      31867,
+      31868
+    ]
+  },
+  {
+    "kind": "advancement",
+    "id": 2939,
+    "name": "Concentration Aura",
+    "ranks": [
+      19746
+    ]
+  },
+  {
+    "kind": "mystic",
+    "id": 84581,
+    "name": "Kindle for the Fire",
+    "ranks": [
+      84581
+    ]
+  },
+  {
+    "kind": "mystic",
+    "id": 84583,
+    "name": "Naturally Strong",
+    "ranks": [
+      84583
+    ]
+  },
+  {
+    "kind": "mystic",
+    "id": 84587,
+    "name": "What We Do in the Shadows",
+    "ranks": [
+      84587
+    ]
+  },
+  {
+    "kind": "mystic",
+    "id": 84589,
+    "name": "Big Brain Big Muscles",
+    "ranks": [
+      84589
+    ]
+  }
+]

@@ -1,4 +1,5 @@
 #include "../../../coa/Area52WindScaling.h"
+#include "../../../coa/Area52StrengthFaith.h"
 #include "../../../coa/Area52ArcanistRules.h"
 #include "../../../coa/Area52FeignDeath.h"
 #include "../../../coa/Area52TemporaryPhysicalDamage.h"
@@ -20,9 +21,13 @@
  */
 
 #include "Unit.h"
+#include "../../../coa/Area52ConsecratedGround.h"
+#include "../../../coa/AscensionHeroPaladin.h"
 #include "../../../coa/Area52Worldforged.h"
 #include "../../../coa/AscensionMysticEnchantCatalog.h"
 #include "../../../coa/AscensionFreePick.h"
+#include "../../../coa/Area52CrusaderAbilityRules.h"
+#include "../../../coa/Area52DragonReviewRules.h"
 #include "../../../coa/Area52MarksmanRules.h"
 #include "../../../coa/Area52DependencyRules.h"
 #include "../../../coa/Area52FollowupProcRules.h"
@@ -5177,6 +5182,9 @@ bool Unit::CanCastSpellWhileMoving(SpellInfo const* info) const
 {
     if (!info)
         return false;
+    if (Area52DragonReview::BurningRushAllowsMovement(AscensionFreePick::Applies(ToPlayer()),
+            HasAura(954806), info->SchoolMask))
+        return true;
     // All movement gates must agree on the active Manastorm mixture.
     // Its aura 313 family differs from CoA class spells such as Elemental Burst.
     if (HasManastormMovementGrace())
@@ -7313,6 +7321,7 @@ float Unit::GetTotalAuraMultiplier(AuraType auraType, std::function<bool(AuraEff
     std::map<SpellGroup, int32> sameEffectSpellGroup;
     float multiplier = 1.0f;
 
+    int32 consecrated = 0;
     int32 harvest = 0;
     int32 similar = 0;
     bool const checkHarvest = auraType == SPELL_AURA_MOD_DAMAGE_PERCENT_DONE &&
@@ -7323,6 +7332,12 @@ float Unit::GetTotalAuraMultiplier(AuraType auraType, std::function<bool(AuraEff
     {
         if (predicate(aurEff))
         {
+            if (auraType == SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE)
+                if (int32 amount = Area52ConsecratedGroundAmount(aurEff, this))
+                {
+                    consecrated = std::max(consecrated, amount);
+                    continue;
+                }
             if (checkHarvest && aurEff->GetAmount() > 0)
             {
                 switch (aurEff->GetId())
@@ -7354,6 +7369,8 @@ float Unit::GetTotalAuraMultiplier(AuraType auraType, std::function<bool(AuraEff
     for (auto itr = sameEffectSpellGroup.begin(); itr != sameEffectSpellGroup.end(); ++itr)
         AddPct(multiplier, itr->second);
 
+    if (consecrated)
+        AddPct(multiplier, consecrated);
     if (harvest > similar)
         multiplier *= (100.0f + harvest) / (100.0f + similar);
     return multiplier;
@@ -9652,6 +9669,8 @@ float Unit::SpellPctDamageModsDone(Unit* victim, SpellInfo const* spellProto, Da
 
     auto const damagePercentEligible = [spellProto, this, damagetype](AuraEffect const* aurEff)
     {
+        if (aurEff->GetId() == 84537 && AscensionFreePick::Applies(ToPlayer()))
+            return false;
         if (aurEff->GetId() == 986202 && AscensionFreePick::Applies(ToPlayer()))
             return (spellProto->DmgClass == SPELL_DAMAGE_CLASS_MELEE || spellProto->DmgClass == SPELL_DAMAGE_CLASS_RANGED) &&
                 (spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_NORMAL) &&
@@ -10375,6 +10394,14 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
     float ApCoeffMod = GetSpellAttackPowerCoefficientMultiplier(spellProto, damagetype == DOT);
     int32 DoneTotal = 0;
     float DoneTotalMod = TotalMod ? TotalMod : SpellPctDamageModsDone(victim, spellProto, damagetype);
+    if (AscensionFreePick::Applies(ToPlayer()))
+    {
+        AuraEffect const* physical = GetAuraEffect(84537, EFFECT_0);
+        AuraEffect const* holy = GetAuraEffect(84537, EFFECT_1);
+        DoneTotalMod *= Area52StrengthFaith::Multiplier(
+            spellProto && !spellProto->HasAttribute(SPELL_ATTR2_AUTO_REPEAT), spellProto->GetSchoolMask(),
+            physical ? physical->GetAmount() : 0, holy ? holy->GetAmount() : 0);
+    }
 
     if (AscensionFreePick::Applies(ToPlayer()) && spellProto->GetFirstRankSpell()->Id == 6343)
         if (Item* weapon = ToPlayer()->GetWeaponForAttack(BASE_ATTACK, true))
@@ -10531,6 +10558,14 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
         grapeBonus.ap_bonus = 0.03f;
         bonus = &grapeBonus;
     }
+    SpellBonusEntry consecratedGroundBonus{};
+    if (AscensionFreePick::Applies(ToPlayer()) && spellProto->Id == 977847 && effIndex == EFFECT_0 && damagetype == DOT)
+    {
+        consecratedGroundBonus.dot_damage = 0.04f;
+        consecratedGroundBonus.ap_dot_bonus = 0.04f;
+        bonus = &consecratedGroundBonus;
+    }
+
     if (bonus)
     {
         if (damagetype == DOT)
@@ -10810,6 +10845,7 @@ uint32 Unit::SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, ui
                     case 53585:
                     case 53659:
                     case 853586:
+                    case 977902:
                         return (effect->GetMiscValue() & spellProto->GetSchoolMask()) != 0;
                     default:
                         return false;
@@ -10830,6 +10866,8 @@ uint32 Unit::SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, ui
         AddPct(TakenTotalMod, IsPlayer() ? 20 : 30);
 
     TakenTotalMod = processDummyAuras(TakenTotalMod);
+    if (damagetype == DOT)
+        AddPct(TakenTotalMod, Area52FanaticismPeriodicBonus(caster, this, spellProto));
 
     // From caster spells
     if (caster)
@@ -10838,6 +10876,9 @@ uint32 Unit::SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, ui
         {
             if (Area52FollowupProcs::HealingOnly(AscensionFreePick::Applies(caster->ToPlayer()), aurEff->GetId()))
                 return false;
+            if (aurEff->GetId() == 31882 && AscensionFreePick::Applies(caster->ToPlayer()))
+                return aurEff->GetCasterGUID() == caster->GetGUID() &&
+                    Area52FanaticismMarkAffected(caster, spellProto);
             if (aurEff->GetCasterGUID() == caster->GetGUID() && aurEff->IsAffectedOnSpell(spellProto))
                 return true;
             return false;
@@ -11868,6 +11909,9 @@ uint32 Unit::SpellHealingBonusTaken(Unit* caster, SpellInfo const* spellProto, u
         {
             if (aurEff->GetId() == 271315 && spellProto->Id != 271303)
                 return false;
+            if (Area52CrusaderAbility::IsHaloRecipient(aurEff->GetId()))
+                return Area52CrusaderAbility::HaloHealingApplies(AscensionFreePick::Applies(caster->ToPlayer()),
+                    caster->GetGUID() == aurEff->GetCasterGUID(), spellProto->GetSchoolMask());
             return caster->GetGUID() == aurEff->GetCasterGUID() && aurEff->IsAffectedOnSpell(spellProto);
         });
     }
@@ -11936,7 +11980,14 @@ int32 Unit::SpellBaseHealingBonusDone(SpellSchoolMask schoolMask)
         }
 
         // ... and attack power
-        AdvertisedBenefit += int32(CalculatePct(GetTotalAttackPowerValue(BASE_ATTACK), GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_SPELL_HEALING_OF_ATTACK_POWER, schoolMask)));
+        AdvertisedBenefit += int32(CalculatePct(GetTotalAttackPowerValue(BASE_ATTACK), GetTotalAuraModifier(SPELL_AURA_MOD_SPELL_HEALING_OF_ATTACK_POWER,
+            [this, schoolMask](AuraEffect const* effect)
+            {
+                if (!(effect->GetMiscValue() & schoolMask))
+                    return false;
+                return effect->GetId() < 853510 || effect->GetId() > 853512 ||
+                    !AscensionFreePick::Applies(ToPlayer()) || HasAura(84864) || HasAura(84865);
+            })));
         if (HasAura(84866))
             AdvertisedBenefit = int32(std::clamp<int64>(int64(AdvertisedBenefit) * 2,
                 std::numeric_limits<int32>::min(), std::numeric_limits<int32>::max()));
@@ -12347,6 +12398,14 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
     // Done total percent damage auras
     float DoneTotalMod = GetAscensionNormalTuningDamageMultiplier(victim, damageSchoolMask) *
         GetAscensionPvpTuningDamageMultiplier(victim, damageSchoolMask) * MetamorphosisDamageMultiplier(this, victim);
+    if (AscensionFreePick::Applies(ToPlayer()))
+    {
+        AuraEffect const* physical = GetAuraEffect(84537, EFFECT_0);
+        AuraEffect const* holy = GetAuraEffect(84537, EFFECT_1);
+        DoneTotalMod *= Area52StrengthFaith::Multiplier(
+            spellProto && !spellProto->HasAttribute(SPELL_ATTR2_AUTO_REPEAT), damageSchoolMask,
+            physical ? physical->GetAmount() : 0, holy ? holy->GetAmount() : 0);
+    }
 
     // mods for SPELL_SCHOOL_MASK_NORMAL are already factored in base melee damage calculation
     if (spellProto && (damageSchoolMask & SPELL_SCHOOL_MASK_NORMAL) && AscensionFreePick::Applies(ToPlayer()) &&
@@ -12361,6 +12420,8 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
         // Some spells don't benefit from pct done mods
         DoneTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, [spellProto, this, damageSchoolMask](AuraEffect const* aurEff)
             {
+            if (aurEff->GetId() == 84537 && AscensionFreePick::Applies(ToPlayer()))
+                return false;
             if (aurEff->GetId() == 47241 && AscensionFreePick::Applies(ToPlayer()))
                 return false;
             if (!spellProto || (spellProto->ValidateAttribute6SpellDamageMods(this, aurEff, false)))
@@ -12850,6 +12911,9 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* attacker, uint32 pdamage, WeaponAttackT
         {
             if (Area52FollowupProcs::HealingOnly(AscensionFreePick::Applies(attacker->ToPlayer()), aurEff->GetId()))
                 return false;
+            if (aurEff->GetId() == 31882 && AscensionFreePick::Applies(attacker->ToPlayer()))
+                return aurEff->GetCasterGUID() == attacker->GetGUID() &&
+                    Area52FanaticismMarkAffected(attacker, spellProto);
             return attacker->GetGUID() == aurEff->GetCasterGUID() && aurEff->IsAffectedOnSpell(spellProto);
         });
 
@@ -14836,6 +14900,8 @@ void Unit::UpdateDamagePctDoneMods(WeaponAttackType attackType)
 
     auto const damagePercentEligible = [attackType, this](AuraEffect const* aurEff) -> bool
     {
+        if (aurEff->GetId() == 84537 && AscensionFreePick::Applies(ToPlayer()))
+            return false;
         if (aurEff->GetId() == 47241 && AscensionFreePick::Applies(ToPlayer()))
             return false;
         // Heavy Swings applies to physical abilities; apply it in the spell-damage paths.

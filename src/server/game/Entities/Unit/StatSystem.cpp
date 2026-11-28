@@ -878,6 +878,12 @@ void Player::UpdateCritPercentage(WeaponAttackType attType)
     // Modify crit from weapon skill and maximized defense skill of same level victim difference
     value += (int32(GetWeaponSkillValue(attType)) - int32(GetMaxSkillValueForLevel())) * 0.04f;
     value += GetTotalAuraModifierByMiscMask(SPELL_AURA_ASCENSION_MOD_CRIT_CHANCE, SPELL_SCHOOL_MASK_NORMAL);
+    if (AscensionFreePick::Applies(this) &&
+        (attType == RANGED_ATTACK || !(HasAura(84864) || HasAura(84865))))
+        value -= GetTotalAuraModifier(SPELL_AURA_MOD_WEAPON_CRIT_PERCENT, [](AuraEffect const* effect)
+        {
+            return effect->GetId() >= 853510 && effect->GetId() <= 853512;
+        });
 
     if (sConfigMgr->GetOption<bool>("Stats.Limits.Enable", false))
     {
