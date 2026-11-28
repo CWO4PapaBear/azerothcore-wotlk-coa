@@ -1,0 +1,22 @@
+#include <algorithm>
+#include <array>
+#include <cassert>
+#include <cstdint>
+#include <map>
+#include <vector>
+using uint32=uint32_t;using int32=int32_t;using uint8=uint8_t;using uint16=uint16_t;using SpellEffIndex=int;using EnchantmentSlot=int;using Stats=int;
+@ENUM@
+constexpr int SPELL_EFFECT_HANDLE_HIT_TARGET=1,INVENTORY_SLOT_BAG_0=0,EQUIPMENT_SLOT_MAINHAND=15,TEMP_ENCHANTMENT_SLOT=1,IN_MILLISECONDS=1000,MINUTE=60,SPELL_AURA_MOD_RATING_FROM_STAT=220,PLAYER_FIELD_COMBAT_RATING_1=0,AURA_EFFECT_HANDLE_CHANGE_AMOUNT_MASK=1,AURA_EFFECT_HANDLE_STAT=2,BASE_ATTACK=0,OFF_ATTACK=1,RANGED_ATTACK=2;
+struct Player;struct Unit{Player*player=nullptr;Player*ToPlayer(){return player;}bool IsPlayer(){return player;}uint32 GetGUID(){return 7;}};
+struct Item{bool equipped=true;uint32 enchant=0,duration=0;bool IsEquipped(){return equipped;}uint32 GetEnchantmentId(int){return enchant;}void SetEnchantment(int,uint32 id,int32 d,uint32,uint32 caster){assert(caster==7);enchant=id;duration=d;}};
+struct SpellItemEnchantmentEntry{uint32 charges=0;};struct Store{bool present=true;SpellItemEnchantmentEntry entry;SpellItemEnchantmentEntry const*LookupEntry(uint32 id){return present&&id==45?&entry:nullptr;}}sSpellItemEnchantmentStore;
+struct Effect{uint32 MiscValue=45;};struct SpellInfo{uint32 Id=977849;int duration=60000;Effect Effects[3];int32 GetDuration()const{return duration;}};
+struct AuraApplication{Unit*target;Unit*GetTarget()const{return target;}};struct AuraEffect{int misc=16777216,miscB=0,amount=12;int GetMiscValue()const{return misc;}int GetMiscValueB()const{return miscB;}int GetAmount()const{return amount;}void HandleModRatingFromStat(AuraApplication const*,uint8,bool)const;};using AuraEffectList=std::vector<AuraEffect const*>;
+struct Player:Unit{Item weapon;bool available=true;uint32 applications=0;float strength=100;int32 m_baseRatingValue[MAX_COMBAT_RATING]{};std::map<int,uint32>ratings;AuraEffectList effects;Player(){player=this;}Item*GetItemByPos(int bag,int slot){assert(bag==0&&slot==15);return available?&weapon:nullptr;}void ApplyEnchantment(Item*i,int slot,bool apply){assert(i==&weapon&&slot==1&&apply);++applications;}AuraEffectList const&GetAuraEffectsByType(int)const{return effects;}float GetStat(Stats stat)const{return stat==0?strength:40;}void SetUInt32Value(uint16 field,uint32 v){ratings[field]=v;}bool CanModifyStats(){return true;}void UpdateDefenseBonusesMod(){}void UpdateDodgePercentage(){}void UpdateParryPercentage(){}void UpdateBlockPercentage(){}void UpdateMeleeHitChances(){}void UpdateRangedHitChances(){}void UpdateSpellHitChances(){}void UpdateCritPercentage(int){}void UpdateAllSpellCritChances(){}void ApplyRatingHaste(int,float){}float GetRatingMultiplier(int){return 1;}void UpdateExpertise(int){}void UpdateArmorPenetration(int){}void UpdateRating(CombatRating);void ApplyRatingMod(CombatRating cr,int,bool){UpdateRating(cr);}void Changed(Stats stat){@STAT@}};
+float CalculatePct(float v,int percent){return v*percent/100;}
+struct Spell{int effectHandleMode=1;Unit*unitTarget;Unit*m_caster;SpellInfo info;SpellInfo const*m_spellInfo=&info;int damage=0;void EffectEnchantHeldItem(SpellEffIndex);};
+@ENCHANT@
+@RATING@
+@HANDLER@
+int main(){Player p;Spell cast;cast.unitTarget=&p;cast.m_caster=&p;cast.EffectEnchantHeldItem(0);assert(p.weapon.enchant==45&&p.weapon.duration==60000&&p.applications==1);cast.EffectEnchantHeldItem(0);assert(p.applications==2);p.weapon.enchant=803;cast.EffectEnchantHeldItem(0);assert(p.weapon.enchant==803&&p.applications==2);p.weapon.enchant=0;p.weapon.equipped=false;cast.EffectEnchantHeldItem(0);assert(!p.weapon.enchant);p.weapon.equipped=true;p.available=false;cast.EffectEnchantHeldItem(0);assert(!p.weapon.enchant);p.available=true;sSpellItemEnchantmentStore.present=false;cast.EffectEnchantHeldItem(0);assert(!p.weapon.enchant);
+AuraEffect armor,crit;crit.misc=1792;p.effects={&armor,&crit};AuraApplication app{&p};armor.HandleModRatingFromStat(&app,1,true);crit.HandleModRatingFromStat(&app,1,true);for(int rating:{24,8,9,10})assert(p.ratings[rating]==12);p.strength=250;p.Changed(0);for(int rating:{24,8,9,10})assert(p.ratings[rating]==30);p.strength=101;p.Changed(0);for(int rating:{24,8,9,10})assert(p.ratings[rating]==12);assert(p.ratings[5]==0);p.effects.clear();armor.HandleModRatingFromStat(&app,1,false);crit.HandleModRatingFromStat(&app,1,false);for(int rating:{24,8,9,10})assert(p.ratings[rating]==0);}

@@ -1,0 +1,20 @@
+[
+  {
+    "id": 9452,
+    "field": 170,
+    "before": "Gives your Holy spells and Paladin melee abilities a 17% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level). \r\n\n@ext:Does not stack with other similar effects.:ext@\r\n@ext::ext@\n\n|cFFAAAAAACapstone Bonus: Your attack power is increased whenever you deal Holy damage to a target afflicted by Vindication.|r",
+    "after": "Gives your Holy spells and Paladin melee abilities a 17% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level). \r\n\n@ext:Does not stack with other similar effects.:ext@\r\n@ext::ext@\n\n|cFFAAAAAACapstone Bonus: Dealing Holy damage to a target afflicted by Vindication increases your attack power by $200067s1 (scaling with level) for $200067d.|r"
+  },
+  {
+    "id": 26016,
+    "field": 170,
+    "before": "Gives your Holy spells and Paladin melee abilities a 34% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n@ext:Does not stack with other similar effects.:ext@\r\n@ext::ext@\r\n\n|cFFAAAAAACapstone Bonus: Your attack power is increased whenever you deal Holy damage to a target afflicted by Vindication.|r",
+    "after": "Gives your Holy spells and Paladin melee abilities a 34% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n@ext:Does not stack with other similar effects.:ext@\r\n@ext::ext@\r\n\n|cFFAAAAAACapstone Bonus: Dealing Holy damage to a target afflicted by Vindication increases your attack power by $200067s1 (scaling with level) for $200067d.|r"
+  },
+  {
+    "id": 209452,
+    "field": 170,
+    "before": "Gives your Holy spells and Paladin melee abilities a 65% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n@ext:Does not stack with other similar effects.:ext@\r\n@ext::ext@\r\n\nCapstone Bonus: Your attack power is increased whenever you deal Holy damage to a target afflicted by Vindication.",
+    "after": "Gives your Holy spells and Paladin melee abilities a 65% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n@ext:Does not stack with other similar effects.:ext@\r\n@ext::ext@\r\n\nCapstone Bonus: Dealing Holy damage to a target afflicted by Vindication increases your attack power by $200067s1 (scaling with level) for $200067d."
+  }
+]

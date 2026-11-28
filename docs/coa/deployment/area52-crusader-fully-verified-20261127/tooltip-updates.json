@@ -1,0 +1,373 @@
+{
+  "prepared_only": false,
+  "archive_baselines": {
+    "patch-D.MPQ": {
+      "spell_dbc_sha256": "3013fcf0ad5feb3c82ad4889f2b296e362c5403f5ff476ed9842a8cfcc77b9b2",
+      "archive_sha256": "71c2ac0cdd14b3dba2d71113b342ec593fdd0bc37610dc303fc00c9e812a4b47"
+    },
+    "patch-E.MPQ": {
+      "spell_dbc_sha256": "285285d01f1aab43f52ee62d411bdde3a63f9bcbba4ff6baed6a0eed1ba1762e",
+      "archive_sha256": "55932f5716df2f637febfe272e18bb00d04c481d49b1fc943a05e0b2487bbabd"
+    }
+  },
+  "spells": {
+    "498": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Reduces all damage taken by $s2% for $d.\n\n@ext:This ability is usable while shapeshifted.\n\n|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Reduces all damage taken by $s2% for $d.\n\nCannot be used while affected by Forbearance or within $61987d of using Avenging Wrath. Causes Forbearance for $25771d.\n\n@ext:This ability is usable while shapeshifted.:ext@\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Reduces all damage taken by $s2% for $d.\n\n@ext:This ability is usable while shapeshifted.\n\n|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Reduces all damage taken by $s2% for $d.\n\nCannot be used while affected by Forbearance or within $61987d of using Avenging Wrath. Causes Forbearance for $25771d.\n\n@ext:This ability is usable while shapeshifted.:ext@\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        }
+      },
+      "expected_description": "Reduces all damage taken by $s2% for $d.\n\n@ext:This ability is usable while shapeshifted.\n\n|cffff0000NOT VERIFIED|r:ext@",
+      "description": "Reduces all damage taken by $s2% for $d.\n\nCannot be used while affected by Forbearance or within $61987d of using Avenging Wrath. Causes Forbearance for $25771d.\n\n@ext:This ability is usable while shapeshifted.:ext@\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+    },
+    "9452": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Gives your Holy spells and Paladin melee abilities a 17% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level). \r\n\n\r\n\n\n|cFFAAAAAACapstone Bonus: Your attack power is increased whenever you deal Holy damage to a target afflicted by Vindication.|r\n\n@ext:Does not stack with other similar effects.\n\n|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Gives your Holy spells and Paladin melee abilities a 17% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level). \r\n\n@ext:Does not stack with other similar effects.:ext@\r\n@ext::ext@\n\n|cFFAAAAAACapstone Bonus: Dealing Holy damage to a target afflicted by Vindication increases your attack power by $200067s1 (scaling with level) for $200067d.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Gives your Holy spells and Paladin melee abilities a 17% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level). \r\n\n\r\n\n\n|cFFAAAAAACapstone Bonus: Your attack power is increased whenever you deal Holy damage to a target afflicted by Vindication.|r\n\n@ext:Does not stack with other similar effects.\n\n|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Gives your Holy spells and Paladin melee abilities a 17% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level). \r\n\n@ext:Does not stack with other similar effects.:ext@\r\n@ext::ext@\n\n|cFFAAAAAACapstone Bonus: Dealing Holy damage to a target afflicted by Vindication increases your attack power by $200067s1 (scaling with level) for $200067d.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        }
+      },
+      "expected_description": "Gives your Holy spells and Paladin melee abilities a 17% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level). \r\n\n\r\n\n\n|cFFAAAAAACapstone Bonus: Your attack power is increased whenever you deal Holy damage to a target afflicted by Vindication.|r\n\n@ext:Does not stack with other similar effects.\n\n|cffff0000NOT VERIFIED|r:ext@",
+      "description": "Gives your Holy spells and Paladin melee abilities a 17% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level). \r\n\n@ext:Does not stack with other similar effects.:ext@\r\n@ext::ext@\n\n|cFFAAAAAACapstone Bonus: Dealing Holy damage to a target afflicted by Vindication increases your attack power by $200067s1 (scaling with level) for $200067d.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+    },
+    "20375": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "@learns:954707@\r\nAll main hand auto attacks and Paladin melee abilities deal ${0.18*$mw} to ${0.18*$MW} additional Holy damage to the target and up to 2 additional targets. Lasts $d.\r\n\r\nUnleashing this Seal's energy will judge an enemy, instantly causing ${0.19*$mw+0.08*$AP+0.13*$SPH} to ${0.19*$MW+0.08*$AP+0.13*$SPH} Holy damage.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "@learns:954707@\r\nAll main hand auto attacks and Paladin melee abilities deal ${0.18*$mw} to ${0.18*$MW} additional Holy damage to the target and up to 2 additional targets. Divine Storm and Hammer of the Righteous trigger this damage only against their original hit targets, without additional Seal cleave. Lasts $d.\r\n\r\nUnleashing this Seal's energy will judge an enemy, instantly causing ${0.19*$mw+0.08*$AP+0.13*$SPH} to ${0.19*$MW+0.08*$AP+0.13*$SPH} Holy damage.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        },
+        "patch-E.MPQ": {
+          "expected_description": "@learns:954707@\r\nAll main hand auto attacks and Paladin melee abilities deal ${0.18*$mw} to ${0.18*$MW} additional Holy damage to the target and up to 2 additional targets. Lasts $d.\r\n\r\nUnleashing this Seal's energy will judge an enemy, instantly causing ${0.19*$mw+0.08*$AP+0.13*$SPH} to ${0.19*$MW+0.08*$AP+0.13*$SPH} Holy damage.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "@learns:954707@\r\nAll main hand auto attacks and Paladin melee abilities deal ${0.18*$mw} to ${0.18*$MW} additional Holy damage to the target and up to 2 additional targets. Divine Storm and Hammer of the Righteous trigger this damage only against their original hit targets, without additional Seal cleave. Lasts $d.\r\n\r\nUnleashing this Seal's energy will judge an enemy, instantly causing ${0.19*$mw+0.08*$AP+0.13*$SPH} to ${0.19*$MW+0.08*$AP+0.13*$SPH} Holy damage.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        }
+      },
+      "expected_description": "@learns:954707@\r\nAll main hand auto attacks and Paladin melee abilities deal ${0.18*$mw} to ${0.18*$MW} additional Holy damage to the target and up to 2 additional targets. Lasts $d.\r\n\r\nUnleashing this Seal's energy will judge an enemy, instantly causing ${0.19*$mw+0.08*$AP+0.13*$SPH} to ${0.19*$MW+0.08*$AP+0.13*$SPH} Holy damage.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+      "description": "@learns:954707@\r\nAll main hand auto attacks and Paladin melee abilities deal ${0.18*$mw} to ${0.18*$MW} additional Holy damage to the target and up to 2 additional targets. Divine Storm and Hammer of the Righteous trigger this damage only against their original hit targets, without additional Seal cleave. Lasts $d.\r\n\r\nUnleashing this Seal's energy will judge an enemy, instantly causing ${0.19*$mw+0.08*$AP+0.13*$SPH} to ${0.19*$MW+0.08*$AP+0.13*$SPH} Holy damage.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+    },
+    "26016": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Gives your Holy spells and Paladin melee abilities a 34% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n\r\n\r\n\n|cFFAAAAAACapstone Bonus: Your attack power is increased whenever you deal Holy damage to a target afflicted by Vindication.|r\n\n@ext:Does not stack with other similar effects.\n\n|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Gives your Holy spells and Paladin melee abilities a 34% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n@ext:Does not stack with other similar effects.:ext@\r\n@ext::ext@\r\n\n|cFFAAAAAACapstone Bonus: Dealing Holy damage to a target afflicted by Vindication increases your attack power by $200067s1 (scaling with level) for $200067d.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Gives your Holy spells and Paladin melee abilities a 34% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n\r\n\r\n\n|cFFAAAAAACapstone Bonus: Your attack power is increased whenever you deal Holy damage to a target afflicted by Vindication.|r\n\n@ext:Does not stack with other similar effects.\n\n|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Gives your Holy spells and Paladin melee abilities a 34% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n@ext:Does not stack with other similar effects.:ext@\r\n@ext::ext@\r\n\n|cFFAAAAAACapstone Bonus: Dealing Holy damage to a target afflicted by Vindication increases your attack power by $200067s1 (scaling with level) for $200067d.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        }
+      },
+      "expected_description": "Gives your Holy spells and Paladin melee abilities a 34% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n\r\n\r\n\n|cFFAAAAAACapstone Bonus: Your attack power is increased whenever you deal Holy damage to a target afflicted by Vindication.|r\n\n@ext:Does not stack with other similar effects.\n\n|cffff0000NOT VERIFIED|r:ext@",
+      "description": "Gives your Holy spells and Paladin melee abilities a 34% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n@ext:Does not stack with other similar effects.:ext@\r\n@ext::ext@\r\n\n|cFFAAAAAACapstone Bonus: Dealing Holy damage to a target afflicted by Vindication increases your attack power by $200067s1 (scaling with level) for $200067d.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+    },
+    "31879": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Increases the critical strike chance of all Judgements by $s1%. \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31891s1%.\n\n|cFFAAAAAACapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a target that's marked or affected by Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces the cooldown of Execution Sentence by $/1000;31890S2 seconds.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Increases the critical strike chance of all Judgements by $s1%. \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31891s1%.\n\n|cFFAAAAAACapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a monster affected by your mark or your Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces Execution Sentence's remaining cooldown by 10 seconds.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Increases the critical strike chance of all Judgements by $s1%. \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31891s1%.\n\n|cFFAAAAAACapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a target that's marked or affected by Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces the cooldown of Execution Sentence by $/1000;31890S2 seconds.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Increases the critical strike chance of all Judgements by $s1%. \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31891s1%.\n\n|cFFAAAAAACapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a monster affected by your mark or your Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces Execution Sentence's remaining cooldown by 10 seconds.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        }
+      },
+      "expected_description": "Increases the critical strike chance of all Judgements by $s1%. \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31891s1%.\n\n|cFFAAAAAACapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a target that's marked or affected by Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces the cooldown of Execution Sentence by $/1000;31890S2 seconds.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+      "description": "Increases the critical strike chance of all Judgements by $s1%. \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31891s1%.\n\n|cFFAAAAAACapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a monster affected by your mark or your Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces Execution Sentence's remaining cooldown by 10 seconds.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+    },
+    "31880": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Increases the critical strike chance of all Judgements by $s1%.  \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31894s1%.\n\n|cFFAAAAAACapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a target that's marked or affected by Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces the cooldown of Execution Sentence by $/1000;31890S2 seconds.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Increases the critical strike chance of all Judgements by $s1%.  \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31894s1%.\n\n|cFFAAAAAACapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a monster affected by your mark or your Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces Execution Sentence's remaining cooldown by 10 seconds.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Increases the critical strike chance of all Judgements by $s1%.  \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31894s1%.\n\n|cFFAAAAAACapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a target that's marked or affected by Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces the cooldown of Execution Sentence by $/1000;31890S2 seconds.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Increases the critical strike chance of all Judgements by $s1%.  \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31894s1%.\n\n|cFFAAAAAACapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a monster affected by your mark or your Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces Execution Sentence's remaining cooldown by 10 seconds.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        }
+      },
+      "expected_description": "Increases the critical strike chance of all Judgements by $s1%.  \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31894s1%.\n\n|cFFAAAAAACapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a target that's marked or affected by Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces the cooldown of Execution Sentence by $/1000;31890S2 seconds.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+      "description": "Increases the critical strike chance of all Judgements by $s1%.  \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31894s1%.\n\n|cFFAAAAAACapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a monster affected by your mark or your Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces Execution Sentence's remaining cooldown by 10 seconds.|r\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+    },
+    "31881": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Increases the critical strike chance of all Judgements by $s1%. \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31895s1%.\n\nCapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a target that's marked or affected by Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces the cooldown of Execution Sentence by $/1000;31890S2 seconds when used against monsters.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Increases the critical strike chance of all Judgements by $s1%. \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31895s1%.\n\nCapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a monster affected by your mark or your Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces Execution Sentence's remaining cooldown by 10 seconds.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Increases the critical strike chance of all Judgements by $s1%. \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31895s1%.\n\nCapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a target that's marked or affected by Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces the cooldown of Execution Sentence by $/1000;31890S2 seconds when used against monsters.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Increases the critical strike chance of all Judgements by $s1%. \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31895s1%.\n\nCapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a monster affected by your mark or your Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces Execution Sentence's remaining cooldown by 10 seconds.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        }
+      },
+      "expected_description": "Increases the critical strike chance of all Judgements by $s1%. \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31895s1%.\n\nCapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a target that's marked or affected by Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces the cooldown of Execution Sentence by $/1000;31890S2 seconds when used against monsters.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+      "description": "Increases the critical strike chance of all Judgements by $s1%. \r\n\r\nIncreases the damage of your Crusader Strike, Seals and Judgements on targets affected by your Execution Sentence by $31895s1%.\n\nCapstone Bonus: Your Crusader Strike marks the target for $31882d, increasing the damage they take from your Seals by $31882s1%. Judging a monster affected by your mark or your Execution Sentence grants you $31890s1% increased movement speed for $31890d and reduces Execution Sentence's remaining cooldown by 10 seconds.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+    },
+    "84537": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Increases the damage of your Physical abilities by $s1% and increases the damage of your Holy abilities by $s2%. This enchant does not stack.\n\n@ext:|cffffff00VERIFIED|r:ext@",
+          "description": "Increases the damage of your Physical abilities by $s1% and increases the damage of your Holy abilities by $s2%. This enchant does not stack.\n\nPhysical/Holy abilities receive both bonuses once, for a combined 2.01% damage increase. Ordinary auto-attacks are not affected.\n\n@ext:|cffffff00VERIFIED|r:ext@"
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Increases the damage of your Physical abilities by $s1% and increases the damage of your Holy abilities by $s2%. This enchant does not stack.\n\n@ext:|cffffff00VERIFIED|r:ext@",
+          "description": "Increases the damage of your Physical abilities by $s1% and increases the damage of your Holy abilities by $s2%. This enchant does not stack.\n\nPhysical/Holy abilities receive both bonuses once, for a combined 2.01% damage increase. Ordinary auto-attacks are not affected.\n\n@ext:|cffffff00VERIFIED|r:ext@"
+        }
+      },
+      "expected_description": "Increases the damage of your Physical abilities by $s1% and increases the damage of your Holy abilities by $s2%. This enchant does not stack.\n\n@ext:|cffffff00VERIFIED|r:ext@",
+      "description": "Increases the damage of your Physical abilities by $s1% and increases the damage of your Holy abilities by $s2%. This enchant does not stack.\n\nPhysical/Holy abilities receive both bonuses once, for a combined 2.01% damage increase. Ordinary auto-attacks are not affected.\n\n@ext:|cffffff00VERIFIED|r:ext@"
+    },
+    "84579": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Casting damaging Physical spells and abilities increase your Holy damage by $286101s1%.\r\nCasting damaging Holy spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Casting damaging Physical spells and abilities increase your Holy damage by $286101s1%.\r\nCasting damaging Holy spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\nA damaging cast matching both listed schools grants both bonuses once. Periodic damage and triggered helper spells do not grant additional stacks.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Casting damaging Physical spells and abilities increase your Holy damage by $286101s1%.\r\nCasting damaging Holy spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Casting damaging Physical spells and abilities increase your Holy damage by $286101s1%.\r\nCasting damaging Holy spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\nA damaging cast matching both listed schools grants both bonuses once. Periodic damage and triggered helper spells do not grant additional stacks.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        }
+      },
+      "expected_description": "Casting damaging Physical spells and abilities increase your Holy damage by $286101s1%.\r\nCasting damaging Holy spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+      "description": "Casting damaging Physical spells and abilities increase your Holy damage by $286101s1%.\r\nCasting damaging Holy spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\nA damaging cast matching both listed schools grants both bonuses once. Periodic damage and triggered helper spells do not grant additional stacks.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+    },
+    "84581": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Casting damaging Physical spells and abilities increase your Fire damage by $286102s1%.\r\nCasting damaging Fire spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Casting damaging Physical spells and abilities increase your Fire damage by $286102s1%.\r\nCasting damaging Fire spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\nA damaging cast matching both listed schools grants both bonuses once. Periodic damage and triggered helper spells do not grant additional stacks.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Casting damaging Physical spells and abilities increase your Fire damage by $286102s1%.\r\nCasting damaging Fire spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Casting damaging Physical spells and abilities increase your Fire damage by $286102s1%.\r\nCasting damaging Fire spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\nA damaging cast matching both listed schools grants both bonuses once. Periodic damage and triggered helper spells do not grant additional stacks.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        }
+      },
+      "expected_description": "Casting damaging Physical spells and abilities increase your Fire damage by $286102s1%.\r\nCasting damaging Fire spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+      "description": "Casting damaging Physical spells and abilities increase your Fire damage by $286102s1%.\r\nCasting damaging Fire spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\nA damaging cast matching both listed schools grants both bonuses once. Periodic damage and triggered helper spells do not grant additional stacks.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+    },
+    "84583": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Casting damaging Nature spells and abilities increase your Physical damage by $286100s1%.\r\nCasting damaging Physical spells and abilities increase your Nature damage by $286103s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Casting damaging Nature spells and abilities increase your Physical damage by $286100s1%.\r\nCasting damaging Physical spells and abilities increase your Nature damage by $286103s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\nA damaging cast matching both listed schools grants both bonuses once. Periodic damage and triggered helper spells do not grant additional stacks.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Casting damaging Nature spells and abilities increase your Physical damage by $286100s1%.\r\nCasting damaging Physical spells and abilities increase your Nature damage by $286103s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Casting damaging Nature spells and abilities increase your Physical damage by $286100s1%.\r\nCasting damaging Physical spells and abilities increase your Nature damage by $286103s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\nA damaging cast matching both listed schools grants both bonuses once. Periodic damage and triggered helper spells do not grant additional stacks.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        }
+      },
+      "expected_description": "Casting damaging Nature spells and abilities increase your Physical damage by $286100s1%.\r\nCasting damaging Physical spells and abilities increase your Nature damage by $286103s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+      "description": "Casting damaging Nature spells and abilities increase your Physical damage by $286100s1%.\r\nCasting damaging Physical spells and abilities increase your Nature damage by $286103s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\nA damaging cast matching both listed schools grants both bonuses once. Periodic damage and triggered helper spells do not grant additional stacks.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+    },
+    "84587": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Casting damaging Shadow spells and abilities increase your Physical damage by $286100s1%.\r\nCasting damaging Physical spells and abilities increase your Shadow damage by $286105s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Casting damaging Shadow spells and abilities increase your Physical damage by $286100s1%.\r\nCasting damaging Physical spells and abilities increase your Shadow damage by $286105s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\nA damaging cast matching both listed schools grants both bonuses once. Periodic damage and triggered helper spells do not grant additional stacks.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Casting damaging Shadow spells and abilities increase your Physical damage by $286100s1%.\r\nCasting damaging Physical spells and abilities increase your Shadow damage by $286105s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Casting damaging Shadow spells and abilities increase your Physical damage by $286100s1%.\r\nCasting damaging Physical spells and abilities increase your Shadow damage by $286105s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\nA damaging cast matching both listed schools grants both bonuses once. Periodic damage and triggered helper spells do not grant additional stacks.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        }
+      },
+      "expected_description": "Casting damaging Shadow spells and abilities increase your Physical damage by $286100s1%.\r\nCasting damaging Physical spells and abilities increase your Shadow damage by $286105s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+      "description": "Casting damaging Shadow spells and abilities increase your Physical damage by $286100s1%.\r\nCasting damaging Physical spells and abilities increase your Shadow damage by $286105s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\nA damaging cast matching both listed schools grants both bonuses once. Periodic damage and triggered helper spells do not grant additional stacks.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+    },
+    "84589": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Casting damaging Physical spells and abilities increase your Arcane damage by $286106s1%.\r\nCasting damaging Arcane spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Casting damaging Physical spells and abilities increase your Arcane damage by $286106s1%.\r\nCasting damaging Arcane spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\nA damaging cast matching both listed schools grants both bonuses once. Periodic damage and triggered helper spells do not grant additional stacks.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Casting damaging Physical spells and abilities increase your Arcane damage by $286106s1%.\r\nCasting damaging Arcane spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Casting damaging Physical spells and abilities increase your Arcane damage by $286106s1%.\r\nCasting damaging Arcane spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\nA damaging cast matching both listed schools grants both bonuses once. Periodic damage and triggered helper spells do not grant additional stacks.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        }
+      },
+      "expected_description": "Casting damaging Physical spells and abilities increase your Arcane damage by $286106s1%.\r\nCasting damaging Arcane spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+      "description": "Casting damaging Physical spells and abilities increase your Arcane damage by $286106s1%.\r\nCasting damaging Arcane spells and abilities increase your Physical damage by $286100s1%.\r\nBoth of these effects can stack up to $286100u times and lasts $286100d.\n\nA damaging cast matching both listed schools grants both bonuses once. Periodic damage and triggered helper spells do not grant additional stacks.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+    },
+    "209452": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Gives your Holy spells and Paladin melee abilities a 65% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n\r\n\r\n\nCapstone Bonus: Your attack power is increased whenever you deal Holy damage to a target afflicted by Vindication.\n\n@ext:Does not stack with other similar effects.\n\n|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Gives your Holy spells and Paladin melee abilities a 65% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n@ext:Does not stack with other similar effects.:ext@\r\n@ext::ext@\r\n\nCapstone Bonus: Dealing Holy damage to a target afflicted by Vindication increases your attack power by $200067s1 (scaling with level) for $200067d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Gives your Holy spells and Paladin melee abilities a 65% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n\r\n\r\n\nCapstone Bonus: Your attack power is increased whenever you deal Holy damage to a target afflicted by Vindication.\n\n@ext:Does not stack with other similar effects.\n\n|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Gives your Holy spells and Paladin melee abilities a 65% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n@ext:Does not stack with other similar effects.:ext@\r\n@ext::ext@\r\n\nCapstone Bonus: Dealing Holy damage to a target afflicted by Vindication increases your attack power by $200067s1 (scaling with level) for $200067d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        }
+      },
+      "expected_description": "Gives your Holy spells and Paladin melee abilities a 65% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n\r\n\r\n\nCapstone Bonus: Your attack power is increased whenever you deal Holy damage to a target afflicted by Vindication.\n\n@ext:Does not stack with other similar effects.\n\n|cffff0000NOT VERIFIED|r:ext@",
+      "description": "Gives your Holy spells and Paladin melee abilities a 65% chance to reduce the targets attack power by ${4.5*$PL-3} (scaling with level).\r\n\r\n@ext:Does not stack with other similar effects.:ext@\r\n@ext::ext@\r\n\nCapstone Bonus: Dealing Holy damage to a target afflicted by Vindication increases your attack power by $200067s1 (scaling with level) for $200067d.\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+    },
+    "965295": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Teaches you |cFFFFFFFFTemplar's Slash|r.\r\n\r\nYour Seal of Command now deals $278746s1% Physical Weapon damage.\r\n\r\nYour Crusader Strike, Divine Storm and Hammer of the Righteous abilities have a chance to create |cFFFFFFFFConsecrated Ground|r beneath your feet.\r\n@s:278745:-192@\r\n@s:977847:0@\r\n@s:977848:0@\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Teaches you |cFFFFFFFFTemplar's Slash|r.\r\n\r\nYour Seal of Command now deals $278746s1% Physical Weapon damage.\r\n\r\nYour Crusader Strike, Divine Storm and Hammer of the Righteous ability hits have a 50% chance to create |cFFFFFFFFConsecrated Ground|r beneath your feet.\r\n@s:278745:-192@\r\n@s:977847:0@\r\n@s:977848:0@\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Teaches you |cFFFFFFFFTemplar's Slash|r.\r\n\r\nYour Seal of Command now deals $278746s1% Physical Weapon damage.\r\n\r\nYour Crusader Strike, Divine Storm and Hammer of the Righteous abilities have a chance to create |cFFFFFFFFConsecrated Ground|r beneath your feet.\r\n@s:278745:-192@\r\n@s:977847:0@\r\n@s:977848:0@\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+          "description": "Teaches you |cFFFFFFFFTemplar's Slash|r.\r\n\r\nYour Seal of Command now deals $278746s1% Physical Weapon damage.\r\n\r\nYour Crusader Strike, Divine Storm and Hammer of the Righteous ability hits have a 50% chance to create |cFFFFFFFFConsecrated Ground|r beneath your feet.\r\n@s:278745:-192@\r\n@s:977847:0@\r\n@s:977848:0@\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+        }
+      },
+      "expected_description": "Teaches you |cFFFFFFFFTemplar's Slash|r.\r\n\r\nYour Seal of Command now deals $278746s1% Physical Weapon damage.\r\n\r\nYour Crusader Strike, Divine Storm and Hammer of the Righteous abilities have a chance to create |cFFFFFFFFConsecrated Ground|r beneath your feet.\r\n@s:278745:-192@\r\n@s:977847:0@\r\n@s:977848:0@\n\n@ext:|cffff0000NOT VERIFIED|r:ext@",
+      "description": "Teaches you |cFFFFFFFFTemplar's Slash|r.\r\n\r\nYour Seal of Command now deals $278746s1% Physical Weapon damage.\r\n\r\nYour Crusader Strike, Divine Storm and Hammer of the Righteous ability hits have a 50% chance to create |cFFFFFFFFConsecrated Ground|r beneath your feet.\r\n@s:278745:-192@\r\n@s:977847:0@\r\n@s:977848:0@\n\n@ext:|cffff0000NOT VERIFIED|r:ext@"
+    },
+    "965321": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Consecrates the land beneath the caster, increasing the Strength of nearby allies by $s1% and imbuing the caster's weapon with Holy power.",
+          "description": "Consecrates the land beneath the caster for $d. Allies within 8 yards gain 5% Strength, and the caster gains $965903s1% Strength while standing on the ground. Overlapping Consecrated Grounds grant only the strongest bonus. Grants Consecrated Weapon without replacing another temporary weapon enchant."
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Consecrates the land beneath the caster, increasing the Strength of nearby allies by $s1% and imbuing the caster's weapon with Holy power.",
+          "description": "Consecrates the land beneath the caster for $d. Allies within 8 yards gain 5% Strength, and the caster gains $965903s1% Strength while standing on the ground. Overlapping Consecrated Grounds grant only the strongest bonus. Grants Consecrated Weapon without replacing another temporary weapon enchant."
+        }
+      },
+      "expected_description": "Consecrates the land beneath the caster, increasing the Strength of nearby allies by $s1% and imbuing the caster's weapon with Holy power.",
+      "description": "Consecrates the land beneath the caster for $d. Allies within 8 yards gain 5% Strength, and the caster gains $965903s1% Strength while standing on the ground. Overlapping Consecrated Grounds grant only the strongest bonus. Grants Consecrated Weapon without replacing another temporary weapon enchant."
+    },
+    "965715": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Increases your attack speed by $16257s1% for your next 3 swings after dealing a critical strike.",
+          "description": "Increases melee and spell haste by $s1% per stack. Stacks up to $u times and lasts $d."
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Increases your attack speed by $16257s1% for your next 3 swings after dealing a critical strike.",
+          "description": "Increases melee and spell haste by $s1% per stack. Stacks up to $u times and lasts $d."
+        }
+      },
+      "expected_description": "Increases your attack speed by $16257s1% for your next 3 swings after dealing a critical strike.",
+      "description": "Increases melee and spell haste by $s1% per stack. Stacks up to $u times and lasts $d."
+    },
+    "965716": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Increases your attack speed by $16257s1% for your next 3 swings after dealing a critical strike.",
+          "description": "Increases melee and spell haste by $s1% per stack. Stacks up to $u times and lasts $d."
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Increases your attack speed by $16257s1% for your next 3 swings after dealing a critical strike.",
+          "description": "Increases melee and spell haste by $s1% per stack. Stacks up to $u times and lasts $d."
+        }
+      },
+      "expected_description": "Increases your attack speed by $16257s1% for your next 3 swings after dealing a critical strike.",
+      "description": "Increases melee and spell haste by $s1% per stack. Stacks up to $u times and lasts $d."
+    },
+    "965717": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Increases your attack speed by $16257s1% for your next 3 swings after dealing a critical strike.",
+          "description": "Increases melee and spell haste by $s1% per stack and increases Holy Fire and Smite damage by $s3% per stack. Stacks up to $u times and lasts $d."
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Increases your attack speed by $16257s1% for your next 3 swings after dealing a critical strike.",
+          "description": "Increases melee and spell haste by $s1% per stack and increases Holy Fire and Smite damage by $s3% per stack. Stacks up to $u times and lasts $d."
+        }
+      },
+      "expected_description": "Increases your attack speed by $16257s1% for your next 3 swings after dealing a critical strike.",
+      "description": "Increases melee and spell haste by $s1% per stack and increases Holy Fire and Smite damage by $s3% per stack. Stacks up to $u times and lasts $d."
+    },
+    "965903": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Strength increased by $s1%. Seal of Command damage increased by $s2%.",
+          "description": "While standing on Consecrated Ground, its caster gains 12% Strength and other allies gain 5% Strength. Overlapping Consecrated Grounds grant only the strongest bonus."
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Strength increased by $s1%. Seal of Command damage increased by $s2%.",
+          "description": "While standing on Consecrated Ground, its caster gains 12% Strength and other allies gain 5% Strength. Overlapping Consecrated Grounds grant only the strongest bonus."
+        }
+      },
+      "expected_description": "Strength increased by $s1%. Seal of Command damage increased by $s2%.",
+      "description": "While standing on Consecrated Ground, its caster gains 12% Strength and other allies gain 5% Strength. Overlapping Consecrated Grounds grant only the strongest bonus."
+    },
+    "977847": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Consecrates the land beneath the Paladin, doing ${8*($m1+0.04*$SPH+0.04*$AP)} Holy damage over $d to enemies and increases your strength by $965903s1% and strength of your allies by 5%. Grants |cFFFFFFFFConsecrated Weapon|r.",
+          "description": "Consecrates the land beneath the Paladin, doing ${8*($m1+0.04*$SPH+0.04*$AP)} Holy damage over $d to enemies and grants its caster $965903s1% Strength and other allies 5% Strength while standing within 8 yards. Overlapping Consecrated Grounds grant only the strongest bonus. Grants |cFFFFFFFFConsecrated Weapon|r."
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Consecrates the land beneath the Paladin, doing ${8*($m1+0.04*$SPH+0.04*$AP)} Holy damage over $d to enemies and increases your strength by $965903s1% and strength of your allies by 5%. Grants |cFFFFFFFFConsecrated Weapon|r.",
+          "description": "Consecrates the land beneath the Paladin, doing ${8*($m1+0.04*$SPH+0.04*$AP)} Holy damage over $d to enemies and grants its caster $965903s1% Strength and other allies 5% Strength while standing within 8 yards. Overlapping Consecrated Grounds grant only the strongest bonus. Grants |cFFFFFFFFConsecrated Weapon|r."
+        }
+      },
+      "expected_description": "Consecrates the land beneath the Paladin, doing ${8*($m1+0.04*$SPH+0.04*$AP)} Holy damage over $d to enemies and increases your strength by $965903s1% and strength of your allies by 5%. Grants |cFFFFFFFFConsecrated Weapon|r.",
+      "description": "Consecrates the land beneath the Paladin, doing ${8*($m1+0.04*$SPH+0.04*$AP)} Holy damage over $d to enemies and grants its caster $965903s1% Strength and other allies 5% Strength while standing within 8 yards. Overlapping Consecrated Grounds grant only the strongest bonus. Grants |cFFFFFFFFConsecrated Weapon|r."
+    },
+    "977848": {
+      "archives": {
+        "patch-D.MPQ": {
+          "expected_description": "Converts $977848s2% of your Strength into Armor Penetration rating and Critical Strike Rating. Melee abilities have a chance to strike the enemy for additional Physical damage. This triggers Seal of Command. Does not stack with other temporary weapon enchants.",
+          "description": "Converts $s2% of your Strength into Armor Penetration rating and Critical Strike Rating. Melee ability hits can strike the enemy for additional Physical damage at 12 procs per minute, with a 0.75-second internal cooldown. This triggers Seal of Command. Ordinary auto-attacks, ranged attacks and periodic damage cannot trigger this effect. Does not stack with other temporary weapon enchants."
+        },
+        "patch-E.MPQ": {
+          "expected_description": "Converts $977848s2% of your Strength into Armor Penetration rating and Critical Strike Rating. Melee abilities have a chance to strike the enemy for additional Physical damage. This triggers Seal of Command. Does not stack with other temporary weapon enchants.",
+          "description": "Converts $s2% of your Strength into Armor Penetration rating and Critical Strike Rating. Melee ability hits can strike the enemy for additional Physical damage at 12 procs per minute, with a 0.75-second internal cooldown. This triggers Seal of Command. Ordinary auto-attacks, ranged attacks and periodic damage cannot trigger this effect. Does not stack with other temporary weapon enchants."
+        }
+      },
+      "expected_description": "Converts $977848s2% of your Strength into Armor Penetration rating and Critical Strike Rating. Melee abilities have a chance to strike the enemy for additional Physical damage. This triggers Seal of Command. Does not stack with other temporary weapon enchants.",
+      "description": "Converts $s2% of your Strength into Armor Penetration rating and Critical Strike Rating. Melee ability hits can strike the enemy for additional Physical damage at 12 procs per minute, with a 0.75-second internal cooldown. This triggers Seal of Command. Ordinary auto-attacks, ranged attacks and periodic damage cannot trigger this effect. Does not stack with other temporary weapon enchants."
+    }
+  },
+  "numeric_dbc_changes": [
+    {
+      "archive": "patch-D.MPQ",
+      "spell_id": 955015,
+      "field": 81,
+      "field_name": "EffectBasePoints[1]",
+      "expected": 9,
+      "value": 7,
+      "reason": "Halo8% all-rank normalization; native effect adds1."
+    },
+    {
+      "archive": "patch-E.MPQ",
+      "spell_id": 955015,
+      "field": 81,
+      "field_name": "EffectBasePoints[1]",
+      "expected": 9,
+      "value": 7,
+      "reason": "Halo8% all-rank normalization; native effect adds1."
+    },
+    {
+      "archive": "patch-D.MPQ",
+      "spell_id": 955016,
+      "field": 81,
+      "field_name": "EffectBasePoints[1]",
+      "expected": 9,
+      "value": 7,
+      "reason": "Halo8% all-rank normalization; native effect adds1."
+    },
+    {
+      "archive": "patch-E.MPQ",
+      "spell_id": 955016,
+      "field": 81,
+      "field_name": "EffectBasePoints[1]",
+      "expected": 9,
+      "value": 7,
+      "reason": "Halo8% all-rank normalization; native effect adds1."
+    }
+  ],
+  "reviewed_no_description_change": {
+    "Power of Light853510-853513": "Current primary-stat requirement tag, AP healing/meleecrit/self-cast mana wording match repairs.",
+    "Swift parents53379/53484/53648": "Correct; copiedFlurry helpers corrected.",
+    "Fanaticism31882": "Current10%Sealmark correct.",
+    "Halo actives": "Parent8%tokens correct; recipient955015/955016numericfields corrected.",
+    "Body and Soul/Improved Judgements/Righteous Vengeance/Wise": "Mechanics restore existingtext."
+  },
+  "uncertainties": [
+    "Server routingmetadata not mirrored into client without demonstratedneed.",
+    "Ground965903sharedauraamount differsperrecipient; explicit12%owner/5%allies text avoids misleading$s1."
+  ],
+  "final_scope": "Guarded descriptions, numeric Halo fields and Verified labels installed on Development; Cloud launcher delivery pending; Certified preserved"
+}

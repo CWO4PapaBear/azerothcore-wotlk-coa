@@ -1141,7 +1141,8 @@ class spell_pri_body_and_soul : public AuraScript
     bool CheckProcTriggerSpell(AuraEffect const* /*aurEff*/, ProcEventInfo& eventInfo)
     {
         SpellInfo const* spellInfo = eventInfo.GetSpellInfo();
-        return spellInfo && (spellInfo->SpellFamilyFlags[0] & 0x00000001) != 0;
+        return spellInfo && ((spellInfo->SpellFamilyFlags[0] & 0x00000001) != 0 ||
+            (AscensionFreePick::Applies(GetTarget()->ToPlayer()) && spellInfo->Id == 86381));
     }
 
     bool CheckProcDummy(AuraEffect const* /*aurEff*/, ProcEventInfo& eventInfo)

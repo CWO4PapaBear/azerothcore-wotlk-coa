@@ -16,6 +16,9 @@
 #include <set>
 #include "Random.h"
 #include "Player.h"
+#include "Item.h"
+#include "Area52ConsecratedGround.h"
+#include "GameTime.h"
 #include "ScriptMgr.h"
 #include "Spell.h"
 #include "SpellAuraEffects.h"
@@ -123,6 +126,10 @@ void Synchronize(Player* player)
 }
 #include "Area52GlacialLight.inc"
 #include "Area52StayFrosty.inc"
+#include "Area52WardOfLight.inc"
+#include "Area52SchoolExchange.inc"
+#include "Area52ConsecratedWeapon.inc"
+#include "Area52ConsecratedStrikes.inc"
 #include "Area52CosmicReprisal.inc"
 #include "Area52Worldforged.inc"
 class EpicWorld final : public WorldScript
@@ -155,6 +162,8 @@ public:
             return;
         ConfigureNimbleMind(info);
         ConfigureStayFrosty(info);
+        ConfigureWardOfLight(info);
+        ConfigureConsecratedStrikes(info);
         ConfigureCosmicReprisal(info);
         ConfigureWorldforged(info);
         if (info->Id == 983723)
@@ -634,6 +643,16 @@ void AddAscensionMysticKnightEpicScripts()
     new EpicWorld();
     new GlacialLightSpells();
     new StayFrostyCasts();
+    new ConsecratedStrikesCasts();
+    ConsecratedStrikesRegistered = true;
+    new ConsecratedWeaponHits();
+    ConsecratedWeaponRegistered = true;
+    new SchoolExchangeCasts();
+    new SchoolExchangeLifecycle();
+    SchoolExchangeRegistered = true;
+    new WardOfLightCasts();
+    new WardOfLightAuras();
+    WardOfLightRegistered = true;
     new WorldforgedAuras();
     WorldforgedRegistered = true;
     new StayFrostyProcs();
@@ -672,6 +691,13 @@ void AddAscensionMysticKnightEpicScripts()
 
 bool HasArea52EpicEquipmentHandlers(uint32 spell)
 {
+    if (spell == 965295)
+        return ConsecratedStrikesReady();
+    for (auto const& entry : SchoolExchanges)
+        if (entry.enchant == spell)
+            return SchoolExchangeReady(spell);
+    if (spell == WardOfLight)
+        return Enabled && WardOfLightRegistered && sSpellMgr->GetSpellInfo(WardOfLightProtection);
     if (Area52Worldforged::Find(spell))
         return Enabled && WorldforgedRegistered;
     if (Enabled && spell == 414032)

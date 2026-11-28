@@ -16,9 +16,6 @@ s = (r / 'src/server/game/Spells/SpellMgr.cpp').read_text()
 proc = block(s, '    if ((spellId == 29723')
 a = (r / 'src/server/game/Spells/Auras/SpellAuras.cpp').read_text()
 guard = block(a, '    if ((GetId() == 46913')
-cooldown=block(a,'void Aura::AddProcCooldown(SpellProcEntry const*').replace('Aura::','')
-cooldown_check=block(a,'bool Aura::IsProcOnCooldown(').replace('Aura::','')
-
 p = (r / 'src/server/game/Entities/Player/Player.cpp').read_text()
 x = p.index('                if ((mod->spellId == 20502')
 y = p.index('                    percent *= 2;', x) + len('                    percent *= 2;')
@@ -31,22 +28,20 @@ assert c.index('if (area52ExecuteCapstone && scriptDamageResult)',y)>c.index('ca
 
 code = r"""
 #include <array>
-#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <map>
 #include <set>
-using uint32=unsigned;using int32=int;using TimePoint=std::chrono::steady_clock::time_point;
+using uint32=unsigned;
 using Milliseconds=std::chrono::milliseconds;
 @@ENUMS@@
-enum { EFFECT_1=1, EFFECT_2=2, DOT=2, SPELLMOD_DAMAGE=0, SPELLMOD_DURATION=1, UNIT_AURA_TYPE=1, CHEAT_COOLDOWN=1 };
+enum { EFFECT_1=1, EFFECT_2=2, DOT=2, SPELLMOD_DAMAGE=0 };
 struct Player;
 namespace AscensionFreePick { bool enabled=true; bool Enabled(){return enabled;} bool Applies(Player*){return enabled;} }
 struct SpellProcEntry { unsigned ProcFlags{},SpellTypeMask{},SpellPhaseMask{},HitMask{},AttributesMask{},DisableEffectsMask{}; float Chance{}; Milliseconds Cooldown{}; };
 bool GetSpellInfo(unsigned){return true;}
 SpellProcEntry const* lookup(unsigned spellId){@@PROC@@ return nullptr;}
-struct Player { bool GetCommandStatus(int){return false;}void ApplySpellMod(unsigned,int,int&){} std::map<unsigned,unsigned> origins; bool HasActiveSpell(unsigned n){return origins.count(n);} bool MatchesSpellInteraction(unsigned n,unsigned root){return n==root || origins[n]==root;} Player* ToPlayer(){return this;} };
-struct CooldownAura { unsigned id=29723;Player player;TimePoint m_procCooldown{};unsigned GetId(){return id;}unsigned GetType() const{return UNIT_AURA_TYPE;}Player* GetUnitOwner() const{return const_cast<Player*>(&player);}void AddProcCooldown(TimePoint end){m_procCooldown=end;}@@COOLDOWN@@ @@COOLDOWN_CHECK@@ };
+struct Player { std::map<unsigned,unsigned> origins; bool HasActiveSpell(unsigned n){return origins.count(n);} bool MatchesSpellInteraction(unsigned n,unsigned root){return n==root || origins[n]==root;} Player* ToPlayer(){return this;} };
 struct SpellInfo { unsigned Id; };
 struct DamageInfo { unsigned amount=10,type=0; unsigned GetDamage() const{return amount;} unsigned GetDamageType() const{return type;} };
 struct Event { Player* actor; DamageInfo* damage; SpellInfo* spell; Player* GetActor(){return actor;} DamageInfo* GetDamageInfo(){return damage;} SpellInfo* GetSpellInfo(){return spell;} };
@@ -61,7 +56,6 @@ int main(){
  unsigned ids[]={29723,29725,29724,46913,46914,46915};
  unsigned chances[]={4,8,12,33,66,100};
  for(unsigned i=0;i<6;++i){auto e=lookup(ids[i]);assert(e&&e->Chance==chances[i]);assert(e->Cooldown.count()==6000);assert(e->SpellPhaseMask==PROC_SPELL_PHASE_HIT);assert(e->DisableEffectsMask==6);assert(!(e->ProcFlags&PROC_FLAG_DONE_PERIODIC));assert(!(e->HitMask&PROC_HIT_MISS));}
- CooldownAura timer;TimePoint now{};for(auto id:ids){timer.id=id;timer.AddProcCooldown(lookup(id),now);assert(timer.IsProcOnCooldown(now));assert(timer.IsProcOnCooldown(now+Milliseconds(5999)));assert(!timer.IsProcOnCooldown(now+Milliseconds(6000)));}
  AscensionFreePick::enabled=false;for(auto id:ids)assert(!lookup(id));AscensionFreePick::enabled=true;
  Player p,foreign;App app{&p};DamageInfo damage;SpellInfo spell{12294};Event event{&p,&damage,&spell};
  for(unsigned id:{46913u,46914u,46915u}){Aura aura{id};for(unsigned root:{12294u,5308u,20647u,1464u,1680u,954836u,20252u,20253u}){spell.Id=root;assert(aura.test(&app,event));p.origins[999]=root;spell.Id=999;assert(aura.test(&app,event));}spell.Id=23881;assert(!aura.test(&app,event));spell.Id=954288;assert(!aura.test(&app,event));p.origins[954256]=20252;assert(aura.test(&app,event));p.origins.erase(954256);event.actor=&foreign;assert(!aura.test(&app,event));event.actor=&p;spell.Id=12294;damage.amount=0;assert(!aura.test(&app,event));damage.amount=10;damage.type=DOT;assert(!aura.test(&app,event));damage.type=0;}
@@ -69,10 +63,10 @@ int main(){
  ModifierPlayer m;Victim v;unsigned talent[]={20502,20503,820503};for(unsigned i=0;i<3;++i){Mod mod{talent[i],SPELLMOD_DAMAGE,int(4*(i+1))};v.hp=19;assert(m.percent(&mod,&v,20647)==int(8*(i+1)));v.hp=20;assert(m.percent(&mod,&v,20647)==int(4*(i+1)));v.hp=19;assert(m.percent(&mod,&v,23881)==mod.value);AscensionFreePick::enabled=false;assert(m.percent(&mod,&v,20647)==mod.value);AscensionFreePick::enabled=true;}
 }
 """
-for key,value in [('ENUMS',enums),('PROC',proc),('GUARD',guard),('MODIFIER',modifier),('CAPSTONE',capstone),('COOLDOWN',cooldown),('COOLDOWN_CHECK',cooldown_check)]:
+for key,value in [('ENUMS',enums),('PROC',proc),('GUARD',guard),('MODIFIER',modifier),('CAPSTONE',capstone)]:
     code=code.replace('@@'+key+'@@',value)
 with tempfile.TemporaryDirectory() as d:
     path=Path(d);(path/'test.cpp').write_text(code)
     subprocess.run(['c++','-std=c++20',str(path/'test.cpp'),'-o',str(path/'test')],check=True)
     subprocess.run([str(path/'test')],check=True)
-print('PASS extracted native rank proc configuration, Area52 isolation, hit-helper admission, owner/damage exclusions and Execute modifier threshold. Native six-second cooldown boundary passes; full actor/storage engines remain adapters.')
+print('PASS extracted native rank proc configuration, Area52 isolation, hit-helper admission, owner/damage exclusions and Execute modifier threshold. Cooldown execution and full dispatcher covered separately.')

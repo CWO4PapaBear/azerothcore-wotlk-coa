@@ -362,8 +362,10 @@ bool SynchronizeTalentRanks(Player* player)
         }
     for (auto const& [parent, helper] : {std::pair<uint32, uint32>{16256, 16257},
         {16281, 16277}, {16282, 16278}, {30816, 965970}, {30818, 966150}, {30819, 966151},
-        {30664, 412000}, {30665, 412001}, {30666, 412002}})
-        if (!player->HasAura(parent) && player->HasAura(helper, player->GetGUID()))
+        {30664, 412000}, {30665, 412001}, {30666, 412002},
+        {209452, 200067}, {53379, 853379}, {53484, 853484}, {53648, 853648}, {25958, 825958},
+        {53379, 965715}, {53484, 965716}, {53648, 965717}})
+        if (!player->HasAura(parent) && !player->HasSpell(helper) && player->HasAura(helper, player->GetGUID()))
         {
             player->RemoveAurasDueToSpell(helper, player->GetGUID());
             changed = true;

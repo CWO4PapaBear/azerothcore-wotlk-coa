@@ -20,6 +20,7 @@
 #include "../../coa/AscensionMageTalentTargets.h"
 #include "../../coa/AscensionFreePick.h"
 #include "SpellInfo.h"
+#include "../../coa/Area52CrusaderAbilityRules.h"
 #include "../../coa/AscensionMysticEnchant.h"
 #include "Chat.h"
 #include "ConditionMgr.h"
@@ -1697,6 +1698,9 @@ bool SpellInfo::IsAffectedBySpellMod(SpellModifier const* mod) const
         (mod->op == SPELLMOD_DAMAGE || mod->op == SPELLMOD_EFFECT1 ||
          mod->op == SPELLMOD_ALL_EFFECTS || mod->op == SPELLMOD_BONUS_MULTIPLIER))
         return true;
+
+    if (AscensionFreePick::Enabled() && mod->spellId == 954879 && !mod->mask)
+        return Area52CrusaderAbility::IsHaloDistanceTarget(Id);
 
     if (AscensionFreePick::Enabled() && !mod->mask)
     {

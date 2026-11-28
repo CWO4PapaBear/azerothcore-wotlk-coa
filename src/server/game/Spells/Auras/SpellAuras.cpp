@@ -20,6 +20,8 @@
 #include "CellImpl.h"
 #include "Common.h"
 #include "GameTime.h"
+#include "Item.h"
+#include "../../../coa/AscensionMysticEnchantCatalog.h"
 #include "GridNotifiers.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
@@ -2289,6 +2291,30 @@ uint8 Aura::GetProcEffectMask(AuraApplication* aurApp, ProcEventInfo& eventInfo,
             !(eventInfo.GetHitMask() & PROC_HIT_CRITICAL))
             return 0;
 
+    SpellProcEntry consecratedSealProc;
+    if (GetId() == 20375)
+    {
+        Player* player = aurApp->GetTarget()->ToPlayer();
+        SpellInfo const* source = eventInfo.GetSpellInfo();
+        Spell const* cast = eventInfo.GetProcSpell();
+        DamageInfo const* damage = eventInfo.GetDamageInfo();
+        if (AscensionFreePick::Applies(player) && eventInfo.GetActor() == player && source && source->Id == 977827 &&
+            cast && cast->m_CastItem && cast->GetTriggeredByAuraSpellInfo() &&
+            cast->GetTriggeredByAuraSpellInfo()->Id == 977848 && damage && damage->GetDamage() &&
+            damage->GetDamageType() != DOT && player->HasAura(977848, player->GetGUID()) &&
+            AscensionMysticEnchant::GrantsActive(player, 965295) &&
+            cast->m_CastItem->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT) == 45 &&
+            (player->GetWeaponForAttack(BASE_ATTACK, true) == cast->m_CastItem ||
+             player->GetWeaponForAttack(OFF_ATTACK, true) == cast->m_CastItem))
+        {
+            consecratedSealProc = *procEntry;
+            consecratedSealProc.SpellFamilyMask = flag96();
+            consecratedSealProc.ProcFlags = PROC_FLAG_DONE_SPELL_MELEE_DMG_CLASS;
+            consecratedSealProc.AttributesMask |= PROC_ATTR_TRIGGERED_CAN_PROC;
+            procEntry = &consecratedSealProc;
+        }
+    }
+
     // check spell triggering us
     if (Spell const* spell = eventInfo.GetProcSpell())
     {
@@ -2355,6 +2381,23 @@ uint8 Aura::GetProcEffectMask(AuraApplication* aurApp, ProcEventInfo& eventInfo,
             area52OverloadProc.SpellFamilyMask = flag96(0, 0, 0);
             procEntry = &area52OverloadProc;
         }
+    SpellProcEntry area52UnsealedProc;
+    if (eventSpell && GetSpellInfo()->GetSpellSpecific() == SPELL_SPECIFIC_SEAL)
+        if (Player* actor = eventInfo.GetActor() ? eventInfo.GetActor()->ToPlayer() : nullptr;
+            AscensionFreePick::Applies(actor) && actor == GetCaster() && actor == aurApp->GetTarget() &&
+            actor->HasAura(25958) && actor->HasAura(825958, actor->GetGUID()) &&
+            (actor->MatchesSpellInteraction(eventSpell->Id, 585) ||
+                actor->MatchesSpellInteraction(eventSpell->Id, 14914)))
+            if (DamageInfo const* damage = eventInfo.GetDamageInfo(); damage && damage->GetDamage() &&
+                damage->GetDamageType() == SPELL_DIRECT_DAMAGE && eventInfo.GetActionTarget() != actor &&
+                eventInfo.GetProcSpell() && !eventInfo.GetProcSpell()->IsTriggered())
+            {
+                area52UnsealedProc = *procEntry;
+                area52UnsealedProc.SpellFamilyName = 0;
+                area52UnsealedProc.SpellFamilyMask = flag96(0, 0, 0);
+                area52UnsealedProc.ProcFlags |= PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG;
+                procEntry = &area52UnsealedProc;
+            }
     if (!sSpellMgr->CanSpellTriggerProcOnEvent(*procEntry, eventInfo))
         return 0;
 

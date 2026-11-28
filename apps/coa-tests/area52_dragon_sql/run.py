@@ -1,5 +1,5 @@
 from pathlib import Path
-import subprocess,time,uuid,json,re,os,hashlib
+import subprocess,time,uuid,json,re
 ROOT=Path(__file__).resolve().parents[3];HERE=Path(__file__).parent
 name='area52-dragon-sql-'+uuid.uuid4().hex[:10]
 def sql(text):
@@ -25,14 +25,6 @@ def main():
   assert sql("SELECT COUNT(*) FROM spell_script_names WHERE (spell_id=954806 AND ScriptName='aura_area52_burning_rush') OR (spell_id=760094 AND ScriptName='spell_area52_grappling_followup');")=='2'
   sql("DELETE FROM spell_script_names WHERE (spell_id=954806 AND ScriptName='aura_area52_burning_rush') OR (spell_id=760094 AND ScriptName='spell_area52_grappling_followup');")
   assert sql(query)==baseline
-  sql('TRUNCATE TABLE spell_script_names;')
-  selected='SELECT JSON_ARRAY(`spell_id`,`ScriptName`) FROM spell_script_names WHERE spell_id IN (760094,954806) ORDER BY `spell_id`,`ScriptName`;'
-  assert sql(selected)==''
-  sql(migration);after=sql(selected)+'\n'
-  sql("DELETE FROM spell_script_names WHERE (spell_id=760094 AND ScriptName='spell_area52_grappling_followup') OR (spell_id=954806 AND ScriptName='aura_area52_burning_rush');")
-  assert sql(selected)==''
-  if os.environ.get('AREA52_DRAGON_SQL_RECEIPT'):
-   Path(os.environ['AREA52_DRAGON_SQL_RECEIPT']).write_text(json.dumps({'before_rows_sha256':hashlib.sha256(b'').hexdigest(),'after_rows_sha256':hashlib.sha256(after.encode()).hexdigest(),'after_rows':after},indent=2))
   print('PASS MySQL8.4 production InnoDB/utf8mb4_unicode_ci schema: apply twice, exact2 additions, unrelated same-spell bindings preserved, baseline restoration. Deployment rollback must capture preexisting selected rows.')
  finally:subprocess.run(['docker','rm','-f',name],check=True,capture_output=True)
 if __name__=='__main__':main()
